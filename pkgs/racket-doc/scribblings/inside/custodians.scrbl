@@ -4,28 +4,25 @@
 
 @bc-title[#:tag "Custodians"]{Custodians}
 
-When an extension allocates resources that must be explicitly freed
-(in the same way that a port must be explicitly closed), a Racket
-object associated with the resource should be placed into the
-management of the current custodian with @cppi{scheme_add_managed}.
+当扩展分配必须显式释放的资源时（与必须显式关闭的 port 一样），
+应在当前 custodian 的管理下放置一个与该资源关联的 Racket 对象，
+调用 @cppi{scheme_add_managed}。
 
-Before allocating the resource, call
-@cppi{scheme_custodian_check_available} to ensure that the relevant
-custodian is not already shut down. If it is,
-@cpp{scheme_custodian_check_available} will raise an exception.  If
-the custodian is shut down when @cpp{scheme_add_managed} is called,
-the close function provided to @cpp{scheme_add_managed} will be called
-immediately, and no exception will be reported.
+在分配资源之前，应调用 @cppi{scheme_custodian_check_available}
+以确保相关 custodian 尚未关闭。如果已关闭，
+@cpp{scheme_custodian_check_available} 将引发异常。
+如果在调用 @cpp{scheme_add_managed} 时 custodian 已关闭，
+则提供给 @cpp{scheme_add_managed} 的 close function 将被立即调用，
+并且不会报告任何异常。
 
 @; ----------------------------------------------------------------------
 
 @function[(Scheme_Custodian* scheme_make_custodian
            [Scheme_Custodian* m])]{
 
-Creates a new custodian as a subordinate of @var{m}. If @var{m} is
- @cpp{NULL}, then the main custodian is used as the new custodian's
- supervisor. Do not use @cpp{NULL} for @var{m} unless you intend to
- create an especially privileged custodian.}
+创建一个作为 @var{m} 下级的新 custodian。如果 @var{m} 为 @cpp{NULL}，
+则使用 main custodian 作为新 custodian 的 supervisor。
+除非你打算创建一个特别受信任的 custodian，否则不要对 @var{m} 使用 @cpp{NULL}。}
 
 @function[(Scheme_Custodian_Reference* scheme_add_managed
            [Scheme_Custodian* m]
@@ -34,41 +31,34 @@ Creates a new custodian as a subordinate of @var{m}. If @var{m} is
            [void* data]
            [int strong])]{
 
-Places the value @var{o} into the management of the custodian
- @var{m}. If @var{m} is @cpp{NULL}, the current custodian is used.
+将值 @var{o} 放入 custodian @var{m} 的管理之下。如果 @var{m} 为 @cpp{NULL}，
+则使用当前 custodian。
 
-The @var{f} function is called by the custodian if it is ever asked to
-``shutdown'' its values; @var{o} and @var{data} are passed on to
-@var{f}, which has the type
+@var{f} 函数由 custodian 调用，当其被要求"shutdown"其值时；
+@var{o} 和 @var{data} 将被传递给 @var{f}，它的类型为
 
 @verbatim{
 typedef void (*Scheme_Close_Custodian_Client)(Scheme_Object *o, 
                                               void *data);
 }
 
-If @var{strong} is non-zero, then the newly managed value will
-be remembered until either the custodian shuts it down or
-@cpp{scheme_remove_managed} is called. If @var{strong} is
-zero, the value is allowed to be garbage collected (and automatically
-removed from the custodian).
+如果 @var{strong} 非零，则新托管值将一直保留，直到 custodian 将其关闭
+或调用 @cpp{scheme_remove_managed}。如果 @var{strong} 为零，
+该值允许被垃圾收集（并自动从 custodian 中移除）。
 
-Independent of whether @var{strong} is zero, the value @var{o}
-is initially weakly held and becomes strongly held when
-the garbage collector attempts to collect it. A value
-associated with a custodian can therefore be finalized via
-will executors.
+无论 @var{strong} 是否为零，值 @var{o} 最初被弱引用持有，
+并在垃圾收集器尝试收集它时变为强引用持有。因此，
+与 custodian 关联的值可以通过 will executors 进行终结。
 
-The return value from @cpp{scheme_add_managed} can be used to refer
-to the value's custodian later in a call to
-@cpp{scheme_remove_managed}. A value can be registered with at
-most one custodian.
+@cpp{scheme_add_managed} 的返回值可用于在后续调用
+@cpp{scheme_remove_managed} 中引用该值的 custodian。
+一个值最多只能在一个 custodian 中注册。
 
-If @var{m} (or the current custodian if @var{m} is @cpp{NULL}) is shut
-down, then @var{f} is called immediately, and the result is
-@cpp{NULL}.
+如果 @var{m}（或当前 custodian，当 @var{m} 为 @cpp{NULL} 时）已关闭，
+则 @var{f} 会立即被调用，结果为 @cpp{NULL}。
 
-See also @racket[register-custodian-shutdown] from
-@racketmodname[ffi/unsafe/custodian].}
+另请参见 @racket[register-custodian-shutdown]（来自
+@racketmodname[ffi/unsafe/custodian]）。}
 
 @function[(Scheme_Custodian_Reference* scheme_add_managed_close_on_exit
            [Scheme_Custodian* m]
@@ -76,44 +66,40 @@ See also @racket[register-custodian-shutdown] from
            [Scheme_Close_Custodian_Client* f]
            [void* data])]{
 
-Like @cpp{scheme_add_managed} with a @cpp{1} final argument, but also
-causes @var{f} to be called when Racket exists without an explicit
-custodian shutdown.}
+类似于以 @cpp{1} 作为最终参数调用 @cpp{scheme_add_managed}，
+但也会在 Racket 退出时（无需显式 custodian shutdown）导致 @var{f} 被调用。}
 
 @function[(void scheme_custodian_check_available
            [Scheme_Custodian* m]
            [const-char* name]
            [const-char* resname])]{
 
-Checks whether @var{m} is already shut down, and raises an error if
-  so.  If @var{m} is @cpp{NULL}, the current custodian is used. The
-  @var{name} argument is used for error reporting. The @var{resname}
-  argument will likely be used for checking pre-set limits in the
-  future; pre-set limits will have symbolic names, and the
-  @var{resname} string will be compared to the symbols.}
+检查 @var{m} 是否已关闭，如果是则引发错误。
+如果 @var{m} 为 @cpp{NULL}，则使用当前 custodian。
+@var{name} 参数用于错误报告。@var{resname} 参数将来可能
+用于检查预设限制；预设限制将具有符号名称，
+@var{resname} 字符串将与这些符号进行比较。}
 
 @function[(void scheme_remove_managed
            [Scheme_Custodian_Reference* mref]
            [Scheme_Object* o])]{
 
-Removes @var{o} from the management of its custodian. The @var{mref}
- argument must be a value returned by @cpp{scheme_add_managed} or
- @cpp{NULL}.
+从其 custodian 的管理中移除 @var{o}。@var{mref} 参数必须是
+@cpp{scheme_add_managed} 返回的值或 @cpp{NULL}。
 
-See also @racket[unregister-custodian-shutdown] from
-@racketmodname[ffi/unsafe/custodian].}
+另请参见 @racket[unregister-custodian-shutdown]（来自
+@racketmodname[ffi/unsafe/custodian]）。}
 
 @function[(void scheme_close_managed
            [Scheme_Custodian* m])]{
 
-Instructs the custodian @var{m} to shutdown all of its managed values.}
+指示 custodian @var{m} 关闭其所有托管值。}
 
 @function[(void scheme_add_atexit_closer
            [Scheme_Exit_Closer_Func f])]{
 
-Installs a function to be called on each custodian-registered item and
- its closer when Racket is about to exit. The registered function
- has the type
+安装一个函数，在 Racket 即将退出时对每个 custodian 注册的项目及其 closer 调用。
+注册的函数具有类型
 
 @verbatim[#:indent 2]{
   typedef
@@ -122,27 +108,23 @@ Installs a function to be called on each custodian-registered item and
                                   void *d);
 }
 
-where @var{d} is the second argument for @var{f}.
+其中 @var{d} 是 @var{f} 的第二个参数。
 
-At-exit functions are run in reverse of the order that they are
-added. An at-exit function is initially registered (and therefore runs
-last) that flushes each file-stream output port and calls every
-function registered with @cpp{scheme_add_managed_close_on_exit}.
+退出函数按添加顺序的反序运行。一个初始注册的退出函数
+（因此最后运行）会刷新每个 file-stream output port 并调用每个使用
+@cpp{scheme_add_managed_close_on_exit} 注册的函数。
 
-An at-exit function should not necessarily apply the closer function
-for every object that it is given. In particular, shutting down a
-file-stream output port would disable the flushing action of the final
-at-exit function. Typically, an at-exit function ignores most objects
-while handling a specific type of object that requires a specific
-clean-up action before the OS-level process terminates.}
+退出函数不应为每个给定的对象都应用 closer function。
+特别是，关闭 file-stream output port 将会禁用最终退出函数的刷新操作。
+通常，退出函数会忽略大多数对象，而处理需要特定清理操作的
+特定类型对象，在 OS 级 process 终止之前。}
 
 @function[(int scheme_atexit
                [Exit_Func func])]{
-                              
- Identical to calling the system's @cpp{atexit} function.
- Provided to give programs a common interface, different
- systems link to @cpp{atexit} in different ways. The type of
- @var{func} must be:
+
+等同于调用系统的 @cpp{atexit} 函数。
+提供此函数是为了给程序一个公共接口，不同系统以不同方式链接到 @cpp{atexit}。
+@var{func} 的类型必须是：
 
  @verbatim[#:indent 2]{
   typedef void (*func)(void);

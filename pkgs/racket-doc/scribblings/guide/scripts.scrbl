@@ -1,30 +1,24 @@
 #lang scribble/doc
 @(require scribble/manual scheme/cmdline "guide-utils.rkt")
 
-@title[#:tag "scripts"]{Scripts}
+@title[#:tag "scripts"]{脚本}
 
-Racket files can be turned into executable scripts on Unix and Mac
-OS.  On Windows, a compatibility layer like Cygwin support the
-same kind of scripts, or scripts can be implemented as batch files.
+Racket 文件可以在 Unix 和 Mac OS 上转换为可执行脚本。在 Windows 上，
+像 Cygwin 这样的兼容层支持同类型的脚本，或者脚本可以实现为批处理文件。
 
-@section{Unix Scripts}
+@section{Unix 脚本}
 
-In a Unix environment (including Linux and Mac OS), a Racket file can
-be turned into an executable script using the shell's @as-index{@tt{#!}}
-convention. The first two characters of the file must be @litchar{#!};
-the next character must be either a space or @litchar{/}, and the
-remainder of the first line must be a command to execute the script. For
-some platforms, the total length of the first line is restricted to 32
-characters, and sometimes the space is required.
+在 Unix 环境（包括 Linux 和 Mac OS）中，可以使用 shell 的 @as-index{@tt{#!}} 约定
+将 Racket 文件转换为可执行脚本。文件的前两个字符必须是 @litchar{#!}；
+下一个字符必须是空格或 @litchar{/}，第一行的其余部分必须是执行脚本的命令。
+对于某些平台，第一行的总长度限制为 32 个字符，有时要求有空格。
 
-@margin-note{Use @racketmodfont{#lang} @racketmodname[racket/base] instead
-of @racketmodfont{#lang} @racketmodname[racket] to produce scripts with a
-faster startup time.}
+@margin-note{使用 @racketmodfont{#lang} @racketmodname[racket/base] 而不是
+@racketmodfont{#lang} @racketmodname[racket] 来生成具有更快启动时间的脚本。}
 
-The simplest script format uses an absolute path to a @exec{racket}
-executable followed by a module declaration. For example, if
-@exec{racket} is installed in @filepath{/usr/local/bin}, then a file
-containing the following text acts as a ``hello world'' script:
+最简单的脚本格式使用 @exec{racket} 可执行文件的绝对路径，后跟模块声明。
+例如，如果 @exec{racket} 安装在 @filepath{/usr/local/bin}，则包含以下内容的文件
+充当"hello world"脚本：
 
 @verbatim[#:indent 2]{
   #! /usr/local/bin/racket
@@ -32,20 +26,17 @@ containing the following text acts as a ``hello world'' script:
   "Hello, world!"
 }
 
-In particular, if the above is put into a file @filepath{hello} and
-the file is made executable (e.g., with @exec{chmod a+x hello}), then
-typing @exec{./hello} at the shell prompt produces the output
-@tt{"Hello, world!"}.
+特别是，如果将上述内容放入文件 @filepath{hello} 中并使该文件可执行
+（例如，使用 @exec{chmod a+x hello}），则在 shell 提示符下键入 @exec{./hello}
+会产生输出 @tt{"Hello, world!"}。
 
-The above script works because the operating system automatically puts
-the path to the script as the argument to the program started by the
-@tt{#!} line, and because @exec{racket} treats a single non-flag
-argument as a file containing a module to run.
+上述脚本有效是因为操作系统会自动将脚本路径作为参数传递给
+由 @tt{#!} 行启动的进程，并且因为 @exec{racket} 将单个非标志参数
+视为要运行的包含模块的文件。
 
-Instead of specifying a complete path to the @exec{racket}
-executable, a popular alternative is to require that @exec{racket}
-is in the user's command path, and then ``trampoline'' using
-@exec{/usr/bin/env}:
+不指定完整路径到 @exec{racket} 可执行文件，一种流行的替代方案是
+要求 @exec{racket} 位于用户命令路径中，然后使用 @exec{/usr/bin/env}
+来"蹦床"执行：
 
 @verbatim[#:indent 2]{
   #! /usr/bin/env racket
@@ -53,25 +44,22 @@ is in the user's command path, and then ``trampoline'' using
   "Hello, world!"
 }
 
-In either case, command-line arguments to a script are available via
-@racket[current-command-line-arguments]:
+在任一种情况下，脚本的命令行参数通过 @racket[current-command-line-arguments]
+可用：
 
 @verbatim[#:indent 2]{
   #! /usr/bin/env racket
   #lang racket/base
-  (printf "Given arguments: ~s\n"
+  (printf "给定参数: ~s\n"
           (current-command-line-arguments))
 }
 
-If the name of the script is needed, it is available via
-@racket[(find-system-path 'run-file)], instead of via
-@racket[(current-command-line-arguments)].
+如果需要脚本的名称，可以通过 @racket[(find-system-path 'run-file)] 获取，
+而不是通过 @racket[(current-command-line-arguments)]。
 
-Usually, the best way to handle command-line arguments is to parse
-them using the @racket[command-line] form provided by
-@racketmodname[racket]. The @racket[command-line] form extracts
-command-line arguments from @racket[(current-command-line-arguments)]
-by default:
+通常，处理命令行参数的最佳方法是使用 @racketmodname[racket] 提供的
+@racket[command-line] 形式进行解析。@racket[command-line] 形式默认从
+@racket[(current-command-line-arguments)] 提取命令行参数：
 
 @verbatim[#:indent 2]{
   #! /usr/bin/env racket
@@ -91,67 +79,47 @@ by default:
           (if (verbose?) " to you, too!" ""))
 }
 
-Try running the above script with the @DFlag{help} flag to see what
-command-line arguments are allowed by the script.
+尝试使用 @DFlag{help} 标志运行以上脚本，查看脚本允许哪些命令行参数。
 
-An even more general trampoline uses @exec{/bin/sh} plus some lines
-that are comments in one language and expressions in the other. This
-trampoline is more complicated, but it provides more control over
-command-line arguments to @exec{racket}:
+一种更通用的蹦床使用 @exec{/bin/sh} 加上一些在一种语言中作为注释
+在另一种语言中作为表达式的行。此蹦床更复杂，但它对传递给 @exec{racket}
+的命令行参数提供了更多控制：
 
-@verbatim[#:indent 2]|{
+@verbatim[#:indent 2]{
   #! /bin/sh
   #|
-  exec racket -e '(printf "Running...\n")' -u "$0" ${1+"$@"}
+  exec racket -e 'printf "Running...\n"' -u "$0" ${1+"$@"}
   |#
   #lang racket/base
-  (printf "The above line of output had been produced via\n")
-  (printf "a use of the `-e' flag.\n")
-  (printf "Given arguments: ~s\n"
+  (printf "上面的输出行通过\n")
+  (printf "使用 `-e' 标志产生。\n")
+  (printf "给定参数: ~s\n"
           (current-command-line-arguments))
-}|
+}
 
-Note that @litchar{#!} starts a line comment in Racket, and
-@litchar{#|}...@litchar{|#} forms a block comment. Meanwhile,
-@litchar{#} also starts a shell-script comment, while @exec{exec
-racket} aborts the shell script to start @exec{racket}. That way,
-the script file turns out to be valid input to both @exec{/bin/sh} and
-@exec{racket}.
+注意，@litchar{#!} 开始一个 Racket 行注释，且 @litchar{#|}...@litchar{|#}
+形成一个块注释。同时，@litchar{#} 也开始一个 shell 脚本注释，
+而 @exec{exec racket} 中止 shell 脚本以启动 @exec{racket}。这样，
+脚本文件对 @exec{/bin/sh} 和 @exec{racket} 都产生有效输入。
 
-@section{Windows Batch Files}
+@section{Windows 批处理文件}
 
-A similar trick can be used to write Racket code in Windows
-@as-index{@tt{.bat}} batch files:
+类似的技巧可用于在 Windows @as-index{@tt{.bat}} 批处理文件中编写 Racket 代码：
 
-@verbatim[#:indent 2]|{
+@verbatim[#:indent 2]{
   ; @echo off
   ; Racket.exe "%~f0" %*
   ; exit /b
   #lang racket/base
   "Hello, world!"
-  }|
+  }
 
-Newer versions of Windows include the PowerShell scripting language. Using Racket
-through a PowerShell script is a little different than using it in a batch file.  PowerShell
-scripts use a @as-index{@tt{.ps1}} extension:
+Windows 的新版本包括 PowerShell 脚本语言。通过 PowerShell 脚本使用 Racket
+与使用批处理文件略有不同。PowerShell 脚本使用 @as-index{@tt{.ps1}} 扩展名：
 
-@verbatim[#:indent 2]|{
+@verbatim[#:indent 2]{
   ; Racket.exe (Resolve-Path $PSCommandPath) $args
   ; Exit
   #lang racket/base
   "Hello, world!"
-}|
-
-@;{
-Original trick from Ben Goetter, who used:
-
-  ; @echo off && REM -*- racket -*-
-  ; "%RACKET%" "%~f0" %*
-  ; exit /b
-  #lang racket
-  ...
-
-it might be worth documenting the Emacs "-*-" convention and a way to
-set environment variables -- but that would be needed in the unix part
-too.
-;}
+}

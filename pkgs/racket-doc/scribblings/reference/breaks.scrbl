@@ -5,88 +5,59 @@
 
 @section-index["threads" "breaking"]
 
-A @deftech{break} is an asynchronous exception, usually triggered
-through an external source controlled by the user, or through the
-@racket[break-thread] procedure. For example, the user may type Ctl-C
-in a terminal to trigger a break. On some platforms, the Racket
-process may receive @as-index{@tt{SIGINT}}, @as-index{@tt{SIGHUP}},
-or @as-index{@tt{SIGTERM}}; the latter two correspond to hang-up and
-terminate breaks as reflected by @racket[exn:break:hang-up] and
-@racket[exn:break:terminate], respectively. Multiple breaks may be
-collapsed into a single exception, and multiple breaks of different
-kinds may be collapsed to a single ``strongest'' break, where a 
-terminate break is stronger than a hang-up break which is stronger
-than an interrupt break.
+@deftech{break} 是一种异步异常，通常由用户控制的外部源触发，或通过 @racket[break-thread] 过程触发。
+例如，用户可以在终端中输入 Ctl-C 来触发 break。在某些平台上，Racket process 可能接收 @as-index{@tt{SIGINT}}、
+@as-index{@tt{SIGHUP}} 或 @as-index{@tt{SIGTERM}}；后两者对应于挂断和终止 break，分别反映在
+@racket[exn:break:hang-up] 和 @racket[exn:break:terminate] 中。多个 break 可能合并为一个异常，
+且多种类型的 break 可能合并为一个"最强"的 break，其中终止 break 强于挂断 break，
+挂断 break 强于中断 break。
 
-A break exception can only occur in a
-thread while breaks are enabled. When a break is detected and enabled,
-the @racket[exn:break] (or @racket[exn:break:hang-up] or 
-@racket[exn:break:terminate]) exception is raised
-in the thread sometime afterward; if breaking
-is disabled when @racket[break-thread] is called, the break is
-suspended until breaking is again enabled for the thread. While a
-thread has a suspended break, additional breaks are ignored.
+break 异常只能发生在启用了 break 的 thread 中。当检测到 break 且 break 已启用时，
+@racket[exn:break]（或 @racket[exn:break:hang-up] 或 @racket[exn:break:terminate]）
+异常会在该 thread 中的稍后时刻被引发；
+如果当 break 被禁用时调用 @racket[break-thread]，则 break 被挂起，直到 thread 重新启用 break。
+当 thread 有挂起的 break 时，额外的 break 将被忽略。
 
-Breaks are enabled through the @racket[break-enabled] parameter-like
-procedure and through the @racket[parameterize-break] form, which is
-analogous to @racket[parameterize]. The @racket[break-enabled]
-procedure does not represent a parameter to be used with
-@racket[parameterize], because changing the break-enabled state of a
-thread requires an explicit check for breaks, and this check is
-incompatible with the tail evaluation of a @racket[parameterize]
-expression's body.
+break 通过 @racket[break-enabled] parameter-like 过程以及 @racket[parameterize-break] 形式启用，
+该形式类似于 @racket[parameterize]。@racket[break-enabled] 过程不是要通过 @racket[parameterize]
+使用的 parameter，因为更改 thread 的 break 启用的状态需要对 break 进行显式检查，
+且此检查与 @racket[parameterize] 表达式主体的尾部求值不兼容。
 
-Certain procedures, such as @racket[semaphore-wait/enable-break],
-enable breaks temporarily while performing a blocking action. If
-breaks are enabled for a thread, and if a break is triggered for the
-thread but not yet delivered as an @racket[exn:break] exception, then
-the break is guaranteed to be delivered before breaks can be disabled
-in the thread. The timing of @racket[exn:break] exceptions is not
-guaranteed in any other way.
+某些过程（如 @racket[semaphore-wait/enable-break]）在执行阻塞操作时临时启用 break。
+如果 thread 启用了 break，且为该 thread 触发了 break 但尚未作为 @racket[exn:break] 异常传递，
+则保证在 thread 中 break 可以被禁用之前传递此 break。@racket[exn:break] 异常的时间
+不保证任何其他方式。
 
-Before calling a @racket[with-handlers] predicate or handler, an
-exception handler, an error display handler, an error escape handler,
-an error value conversion handler, or a @racket[pre-thunk] or
-@racket[post-thunk] for a @racket[dynamic-wind], the call is
-@racket[parameterize-break]ed to disable breaks. Furthermore, breaks
-are disabled during the transitions among handlers related to
-exceptions, during the transitions between @racket[pre-thunk]s and
-@racket[post-thunk]s for @racket[dynamic-wind], and during other
-transitions for a continuation jump. For example, if breaks are
-disabled when a continuation is invoked, and if breaks are also
-disabled in the target continuation, then breaks will remain disabled
-from the time of the invocation until the target continuation
-executes unless a relevant @racket[dynamic-wind] @racket[pre-thunk] or
-@racket[post-thunk] explicitly enables breaks.
+在调用 @racket[with-handlers] 谓词或处理器之前，或异常处理器、错误显示处理器、
+错误转义处理器、错误值转换处理器之前，或 @racket[dynamic-wind] 的 @racket[pre-thunk]
+或 @racket[post-thunk]，调用会通过 @racket[parameterize-break] 来禁用 break。此外，
+在与异常相关的 handler 转换期间，在 @racket[dynamic-wind] 的 @racket[pre-thunk] 和
+@racket[post-thunk] 之间的转换期间，以及在 continuation 跳跃的其他转换期间禁用 break。
+例如，如果当 continuation 被调用时禁用了 break，且目标 continuation 也禁用了 break，
+则从调用时刻起直到目标 continuation 执行前将保持禁用 break，除非相关
+@racket[dynamic-wind] 的 @racket[pre-thunk] 或 @racket[post-thunk] 显式启用 break。
 
-If a break is triggered for a thread that is blocked on a nested
-thread (see @racket[call-in-nested-thread]), and if breaks are enabled
-in the blocked thread, the break is implicitly handled by transferring
-it to the nested thread.
+如果为阻塞在嵌套 thread 上的 thread 触发了 break
+（参见 @racket[call-in-nested-thread]），且嵌套 thread 中启用了 break，
+则 break 会通过将其转移到嵌套 thread 来隐式处理。
 
-When breaks are enabled, they can occur at any point within execution,
-which makes certain implementation tasks subtle. For example, assuming
-breaks are enabled when the following code is executed,
+当 break 被启用时，它们可以发生在执行期间的任何时刻，这使得某些实现任务变得微妙。
+例如，假设执行以下代码时启用了 break，
 
 @racketblock[
 (with-handlers ([exn:break? (lambda (x) (void))])
   (semaphore-wait s))
 ]
 
-then it is @italic{not} the case that a @|void-const| result means the
-semaphore was decremented or a break was received, exclusively. It is
-possible that @italic{both} occur: the break may occur after the
-semaphore is successfully decremented but before a @|void-const|
-result is returned by @racket[semaphore-wait]. A break exception will
-never damage a semaphore, or any other built-in construct, but many
-built-in procedures (including @racket[semaphore-wait]) contain
-internal sub-expressions that can be interrupted by a break.
+那么 @italic{并非} @|void-const| 结果专指信号量已被递减或接收到 break。
+可能 @italic{两者} 都发生：break 可能发生在信号量成功递减之后但在返回
+@|void-const| 结果之前。break 异常永远不会损害信号量或任何内建构造，
+但许多内建过程（包括 @racket[semaphore-wait]）包含可被 break 中断的内部子表达式。
 
-In general, it is impossible using only @racket[semaphore-wait] to
-implement the guarantee that either the semaphore is decremented or an
-exception is raised, but not both.  Racket therefore supplies
-@racket[semaphore-wait/enable-break] (see @secref["semaphore"]),
-which does permit the implementation of such an exclusive guarantee:
+一般而言，仅使用 @racket[semaphore-wait] 无法实现以下保证：
+要么信号量被递减，要么引发异常，两者不会同时发生。
+因此 Racket 提供了 @racket[semaphore-wait/enable-break]（参见 @secref["semaphore"]），
+它确实实现了这种排他性保证：
 
 @racketblock[
 (parameterize-break #f
@@ -94,16 +65,14 @@ which does permit the implementation of such an exclusive guarantee:
     (semaphore-wait/enable-break s)))
 ]
 
-In the above expression, a break can occur at any point until breaks
-are disabled, in which case a break exception is propagated to the
-enclosing exception handler. Otherwise, the break can only occur
-within @racket[semaphore-wait/enable-break], which guarantees that if
-a break exception is raised, the semaphore will not have been
-decremented.
+在上述表达式中，break 可以发生在禁用 break 之前的任何时刻，
+此时 break 异常会传播到外部异常处理器。否则，break 只能发生在
+@racket[semaphore-wait/enable-break] 内部，它保证如果引发 break 异常，
+信号量不会被递减。
 
-To allow similar implementation patterns over blocking port
-operations, Racket provides @racket[read-bytes-avail!/enable-break],
-@racket[write-bytes-avail/enable-break], and other procedures.
+为了允许在阻塞端口操作上类似的实现模式，
+Racket 提供了 @racket[read-bytes-avail!/enable-break]、
+@racket[write-bytes-avail/enable-break] 和其他过程。
 
 
 @;------------------------------------------------------------------------
@@ -111,43 +80,37 @@ operations, Racket provides @racket[read-bytes-avail!/enable-break],
 @defproc*[([(break-enabled) boolean?]
            [(break-enabled [on? any/c]) void?])]{
 
-Gets or sets the break enabled state of the current thread. If
-@racket[on?] is not supplied, the result is @racket[#t] if breaks are
-currently enabled, @racket[#f] otherwise.  If @racket[on?] is supplied
-as @racket[#f], breaks are disabled, and if @racket[on?] is a true
-value, breaks are enabled.}
+获取或设置当前 thread 的 break 启用状态。如果未提供 @racket[on?]，
+且当前启用了 break，则结果为 @racket[#t]，否则为 @racket[#f]。
+如果提供了 @racket[on?] 且为 @racket[#f]，则禁用 break；如果 @racket[on?] 为真值，则启用 break。}
 
-@defform[(parameterize-break boolean-expr body ...+)]{Evaluates
-@racket[boolean-expr] to determine whether breaks are initially
-enabled while evaluating the @racket[body]s in sequence. The result
-of the @racket[parameterize-break] expression is the result of the last
-@racket[expr].
+@defform[(parameterize-break boolean-expr body ...+)]{对
+@racket[boolean-expr] 求值以确定在顺序求值 @racket[body] 时 break 最初是否启用。
+@racket[parameterize-break] 表达式的结果是最后一个 @racket[expr] 的结果。
 
-As with @racket[parameterize], a fresh @tech{thread cell} is allocated to
-hold the break-enabled state of the continuation, and calls to
-@racket[break-enabled] within the continuation access or modify the
-new cell. Unlike a parameter, a mutation to the break setting via
-@racket[break-enabled] is not inherited by new threads (i.e., the
-thread cell is not @tech{preserved}).}
+与 @racket[parameterize] 类似，分配一个新的 @tech{thread cell} 来保存该 continuation 的
+break 启用状态，在 continuation 内对 @racket[break-enabled] 的调用访问或修改新 cell。
+与 parameter 不同，通过 @racket[break-enabled] 对 break 设置的修改不会
+被新 thread 继承（即 thread cell 不是 @tech{preserved}）。}
  
 @defproc[(current-break-parameterization) break-parameterization?]{
-Analogous to @racket[(current-parameterization)] (see
-@secref["parameters"]); it returns a break parameterization
-(effectively, a thread cell) that holds the current continuation's
-break-enable state.}
+类似于 @racket[(current-parameterization)]（参见
+@secref["parameters"]）；它返回一个 break parameterization
+（实际上是一个 thread cell），保存当前 continuation 的
+break 启用状态。}
 
 @defproc[(call-with-break-parameterization 
                 [break-param break-parameterization?]
                 [thunk (-> any)]) 
                any]{
-Analogous to @racket[(call-with-parameterization parameterization
-thunk)] (see @secref["parameters"]), calls @racket[thunk] in a
-continuation whose break-enabled state is in @racket[break-param]. The
-@racket[thunk] is @italic{not} called in tail position with respect to
-the @racket[call-with-break-parameterization] call.}
+类似于 @racket[(call-with-parameterization parameterization
+thunk)]（参见 @racket["parameters"]），在 break 启用状态位于
+@racket[break-param] 中的 continuation 内调用 @racket[thunk]。
+@racket[thunk] 的调用 @italic{不是} 相对于 @racket[call-with-break-parameterization]
+调用的尾部位置。}
 
 @defproc[(break-parameterization? [v any/c]) boolean?]{
-Returns @racket[#t] if @racket[v] is a break parameterization as produced by
-@racket[current-break-parameterization], @racket[#f] otherwise.
+如果 @racket[v] 是由 @racket[current-break-parameterization] 产生的
+break parameterization，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.1.1.8"]}

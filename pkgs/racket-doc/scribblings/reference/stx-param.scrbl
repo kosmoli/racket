@@ -7,56 +7,39 @@
                      (only-in racket/control abort)
                      (for-syntax racket/base)))
 
-@title[#:tag "stxparam"]{Syntax Parameters}
+@title[#:tag "stxparam"]{语法参数}
 
 @note-lib-only[racket/stxparam]
 
 @defform[(define-syntax-parameter id expr)]{
 
-Binds @racket[id] as syntax to a @deftech{syntax
-parameter}. The @racket[expr] is an expression in the
-@tech{transformer environment} that serves as the default value for
-the @tech{syntax parameter}. The value is typically obtained by a transformer
-using @racket[syntax-parameter-value].
+将 @racket[id] 绑定为 syntax 到一个 @tech{syntax parameter}。
+@racket[expr] 是 @tech{transformer environment} 中的一个表达式，
+作为 @tech{syntax parameter} 的默认值。该值通常由 transformer 使用
+@racket[syntax-parameter-value] 获得。
 
-The @racket[id] can be used with @racket[syntax-parameterize]
-or @racket[syntax-parameter-value] (in a transformer). If
-@racket[expr] produces a procedure of one argument or a
-@racket[make-set!-transformer] result, then @racket[id] can be
-used as a macro. If @racket[expr] produces a
-@racket[make-rename-transformer] result, then @racket[id] can be
-used as a macro that expands to a use of the target identifier, but
-@racket[syntax-local-value] of @racket[id] does not produce
-the target's value.
-
-@examples[#:eval the-eval
-  (define-syntax-parameter current-class #f)
-  (define-syntax-parameter yield (make-rename-transformer #'abort))
-  (define-syntax-parameter define/public
-    (λ (stx)
-      (raise-syntax-error #f "use of a class keyword not in a class" stx)))
-  (begin-for-syntax (displayln (syntax-parameter-value #'current-class)))
-  (yield 5)
-]}
+@racket[id] 可以与 @racket[syntax-parameterize] 或
+@racket[syntax-parameter-value]（在 transformer 中）使用。如果 @racket[expr]
+产生一个单参数的 procedure 或 @racket[make-set!-transformer] 结果，
+则 @racket[id] 可以用作 macro。如果 @racket[expr] 产生一个
+@racket[make-rename-transformer] 结果，则 @racket[id] 可以用作 macro，
+展开为对目标标识符的使用，但 @racket[syntax-local-value] 的 @racket[id]
+不产生目标的值。}
 
 @defform[(syntax-parameterize ([id expr] ...) body-expr ...+)]{
 
-@margin-note/ref{See also @racket[splicing-syntax-parameterize].}
+@margin-note/ref{另请参见 @racket[splicing-syntax-parameterize]。}
 
-Each @racket[id] must be bound to a @tech{syntax parameter} using
-@racket[define-syntax-parameter]. Each @racket[expr] is an expression
-in the @tech{transformer environment}. During the expansion of the
-@racket[body-expr]s, the value of each @racket[expr] is bound to the
-corresponding @racket[id].
+每个 @racket[id] 必须绑定到使用 @racket[define-syntax-parameter] 定义的
+@tech{syntax parameter}。每个 @racket[expr] 是 @tech{transformer environment}
+中的一个表达式。在展开 @racket[body-expr] 期间，每个 @racket[expr] 的值
+绑定到相应的 @racket[id]。
 
-If an @racket[expr] produces a procedure of one argument or a
-@racket[make-set!-transformer] result, then its @racket[id]
-can be used as a macro during the expansion of the
-@racket[body-expr]s. If @racket[expr] produces a
-@racket[make-rename-transformer] result, then @racket[id] can be
-used as a macro that expands to a use of the target identifier, but
-@racket[syntax-local-value] of @racket[id] does not produce
-the target's value.
+如果 @racket[expr] 产生一个单参数的 procedure 或 @racket[make-set!-transformer] 结果，
+则在展开 @racket[body-expr] 期间其 @racket[id] 可以用作 macro。
+如果 @racket[expr] 产生一个 @racket[make-rename-transformer] 结果，
+则 @racket[id] 可以用作 macro，展开为对目标标识符的使用，
+但 @racket[syntax-local-value] 的 @racket[id] 不产生目标的值。
 
 @examples[#:eval the-eval
 (define-syntax-parameter abort (syntax-rules ()))
@@ -67,7 +50,7 @@ the target's value.
      (call/cc (lambda (abort-k)
        (syntax-parameterize
            ([abort (syntax-rules () [(_) (abort-k)])])
-         (let loop () body ... (loop)))))]))
+         (let loop () body ... (loop))))]))
 
 (define-syntax-parameter it (syntax-rules ()))
 
@@ -81,11 +64,11 @@ the target's value.
 
 @defform[(define-rename-transformer-parameter id expr)]{
 
-Binds @racket[id] as syntax to a @tech{syntax parameter} that must
-be bound to a @racket[make-rename-transformer] result and, unlike
-@racket[define-syntax-parameter], @racket[syntax-local-value] of
-@racket[id] @emph{does} produce the target's value, including inside
-of @racket[syntax-parameterize].
+将 @racket[id] 绑定为 syntax 到一个 @tech{syntax parameter}，
+该参数必须绑定到 @racket[make-rename-transformer] 结果，并且与
+@racket[define-syntax-parameter] 不同，@racket[id] 的
+@racket[syntax-local-value] @emph{确实} 产生目标的值，包括在
+@racket[syntax-parameterize] 内。
 
 @examples[#:eval the-eval #:escape UNSYNTAX
  (define-syntax (test stx)
@@ -103,9 +86,9 @@ of @racket[syntax-parameterize].
  (test num)
  (syntax-parameterize ([num (make-rename-transformer #'two)])
    (test num))
-]
+]}
 
-@history[#:added "6.3.0.14"]}
+@history[#:added "6.3.0.14"]
 
 @; ----------------------------------------------------------------------
 
@@ -117,40 +100,34 @@ of @racket[syntax-parameterize].
 
 @defproc[(syntax-parameter-value [id-stx syntax?]) any]{
 
-This procedure is intended for use in a @tech{transformer
-environment}, where @racket[id-stx] is an identifier bound in the
-normal environment to a @tech{syntax parameter}. The result is the current
-value of the @tech{syntax parameter}, as adjusted by
-@racket[syntax-parameterize] form.
+此过程旨在用于 @tech{transformer environment}，其中 @racket[id-stx]
+是在普通环境中绑定到 @tech{syntax parameter} 的标识符。
+结果是 @tech{syntax parameter} 的当前值，经过 @racket[syntax-parameterize]
+形式的调整。
 
-This binding is provided @racket[for-syntax] by
-@racketmodname[racket/stxparam], since it is normally used in a
-transformer. It is provided normally by
-@racketmodname[racket/stxparam-exptime].}
+此绑定由 @racketmodname[racket/stxparam] 提供 @racket[for-syntax]，
+因为它通常在 transformer 中使用。由 @racketmodname[racket/stxparam-exptime]
+正常提供。}
 
 
 @defproc[(make-parameter-rename-transformer [id-stx syntax?]) any]{
 
-This procedure is intended for use in a transformer, where
-@racket[id-stx] is an identifier bound to a @tech{syntax parameter}. The
-result is a transformer that behaves as @racket[id-stx], but that cannot
-be used with @racket[syntax-parameterize] or
-@racket[syntax-parameter-value].
+此过程旨在用于 transformer 中，其中 @racket[id-stx]
+是绑定到 @tech{syntax parameter} 的标识符。结果是一个 transformer，
+其行为与 @racket[id-stx] 相同，但不能与 @racket[syntax-parameterize]
+或 @racket[syntax-parameter-value] 一起使用。
 
-Using @racket[make-parameter-rename-transformer] is analogous to
-defining a procedure that calls a parameter. Such a procedure can be
-exported to others to allow access to the parameter value, but not to
-change the parameter value. Similarly,
-@racket[make-parameter-rename-transformer] allows a @tech{syntax parameter}
-to be used as a macro, but not changed.
+使用 @racket[make-parameter-rename-transformer] 类似于调用一个调用 parameter 的过程。
+这样的过程可以导出给他人以允许访问 parameter 值，但不改变它。类似地，
+@racket[make-parameter-rename-transformer] 允许 @tech{syntax parameter}
+用作 macro，但不能更改。
 
-The result of @racket[make-parameter-rename-transformer] is not
-treated specially by @racket[syntax-local-value], unlike the result
-of @racket[make-rename-transformer].
+@racket[make-parameter-rename-transformer] 的结果不会被
+@racket[syntax-local-value] 特殊处理，这与 @racket[make-rename-transformer]
+的结果不同。
 
-This binding is provided @racket[for-syntax] by
-@racketmodname[racket/stxparam], since it is normally used in a
-transformer. It is provided normally by
-@racketmodname[racket/stxparam-exptime].}
+此绑定由 @racketmodname[racket/stxparam] 提供 @racket[for-syntax]，
+因为它通常在 transformer 中使用。由 @racketmodname[racket/stxparam-exptime]
+正常提供。}
 
 @(close-eval the-eval)

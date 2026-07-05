@@ -1,149 +1,116 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "compiler"]{Controlling and Inspecting Compilation}
+@title[#:tag "compiler"]{控制和检查编译}
 
-Racket programs and expressions are compiled automatically and
-on-the-fly. The @exec{raco make} tool (see @secref[#:doc raco-doc
-"make"]) can compile a Racket module to a compiled @filepath{.zo}
-file, but that kind of ahead-to-time compilation simply allows a
-program takes to start more quickly, and it does not affect the
-performance of a Racket program.
+Racket 程序和表达式会自动且即时地编译。@exec{raco make} 工具
+（参见 @secref[#:doc raco-doc "make"]）可以将 Racket 模块编译为编译后的
+@filepath{.zo} 文件，但那种 ahead-to-time 编译只是让程序启动更快，
+并不影响 Racket 程序的性能。
 
 @; ------------------------------------------------------------
 
-@section[#:tag "compiler-modes"]{Compilation Modes}
+@section[#:tag "compiler-modes"]{编译模式}
 
-All Racket variants suppose a machine-independent compilation mode,
-which generates compiled @filepath{.zo} files that work with all
-Racket variants on all platforms. To select machine-independent
-compilation mode, set the @racket[current-compile-target-machine]
-parameter to @racket[#f] or supplying the @DFlag{compile-any}/@Flag{M}
-flag on startup. See @racket[current-compile-target-machine] for more
-information.
+所有 Racket 变体都支持一种与机器无关的编译模式，该模式生成适用于所有平台上
+所有 Racket 变体的编译后 @filepath{.zo} 文件。要选择与机器无关的编译模式，
+将 @racket[current-compile-target-machine] parameter 设置为 @racket[#f]，
+或在启动时提供 @DFlag{compile-any}/@Flag{M} 标志。
+参见 @racket[current-compile-target-machine] 了解更多信息。
 
-Other compilation modes depend on the Racket implementation (see
-@secref["implementations"]).
+其他编译模式取决于 Racket 实现（参见 @secref["implementations"]）。
 
 
-@subsection[#:tag "3m-compiler-modes"]{BC Compilation Modes}
+@subsection[#:tag "3m-compiler-modes"]{BC 编译模式}
 
-The @tech{BC} implementation of Racket supports two
-compilation modes: bytecode and machine-independent. The bytecode
-format is also machine-independent in the sense that it works the same
-on all operating systems for the BC implementation
-of Racket, but it does not work with the CS implementation of Racket.
-
-Bytecode is further compiled to machine code at run time, unless the
-JIT compiler is disabled. See @racket[eval-jit-enabled].
+Racket 的 @tech{BC} 实现支持两种编译模式：bytecode 和 machine-independent。
+bytecode 格式也是机器无关的，因为它在所有操作系统上对 Racket 的 BC 实现
+工作方式相同，但它不适用于 Racket 的 CS 实现。除非禁用 JIT 编译器，
+否则 bytecode 会在运行时被进一步编译为机器码。参见 @racket[eval-jit-enabled]。
 
 
-@subsection[#:tag "cs-compiler-modes"]{CS Compilation Modes}
+@subsection[#:tag "cs-compiler-modes"]{CS 编译模式}
 
-The @tech{CS} implementation of Racket supports several compilation modes:
-machine code, machine-independent, interpreted, and JIT. Machine code
-is the primary mode, and the machine-independent mode is the same as
-for BC. Interpreted mode uses an interpreter at
-the level of core @tech{linklet} forms with no compilation. JIT mode
-triggers compilation of individual function forms on demand.
+Racket 的 @tech{CS} 实现支持几种编译模式：machine code、machine-independent、
+interpreted 和 JIT。Machine code 是主要模式，machine-independent 模式与 BC 的
+相同。Interpreted 模式在核心 @tech{linklet} 形式层面使用解释器而不进行编译。
+JIT 模式触发对各个函数形式的按需编译。
 
-The default mode is a hybrid of machine-code and interpreter modes,
-where interpreter mode is used only for the outer contour of an
-especially large linklet, and machine-code mode is used for functions
-that are small enough within that outer contour. ``Small enough'' is
-determined by the @envvar-indexed{PLT_CS_COMPILE_LIMIT} environment
-variable, and the default value of 10000 means that most Racket
-modules have no interpreted component. The
-@racket[#:unlimited-compile] option for @racket[#%declare] disables
-interpreted mode for the enclosing module. Check @racket['info]
-logging at the @racket['linklet] topic (e.g., set @envvar{PLTSTDERR}
-to @tt["info@linklet"]) to discover when compilation is restricted to
-smaller functions by @envvar{PLT_CS_COMPILE_LIMIT}.
+默认模式是 machine-code 和 interpreter 模式的混合，其中 interpreter 模式
+仅用于特别大的 linklet 的外层轮廓，而 machine-code 模式用于该外层轮廓内足够小的函数。
+"足够小" 由 @envvar-indexed{PLT_CS_COMPILE_LIMIT} 环境变量决定，
+其默认值 10000 意味着大多数 Racket 模块没有 interpreted 组件。
+@racket[#:unlimited-compile] 选项（用于 @racket[#%declare]）可禁用
+enclosing module 的 interpreted 模式。在 @racket['linklet] 主题下设置
+@racket['info] 日志记录（例如，将 @envvar{PLTSTDERR} 设置为 @tt["info@linklet"]），
+以了解何时因 @envvar{PLT_CS_COMPILE_LIMIT} 而将编译限制为较小的函数。
 
-JIT compilation mode is used only if the @envvar-indexed{PLT_CS_JIT}
-environment variable is set on startup, otherwise pure interpreter
-mode is used only if @envvar-indexed{PLT_CS_INTERP} is set on startup,
-and the default hybrid machine code and interpreter mode is used if
-@envvar-indexed{PLT_CS_MACH} is set and @envvar{PLT_CS_JIT} is not set
-or if none of those environment variables is set. A module compiled in
-any mode can be loaded into the CS variant of Racket independent of
-the current compilation mode.
+JIT 编译模式仅在启动时设置了 @envvar-indexed{PLT_CS_JIT} 环境变量时使用，
+否则仅当设置了 @envvar-indexed{PLT_CS_INTERP} 环境变量时使用纯 interpreter 模式，
+当设置了 @envvar-indexed{PLT_CS_MACH} 且未设置 @envvar{PLT_CS_JIT} 时使用
+machine code 和 interpreter 混合模式，或者未设置任何环境变量时。
+任何模式下编译的模块都可以加载到 Racket 的 CS 变体中，
+与当前编译模式无关。
 
-The @envvar{PLT_CS_DEBUG} environment variable, as described in
-@secref["debugging"], affects only compilation in machine-code mode.
-Generated machine code is much larger when @envvar{PLT_CS_DEBUG} is
-enabled, but performance is not otherwise affected.
+@envvar{PLT_CS_DEBUG} 环境变量（如 @secref["debugging"] 中所述）
+仅影响 machine-code 模式的编译。当启用 @envvar{PLT_CS_DEBUG} 时，
+生成的 machine code 会大得多，但性能不受其他影响。
 
 @; ------------------------------------------------------------
 
-@section[#:tag "compiler-inspect"]{Inspecting Compiler Passes}
+@section[#:tag "compiler-inspect"]{检查编译器阶段}
 
-When the @envvar-indexed{PLT_LINKLET_SHOW} environment variable is set
-on startup, the Racket process's standard error shows intermediate
-compiled forms whenever a Racket form is compiled. For all Racket
-variants, the output shows one or more @tech{linklets} that are
-generated from the original Racket form.
+当在启动时设置了 @envvar-indexed{PLT_LINKLET_SHOW} 环境变量时，
+Racket process 的标准错误会在 Racket 形式编译时显示中间编译形式。
+对于所有 Racket 变体，输出显示从原始 Racket 形式生成的一个或多个 @tech{linklets}。
 
-For the @tech{CS} implementation of Racket, a ``schemified'' version
-of the linklet is also shown as the translation of the
-@racket[linklet] form to a Chez Scheme procedure form. The output also
-indicates which modules and linklets the compiler is working on.
+对于 Racket 的 @tech{CS} 实现，还会显示 linklet 的"schemified"版本，
+作为 @racket[linklet] 形式到 Chez Scheme procedure 形式的转换。
+输出还会显示编译器正在处理哪些模块和 linklets。
 
-The following environment variables imply @envvar{PLT_LINKLET_SHOW}
-and show additional intermediate compiled forms or adjust the way
-forms are displayed:
+以下环境变量隐含 @envvar{PLT_LINKLET_SHOW} 并显示额外的中间编译形式
+或调整形式的显示方式：
 
 @itemlist[
 
-  @item{@envvar-indexed{PLT_LINKLET_SHOW_GENSYM} --- prints full
-        generated names, instead of abbreviations; the default behavior
-	corresponds to Chez Scheme's @tt{'pretty/suffix} mode for
-	@tt{print-gensym}}
+  @item{@envvar-indexed{PLT_LINKLET_SHOW_GENSYM} --- 打印完整的生成名称
+        而不是缩写；默认行为对应于 Chez Scheme 的 @tt{'pretty/suffix} 模式
+        （用于 @tt{print-gensym}）}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_PRE_JIT} --- shows a
-         schemified forms before a transformation to JIT mode, which
-         applies only when @envvar{PLT_CS_JIT} is set}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_PRE_JIT} --- 在转换为 JIT 模式之前的
+         schemified 形式，仅在设置了 @envvar{PLT_CS_JIT} 时适用}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_LAMBDA} --- shows individual
-         schemified forms that are compiled within a larger form that
-         has an interpreted outer contour}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_LAMBDA} --- 显示在具有 interpreted 外层轮廓的
+         较大形式中编译的各个 schemified 形式}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_POST_LAMBDA} --- shows an
-         outer form after inner individual forms are compiled}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_POST_LAMBDA} --- 在编译内部各个形式后显示
+         外部形式}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_POST_INTERP} --- shows an
-         outer form after its transformation to interpretable form}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_POST_INTERP} --- 在转换为可解释形式后显示
+         外部形式}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_JIT_DEMAND} --- shows JIT
-         compilation of form that were previously prepared by
-         compilation with @envvar{PLT_CS_JIT} set}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_JIT_DEMAND} --- 显示由设置了 @envvar{PLT_CS_JIT} 的编译
+         预先准备的形式的 JIT 编译}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_KNOWN} --- show recorded
-         known-binding information alongside a schemified form}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_KNOWN} --- 在 schemified 形式旁边显示
+         记录的 known-binding 信息}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_CP0} --- show a schemified
-         form after transformation by Chez Scheme's front-end
-         optimizer}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_CP0} --- 在转换为由 Chez Scheme 的 front-end optimizer
+         处理后的 schemified 形式}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_PASSES} --- show the
-         intermediate form of a schemified linklet after the specified
-         passes (listed space-separated) in Chez Scheme's internal
-         representation; the special name @tt{all} will show the
-         intermediate form after all Chez Scheme passes}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_PASSES} --- 显示 schemified linklet
+         在 Chez Scheme 的内部表示中经过指定阶段（以空格分隔列出）后的中间形式；
+         使用特殊名称 @tt{all} 将在所有 Chez Scheme 阶段后的中间形式}
 
-   @item{@envvar-indexed{PLT_LINKLET_SHOW_ASSEMBLY} --- show the
-         compiled form of a schemified linklet in Chez Scheme's
-         abstraction of machine instructions}
+   @item{@envvar-indexed{PLT_LINKLET_SHOW_ASSEMBLY} --- 以 Chez Scheme 的机器指令抽象
+         显示 schemified linklet 的编译形式}
 
 ]
 
-When the @envvar-indexed{PLT_LINKLET_TIMES} environment variable is
-set on startup, then Racket prints cumulative timing information about
-compilation and evaluation times on exit. When the
-@envvar-indexed{PLT_EXPANDER_TIMES} environment variable is set,
-information about macro-expansion time is printed on exit.
+当在启动时设置了 @envvar-indexed{PLT_LINKLET_TIMES} 环境变量时，
+Racket 会在退出时打印编译和求值时间的累计时间信息。
+当设置了 @envvar-indexed{PLT_EXPANDER_TIMES} 环境变量时，
+会在退出时打印关于 macro-expansion 时间的信息。
 
-@history[#:changed "8.8.0.10" @elem{Added special pass name @tt{all}
-                                    to @envvar{PLT_LINKLET_SHOW_PASSES}.}
-         #:changed "8.11.1.2" @elem{Added module and linklet info
-                                    to output.}]
+@history[#:changed "8.8.0.10" @elem{为 @envvar{PLT_LINKLET_SHOW_PASSES} 添加了特殊阶段名称 @tt{all}。}
+         #:changed "8.11.1.2" @elem{在输出中添加了模块和 linklet 信息。}]

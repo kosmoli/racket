@@ -15,18 +15,15 @@
      (lambda (i)
        (codeblock0 (port->string i)))))
 
-@title[#:tag "distributed-places"]{Distributed Places}
+@title[#:tag "distributed-places"]{分布式 Places}
 
-The @racketmodname[racket/place/distributed] library provides support for
-distributed programming.
+@racketmodname[racket/place/distributed] 库提供了对分布式编程的支持。
 
-The example below demonstrates how to launch a remote racket node instance,
-launch remote places on the new remote node instance, and start an
-event loop that monitors the remote node instance.
+下面的示例演示了如何启动远程 racket 节点实例，
+在新远程节点实例上启动远程 places，以及启动一个监控远程节点实例的事件循环。
 
-The example code can also be found in
-@filepath{racket/distributed/examples/named/master.rkt}.
-
+示例代码也可见于
+@filepath{racket/distributed/examples/named/master.rkt}。
 
 
 @figure["named-example-master" "examples/named/master.rkt"]{
@@ -35,23 +32,18 @@ The example code can also be found in
 
 
 
-The @racket[spawn-remote-racket-node] primitive connects to
-@tt{"localhost"} and starts a racloud node there that listens on port
-6344 for further instructions.  The handle to the new racloud node is
-assigned to the @racket[remote-node] variable. Localhost is used so that
-the example can be run using only a single machine.  However localhost
-can be replaced by any host with ssh publickey access and racket.  The
-@racket[supervise-place-at] creates a new place on the
-@racket[remote-node].  The new place will be identified in the future by
-its name symbol @racket['tuple-server].  A place descriptor is
-expected to be returned by invoking @racket[dynamic-place] with the
-@racket[tuple-path] module path and the @racket['make-tuple-server]
-symbol.
+@racket[spawn-remote-racket-node] 原语连接到 @tt{"localhost"} 并在那里启动一个
+racloud 节点，该节点监听 6344 端口以接收进一步指令。
+新 racloud 节点的句柄被赋值给 @racket[remote-node] 变量。使用 localhost 是为了
+该示例可以在单台机器上运行。但 localhost 可以被任何支持 ssh 公钥访问和 racket 的主机替代。
+@racket[supervise-place-at] 在 @racket[remote-node] 上创建一个新 place。
+新 place 将来会通过其名称符号 @racket['tuple-server] 来标识。
+通过调用 @racket[dynamic-place] 并传入 @racket[tuple-path] 模块路径和
+@racket['make-tuple-server] 符号，预期返回一个 place descriptor。
 
-The code for the tuple-server place exists in the file
-@filepath{tuple.rkt}.  The @filepath{tuple.rkt} file contains the use of
-@racket[define-named-remote-server] form, which defines a RPC server
-suitable for invocation by @racket[supervise-place-at].
+tuple-server place 的代码位于 @filepath{tuple.rkt} 文件中。
+@filepath{tuple.rkt} 文件包含 @racket[define-named-remote-server] 形式的使用，
+该形式定义了一个适合由 @racket[supervise-place-at] 调用的 RPC 服务器。
 
 
 
@@ -61,42 +53,29 @@ suitable for invocation by @racket[supervise-place-at].
 
 
 
-The @racket[define-named-remote-server] form takes an identifier and a
-list of custom expressions as its arguments.  From the identifier a
-place-thunk function is created by prepending the @tt{make-} prefix.
-In this case @racket[make-tuple-server].  The
-@racket[make-tuple-server] identifier is the
-@racket[place-function-name] given to the
-@racket[supervise-named-dynamic-place-at] form above. The
-@racket[define-state] custom form translates into a simple
-@racket[define] form, which is closed over by the @racket[define-rpc]
-form.
+@racket[define-named-remote-server] 形式接受一个标识符和自定义表达式列表作为其参数。
+从标识符创建一个 place-thunk 函数，通过添加 @tt{make-} 前缀。
+在本例中为 @racket[make-tuple-server]。@racket[make-tuple-server] 标识符是
+上面传递给 @racket[supervise-named-dynamic-place-at] 形式的 @racket[place-function-name]。
+@racket[define-state] 自定义形式翻译为一个简单的 @racket[define] 形式，
+由 @racket[define-rpc] 形式闭包捕获。
 
-The @racket[define-rpc] form is expanded into two parts. The first
-part is the client stubs that call the rpc functions. The client
-function name is formed by concatenating the
-@racket[define-named-remote-server] identifier, @tt{tuple-server},
-with the RPC function name @tt{set} to form @racket[tuple-server-set].
-The RPC client functions take a destination argument which is a
-@racket[remote-connection%] descriptor and then the RPC function
-arguments. The RPC client function sends the RPC function name,
-@racket[set], and the RPC arguments to the destination by calling an
-internal function @racket[named-place-channel-put]. The RPC client
-then calls @racket[named-place-channel-get] to wait for the RPC
-response.
+@racket[define-rpc] 形式扩展为两部分。第一部分是客户端存根，
+它们调用 RPC 函数。客户端函数名称由连接 @racket[define-named-remote-server] 标识符
+@tt{tuple-server} 与 RPC 函数名称 @tt{set} 构成，形成 @racket[tuple-server-set]。RPC 客户端函数
+接受一个目标参数，该参数是 @racket[remote-connection%] descriptor，然后是 RPC 函数参数。
+RPC 客户端函数通过调用内部函数 @racket[named-place-channel-put]，将 RPC 函数名称 @racket[set]
+和 RPC 参数发送到目的地。然后 RPC 客户端调用 @racket[named-place-channel-get] 等待 RPC 响应。
 
-The second expansion part of @racket[define-rpc] is the server
-implementation of the RPC call.  The server is implemented by a match
-expression inside the @racket[make-tuple-server] function.  The match
-clause for @racket[tuple-server-set] matches on messages beginning
-with the @racket['set] symbol. The server executes the RPC call with
-the communicated arguments and sends the result back to the RPC
-client.
+@racket[define-rpc] 的第二扩展部分是 RPC 调用的服务器实现。
+服务器由 @racket[make-tuple-server] 函数内的 match 表达式实现。
+@racket[tuple-server-set] 的 match 子句匹配以 @racket['set] 符号开始的消息。
+服务器使用传递的参数执行 RPC 调用并将结果发送回 RPC 客户端。
 
-The @racket[define-cast] form is similar to the @racket[define-rpc] form
-except there is no reply message from the server to client
+@racket[define-cast] 形式类似于 @racket[define-rpc] 形式，
+不同之处在于服务器到客户端没有回复消息。
 
-@figure["define-named-remote-server-expansion" "Expansion of define-named-remote-server"]{
+@figure["define-named-remote-server-expansion" "define-named-remote-server 的扩展"]{
 @codeblock0{
 (module tuple racket/base
   (require racket/place
@@ -146,8 +125,4 @@ except there is no reply message from the server to client
         loop))))
 }
 }
-
-
-
-
 

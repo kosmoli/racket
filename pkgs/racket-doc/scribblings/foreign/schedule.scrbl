@@ -2,61 +2,49 @@
 @(require "utils.rkt"
           (for-label ffi/unsafe/schedule))
 
-@title{Thread Scheduling}
+@title{线程调度}
 
-@defmodule[ffi/unsafe/schedule]{The
-@racketmodname[ffi/unsafe/schedule] library provides functions for
-cooperating with the thread scheduler and manipulating it. The
-library's operations are @tech[#:doc reference.scrbl]{unsafe}
-because callbacks run in @tech{atomic mode} and in an
-@elemref["unspecified thread"]{unspecified thread}.}
+@defmodule[ffi/unsafe/schedule]{@racketmodname[ffi/unsafe/schedule]
+库提供了与 thread scheduler 协作并对其进行操作的函数。该库的操作为
+@tech[#:doc reference.scrbl]{unsafe}，因为 callback 在 @tech{atomic mode}
+下运行，并且在 @elemref["unspecified thread"]{unspecified thread} 中运行。}
 
-Running an operation in an @elemtag["unspecified thread"]{unspecified
-thread} means that the Racket scheduler for @tech[#:doc
-reference.scrbl]{coroutine threads} selects a convenient coroutine
-thread and switches the thread's evaluation temporarily to the operation. The
-thread will not have been in @tech{atomic mode}, but the
-operation using the thread is always run in atomic mode. An operation
-that is run in an unspecified thread can use @racket[(current-thread)]
-check parameter values, and inspect the continuation, but doing so
-is unsafe: the current thread and its continuation are not specified,
-and misusing a thread or it continuation can leak information or change
-the thread's behavior.
+在 @elemtag["unspecified thread"]{unspecified thread} 中运行某个操作，
+意味着 Racket scheduler 为 @tech[#:doc reference.scrbl]{coroutine threads}
+选择一个方便的 coroutine thread，并将该 thread 的求值临时切换到该操作。
+该 thread 本身并不处于 @tech{atomic mode}，但使用该 thread 的操作始终在
+atomic mode 下运行。在 unspecified thread 中运行的操作可以使用
+@racket[(current-thread)] 检查 parameter 值，并检查 continuation，但这样做
+是 unsafe 的：当前 thread 及其 continuation 未被指定，误用 thread 或
+continuation 可能泄漏信息或改变 thread 的行为。
 
 @history[#:added "6.11.0.1"]
 
 @defproc[(unsafe-poller [poll (evt? (or/c #f any/c) . -> . (values (or/c #f list?) evt?))])
          any/c]{
 
-Produces a @deftech{poller} value that is allowed as a
-@racket[prop:evt] value, even though it is not a procedure or itself
-an @racket[evt?]. The @racket[poll] callback is called in @tech{atomic
-mode} in an @elemref["unspecified thread"]{unspecified thread} to check whether the event is ready or
-to allow it to register a wakeup trigger.
+生成一个 @deftech{poller} 值，该值可以作为 @racket[prop:evt] 值使用，
+即使它不是 procedure 或 @racket[evt?]。@racket[poll] callback 在
+@tech{atomic mode} 下、在 @elemref["unspecified thread"]{unspecified thread} 中
+被调用，以检查事件是否已就绪，或允许其注册一个 wakeup 触发器。
 
-The first argument to @racket[poll] is always the object that is used
-as a @tech[#:doc reference.scrbl]{synchronizable event} with the
-@tech{poller} as its @racket[prop:evt] value. Let's call that value
-@racket[_evt].
+@racket[poll] 的第一个参数始终是用作 @tech[#:doc reference.scrbl]{synchronizable
+event} 的对象，其中 @tech{poller} 作为其 @racket[prop:evt] 值。
+称该值为 @racket[_evt]。
 
-The second argument to @racket[poll] is @racket[#f] when @racket[poll]
-is called to check whether the event is ready. The result must be two
-values. The first result value is a list of results if @racket[_evt]
-is ready, or it is @racket[#f] if @racket[_evt] is not ready. The
-second result value is @racket[#f] if @racket[_evt] is ready, or it is
-an event to replace @racket[_evt] (often just @racket[_evt] itself) if
-@racket[_evt] is not ready.
+@racket[poll] 的第二个参数在调用 @racket[poll] 检查事件是否就绪时为
+@racket[#f]。结果必须为两个值。第一个结果值是当 @racket[_evt] 就绪时的结果列表，
+或当 @racket[_evt] 未就绪时为 @racket[#f]。第二个结果值是当 @racket[_evt]
+就绪时为 @racket[#f]，或当 @racket[_evt] 未就绪时为替换 @racket[_evt]
+的事件（通常就是 @racket[_evt] 本身）。
 
-When the thread scheduler has determined that the Racket process
-should sleep until an external event or timeout, then @racket[poll] is
-called with a non-@racket[#f] second argument, @racket[_wakeups]. In
-that case, if the first result value is a list, then the sleep will be
-canceled, but the list is not recorded as the result (and @racket[poll]
-most likely will be called again). In addition to returning a @racket[#f] initial
-value, @racket[poll] can call @racket[unsafe-poll-ctx-fd-wakeup],
-@racket[unsafe-poll-ctx-eventmask-wakeup], and/or
-@racket[unsafe-poll-ctx-milliseconds-wakeup] on @racket[_wakeups] to
-register wakeup triggers.}
+当 thread scheduler 确定 Racket process 应休眠直到外部事件或超时时，
+则 @racket[poll] 以一个非 @racket[#f] 的第二个参数 @racket[_wakeups] 被调用。
+在这种情况下，如果第一个结果值是列表，则休眠将被取消，但该列表不会被记录为结果
+（而 @racket[poll] 很可能再次被调用）。除了返回一个 @racket[#f] 初始值外，
+@racket[poll] 还可以对 @racket[_wakeups] 调用 @racket[unsafe-poll-ctx-fd-wakeup]、
+@racket[unsafe-poll-ctx-eventmask-wakeup] 和/或
+@racket[unsafe-poll-ctx-milliseconds-wakeup] 来注册 wakeup 触发器。}
 
 
 @defproc[(unsafe-poll-fd [fd exact-integer?]
@@ -64,8 +52,8 @@ register wakeup triggers.}
                          [socket? any/c #t])
          boolean?]{
 
-Checks whether the given file descriptor or socket is currently ready
-for reading or writing, as selected by @racket[mode].
+检查给定的 file descriptor 或 socket 当前是否已准备好进行读或写，
+由 @racket[mode] 选择。
 
 @history[#:added "7.2.0.6"]}
 
@@ -75,71 +63,59 @@ for reading or writing, as selected by @racket[mode].
                                     [mode '(read write error)])
          void?]{
 
-Registers a file descriptor (Unix and Mac OS) or socket (all
-platforms) to cause the Racket process to wake up and resume polling
-if the file descriptor or socket becomes ready for reading, writing,
-or error reporting, as selected by @racket[mode]. The @racket[wakeups]
-argument must be a non-@racket[#f] value that is passed by the
-scheduler to a @racket[unsafe-poller]-wrapped procedure.}
+注册一个 file descriptor（Unix 和 Mac OS）或 socket（所有平台），
+使得当 file descriptor 或 socket 变为可读写或错误报告时（由 @racket[mode] 选择），
+Racket process 将被唤醒并恢复 polling。@racket[wakeups] 参数
+必须是由 scheduler 传递给 @racket[unsafe-poller] 包装过程的一个非 @racket[#f] 值。}
 
 
 @defproc[(unsafe-poll-ctx-eventmask-wakeup [wakeups any/c]
                                            [mask fixnum?])
          void?]{
 
-On Windows, registers an eventmask to cause the Racket process to wake
-up and resume polling if an event selected by the mask becomes
-available.}
+在 Windows 上，注册一个 eventmask，使得当 mask 选择的某事件可用时，
+Racket  process 将被唤醒并恢复 polling。}
 
 
 @defproc[(unsafe-poll-ctx-milliseconds-wakeup [wakeups any/c]
                                               [msecs flonum?])
          void?]{
 
-Causes the Racket process to wake up and resume polling at the point
-when @racket[(current-inexact-monotonic-milliseconds)] starts returning
-a value that is @racket[msecs] or greater.}
+使得 Racket process 在 @racket[(current-inexact-monotonic-milliseconds)]
+开始返回大于等于 @racket[msecs] 的值时被唤醒并恢复 polling。
 
-@history[#:changed "8.3.0.9" @elem{@racket[unsafe-poll-ctx-milliseconds-wakeup] previously used
-                                   @racket[current-inexact-milliseconds].}]
+@history[#:changed "8.3.0.9" @elem{@racket[unsafe-poll-ctx-milliseconds-wakeup] 以前使用 @racket[current-inexact-milliseconds]。}]
+                                   @racket[current-inexact-milliseconds]。}]}
 
 @defproc[(unsafe-set-sleep-in-thread! [foreground-sleep (-> any/c)]
                                       [fd fixnum?])
          void?]{
 
-Registers @racket[foreground-sleep] as a procedure to implement
-sleeping for the Racket process when the thread scheduler determines
-at the process will sleep. Meanwhile, during a call to
-@racket[foreground-sleep], the scheduler's default sleeping function
-will run in a separate OS-level thread. When that default sleeping
-function wakes up, a byte is written to @racket[fd] as a way of
-notifying @racket[foreground-sleep] that it should return
-immediately.
+注册 @racket[foreground-sleep] 作为当 thread scheduler 确定 process 将休眠时
+实现 Racket process 休眠的过程。同时，在调用 @racket[foreground-sleep] 期间，
+scheduler 的默认休眠函数将在单独的 OS 级 thread 中运行。当该默认休眠函数唤醒时，
+一个 byte 将被写入 @racket[fd]，作为通知 @racket[foreground-sleep]
+应立即返回的方式。
 
-This function works on when OS-level threads are available within the
-Racket implementation. It always works for Mac OS.}
+此函数在 Racket 实现支持 OS 级 thread 时可用。它在 Mac OS 上始终可用。}
 
 @defproc[(unsafe-signal-received) void?]{
 
-For use with @racket[unsafe-set-sleep-in-thread!] by
-@racket[_foreground-sleep] or something that it triggers, causes the
-default sleeping function to request @racket[_foreground-sleep] to
-return.}
+供 @racket[unsafe-set-sleep-in-thread!] 由 @racket[_foreground-sleep]
+或其触发的某些功能使用，使得默认休眠函数请求 @racket[_foreground-sleep]
+返回。}
 
-@defproc[(unsafe-make-signal-received) (-> void?)]{
+@defproc[(unsafe-make-signal-received) (-> void?)]
 
-Returns a function that is like @racket[unsafe-signal-received], but
-it can be called in any @tech[#:doc reference.scrbl]{place} or in any
-OS thread as supported by @racketmodname[ffi/unsafe/os-thread] to
-ensure a subsequent round of polling by the thread scheduler in the
-@tech[#:doc reference.scrbl]{place} where
-@racket[unsafe-make-signal-received] was called.
+返回一个类似于 @racket[unsafe-signal-received] 的函数，但它可以在任意
+@tech[#:doc reference.scrbl]{place} 中调用，或在
+@racketmodname[ffi/unsafe/os-thread] 支持的任意 OS thread 中调用，
+以确保调用 @racket[unsafe-make-signal-received] 的
+@tech[#:doc reference.scrbl]{place} 中由 thread scheduler 执行后续轮次的 polling。
 
-Synchronizaiton between the result of
-@racket[unsafe-make-signal-received] and the scheduler will ensure the
-equivalent of @racket[(memory-order-release)] before the call to the
-function produced by @racket[unsafe-make-signal-received] and the
-equivalent of @racket[(memory-order-acquire)] before the scheduler's
-invocation of pollers.
+@racket[unsafe-make-signal-received] 的返回值与 scheduler 之间的同步
+将确保在调用 @racket[unsafe-make-signal-received] 生成的函数之前执行
+@racket[(memory-order-release)] 的等价操作，并在 scheduler 调用 pollers 之前
+执行 @racket[(memory-order-acquire)] 的等价操作。
 
 @history[#:added "8.0.0.4"]}

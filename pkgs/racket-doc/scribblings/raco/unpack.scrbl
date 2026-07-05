@@ -5,37 +5,33 @@
                      setup/unpack
                      setup/dirs))
 
-@title[#:tag "unpack"]{@exec{raco unpack}: Unpacking Library Collections}
+@title[#:tag "unpack"]{@exec{raco unpack}: 解包库集合}
 
-The @exec{raco unpack} command unpacks a @filepath{.plt} archive (see
-@secref["plt"]) to the current directory without attempting to install
-any collections. Use @exec{raco pkg} (see @other-manual['(lib
-"pkg/scribblings/pkg.scrbl")]) to install a @filepath{.plt} archive as
-a package, or use @exec{raco setup -A} (see @secref["setup"]) to
-unpack and install collections from a @filepath{.plt} archive.
+@exec{raco unpack} 命令将 @filepath{.plt} 归档解包到当前目录，
+而不尝试安装任何集合。使用 @exec{raco pkg}（参见 @other-manual['(lib
+"pkg/scribblings/pkg.scrbl")]）将 @filepath{.plt} 归档作为包安装，
+或使用 @exec{raco setup -A}（参见 @secref["setup"]）解包并安装
+@filepath{.plt} 归档中的集合。
 
-Command-line flags:
+命令行标志：
 
 @itemlist[
 
- @item{@Flag{l} or @DFlag{list} --- lists the content of the archive
-       without unpacking it.}
+ @item{@Flag{l} 或 @DFlag{list} --- 列出归档内容而不解包。}
 
- @item{@Flag{c} or @DFlag{config} --- shows the archive configuration
-       before unpacking or listing the archive content.}
+ @item{@Flag{c} 或 @DFlag{config} --- 在解包或列出归档内容之前显示归档配置。}
 
- @item{@Flag{f} or @DFlag{force} --- replace files that exist already;
-       files that the archive says should be replaced will be replaced
-       without this flag.}
+ @item{@Flag{f} 或 @DFlag{force} --- 替换已存在的文件；档案表明应替换的文件，
+       没有此标志也会被替换。}
 
 ]
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unpacking-.plt-archives"]{Unpacking API}
+@section[#:tag "unpacking-.plt-archives"]{解包 API}
 
-@defmodule[setup/unpack]{The @racketmodname[setup/unpack]
-library provides raw support for unpacking a @filepath{.plt} file.}
+@defmodule[setup/unpack]{@racketmodname[setup/unpack] 库
+提供对 @filepath{.plt} 文件解包的底层支持。}
 
 @defproc[(unpack [archive path-string?]
                  [main-collects-parent-dir path-string? (current-directory)]
@@ -49,32 +45,23 @@ library provides raw support for unpacking a @filepath{.plt} file.}
                    . -> . path-string?)
                   (lambda (_preferred-dir _main-dir _options)
                     _preferred-dir)])
-          void?]{
+         void?]{
 
-Unpacks @racket[archive]. 
+解包 @racket[archive]。
 
-The @racket[main-collects-parent-dir] argument is passed along to
-@racket[get-target-plt-directory].
+@racket[main-collects-parent-dir] 参数被传递给 @racket[get-target-plt-directory]。
 
-The @racket[print-status] argument is used to report unpacking
-progress.
+@racket[print-status] 参数用于报告解包进度。
 
-The @racket[get-target-directory] argument is used to get the
-destination directory for unpacking an archive whose content is
-relative to an arbitrary directory.
+@racket[get-target-directory] 参数用于获取归档内容相对于任意目录时解包的目标目录。
 
-If @racket[force?] is true, then version and required-collection
-mismatches (comparing information in the archive to the current
-installation) are ignored.
+如果 @racket[force?] 为真，则版本和所需集合的不匹配（将归档中的信息
+与当前安装进行比较）将被忽略。
 
-The @racket[get-target-plt-directory] function is called to select a
-target for installation for an archive whose is relative to the
-installation. The function should normally return one if its first two
-arguments; the third argument merely contains the first two, but has
-only one element if the first two are the same. If the archive does
-not request installation for all uses, then the first two arguments
-will be different, and the former will be a user-specific location,
-while the second will refer to the main installation.}
+@racket[get-target-plt-directory] 函数被调用来选择归档（相对于安装）的安装目标。
+该函数通常返回其前两个参数之一；第三个参数仅包含前两个参数，
+但如果前两个参数相同，则只有一项。如果归档不请求对所有用途进行安装，
+则前两个参数将不同，前者将是特定用户位置，而后者将引用主安装。}
 
 @defproc[(fold-plt-archive [archive path-string?]
                            [on-config-fn (any/c any/c . -> . any/c)]
@@ -98,53 +85,36 @@ while the second will refer to the main installation.}
                                            any/c 
                                            . -> . any/c))]
                            [initial-value any/c])
-          any/c]{
+         any/c]{
 
-Traverses the content of @racket[archive], which must be a
-@filepath{.plt} archive that is created with the default unpacking
-unit and configuration expression. The configuration expression is not
-evaluated, the unpacking unit is not invoked, and files are not
-unpacked to the filesystem. Instead, the information in the archive is
-reported back through @racket[on-config], @racket[on-setup-unit],
-@racket[on-directory], and @racket[on-file], each of which can build on
-an accumulated value that starts with @racket[initial-value] and whose
-final value is returned.
+遍历 @racket[archive] 的内容，该归档必须是使用默认解包单元和配置表达式创建的
+@filepath{.plt} 归档。不会对配置表达式求值，不会调用解包单元，也不会将文件解包到文件系统。
+相反，归档中的信息将通过 @racket[on-config]、@racket[on-setup-unit]、
+@racket[on-directory] 和 @racket[on-file] 报告回来，每个函数都可以基于累积值进行构建，
+累积值从 @racket[initial-value] 开始，最终值被返回。
 
-The @racket[on-config-fn] function is called once with an S-expression
-that represents a function to implement configuration information.
-The second argument to @racket[on-config] is @racket[initial-value],
-and the function's result is passed on as the last argument to @racket[on-setup-unit].
+@racket[on-config-fn] 函数被调用一次，使用一个 S-expression，
+该表达式表示实现配置信息的函数。
+@racket[on-config] 的第二个参数是 @racket[initial-value]，
+函数的结果被作为最后一个参数传递给 @racket[on-setup-unit]。
 
-The @racket[on-setup-unit] function is called with the S-expression
-representation of the installation unit, an input port that points to
-the rest of the file, and the accumulated value. This input port is
-the same port that will be used in the rest of processing, so if
-@racket[on-setup-unit] consumes any data from the port, then that data
-will not be consumed by the remaining functions. (This means that
-on-setup-unit can leave processing in an inconsistent state, which is
-not checked by anything, and therefore could cause an error.)
-The result of @racket[on-setup-unit] becomes the new accumulated value.
+@racket[on-setup-unit] 函数被调用时接收安装单元的 S-expression 表示、
+指向文件其余部分的 input port 和累积值。此 input port 将与其余处理中使用的端口相同，
+因此，如果 @racket[on-setup-unit] 从端口消费了任何数据，
+则该数据将不会被其余函数消费。（这意味着 @racket[on-setup-unit] 可能使处理处于不一致的状态，
+不被任何内容检查，因此可能导致错误。）@racket[on-setup-unit] 的结果成为新的累积值。
 
-For each directory that would be created by the archive when unpacking
-normally, @racket[on-directory] is called with the directory
-path (described more below) and the accumulated value up to that
-point, and its result is the new accumulated value.
+对于在正常解包时将由归档创建的每个目录，@racket[on-directory] 被调用，
+参数为目录路径（详见下文）和到该点的累积值，其结果是新的累积值。
 
-For each file that would be created by the archive when unpacking
-normally, @racket[on-file] is called with the file path (described
-more below), an input port containing the contents of the file, an
-optional mode symbol indicating whether the file should be replaced,
-and the accumulated value up to that point; its result is the new
-accumulated value. The input port can be used or ignored, and parsing
-of the rest of the file continues the same either way. After
-@racket[on-file] returns control, however, the input port is drained
-of its content.
+对于在正常解包时将由归档创建的每个文件，@racket[on-file] 被调用，
+参数为文件路径（详见下文）、包含文件内容的 input port、一个可选的模式符号
+（指示文件是否应被替换）以及到该点的累积值；其结果是新的累积值。
+input port 可以使用或忽略，解析文件的其余部分无论哪种方式都会相同。
+然而，在 @racket[on-file] 返回控制权后，input port 的内容将被排空。
 
-A directory or file path can be a plain path, or it can be a list
-containing @racket['collects], @racket['doc], @racket['lib], or
-@racket['include] and a relative path. The latter case corresponds to
-a directory or file relative to a target installation's collection
-directory (in the sense of @racket[find-collects-dir]), documentation
-directory (in the sense of @racket[find-doc-dir]), library
-directory (in the sense of @racket[find-lib-dir]), or ``include''
-directory (in the sense of @racket[find-include-dir]).}
+目录或文件路径可以是普通路径，也可以是包含 @racket['collects]、@racket['doc]、
+@racket['lib] 或 @racket['include] 和相对路径的列表。
+后一种情况对应于相对于目标安装集合目录（@racket[find-collects-dir] 意义下）、
+文档目录（@racket[find-doc-dir] 意义下）、库目录（@racket[find-lib-dir] 意义下）
+或"include"目录（@racket[find-include-dir] 意义下）的目录或文件。}

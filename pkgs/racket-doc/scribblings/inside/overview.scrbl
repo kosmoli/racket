@@ -1,150 +1,122 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "overview"]{Overview}
+@bc-title[#:tag "overview"]{概述}
 
-The Racket BC runtime system is implemented in C and provides the
-compiler from source to bytecode format, the JIT compiler from
-bytecode to machine code, I/O functionality, threads, and memory
-management.
+Racket BC 运行时系统用 C 实现，提供了从源码到 bytecode 格式的编译器、
+从 bytecode 到 machine code 的 JIT 编译器、I/O 功能、thread 和内存管理。
 
-@section{``Scheme'' versus ``Racket''}
+@section{"Scheme" 与 "Racket"}
 
-The old name for Racket was ``PLT Scheme,'' and the core compiler and
-run-time system used to be called ``MzScheme.'' The old names are
-entrenched in Racket internals, to the point that most C bindings
-defined in this manual start with @cpp{scheme_}. In principle, they
-all should be renamed to start @cpp{racket_}.
+Racket 的旧称是"PLT Scheme"，核心编译器和运行时系统过去被称为"MzScheme"。
+这些旧名称在 Racket 内部根深蒂固，以至于本手册中定义的大多数 C binding 以 @cpp{scheme_}
+开头。原则上，它们都应该重命名以 @cpp{racket_} 开头。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "CGC versus 3m"]{CGC versus 3m}
+@section[#:tag "CGC versus 3m"]{CGC 与 3m}
 
-Before mixing any C code with Racket BC, first decide whether to use the
-@bold{3m} variant of Racket, the @bold{CGC} variant of Racket, or
-both:
+在将任何 C 代码与 Racket BC 混合之前，首先决定是使用 @bold{3m} 变体、
+@bold{CGC} 变体，还是两者都用：
 
 @itemize[
 
-@item{@bold{@as-index{3m}} : the main variant of Racket BC, which uses
-  @defterm{precise} garbage collection and requires explicit
-  registration of pointer roots and allocation shapes. The precise
-  garbage collector may move its objects in memory during a
-  collection.}
+@item{@bold{@as-index{3m}} : Racket BC 的主要变体，使用
+  @defterm{precise} 垃圾收集，并要求显式注册 pointer roots 和分配形状。
+  precise 垃圾收集器可能在收集期间在内存中移动其对象。}
 
-@item{@bold{@as-index{CGC}} : the original variant of Racket BC, where
-  memory management depends on a @defterm{conservative} garbage
-  collector. The conservative garbage collector can automatically find
-  references to managed values from C local variables and (on some
-  platforms) static variables, and it does not move allocated
-  objects.}
+@item{@bold{@as-index{CGC}} : Racket BC 的原始变体，内存管理依赖于
+  @defterm{conservative} 垃圾收集器。conservative 垃圾收集器可以自动
+  从 C 局部变量和（在某些平台上）静态变量中找到对被管理值的引用，
+  并且它不会移动已分配的对象。}
 
 ]
 
-At the C level, working with CGC can be much easier than working with
-3m, but overall system performance is typically better with 3m.
+在 C 级别工作时，使用 CGC 可能比使用 3m 容易得多，
+但使用 3m 通常能获得更好的整体系统性能。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "embedding-and-extending"]{Embedding and Extending Racket}
+@section[#:tag "embedding-and-extending"]{嵌入和扩展 Racket}
 
-The Racket run-time system can be embedded into a larger program; see
-@secref["embedding"] for more information. As an alternative to
-embedding, the @exec{racket} executable can also be run in a
-subprocess, and that choice may be better for many purposes. On
-Windows, @seclink["top" #:doc '(lib "mzcom/mzcom.scrbl") #:indirect?
-#t]{MzCom} provides another option.
+Racket 运行时系统可以嵌入到更大的程序中；参见 @secref["embedding"]
+了解更多信息。作为嵌入的替代方案，@exec{racket} 可执行文件
+也可以在 subprocess 中运行，对于许多目的来说这可能是更好的选择。
+在 Windows 上，@seclink["top" #:doc '(lib "mzcom/mzcom.scrbl") #:indirect?
+#t]{MzCom} 提供了另一种选择。
 
-The Racket run-time system @seclink["Writing Racket Extensions"]{can
-be extended} with new C-implemented functions. Historically, writing
-an extension could provide performance benefits relative to writing
-pure Racket code, but Racket performance has improved to the point
-that performance benefits of writing C code (if any) are usually too
-small to justify the maintenance effort. For calling functions that
-are provided by a C-implemented library, meanwhile, using with
+Racket 运行时系统 @seclink["Writing Racket Extensions"]{可以扩展}
+以添加新的 C 实现函数。从历史上看，相对于编写纯 Racket 代码，编写扩展
+可以获得性能优势，但 Racket 性能已提高到这样的程度：
+编写 C 代码（如果有的话）的性能优势通常太小而不值得维护努力。
+与此同时，要调用 C 实现库提供的函数，使用 Racket 内的
 @seclink["top" #:doc '(lib
 "scribblings/foreign/foreign.scrbl")]{foreign-function interface}
-within Racket is a better choice than writing an extension of Racket
-to call the library.
+比编写扩展来调用库是更好的选择。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "places"]{Racket BC and Places}
+@section[#:tag "places"]{Racket BC 和 Places}
 
-Each Racket @|tech-place| corresponds to a separate OS-implemented
-thread. Each place has its own memory manager. Pointers to GC-managed
-memory cannot be communicated from one place to another, because such
-pointers in one place are invisible to the memory manager of another
-place.
+每个 Racket @|tech-place| 对应于一个单独的 OS 实现的 thread。
+每个 place 都有自己的内存管理器。指向 GC 管理内存的指针无法在多个
+place 之间通信，因为一个 place 中的此类指针对另一个 place 的内存管理器
+是不可见的。
 
-When @|tech-place| support is enabled, static variables at the C level
-generally cannot hold pointers to GC-managed memory, since the static
-variable may be used from multiple places.  For some OSes, a static
-variable can be made thread-local, in which case it has a different
-address in each OS thread, and each different address can be
-registered with the GC for a given place.
+当启用 @|tech-place| 支持时，C 级别的静态变量通常不能保存指向
+GC 管理内存的指针，因为该静态变量可能用于多个 place。
+对于某些 OS，静态变量可以制成 thread-local，在这种情况下，
+它在每个 OS thread 中具有不同的地址，且每个不同的地址都可以
+针对给定 place 向 GC 注册。
 
-In an @seclink["embedding"]{embedding application}, the OS thread that
-originally calls @cpp{scheme_basic_env} is the OS thread of the
-original place. When @cpp{scheme_basic_env} is called a second time to
-reset the interpreter, it can be called in an OS thread that is
-different from the original call to
-@cpp{scheme_basic_env}. Thereafter, the new thread is the OS thread
-for the original place.
+在 @seclink["embedding"]{embedding 应用}中，最初调用 @cpp{scheme_basic_env}
+的 OS thread 是原始 place 的 OS thread。当第二次调用 @cpp{scheme_basic_env}
+来重置解释器时，可以在与原始调用 @cpp{scheme_basic_env} 不同的 OS thread 中调用它。
+此后，新 thread 是原始 place 的 OS thread。
 
 @; ----------------------------------------------------------------------
 
-@section{Racket BC and Threads}
+@section{Racket BC 和 Threads}
 
-Racket implements threads for Racket programs without aid from the
-operating system, so that Racket threads are cooperative from the
-perspective of C code. Stand-alone Racket may uses a few private
-OS-implemented threads for background tasks, but these OS-implemented
-threads are never exposed by the Racket API.
+Racket 在不借助操作系统的情况下为 Racket 程序实现 thread，
+因此从 C 代码的角度看，Racket 的 thread 是协作式的。
+独立运行的 Racket 可能使用少数私有的 OS 实现线程来执行后台任务，
+但这些 OS 实现的线程永远不会通过 Racket API 公开。
 
-Racket can co-exist with additional OS-implemented threads, but the
-additional OS threads must not call any @cpp{scheme_} function.  Only
-the OS thread representing a particular @|tech-place| can call
-@cpp{scheme_} functions. (This restriction is stronger than saying all
-calls for a given place must be serialized across threads. Racket
-relies on properties of specific threads to avoid stack overflow and
-garbage collection.) In an @seclink["embedding"]{embedding
-application}, for the original place, only the OS thread used to call
-@cpp{scheme_basic_env} can call @cpp{scheme_} functions. For any other
-place, only the OS thread that is created by Racket for the place can
-be used to call @cpp{scheme_} functions.
+Racket 可以与额外的 OS 实现线程共存，但额外的 OS thread 不能调用任何
+@cpp{scheme_} 函数。只有代表特定 @|tech-place| 的 OS thread 才能调用
+@cpp{scheme_} 函数。（此限制比说给定 place 的所有跨线程调用必须序列化更强。
+Racket 依赖特定 thread 的属性来避免栈溢出和垃圾回收。）
+在 @seclink["embedding"]{embedding 应用}中，对于原始 place，
+只有用于调用 @cpp{scheme_basic_env} 的 OS thread 才能调用 @cpp{scheme_} 函数。
+对于任何其他 place，只有 Racket 为该 place 创建的 OS thread才能用于调用
+@cpp{scheme_} 函数。
 
-See @secref["threads"] for more information about threads, including
-the possible effects of Racket's thread implementation on extension
-and embedding C code.
+参见 @secref["threads"] 了解更多关于 thread 的信息，包括 Racket 的 thread 实现
+可能对扩展和嵌入 C 代码产生的影响。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "im:unicode"]{Racket BC, Unicode, Characters, and Strings}
+@section[#:tag "im:unicode"]{Racket BC、Unicode、字符和字符串}
 
-A character in Racket is a Unicode code point. In C, a character
-value has type @cppi{mzchar}, which is an alias for @cpp{unsigned} ---
-which is, in turn, 4 bytes for a properly compiled Racket. Thus, a
-@cpp{mzchar*} string is effectively a UCS-4 string.
+Racket 中的字符是一个 Unicode 码点。在 C 中，字符值具有类型 @cppi{mzchar}，
+它是 @cpp{unsigned} 的别名 —— 对于正确编译的 Racket，该类型又为 4 字节。
+因此，@cpp{mzchar*} 字符串实际上是一个 UCS-4 字符串。
 
-Only a few Racket functions use @cpp{mzchar*}. Instead, most
-functions accept @cpp{char*} strings. When such byte strings are to be
-used as a character strings, they are interpreted as UTF-8
-encodings. A plain ASCII string is always acceptable in such cases,
-since the UTF-8 encoding of an ASCII string is itself.
+只有少数 Racket 函数使用 @cpp{mzchar*}。相反，大多数函数接受 @cpp{char*}
+字符串。当这些 byte strings 用作字符字符串时，它们被解释为 UTF-8 编码。
+纯 ASCII 字符串在这种情况下始终是可接受的，因为 ASCII 字符串的 UTF-8 编码
+就是其本身。
 
-See also @secref["im:strings"] and @secref["im:encodings"].
+另请参见 @secref["im:strings"] 和 @secref["im:encodings"]。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "im:intsize"]{Racket BC Integers}
+@section[#:tag "im:intsize"]{Racket BC 整数}
 
-Racket expects to be compiled in a mode where @cppi{short} is a
-16-bit integer, @cppi{int} is a 32-bit integer, and @cppi{intptr_t} has
-the same number of bits as @cpp{void*}. The @cppi{long} type can match
-either @cpp{int} or @cpp{intptr_t}, depending on the platform.
-The @cppi{mzlonglong} type has
-64 bits for compilers that support a 64-bit integer type, otherwise it
-is the same as @cpp{intptr_t}; thus, @cpp{mzlonglong} tends to match
-@cpp{long long}. The @cppi{umzlonglong} type is the unsigned version
-of @cpp{mzlonglong}.
+Racket 期望在以下模式编译：@cppi{short} 是 16 位整数，@cppi{int}
+是 32 位整数，且 @cppi{intptr_t} 与 @cpp{void*} 具有相同的位数。
+@cppi{long} 类型根据平台不同可以匹配 @cpp{int} 或 @cpp{intptr_t}。
+@cppi{mzlonglong} 类型在支持 64 位整数类型的编译器中具有 64 位，
+否则与 @cpp{intptr_t} 相同；因此，@cpp{mzlonglong} 往往匹配 @cpp{long long}。
+@cppi{umzlonglong} 类型是 @cpp{mzlonglong} 的无符号版本。

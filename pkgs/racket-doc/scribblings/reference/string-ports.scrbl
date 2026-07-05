@@ -4,37 +4,31 @@
 @(define sp-eval (make-base-eval))
 @examples[#:hidden #:eval sp-eval (require racket/list)]
 
-@title[#:tag "stringport"]{String Ports}
+@title[#:tag "stringport"]{String Port}
 
-A @deftech{string port} reads or writes from a @tech{byte string}. An
-input @tech{string port} can be created from either a @tech{byte string}
-or a @tech{string}; in the latter case, the @tech{string} is effectively
-converted to a @tech{byte string} using @racket[string->bytes/utf-8]. An
-output @tech{string port} collects output into a @tech{byte string}, but
-@racket[get-output-string] conveniently converts the accumulated bytes
-to a @tech{string}.
+@deftech{string port} 从一个 @tech{byte string} 读取或向其写入。
+输入 @tech{string port} 可以从 @tech{byte string} 或 @tech{string} 创建；
+在后一种情况下，@tech{string} 会有效地使用 @racket[string->bytes/utf-8] 
+被转换为 @tech{byte string}。输出 @tech{string port} 将输出累积到 @tech{byte string} 中，
+但 @racket[get-output-string] 方便地将累积的 bytes 转换为 @tech{string}。
 
-Input and output @tech{string ports} do not need to be explicitly
-closed. The @racket[file-position] procedure works for @tech{string
-ports} in position-setting mode.
+输入和输出 @tech{string port} 不需要被显式关闭。@racket[file-position] 过程
+在位置设置模式下适用于 @tech{string port}。
 
 @refalso["bytestrings"]{bytestrings}
 
 @defproc[(string-port? [p port?]) boolean?]{
 
-Returns @racket[#t] if @racket[p] is a @tech{string port}, @racket[#f]
-otherwise.
+如果 @racket[p] 是 @tech{string port} 则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.0.1.6"]}
 
 @defproc[(open-input-bytes [bstr bytes?] [name any/c 'string])
          (and/c input-port? string-port?)]{
 
-Creates an input @tech{string port} that reads characters from
-@racket[bstr] (see @secref["bytestrings"]). Modifying @racket[bstr]
-afterward does not affect the byte stream produced by the port. The
-optional @racket[name] argument is used as the name for the returned
-port.}
+创建一个输入 @tech{string port}，从 @racket[bstr] 读取字符
+（参见 @secref["bytestrings"]）。之后修改 @racket[bstr] 不会影响
+端口产生的 byte stream。可选的 @racket[name] 参数用作返回端口的名称。
 
 @examples[#:eval sp-eval
   (define sp (open-input-bytes #"(apples 42 day)"))
@@ -50,9 +44,8 @@ port.}
 @defproc[(open-input-string [str string?] [name any/c 'string])
          (and/c input-port? string-port?)]{
 
-Creates an input @tech{string port} that reads bytes from the UTF-8
-encoding (see @secref["encodings"]) of @racket[str]. The optional
-@racket[name] argument is used as the name for the returned port.}
+创建一个输入 @tech{string port}，从 @racket[str] 的 UTF-8 编码读取 bytes
+（参见 @secref["encodings"]）。可选的 @racket[name] 参数用作返回端口的名称。}
 
 @examples[#:eval sp-eval
   (define sp (open-input-string "(λ (x) x)"))
@@ -62,11 +55,10 @@ encoding (see @secref["encodings"]) of @racket[str]. The optional
   (read-line names)]
 
 @defproc[(open-output-bytes [name any/c 'string])
-         (and/c output-port? string-port?)]{
+         (and/c output-port? string-port?)]
 
-Creates an output @tech{string port} that accumulates the output into a
-byte string. The optional @racket[name] argument is used as the name for
-the returned port.}
+创建一个输出 @tech{string port}，将输出累积到 byte string 中。
+可选的 @racket[name] 参数用作返回端口的名称。
 
 @examples[ #:eval sp-eval
   (define op1 (open-output-bytes))
@@ -83,9 +75,9 @@ the returned port.}
 ]
 
 @defproc[(open-output-string [name any/c 'string])
-         (and/c output-port? string-port?)]{
+         (and/c output-port? string-port?)]
 
-The same as @racket[open-output-bytes].}
+与 @racket[open-output-bytes] 相同。
 
 @examples[ #:eval sp-eval
   (define op1 (open-output-string))
@@ -107,28 +99,21 @@ The same as @racket[open-output-bytes].}
                            [end-pos exact-nonnegative-integer? #f])
          bytes?]{
 
-Returns the bytes accumulated in the @tech{string port} @racket[out] so
-far in a freshly allocated @tech{byte string} (including any bytes
-written after the port's current position, if any). The @racket[out]
-port must be an output @tech{string port} produced by
-@racket[open-output-bytes] (or @racket[open-output-string]) or a
-structure whose @racket[prop:output-port] property refers to such an
-output port (transitively).
+在新分配的 @tech{byte string} 中返回迄今为止在 @tech{string port} @racket[out] 中累积的 bytes
+（包括端口当前位置之后写入的任何 bytes）。@racket[out] 端口必须是 @racket[open-output-bytes]
+（或 @racket[open-output-string]）产生的输出 @tech{string port}，或者
+是其 @racket[prop:output-port] 属性引用此类输出端口的结构（可传递地）。
 
-If @racket[reset?] is true, then all bytes are removed from the port,
-and the port's position is reset to @racket[0]; if @racket[reset?] is
-@racket[#f], then all bytes remain in the port for further
-accumulation (so they are returned for later calls to
-@racket[get-output-bytes] or @racket[get-output-string]), and the
-port's position is unchanged.
+如果 @racket[reset?] 为真，则端口中的所有 bytes 将被移除，端口的位置将重置为
+@racket[0]；如果 @racket[reset?] 为 @racket[#f]，则所有 bytes 保留在端口中
+供进一步累积（因此它们会在后续对 @racket[get-output-bytes] 或 @racket[get-output-string]
+的调用中返回），端口的位置不变。
 
-The @racket[start-pos] and @racket[end-pos] arguments specify the
-range of bytes in the port to return; supplying @racket[start-pos] and
-@racket[end-pos] is the same as using @racket[subbytes] on the result
-of @racket[get-output-bytes], but supplying them to
-@racket[get-output-bytes] can avoid an allocation. The
-@racket[end-pos] argument can be @racket[#f], which corresponds to not
-passing a second argument to @racket[subbytes].}
+@racket[start-pos] 和 @racket[end-pos] 参数指定要返回的端口中 bytes 的范围；
+提供 @racket[start-pos] 和 @racket[end-pos] 与使用 @racket[subbytes] 于
+@racket[get-output-bytes] 的结果相同，但将它们提供给 @racket[get-output-bytes]
+可以避免分配。@racket[end-pos] 参数可以是 @racket[#f]，对应于不向
+@racket[subbytes] 传递第二个参数。}
 
 @examples[ #:eval sp-eval
   (define op (open-output-bytes))
@@ -138,8 +123,9 @@ passing a second argument to @racket[subbytes].}
   (get-output-bytes op #t)
   (get-output-bytes op)]
 
-@defproc[(get-output-string [out (and/c output-port? string-port?)]) string?]{
-Returns @racket[(bytes->string/utf-8 (get-output-bytes out) @#,racketvalfont{#\uFFFD})].}
+@defproc[(get-output-string [out (and/c output-port? string-port?)]) string?]
+
+返回 @racket[(bytes->string/utf-8 (get-output-bytes out) @#,racketvalfont{#\uFFFD})]。}
 
 @examples[
 (define i (open-input-string "hello world"))
