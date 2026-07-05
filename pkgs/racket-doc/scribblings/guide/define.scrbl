@@ -3,14 +3,13 @@
 
 @(define def-eval (make-base-eval))
 
-@title[#:tag "define"]{Definitions: @racket[define]}
+@title[#:tag "define"]{定义：@racket[define]}
 
-A basic definition has the form
+基本定义形式为
 
 @specform[(define id expr)]{}
 
-in which case @racket[_id] is bound to the result of
-@racket[_expr].
+其中 @racket[_id] 绑定到 @racket[_expr] 的结果。
 
 @defexamples[
 #:eval def-eval
@@ -19,14 +18,13 @@ salutation
 ]
 
 @;------------------------------------------------------------------------
-@section{Function Shorthand}
+@section{函数简写形式}
 
-The @racket[define] form also supports a shorthand for function
-definitions:
+@racket[define] 形式也支持函数定义的简写：
 
 @specform[(define (id arg ...) body ...+)]{}
 
-which is a shorthand for
+这是以下形式的简写：
 
 @racketblock[
 (define _id (lambda (_arg ...) _body ...+))
@@ -54,7 +52,7 @@ arguments in a list):
 
 @specform[(define (id arg ... . rest-id) body ...+)]{}
 
-which is a shorthand
+这是以下形式的简写：
 
 @racketblock[
 (define _id (lambda (_arg ... . _rest-id) _body ...+))
@@ -68,10 +66,9 @@ which is a shorthand
 ]
 
 @;------------------------------------------------------------------------
-@section{Curried Function Shorthand}
+@section{Curried 函数简写形式}
 
-Consider the following @racket[make-add-suffix] function that takes a
-string and returns another function that takes a string:
+考虑以下 @racket[make-add-suffix] 函数，它接受一个 string 并返回另一个接受 string 的函数：
 
 @def+int[
 #:eval def-eval
@@ -80,31 +77,23 @@ string and returns another function that takes a string:
     (lambda (s) (string-append s s2))))
 ]
 
-Although it's not common, the result of @racket[make-add-suffix] could be
-called directly, like this:
+虽然不常见，@racket[make-add-suffix] 的结果可以直接调用，例如：
 
 @interaction[
 #:eval def-eval
 ((make-add-suffix "!") "hello")
 ]
 
-In a sense, @racket[make-add-suffix] is a function that takes two
-arguments, but it takes them one at a time. A function that takes some
-of its arguments and returns a function to consume more is sometimes
-called a @defterm{curried function}.
+从某种意义上说，@racket[make-add-suffix] 是一个接受两个参数的函数，但它一次接受一个参数。接受部分参数并返回一个函数来消费更多参数的函数有时称为 @defterm{curried function}。
 
-Using the function-shorthand form of @racket[define],
-@racket[make-add-suffix] can be written equivalently as
+使用 @racket[define] 的函数简写形式，@racket[make-add-suffix] 可以等价地写成
 
 @racketblock[
 (define (make-add-suffix s2)
   (lambda (s) (string-append s s2)))
 ]
 
-This shorthand reflects the shape of the function call
-@racket[(make-add-suffix "!")]. The @racket[define] form further
-supports a shorthand for defining curried functions that reflects
-nested function calls:
+这种简写形式反映了函数调用 @racket[(make-add-suffix "!")] 的形状。@racket[define] 进一步支持定义反映嵌套函数调用的 curried 函数的简写形式：
 
 @def+int[
 #:eval def-eval
@@ -120,7 +109,7 @@ nested function calls:
 (louder "really")
 ]
 
-The full syntax of the function shorthand for @racket[define] is as follows:
+@racket[define] 的函数简写形式的完整语法如下：
 
 @specform/subs[(define (head args) body ...+)
                ([head id
@@ -128,18 +117,14 @@ The full syntax of the function shorthand for @racket[define] is as follows:
                 [args (code:line arg ...)
                       (code:line arg ... @#,racketparenfont{.} rest-id)])]{}
 
-The expansion of this shorthand has one nested @racket[lambda] form
-for each @racket[_head] in the definition, where the innermost
-@racket[_head] corresponds to the outermost @racket[lambda].
+这种简写形式对定义中的每个 @racket[_head] 都有一个嵌套的 @racket[lambda]，其中最内层的 @racket[_head] 对应最外层的 @racket[lambda]。
 
 
 @;------------------------------------------------------------------------
-@section[#:tag "multiple-values"]{Multiple Values and @racket[define-values]}
+@section[#:tag "multiple-values"]{多值与 @racket[define-values]}
 
-A Racket expression normally produces a single result, but some
-expressions can produce multiple results. For example,
-@racket[quotient] and @racket[remainder] each produce a single value,
-but @racket[quotient/remainder] produces the same two values at once:
+Racket 表达式通常产生单个结果，但有些表达式可产生多个结果。例如，
+@racket[quotient] 和 @racket[remainder] 各产生单个值，而 @racket[quotient/remainder] 同时产生相同的两个值：
 
 @interaction[
 #:eval def-eval
@@ -148,8 +133,7 @@ but @racket[quotient/remainder] produces the same two values at once:
 (quotient/remainder 13 3)
 ]
 
-As shown above, the @tech{REPL} prints each result value on its own
-line.
+如上所示，@tech{REPL} 在每个单独的行上打印每个结果值。
 
 Multiple-valued functions can be implemented in terms of the
 @racket[values] function, which takes any number of values and
@@ -169,13 +153,11 @@ returns them as the results:
 (split-name "Adam Smith")
 ]
 
-The @racket[define-values] form binds multiple identifiers at once to
-multiple results produced from a single expression:
+@racket[define-values] 形式同时绑定多个标识符到单个表达式产生的多个结果：
 
 @specform[(define-values (id ...) expr)]{}
 
-The number of results produced by the @racket[_expr] must match the
-number of @racket[_id]s.
+@racket[_expr] 产生的结果数量必须与 @racket[_id] 的数量匹配。
 
 @defexamples[
 #:eval def-eval
@@ -187,26 +169,24 @@ surname
 A @racket[define] form (that is not a function shorthand) is
 equivalent to a @racket[define-values] form with a single @racket[_id].
 
-@refdetails["define"]{definitions}
+@refdetails["define"]{定义}
 
 @;------------------------------------------------------------------------
-@section[#:tag "intdefs"]{Internal Definitions}
+@section[#:tag "intdefs"]{内部定义}
 
-When the grammar for a syntactic form specifies @racket[_body], then
-the corresponding form can be either a definition or an expression.
-A definition as a @racket[_body] is an @defterm{internal definition}.
+当语法形式指定 @racket[_body] 时，相应的形式可以是定义或表达式。
+@racket[_body] 中的定义称为 @defterm{internal definition}。
 
-Expressions and internal definitions in a @racket[_body] sequence can
-be mixed, as long as the last @racket[_body] is an expression.
+@racket[_body] 序列中的表达式和内部定义可以混合，只要最后一个 @racket[_body] 是表达式。
 
-For example, the syntax of @racket[lambda] is
+例如，@racket[lambda] 的语法是
 
 @specform[
 (lambda gen-formals
   body ...+)
 ]
 
-so the following are valid instances of the grammar:
+因此以下是语法有效的实例：
 
 @racketblock[
 (lambda (f)                (code:comment @#,elem{no definitions})
@@ -233,11 +213,7 @@ so the following are valid instances of the grammar:
   (call n))
 ]
 
-Internal definitions in a particular @racket[_body] sequence are
-mutually recursive; that is, any definition can refer to any other
-definition---as long as the reference isn't actually evaluated before
-its definition takes place. If a definition is referenced too early,
-an error occurs.
+特定 @racket[_body] 序列中的内部定义是相互递归的；即任何定义都可以引用其他任何定义——只要在引用实际求值之前定义已经发生。如果引用过早，将会发生错误。
 
 @defexamples[
 (define (weird)
@@ -253,7 +229,7 @@ in the next section). However, other definition forms can appear as a
 @secref["define-struct"]) or @racket[define-syntax] (see
 @secref["macros"]).
 
-@refdetails/gory["intdef-body"]{internal definitions}
+@refdetails/gory["intdef-body"]{内部定义}
 
 @; ----------------------------------------------------------------------
 
