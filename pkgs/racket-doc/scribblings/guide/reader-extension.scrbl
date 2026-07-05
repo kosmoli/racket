@@ -3,31 +3,23 @@
           "guide-utils.rkt" "modfile.rkt"
           (for-label racket/match syntax/readerr))
 
-@title[#:tag "hash-reader"]{Reader Extensions}
+@title[#:tag "hash-reader"]{读取器扩展}
 
 @refdetails["parse-reader"]{reader extensions}
 
-The @tech{reader} layer of the Racket language can be extended through
-the @racketmetafont{#reader} form. A reader extension is implemented
-as a module that is named after @racketmetafont{#reader}. The module
-exports functions that parse raw characters into a form to be consumed
-by the @tech{expander} layer.
+Racket 语言的 @tech{reader} 层可以通过 @racketmetafont{#reader} 形式进行扩展。一个 reader extension 实现为一个以 @racketmetafont{#reader} 命名的模块。该模块导出将原始字符解析为供 @tech{expander} 层消费的 form 的函数。
 
-The syntax of @racketmetafont{#reader} is
+@racketmetafont{#reader} 的语法是
 
 @racketblock[@#,(BNF-seq @litchar{#reader} @nonterm{module-path} @nonterm{reader-specific})]
 
-where @nonterm{module-path} names a module that provides
-@racketidfont{read} and @racketidfont{read-syntax} functions. The
-@nonterm{reader-specific} part is a sequence of characters that is
-parsed as determined by the @racketidfont{read} and
-@racketidfont{read-syntax} functions from @nonterm{module-path}.
+其中 @nonterm{module-path} 命名一个提供 @racketidfont{read} 和 @racketidfont{read-syntax} 函数的模块。@nonterm{reader-specific} 部分是由 @nonterm{module-path} 中的 @racketidfont{read} 和 @racketidfont{read-syntax} 函数决定如何解析的字符序列。
 
-For example, suppose that file @filepath{five.rkt} contains
+例如，假设文件 @filepath{five.rkt} 包含
 
 @racketmodfile["five.rkt"]
 
-Then, the program
+那么程序
 
 @racketmod[
 racket/base
@@ -35,7 +27,7 @@ racket/base
 '(1 @#,(elem @racketmetafont{#reader} @racket["five.rkt"] @tt{23456} @racket[7]) 8)
 ]
 
-is equivalent to
+等价于
 
 @racketmod[
 racket/base
@@ -43,16 +35,7 @@ racket/base
 '(1 ("23456") 7 8)
 ]
 
-because the @racketidfont{read} and @racketidfont{read-syntax}
-functions of @filepath{five.rkt} both read five characters from the
-input stream and put them into a string and then a list. The reader
-functions from @filepath{five.rkt} are not obliged to follow Racket
-lexical conventions and treat the continuous sequence @litchar{234567}
-as a single number. Since only the @litchar{23456} part is consumed by
-@racketidfont{read} or @racketidfont{read-syntax}, the @litchar{7}
-remains to be parsed in the usual Racket way. Similarly, the reader
-functions from @filepath{five.rkt} are not obliged to ignore
-whitespace, and
+因为 @filepath{five.rkt} 的 @racketidfont{read} 和 @racketidfont{read-syntax} 函数都从输入流中读取五个字符并将它们放入一个 string 和一个 list。来自 @filepath{five.rkt} 的 reader function 不需要遵循 Racket 的词法约定并将连续序列 @litchar{234567} 视为单个数字。由于只有 @litchar{23456} 部分被 @racketidfont{read} 或 @racketidfont{read-syntax} 消费，@litchar{7} 仍然以通常的 Racket 方式被解析。类似地，来自 @filepath{five.rkt} 的 reader function 不需要忽略 whitespace，
 
 @racketmod[
 racket/base
@@ -60,7 +43,7 @@ racket/base
 '(1 @#,(elem @racketmetafont{#reader} @racket["five.rkt"] @hspace[1] @tt{2345} @racket[67]) 8)
 ]
 
-is equivalent to
+等价于
 
 @racketmod[
 racket/base
@@ -68,10 +51,9 @@ racket/base
 '(1 (" 2345") 67 8)
 ]
 
-since the first character immediately after @racket["five.rkt"] is a
-space.
+因为 @racket["five.rkt"] 之后的第一个字符是空格。
 
-A @racketmetafont{#reader} form can be used in the @tech{REPL}, too:
+@racketmetafont{#reader} 形式也可以在 @tech{REPL} 中使用：
 
 @interaction[
 (eval:alts '@#,(elem @racketmetafont{#reader}@racket["five.rkt"]@tt{abcde}) '#reader"five.rkt"abcde)
@@ -81,53 +63,22 @@ A @racketmetafont{#reader} form can be used in the @tech{REPL}, too:
 
 @section{Source Locations}
 
-The difference between @racketidfont{read} and
-@racketidfont{read-syntax} is that @racketidfont{read} is meant to be
-used for data while @racketidfont{read-syntax} is meant to be used to
-parse programs. More precisely, the @racketidfont{read} function will
-be used when the enclosing stream is being parsed by the Racket
-@racket[read], and @racketidfont{read-syntax} is used when the
-enclosing stream is being parsed by the Racket @racket[read-syntax]
-function. Nothing requires @racketidfont{read} and
-@racketidfont{read-syntax} to parse input in the same way, but making
-them different would confuse programmers and tools.
+@racketidfont{read} 和 @racketidfont{read-syntax} 的区别在于 @racketidfont{read} 用于数据，而 @racketidfont{read-syntax} 用于解析程序。更精确地说，当外围流正由 Racket @racket[read] 解析时使用 @racketidfont{read}，当外围流正由 Racket @racket[read-syntax] 函数解析时使用 @racketidfont{read-syntax}。不需要 @racketidfont{read} 和 @racketidfont{read-syntax} 以相同方式解析输入，但使它们不同会让程序员和工具感到困惑。
 
-The @racketidfont{read-syntax} function can return the same kind of
-value as @racketidfont{read}, but it should normally return a
-@tech{syntax object} that connects the parsed expression with source
-locations. Unlike the @filepath{five.rkt} example, the
-@racketidfont{read-syntax} function is typically implemented directly
-to produce @tech{syntax objects}, and then @racketidfont{read} can use
-@racketidfont{read-syntax} and strip away @tech{syntax object}
-wrappers to produce a raw result.
+@racketidfont{read-syntax} 函数可以返回与 @racketidfont{read} 相同类型的值，但它通常应该返回一个将解析后的表达式与 source location 关联起来的 @tech{syntax object}。与 @filepath{five.rkt} 示例不同，@racketidfont{read-syntax} 函数通常直接实现以生成 @tech{syntax objects}，然后 @racketidfont{read} 可以使用 @racketidfont{read-syntax} 并剥离 @tech{syntax object} 包装以产生原始结果。
 
-The following @filepath{arith.rkt} module implements a reader to
-parse simple infix arithmetic expressions into Racket forms. For
-example, @litchar{1*2+3} parses into the Racket form @racket[(+ (* 1
-2) 3)]. The supported operators are @litchar{+}, @litchar{-},
-@litchar{*}, and @litchar{/}, while operands can be unsigned integers
-or single-letter variables. The implementation uses
-@racket[port-next-location] to obtain the current source location, and
-it uses @racket[datum->syntax] to turn raw values into @tech{syntax
-objects}.
+以下 @filepath{arith.rkt} 模块实现了一个 reader，将简单的中缀算术表达式解析为 Racket form。例如，@litchar{1*2+3} 解析为 Racket form @racket[(+ (* 1 2) 3)]。支持的运算符是 @litchar{+}、@litchar{-}、@litchar{*} 和 @litchar{/}，而 operand 可以是 unsigned integer 或单字母 variable。该实现使用 @racket[port-next-location] 获取当前 source location，并使用 @racket[datum->syntax] 将原始值转换为 @tech{syntax object}。
 
 @racketmodfile["arith.rkt"]
 
-If the @filepath{arith.rkt} reader is used in an expression position,
-then its parse result will be treated as a Racket expression. If it is
-used in a quoted form, however, then it just produces a number or a
-list:
+如果 @filepath{arith.rkt} reader 在表达式位置使用，则其解析结果将被视为 Racket 表达式。但如果在 quoted form 中使用，则它只产生一个 number 或 list：
 
 @interaction[
 (eval:alts @#,(elem @racketmetafont{#reader}@racket["arith.rkt"]@hspace[1]@tt{1*2+3}) #reader"arith.rkt" 1*2+3 )
 (eval:alts '@#,(elem @racketmetafont{#reader}@racket["arith.rkt"]@hspace[1]@tt{1*2+3}) '#reader"arith.rkt" 1*2+3 )
 ]
 
-The @filepath{arith.rkt} reader could also be used in positions that
-make no sense. Since the @racketidfont{read-syntax} implementation
-tracks source locations, syntax errors can at least refer to parts of
-the input in terms of their original locations (at the beginning of
-the error message):
+@filepath{arith.rkt} reader 也可以在不合理的位置使用。由于 @racketidfont{read-syntax} 实现追踪了 source location，syntax error 至少可以根据原始位置引用输入的部分（在错误消息的开头）：
 
 @interaction[
 (eval:alts (let @#,(elem @racketmetafont{#reader}@racket["arith.rkt"]@hspace[1]@tt{1*2+3}) 8)
@@ -141,60 +92,27 @@ the error message):
 
 @section[#:tag "readtable"]{Readtables}
 
-A reader extension's ability to parse input characters in an arbitrary
-way can be powerful, but many cases of lexical extension call for a
-less general but more composable approach. In much the same way that
-the @tech{expander} level of Racket syntax can be extended through
-@tech{macros}, the @tech{reader} level of Racket syntax can be
-composably extended through a @deftech{readtable}.
+一个 reader extension 以任意方式解析输入字符的能力很强大，但许多 lexical extension 的场景需要一种不那么通用但更 composable 的方法。就像 Racket 语法的 @tech{expander} 层可以通过 @tech{macros} 扩展一样，Racket 语法的 @tech{reader} 层可以通过 @deftech{readtable} 进行 composable 扩展。
 
-The Racket reader is a recursive-descent parser, and the
-@tech{readtable} maps characters to parsing handlers. For example, the
-default readtable maps @litchar{(} to a handler that recursively
-parses subforms until it finds a @litchar{)}. The
-@racket[current-readtable] @tech{parameter} determines the
-@tech{readtable} that is used by @racket[read] or
-@racket[read-syntax]. Rather than parsing raw characters directly, a
-reader extension can install an extended @tech{readtable} and then
-chain to @racket[read] or @racket[read-syntax].
+Racket reader 是一个 recursive-descent parser，而 @tech{readtable} 将字符映射到解析 handler。例如，默认的 readtable 将 @litchar{(} 映射到一个 handler，该 handler 递归解析 subform 直到找到 @litchar{)}。@racket[current-readtable] @tech{parameter} 决定由 @racket[read] 或 @racket[read-syntax] 使用的 @tech{readtable}。与其直接解析原始字符，一个 reader extension 可以安装一个扩展的 @tech{readtable} 然后链式调用 @racket[read] 或 @racket[read-syntax].
 
 @guideother{See @secref["parameterize"] for an introduction to
 @tech{parameters}.}
 
-The @racket[make-readtable] function constructs a new @tech{readtable}
-as an extension of an existing one. It accepts a sequence of
-specifications in terms of a character, a type of mapping for the
-character, and (for certain types of mappings) a parsing
-procedure. For example, to extend the readtable so that @litchar{$}
-can be used to start and end infix expressions, implement a
-@racket[read-dollar] function and use:
+@racket[make-readtable] 函数构造一个新的 @tech{readtable} 作为现有 readtable 的扩展。它接受一系列规范，包括字符、字符的映射类型以及（对某些映射类型）解析 procedure。例如，要扩展 readtable 使 @litchar{$} 可用于开始和结束中缀表达式，实现一个 @racket[read-dollar] 函数并使用：
 
 @racketblock[
 (make-readtable (current-readtable)
                 #\$ 'terminating-macro read-dollar)
 ]
 
-The protocol for @racket[read-dollar] requires the function to accept
-different numbers of arguments depending on whether it is being used
-in @racket[read] or @racket[read-syntax] mode. In @racket[read] mode,
-the parser function is given two arguments: the character that
-triggered the parser function and the input port that is being
-read. In @racket[read-syntax] mode, the function must accept four
-additional arguments that provide the source location of the
-character.
+@racket[read-dollar] 的协议要求函数接受不同数量的参数，取决于它是在 @racket[read] 还是 @racket[read-syntax] 模式下使用。在 @racket[read] 模式下，解析函数接收两个参数：触发解析函数的字符和正在读取的 input port。在 @racket[read-syntax] 模式下，函数必须接受四个提供字符 source location 的附加参数。
 
-The following @filepath{dollar.rkt} module defines a
-@racket[read-dollar] function in terms of the @racketidfont{read} and
-@racketidfont{read-syntax} functions provided by @filepath{arith.rkt},
-and it puts @racket[read-dollar] together with new @racketidfont{read} and
-@racketidfont{read-syntax} functions that install the readtable and
-chain to Racket's @racket[read] or @racket[read-syntax]:
+以下 @filepath{dollar.rkt} 模块定义了一个基于 @filepath{arith.rkt} 提供的 @racketidfont{read} 和 @racketidfont{read-syntax} 函数的 @racket[read-dollar] 函数，并将 @racket[read-dollar] 与安装 readtable 并链式调用 Racket 的 @racket[read] 或 @racket[read-syntax] 的新 @racketidfont{read} 和 @racketidfont{read-syntax} 函数组合。
 
 @racketmodfile["dollar.rkt"]
 
-With this reader extension, a single @racketmetafont{#reader} can be
-used at the beginning of an expression to enable multiple uses of
-@litchar{$} that switch to infix arithmetic:
+使用此 reader extension，可以在表达式开头使用单个 @racketmetafont{#reader} 来开启 @litchar{$} 多次进行中缀算术运算：
 
 @interaction[
 (eval:alts @#,(elem @racketmetafont{#reader}@racket["dollar.rkt"]@hspace[1]
