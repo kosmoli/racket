@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "control" #:style 'toc]{Control Flow}
+@title[#:tag "control" #:style 'toc]{控制流}
 
 @local-table-of-contents[]
 

@@ -1,13 +1,5 @@
 #lang scribble/base
 
-@title{Acknowledgment}
+@title{致谢}
 
-The rules borrow from many sources, including numerous style guides that
-the first author re-read in preparation of writing this document. The first
-author also conducted focus sessions with the members of PLT at various
-sites, and these sessions produced many insights about coding style. Thank
-you to everyone for sitting through these sessions and for reading early
-drafts of the style guide.  Eli Barzilay and Jacob Matthews took the time
-to write up their thoughts on various issues, and their help is much
-appreciated. Rouben Rostamian spotted some problems in an early draft of
-the report.
+这些规则借鉴了许多来源，包括第一作者在撰写本文档前重新阅读的众多风格指南。第一作者还与 PLT 各站点成员进行了焦点小组讨论，这些讨论对编程风格产生了许多深刻的见解。感谢大家参与这些讨论并阅读风格指南的早期草稿。Eli Barzilay 和 Jacob Matthews 抽时间写下了他们对各种问题的思考，他们的帮助非常值得感激。Rouben Rostamian 发现了报告早期草稿中的一些问题。

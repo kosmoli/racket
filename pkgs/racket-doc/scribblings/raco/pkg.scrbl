@@ -1,8 +1,8 @@
 #lang scribble/doc
 @(require scribble/manual "common.rkt")
 
-@title[#:tag "pkg"]{@exec{raco pkg}: Package Management}
+@title[#:tag "pkg"]{@exec{raco pkg}: 包管理}
 
-See @other-manual['(lib "pkg/scribblings/pkg.scrbl")] for
-information on the @exec{raco pkg} command, which is used for
-managing external code packages.
+参见 @other-manual['(lib "pkg/scribblings/pkg.scrbl")] 获取
+关于 @exec{raco pkg} 命令的信息，该命令用于
+管理外部代码包。

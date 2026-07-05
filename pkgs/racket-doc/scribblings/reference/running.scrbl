@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "running" #:style 'toc]{Running Racket}
+@title[#:tag "running" #:style 'toc]{运行 Racket}
 
 @local-table-of-contents[]
 

@@ -1,10 +1,10 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "interactive"]{Interactive Module Loading}
+@title[#:tag "interactive"]{交互式模块加载}
 
-The @racketmodname[racket/rerequire] and @racketmodname[racket/enter]
-libraries provide support for loading, reloading, and using modules.
+@racketmodname[racket/rerequire] 和 @racketmodname[racket/enter]
+库提供对加载、重载和使用模块的支持。
 
 @include-section["enter.scrbl"]
 

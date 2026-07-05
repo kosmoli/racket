@@ -1,9 +1,9 @@
 #lang scribble/base
 
-@title[#:style '(grouper toc) #:tag "cs"]{Inside Racket CS}
+@title[#:style '(grouper toc) #:tag "cs"]{Racket CS 内部}
 
-The Racket CS API is a small extension of the Chez Scheme C API as
-described in @italic{The Chez Scheme User's Guide}.
+Racket CS API 是 Chez Scheme C API 的一个小型扩展，
+如 @italic{The Chez Scheme User's Guide} 中所述。
 
 @local-table-of-contents[]
 

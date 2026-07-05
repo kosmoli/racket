@@ -1,11 +1,11 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "thread-local-storage" #:style 'toc]{Thread-Local Storage}
+@title[#:tag "thread-local-storage" #:style 'toc]{线程局部存储}
 
-@tech{Thread cells} provides primitive support for thread-local
-storage. @tech{Parameters} combine thread cells and continuation marks
-to support thread-specific, continuation-specific binding.
+@tech{Thread cells} 提供了对线程局部存储的原始支持。
+@tech{Parameters} 结合了 thread cells 和 continuation marks，
+以支持特定于线程和特定于 continuation 的绑定。
 
 @local-table-of-contents[]
 

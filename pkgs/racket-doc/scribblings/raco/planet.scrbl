@@ -1,8 +1,8 @@
 #lang scribble/doc
 @(require scribble/manual "common.rkt")
 
-@title[#:tag "planet"]{@exec{raco planet}: Automatic Package Distribution}
+@title[#:tag "planet"]{@exec{raco planet}: 自动包分发}
 
-See @other-manual['(lib "planet/planet.scrbl")] for information on the
-@exec{raco planet} command, which is used for managing packages that
-can be automatically downloaded and installed from the @|PLaneT| server.
+参见 @other-manual['(lib "planet/planet.scrbl")] 获取关于
+@exec{raco planet} 命令的信息，该命令用于管理可以从 @|PLaneT| 服务器
+自动下载和安装的包。

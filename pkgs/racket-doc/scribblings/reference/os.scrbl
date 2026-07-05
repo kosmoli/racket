@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "os" #:style 'toc]{Operating System}
+@title[#:tag "os" #:style 'toc]{操作系统}
 
 @local-table-of-contents[]
 
