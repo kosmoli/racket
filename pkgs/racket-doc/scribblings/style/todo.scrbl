@@ -2,16 +2,16 @@
 
 @(require "shared.rkt")
 
-@title{Todo List, Call for Contributions}
+@title{待办事项列表，征集贡献}
 
 @itemlist[#:style 'ordered
 
-@item{Write a section on when macros, when functions.}
+@item{编写一节关于何时使用 macro、何时使用 function 的内容。}
 
-@item{Write a section on how to design test cases.}
+@item{编写一节关于如何设计测试用例的内容。}
 
-@item{Write a section on how to check the stressability of your software.}
+@item{编写一节关于如何检查软件可承受性的内容。}
 
-@item{Find and link to good/bad examples in the code base.}
+@item{在代码库中查找并链接到好的/坏的示例。}
 
 ]

@@ -4,18 +4,16 @@
                      racket/unsafe/ops
                      racket/performance-hint))
 
-@title[#:tag "parallelism"]{Parallelism}
+@title[#:tag "parallelism"]{并行}
 
-Racket provides three forms of @deftech{parallelism}: @tech{parallel threads},
-@tech{futures}, and
-@tech{places}. On a platform that provides multiple processors,
-parallelism can improve the run-time performance of a program.
+Racket 提供三种 @deftech{parallelism} 形式：@tech{parallel threads}、
+@tech{futures} 和 @tech{places}。在提供多处理器的平台上，
+并行性可以提高程序的运行时性能。
 
-See also @secref["performance"] for information on sequential
-performance in Racket. Racket also provides threads for
-@tech{concurrency}, but @tech{coroutine threads} for concurrency
-do not provide parallelism; see
-@secref["concurrency"] for more information.
+另见 @secref["performance"] 了解 Racket 中顺序性能的信息。
+Racket 还为 @tech{concurrency} 提供线程，但用于并发的
+@tech{coroutine threads} 不提供并行性；更多信息见
+@secref["concurrency"]。
 
 @include-section["parallel-threads.scrbl"]
 @include-section["futures.scrbl"]

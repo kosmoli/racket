@@ -2,17 +2,16 @@
 @(require "mz.rkt"
           (for-label racket/os))
 
-@title[#:tag "os-lib"]{Additional Operating System Functions}
+@title[#:tag "os-lib"]{额外的操作系统函数}
 
-@defmodule[racket/os]{The @racketmodname[racket/os] library
-  additional functions for querying the operating system.}
+@defmodule[racket/os]{@racketmodname[racket/os] 库提供查询操作系统的额外函数。}
 
 @history[#:added "6.3"]
 
 @defproc[(gethostname) string?]{
-  Returns a string for the current machine's hostname (including its domain).
+  返回当前机器的 hostname 字符串（包括域）。
 }
 
 @defproc[(getpid) exact-integer?]{
-  Returns an integer identifying the current process within the operating system.
+  返回标识操作系统内当前进程的整数。
 }

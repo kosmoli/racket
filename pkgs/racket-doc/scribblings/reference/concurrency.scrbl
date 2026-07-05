@@ -1,13 +1,11 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "concurrency" #:style 'toc]{Concurrency and Parallelism}
+@title[#:tag "concurrency" #:style 'toc]{并发和并行}
 
-Racket supports multiple threads of control within a program,
-thread-local storage, some primitive synchronization mechanisms, and a
-framework for composing synchronization abstractions. In addition, the
-@racket[racket/future] and @racket[racket/place] libraries provide
-support for parallelism to improve performance.
+Racket 支持程序内的多个控制线程、线程本地存储、一些原始的同步机制
+以及组合同步抽象的框架。此外，@racket[racket/future] 和
+@racket[racket/place] 库提供支持并行性以提高性能。
 
 @local-table-of-contents[]
 

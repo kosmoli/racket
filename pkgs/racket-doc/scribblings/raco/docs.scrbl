@@ -3,18 +3,16 @@
           scribble/bnf
           "common.rkt")
 
-@title[#:tag "docs"]{@exec{raco docs}: Documentation Search}
+@title[#:tag "docs"]{@exec{raco docs}: 文档搜索}
 
-The @exec{raco docs} command searches the documentation for
-the given identifiers or search terms.
+@exec{raco docs} 命令根据给定的标识符或搜索词搜索文档。
 
-Command-line flags:
+命令行标志：
 
 @itemlist[
-  @item{@Flag{f} @nonterm{name} or @DFlag{family}  @nonterm{name} --- Navigate documentation
-        as language family @nonterm{name}, which may affect the starting point if
-        no search terms are given, may affect the ordering of results for a
-        search, and may affect ``top'' and ``up'' navigation.}
-  @item{@Flag{h} or @DFlag{help} --- Show help information for this command.}
-  @item{@DFlag{} --- Do not treat remaining arguments as switches.}
+  @item{@Flag{f} @nonterm{name} 或 @DFlag{family}  @nonterm{name} --- 作为语言族 @nonterm{name} 导航文档，
+        如果没有给出搜索词可能影响起点，可能影响搜索结果的顺序，
+        并可能影响 ``top'' 和 ``up'' 导航。}
+  @item{@Flag{h} 或 @DFlag{help} --- 显示此命令的帮助信息。}
+  @item{@DFlag{} --- 不将剩余参数视为开关。}
 ]

@@ -2,17 +2,15 @@
 @(require "mz.rkt"
           (for-label racket/undefined))
 
-@title[#:tag "undefined"]{Undefined}
+@title[#:tag "undefined"]{未定义}
 
 @note-lib-only[racket/undefined]
 
-The constant @racket[undefined] can be used as a placeholder value for
-a value to be installed later, especially for cases where premature
-access of the value is either difficult or impossible to detect or
-prevent.
+常量 @racket[undefined] 可以用作占位符值，表示值将在稍后安装，
+特别是对于提前访问该值难以或不可能检测或防止的情况。
 
-The @racket[undefined] value is always @racket[eq?] to itself.
+@racket[undefined] 值始终与自身 @racket[eq?]。
 
 @history[#:added "6.0.0.6"]
 
-@defthing[undefined any/c]{The ``undefined'' constant.}
+@defthing[undefined any/c]{"undefined" 常量。}

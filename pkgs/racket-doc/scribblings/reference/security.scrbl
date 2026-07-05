@@ -1,11 +1,12 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:style 'toc #:tag "security"]{Reflection and Security}
+@title[#:style 'toc #:tag "security"]{反射和安全}
 
 @local-table-of-contents[]
 
 @;------------------------------------------------------------------------
+
 @include-section["namespaces.scrbl"]
 @include-section["eval.scrbl"]
 @include-section["load-lang.scrbl"]

@@ -1,9 +1,9 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "input-and-output" #:style 'toc]{Input and Output}
+@title[#:tag "input-and-output" #:style 'toc]{输入和输出}
 
-@guideintro["i/o"]{Ports and I/O}
+@guideintro["i/o"]{端口和 I/O}
 
 @local-table-of-contents[]
 
@@ -18,4 +18,3 @@
 @include-section["serialization.scrbl"]
 @include-section["fasl.scrbl"]
 @include-section["sha.scrbl"]
-
