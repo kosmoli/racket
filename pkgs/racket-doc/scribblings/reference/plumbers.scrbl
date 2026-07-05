@@ -1,105 +1,65 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "plumbers"]{Plumbers}
+@title[#:tag "plumbers"]{Plumber}
 
-A @deftech{plumber} supports @deftech{flush callbacks}, which are
-normally triggered just before a Racket process or @tech{place} exits.
-For example, a @tech{flush callback} might flush an output port's
-buffer.@margin-note{@tech{Flush callbacks} are roughly analogous to the standard C
-library's @as-index{@tt{atexit}}, but flush callback can also be used in other,
-similar scenarios.}
+@deftech{plumber} 支持 @deftech{flush callback}，通常在 Racket 进程或 @tech{place} 退出前被触发。例如，@tech{flush callback} 可能会刷新 output port 的缓冲区。@margin-note{@tech{Flush callback} 大致类似于标准 C 库中的 @as-index{@tt{atexit}}，但 flush callback 也可以在其它类似场景中使用。}
 
-There is no guarantee that a flush callback will be called before a
-process terminates---either because the plumber is not the original
-plumber that is flushed by the default @tech{exit handler}, or because
-the process is terminated forcibly (e.g., through a custodian
-shutdown).
-
+不能保证 flush callback 在进程终止前一定会被调用——可能是因为 plumber 不是被默认 @tech{exit handler} 刷新的那个原始 plumber，也可能是因为进程被强制终止（例如通过 custodian shutdown）。
 
 @defproc[(plumber? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{plumber} value,
-@racket[#f] otherwise.
+如果 @racket[v] 是 @tech{plumber} 值则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.0.1.8"]}
-
 
 @defproc[(make-plumber) plumber?]{
 
-Creates a new @tech{plumber}.
+创建一个新的 @tech{plumber}。
 
-Plumbers have no hierarchy (unlike @tech{custodians} or
-@tech{inspectors}), but a @tech{flush callback} can be registered in
-one plumber to call @racket[plumber-flush-all] with another plumber.
+Plumber 没有层次结构（不同于 @tech{custodian} 或 @tech{inspector}），但可以在一个 plumber 中注册 @tech{flush callback} 来调用另一个 plumber 的 @racket[plumber-flush-all]。
 
 @history[#:added "6.0.1.8"]}
-
 
 @defparam[current-plumber plumber plumber?]{
 
-A @tech{parameter} that determines a @deftech{current plumber} for
-@tech{flush callbacks}. For example, creating an output @tech{file
-stream port} registers a @tech{flush callback} with the @tech{current
-plumber} to flush the port as long as the port is opened.
+一个 @tech{parameter}，用于确定 @tech{flush callback} 的 @deftech{current plumber}。例如，创建 output @tech{file stream port} 时会向 @tech{current plumber} 注册一个 @tech{flush callback}，以便在 port 打开时刷新该 port。
 
 @history[#:added "6.0.1.8"]}
-
 
 @defproc[(plumber-flush-all [plumber plumber?]) void?]{
 
-Calls all @tech{flush callbacks} that are registered with @racket[plumber].
+调用所有注册在 @racket[plumber] 上的 @tech{flush callback}。
 
-The @tech{flush callbacks} to call are collected from @racket[plumber]
-before the first one is called. If a @tech{flush callback} registers a
-new @tech{flush callback}, the new one is @emph{not} called. If a
-@tech{flush callback} raises an exception or otherwise escapes, then
-the remaining @tech{flush callbacks} are not called.
+要调用的 @tech{flush callback} 是在调用第一个 callback 之前从 @racket[plumber] 收集的。如果某个 @tech{flush callback} 注册了新的 @tech{flush callback}，新的那个将 @emph{不会} 被调用。如果某个 @tech{flush callback} 抛出异常或逃逸，则剩余的 @tech{flush callback} 不会被调用。
 
 @history[#:added "6.0.1.8"]}
-
 
 @defproc[(plumber-flush-handle? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @deftech{flush handle}
-represents the registration of a @tech{flush callback}, @racket[#f]
-otherwise.
+如果 @racket[v] 是表示 @tech{flush callback} 注册的 @deftech{flush handle} 则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.0.1.8"]}
-
 
 @defproc[(plumber-add-flush! [plumber plumber?]
                              [proc (plumber-flush-handle? . -> . any)]
                              [weak? any/c #f])
          plumber-flush-handle?]{
 
-Registers @racket[proc] as a @tech{flush callback} with @racket[plumber], so
-that @racket[proc] is called when @racket[plumber-flush-all] is
-applied to @racket[plumber].
+将 @racket[proc] 注册为 @racket[plumber] 的 @tech{flush callback}，使得当 @racket[plumber-flush-all] 应用于 @racket[plumber] 时调用 @racket[proc]。
 
-The result @tech{flush handle} represents the registration of the
-callback, and it can be used with @racket[plumber-flush-handle-remove!] to
-unregister the callback.
+返回的 @tech{flush handle} 表示 callback 的注册，可与 @racket[plumber-flush-handle-remove!] 一起使用来取消注册 callback。
 
-The given @racket[proc] is reachable from the @tech{flush handle}, but
-if @racket[weak?] is true, then @racket[plumber] retains only a
-@tech{weak reference} to the result @tech{flush handle} (and
-thus @racket[proc]).
+给定的 @racket[proc] 从 @tech{flush handle} 可达，但如果 @racket[weak?] 为真，则 @racket[plumber] 只保留对返回的 @tech{flush handle} 的 @tech{weak reference}（从而也只保留对 @racket[proc] 的弱引用）。
 
-When @racket[proc] is called as a @tech{flush callback}, it is passed
-the same value that is returned by @racket[plumber-add-flush!] so
-that @racket[proc] can conveniently unregister itself. The call of
-@racket[proc] is within a @tech{continuation barrier}.
+当 @racket[proc] 作为 @tech{flush callback} 被调用时，它会接收到与 @racket[plumber-add-flush!] 返回值的相同值，以便 @racket[proc] 可以方便地取消自身的注册。@racket[proc] 的调用处于 @tech{continuation barrier} 内。
 
 @history[#:added "6.0.1.8"]}
 
-
 @defproc[(plumber-flush-handle-remove! [handle plumber-flush-handle?]) void?]{
 
-Unregisters the @tech{flush callback} that was registered by the
-@racket[plumber-add-flush!] call that produced @racket[handle].
+取消注册由 @racket[plumber-add-flush!] 调用产生的 @racket[handle] 对应的 @tech{flush callback}。
 
-If the registration represented by @racket[handle] has been removed already,
-then @racket[plumber-flush-handle-remove!] has no effect.
+如果 @racket[handle] 所表示的注册已经被移除，则 @racket[plumber-flush-handle-remove!] 无效。
 
 @history[#:added "6.0.1.8"]}

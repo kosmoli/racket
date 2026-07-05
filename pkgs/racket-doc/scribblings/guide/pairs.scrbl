@@ -1,16 +1,11 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "pairs"]{Pairs and Lists}
+@title[#:tag "pairs"]{Pair 和 List}
 
-A @deftech{pair} joins two arbitrary values. The @racket[cons]
-procedure constructs pairs, and the @racket[car] and @racket[cdr]
-procedures extract the first and second elements of the pair,
-respectively. The @racket[pair?] predicate recognizes pairs.
+@deftech{pair} 将两个任意值组合在一起。@racket[cons] procedure 构造 pair，@racket[car] 和 @racket[cdr] procedure 提取 pair 的第一个和第二个元素。@racket[pair?] predicate 识别 pair。
 
-Some pairs print by wrapping parentheses around the printed forms of
-the two pair elements, putting a @litchar{'} at the beginning and a
-@litchar{.} between the elements.
+一些 pair 打印时将两个 pair 元素用括号包裹，开头加 @litchar{'}，元素间加 @litchar{.}。
 
 @examples[
 (cons 1 2)
@@ -20,14 +15,9 @@ the two pair elements, putting a @litchar{'} at the beginning and a
 (pair? (cons 1 2))
 ]
 
-A @deftech{list} is a combination of pairs that creates a linked
-list. More precisely, a list is either the empty list @racket[null],
-or it is a pair whose first element is a list element and whose second
-element is a list. The @racket[list?] predicate recognizes lists. The
-@racket[null?]  predicate recognizes the empty list.
+@deftech{list} 是创建 linked list 的 pair 组合。更准确地说，list 要么是空 list @racket[null]，要么是一个 pair，其第一个元素是 list 元素，第二个元素是 list。@racket[list?] predicate 识别 list。@racket[null?] predicate 识别空 list。
 
-A list normally prints as a @litchar{'} followed by a pair of parentheses
-wrapped around the list elements.
+list 通常打印为 @litchar{'} 后跟一对括号，括号内是 list 元素。
 
 @examples[
 null
@@ -37,10 +27,7 @@ null
 (list? (cons 1 2))
 ]
 
-A list or pair prints using @racketresult[list] or @racketresult[cons]
-when one of its elements cannot be written as a @racket[quote]d
-value. For example, a value constructed with @racket[srcloc] cannot be
-written using @racket[quote], and it prints using @racketresult[srcloc]:
+当 list 或 pair 的元素之一不能作为 @racket[quote] 值打印时，list 或 pair 会使用 @racketresult[list] 或 @racketresult[cons] 打印。例如，用 @racket[srcloc] 构造的值不能使用 @racket[quote] 打印，它使用 @racketresult[srcloc]：
 
 @interaction[
 (srcloc "file.rkt" 1 0 1 (+ 4 4))
@@ -49,17 +36,11 @@ written using @racket[quote], and it prints using @racketresult[srcloc]:
 (cons 1 (cons 2 (srcloc "file.rkt" 1 0 1 8)))
 ]
 
-@margin-note{See also @racket[list*].}
+@margin-note{另见 @racket[list*]。}
 
-As shown in the last example, @racketresult[list*] is used to
-abbreviate a series of @racketresult[cons]es that cannot be
-abbreviated using @racketresult[list].
+如最后一个示例所示，@racketresult[list*] 用于缩写了不能用 @racketresult[list] 缩写的一系列 @racketresult[cons]。
 
-The @racket[write] and @racket[display] functions print a pair or list
-without a leading @litchar{'}, @racketresult[cons],
-@racketresult[list], or @racketresult[list*]. There is no difference
-between @racket[write] and @racket[display] for a pair or list, except
-as they apply to elements of the list:
+@racket[write] 和 @racket[display] function 打印 pair 或 list 时不带前导 @litchar{'}、@racketresult[cons]、@racketresult[list] 或 @racketresult[list*]。对于 pair 或 list，@racket[write] 和 @racket[display] 之间没有区别，除了它们应用于 list 元素时：
 
 @examples[
 (write (cons 1 2))
@@ -70,8 +51,7 @@ as they apply to elements of the list:
 (display (list 1 2 "3"))
 ]
 
-Among the most important predefined procedures on lists are those that
-iterate through the list's elements:
+在 list 上最重要的预定义 procedure 是那些遍历 list 元素的 procedure：
 
 @interaction[
 (map (lambda (i) (/ 1 i))
@@ -93,15 +73,9 @@ iterate through the list's elements:
        '((when "3:30") (where "Florida") (who "Mickey")))
 ]
 
-@refdetails["pairs"]{pairs and lists}
+@refdetails["pairs"]{pair 和 list}
 
-Pairs are immutable (contrary to Lisp tradition), and @racket[pair?]
-and @racket[list?] recognize immutable pairs and lists, only. The
-@racket[mcons] procedure creates a @deftech{mutable pair}, which works
-with @racket[set-mcar!] and @racket[set-mcdr!], as well as
-@racket[mcar] and @racket[mcdr]. A mutable pair prints using
-@racketresult[mcons], while @racket[write] and @racket[display] print
-mutable pairs with @litchar["{"] and @litchar["}"]:
+Pair 是 immutable 的（与 Lisp 传统相反），@racket[pair?] 和 @racket[list?] 只识别 immutable pair 和 list。@racket[mcons] procedure 创建 @deftech{mutable pair}，它配合 @racket[set-mcar!]、@racket[set-mcdr!]、@racket[mcar] 和 @racket[mcdr] 使用。Mutable pair 打印使用 @racketresult[mcons]，而 @racket[write] 和 @racket[display] 使用 @litchar["{"] 和 @litchar["}"] 打印 mutable pair：
 
 @examples[
 (define p (mcons 1 2))
@@ -113,4 +87,4 @@ p
 (write p)
 ]
 
-@refdetails["mpairs"]{mutable pairs}
+@refdetails["mpairs"]{mutable pair}

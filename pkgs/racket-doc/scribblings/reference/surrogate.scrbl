@@ -1,17 +1,11 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/surrogate racket/class))
 
-@title{Surrogates}
+@title{Surrogate}
 
 @note-lib-only[racket/surrogate]
 
-The @racketmodname[racket/surrogate] library provides an abstraction
-for building an instance of the @deftech{proxy design pattern}. The
-pattern consists of two objects, a @defterm{host} and a
-@defterm{surrogate} object. The host object delegates method calls to
-its surrogate object. Each host has a dynamically assigned surrogate,
-so an object can completely change its behavior merely by changing the
-surrogate.
+The @racketmodname[racket/surrogate] 库提供了一种用于构建 @deftech{proxy 设计模式} 实例的抽象。该模式由两个对象组成：@defterm{host}（宿主机）和 @defterm{surrogate}（代理）对象。宿主对象将其 method 调用委托给其 surrogate 对象。每个 host 都有一个动态分配的 surrogate，因此对象只需改变 surrogate 即可完全改变其行为。
 
 @defform/subs[#:literals (augment override override-final)
               (surrogate use-wrapper-proc method-spec ...)
@@ -19,91 +13,40 @@ surrogate.
                [method-spec (augment default-expr method-id arg-spec ...)
                             (override method-id arg-spec ...)]
                [arg-spec (id ...)
-                         id])]{
+                         id]]){
 
-The @racket[surrogate] form produces four values: a host @tech{mixin} (a
-procedure that accepts and returns a class), a host @tech{interface}, a
-surrogate @tech{class}, and a surrogate @tech{interface}.
+@racket[surrogate] form 产生四个值：一个 host @tech{mixin}（接受并返回 class 的 procedure）、一个 host @tech{interface}、一个 surrogate @tech{class} 和一个 surrogate @tech{interface}。
 
-If @racket[#:use-wrapper-proc] does not appear,
-the host mixin adds a single private field to its argument. It also adds getter and setter methods
-@racket[get-surrogate] and @racket[set-surrogate] to get and set the value of the field. The
-@racket[set-surrogate] method accepts instances of the class returned by
-the @racket[surrogate] form or @racket[#f], and it updates the field with its
-argument; then, @racket[set-surrogate] calls the @racket[on-disable-surrogate] on the
-previous value of the field and @racket[on-enable-surrogate] for the
-new value of the field. The @racket[get-surrogate] method returns the
-current value of the field.
+如果 @racket[#:use-wrapper-proc] 不出现，host mixin 为其参数添加一个单独的私有字段。它还会添加 getter 和 setter method @racket[get-surrogate] 和 @racket[set-surrogate] 来获取和设置字段的值。@racket[set-surrogate] 方法接受由 @racket[surrogate] form 返回的 class 的实例或 @racket[#f]，并用其参数更新字段；然后，@racket[set-surrogate] 调用前一个字段值的 @racket[on-disable-surrogate] 和新字段值的 @racket[on-enable-surrogate]。@racket[get-surrogate] 方法返回字段的当前值。
 
-If @racket[#:use-wrapper-proc] does appear, the host mixin adds
-a second private field and its getter and setter
-methods @racket[get-surrogate-wrapper-proc] and @racket[set-surrogate-wrapper-proc].
-The additional field holds a wrapper procedure whose contract
-is @racket[(-> (-> any) (-> any) any)], so the procedure is invoked with two thunks.
-The first thunk is a fallback that invokes the original object's method,
-skipping the surrogate. The second thunk invokes the surrogate. The default
-wrapper procedure is
+如果 @racket[#:use-wrapper-proc] 出现，host mixin 添加第二个私有字段及其 getter 和 setter method @racket[get-surrogate-wrapper-proc] 和 @racket[set-surrogate-wrapper-proc]。附加字段保存一个 wrapper procedure，其 contract 是 @racket[(-> (-> any) (-> any) any)]，因此该 procedure 用两个 thunk 调用。第一个 thunk 是回退，它跳过 surrogate 调用原始对象的 method。第二个 thunk 调用 surrogate。默认 wrapper procedure 是
  @racketblock[(λ (fallback-thunk surrogate-thunk)
                 (surrogate-thunk))]
-That is, it simply defers to the method being invoked on the surrogate.
-Note that wrapper procedure can adjust the
-dynamic extent of calls to the surrogate
-by, for example, changing the values of parameters. The
-wrapper procedure  is also invoked when calling the
-@racket[on-disable-surrogate] and @racket[on-enable-surrogate] methods
-of the surrogate.
+也就是说，它简单地委托给在 surrogate 上调用的 method。注意，wrapper procedure 可以通过例如改变 parameter 的值来调整调用 surrogate 的 dynamic extent。在调用 surrogate 的 @racket[on-disable-surrogate] 和 @racket[on-enable-surrogate] method 时也会调用 wrapper procedure。
 
-The host mixin has a single overriding method for each
-@racket[method-id] in the @racket[surrogate] form (even the ones
-specified with @racket[augment]). Each of these
-methods is defined with a @racket[case-lambda] with one arm for each
-@racket[arg-spec]. Each arm has the variables as arguments in the
-@racket[arg-spec]. The body of each method tests the
-private surrogate field. If the field value is @racket[#f], the method just
-returns the result of invoking the super or inner method. If the
-field value is not @racket[#f], the corresponding method
-of the object in the field is invoked. This method receives the same
-arguments as the original method, plus two extras. The extra arguments
-come at the beginning of the argument list. The first is the original
-object. The second is a procedure that calls the super or inner method
-(i.e., the method of the class that is passed to the mixin or an
-extension, or the method in an overriding class), with the arguments
-that the procedure receives.
+Host mixin 为 @racket[surrogate] form 中的每个 @racket[method-id] 都有一个单一的覆盖 method（包括那些用 @racket[augment] 指定的 method）。这些 method 每个都用 @racket[case-lambda] 定义，每个 @racket[arg-spec] 对应一个分支。每个分支有 @racket[arg-spec] 中的变量作为参数。每个 method 的 body 测试私有 surrogate 字段。如果字段值为 @racket[#f]，method 只返回调用 super 或 inner method 的结果。如果字段值不是 @racket[#f]，则调用字段中对象的相应 method。该 method 接收与原 method 相同的参数，外加两个额外参数。额外参数出现在参数列表的开头。第一个是原始对象。第二个是调用 super 或 inner method（即传递给 mixin 或扩展的 class 的 method，或覆盖 class 中的 method）的 procedure，带有 procedure 接收的参数。
 
-For example, the host-mixin for this surrogate:
+例如，针对此 surrogate 的 host-mixin：
 @racketblock[(surrogate (override m (x y z)))]
-will override the @racket[m] method and call the surrogate like this:
+将覆盖 @racket[m] method 并像这样调用 surrogate：
 @racketblock[(define/override (m x y z)
                (if _surrogate
                    (send _surrogate m 
                          this 
                          (λ (x y z) (super m x y z))
                          x y z)
-                   (super m x y z)))]
-where @racket[_surrogate] is bound to the value most recently passed
-to the host mixin's @racket[set-surrogate] method.
+                   (super m x y z))]
+其中 @racket[_surrogate] 绑定到最近传递给 host mixin 的 @racket[set-surrogate] 方法的值。
 
-The host interface has the names @racket[set-surrogate],
-@racket[get-surrogate], and each of the @racket[method-id]s in the
-original form.
+Host interface 有名称 @racket[set-surrogate]、@racket[get-surrogate] 以及原始 form 中所有的 @racket[method-id]。
 
-The surrogate class has a single public method for each
-@racket[method-id] in the @racket[surrogate] form. These methods are
-invoked by classes constructed by the mixin. Each has a corresponding
-method signature, as described in the above paragraph. Each method
-just passes its argument along to the super procedure it receives.
+Surrogate class 为 @racket[surrogate] form 中的每个 @racket[method-id] 有一个单一的 public method。这些 method 被 mixin 构造的 class 调用。每个 method 有对应的 method 签名，如上一段所述。每个 method 只是将其参数传递给它接收的 super procedure。
 
-In the example above, this is the @racket[_m] method in the surrogate class:
+在上面的示例中，这是 surrogate class 中的 @racket[_m] method：
 @racketblock[(define/public (m original-object original-super x y z)
                (original-super x y z))]
 
-If you derive a class from the surrogate class, do not both call
-the @racket[super] argument and the super method of the surrogate
-class itself. Only call one or the other, since the default methods
-call the @racket[super] argument.
+如果你从 surrogate class 派生 class，不要同时调用 @racket[super] 参数和 surrogate class 自身的 super method。只调用其中一个即可，因为默认 method 会调用 @racket[super] 参数。
 
-Finally, the interface contains all of the names specified in
-surrogate's argument, plus @racket[on-enable-surrogate] and
-@racket[on-disable-surrogate]. The class returned by
-@racket[surrogate] implements this interface.
+最后，interface 包含 @racket[surrogate] 参数中指定的所有名称加上 @racket[on-enable-surrogate] 和 @racket[on-disable-surrogate]。由 @racket[surrogate] 返回的 class 实现此 interface。
 }

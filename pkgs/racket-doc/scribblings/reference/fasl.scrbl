@@ -15,7 +15,7 @@
                       [#:handle-fail handle-fail (or/c #f (any/c . -> . any/c)) #f]
                       [#:external-lift? external-lift? (or/c #f (any/c . -> . any/c)) #f]
                       [#:skip-prefix? skip-prefix? any/c #f])
-         (or/c (void) bytes?)]
+         (or/c void? bytes?)]
 @defproc[(fasl->s-exp [in (or/c input-port? bytes?)]
                       [#:datum-intern? datum-intern? any/c #t]
                       [#:external-lifts external-lifts vector? '#()]
@@ -23,73 +23,21 @@
          any/c]
 )]{
 
-The @racket[s-exp->fasl] function serializes @racket[v] to a byte
-string, printing it directly to @racket[out] if @racket[out] is an
-output port or returning the byte string otherwise. The
-@racket[fasl->s-exp] function decodes a value from a byte string
-(supplied either directly or as an input port) that was encoded with
-@racket[s-exp->fasl].
+@racket[s-exp->fasl] 函数将 @racket[v] 序列化为 byte string，当 @racket[out] 是 output port 时直接打印到 @racket[out]，否则返回 byte string。@racket[fasl->s-exp] 函数从 byte string（直接提供或作为 input port）解码由 @racket[s-exp->fasl] 编码的值。
 
-The @racket[v] argument must be a value that could be @racket[quote]d
-as a literal---that is, a value without syntax objects for which
-@racket[(compile `(quote ,v))] would work and be @racket[read]able
-after @racket[write]---or it can include @tech{correlated
-objects} mixed with those values. The byte string produced by
-@racket[s-exp->fasl] does not use the same format as compiled code,
-however.
+@racket[v] 参数必须是一个可以作为字面量被 @racket[quote] 的值——即一个没有 syntax object 的值，@racket[(compile `(quote ,v))] 对其有效并且在 @racket[write] 后是可 @racket[read] 的——或者它可以包含与这些值混合的 @tech{correlated object}。但 @racket[s-exp->fasl] 产生的 byte string 不使用与编译代码相同的格式。
 
-If a value within @racket[v] is not valid as a @racket[quote]d
-literal, and if @racket[handle-fail] is not @racket[#f], then
-@racket[handle-fail] is called on the nested value, and the result of
-@racket[handle-fail] is written in that value's place. The
-@racket[handle-fail] procedure might raise an exception instead of
-returning a replacement value. If @racket[handle-fail] is @racket[#f],
-then the @exnraise[exn:fail:contract] when an invalid value is
-encountered.
+如果 @racket[v] 内的值不是有效的 @racket[quote] 字面量，并且 @racket[handle-fail] 不是 @racket[#f]，则 @racket[handle-fail] 在嵌套值上调用，@racket[handle-fail] 的结果写入该值的位置。@racket[handle-fail] procedure 可能引发异常而不是返回替换值。如果 @racket[handle-fail] 是 @racket[#f]，则在遇到无效值时 @exnraise[exn:fail:contract]。
 
-If @racket[external-lift?] is not @racket[#f], then it receives each
-value @racket[_v-sub] encountered in @racket[v] by
-@racket[s-exp->fasl]. If the result of @racket[external-lift?] on
-@racket[_v-sub] is true, then @racket[_v-sub] is not encoded in the
-result, and it instead treated as @deftech{externally lifted}. A
-deserializing @racket[fasl->s-exp] receives a @racket[external-lifts]
-vector that has one value for each externally lifted value, in the
-same order as passed to @racket[external-lift?] on serialization.
+如果 @racket[external-lift?] 不是 @racket[#f]，则它接收 @racket[s-exp->fasl] 在 @racket[v] 中遇到的每个值 @racket[_v-sub]。如果 @racket[external-lift?] 对 @racket[_v-sub] 的结果是真，则 @racket[_v-sub] 不在结果中编码，而是被当作 @deftech{externally lifted}。反序列化的 @racket[fasl->s-exp] 接收一个 @racket[external-lifts] vector，按序列化时传递给 @racket[external-lift?] 的顺序为每个外部提升的值提供一个值。
 
-Like @racket[(compile `(quote ,v))], @racket[s-exp->fasl] does not
-preserve graph structure, support cycles, or handle non-@tech{prefab}
-structures. Compose @racket[s-exp->fasl] with @racket[serialize] to
-preserve graph structure, handle cyclic data, and encode serializable
-structures. The @racket[s-exp->fasl] and @racket[fasl->s-exp]
-functions consult @racket[current-write-relative-directory] and
-@racket[current-load-relative-directory]
-(falling back to @racket[current-directory]), respectively, in the same
-way as bytecode saving and loading to store paths in relative form,
-and they similarly allow and convert constrained @racket[srcloc]
-values (see @secref["print-compiled"]).
+类似于 @racket[(compile `(quote ,v))]，@racket[s-exp->fasl] 不保留 graph 结构，不支持循环，也不处理非 @tech{prefab} structure。将 @racket[s-exp->fasl] 与 @racket[serialize] 组合以保留 graph 结构、处理循环数据以及编码可序列化的 structure。@racket[s-exp->fasl] 和 @racket[fasl->s-exp] 函数查询 @racket[current-write-relative-directory] 和 @racket[current-load-relative-directory]（fallback 到 @racket[current-directory]），与字节码保存和存储路径的方式相同（以相对形式），它们同样允许和转换带约束的 @racket[srcloc] 值（见 @secref["print-compiled"]）。
 
-Unless @racket[keep-mutable?] is provided as true to
-@racket[s-exp->fasl], then mutable values in @racket[v] are replaced
-by immutable values when the result is decoded by
-@racket[fasl->s-exp]. Unless @racket[datum-intern?] is provided as
-@racket[#f], then any immutable value produced by @racket[fasl->s-exp]
-is filtered by @racket[datum-intern-literal]. The defaults make the
-composition of @racket[s-exp->fasl] and @racket[fasl->s-exp] behave
-like the composition of @racket[write] and @racket[read].
+除非 @racket[keep-mutable?] 作为真提供给 @racket[s-exp->fasl]，否则 @racket[v] 中的可变值在 @racket[fasl->s-exp] 解码结果时被不可变值替换。除非 @racket[datum-intern?] 作为 @racket[#f] 提供，否则 @racket[fasl->s-exp] 产生的任何不可变值都通过 @racket[datum-intern-literal] 过滤。默认值使得 @racket[s-exp->fasl] 和 @racket[fasl->s-exp] 的组合表现类似于 @racket[write] 和 @racket[read] 的组合。
 
-If @racket[skip-prefix?] is not @racket[#f], then a prefix that
-identifies the stream as a serialization is not written by
-@racket[s-exp->fasl] or read by @racket[fasl->s-exp]. Omitting a
-prefix can save a small amount of space, which can useful when
-serializing small values, but it gives up a sanity check on the 
-@racket[fasl->s-exp] that is often useful.
+如果 @racket[skip-prefix?] 是 @racket[#f]，则标识流为序列化格式的前缀由 @racket[s-exp->fasl] 写入并由 @racket[fasl->s-exp] 读取。省略前缀可以节省少量空间（在序列化小值时有用），但会放弃对 @racket[fasl->s-exp] 通常有用的健全性检查。
 
-The byte-string encoding produced by @racket[s-exp->fasl] is
-independent of the Racket version, except as future Racket versions
-introduce extensions that are not currently recognized. In particular,
-the result of @racket[s-exp->fasl] will be valid as input to any
-future version of @racket[fasl->s-exp] (as long as the
-@racket[skip-prefix?] arguments are consistent).
+@racket[s-exp->fasl] 产生的 byte string 编码与 Racket 版本无关，除非未来的 Racket 版本引入了当前不被识别的扩展。特别地，@racket[s-exp->fasl] 的结果将作为任何未来版本 @racket[fasl->s-exp] 的有效输入（只要 @racket[skip-prefix?] 参数一致）。
 
 @mz-examples[
 #:eval fasl-eval
@@ -98,13 +46,11 @@ fasl
 (fasl->s-exp fasl)
 ]
 
-@history[#:changed "6.90.0.21" @elem{Made @racket[s-exp->fasl] format version-independent
-                                     and added the @racket[#:keep-mutable?]
-                                     and @racket[#:datum-intern?] arguments.}
-         #:changed "7.3.0.7" @elem{Added support for @tech{correlated objects}.}
-         #:changed "7.5.0.3" @elem{Added the @racket[#:handle-fail] argument.}
-         #:changed "7.5.0.9" @elem{Added the @racket[#:external-lift?] and @racket[#:external-lifts] arguments.}
-         #:changed "8.9.0.4" @elem{Added support for @tech{fxvectors} and @tech{flvectors}.}]}
+@history[#:changed "6.90.0.21" @elem{使 @racket[s-exp->fasl] 格式版本无关并添加了 @racket[#:keep-mutable?] 和 @racket[#:datum-intern?] 参数。}
+         #:changed "7.3.0.7" @elem{添加了对 @tech{correlated object} 的支持。}
+         #:changed "7.5.0.3" @elem{添加了 @racket[#:handle-fail] 参数。}
+         #:changed "7.5.0.9" @elem{添加了 @racket[#:external-lift?] 和 @racket[#:external-lifts] 参数。}
+         #:changed "8.9.0.4" @elem{添加了对 @tech{fxvector} 和 @tech{flvector} 的支持。}]}
 
 @; ----------------------------------------------------------------------
 

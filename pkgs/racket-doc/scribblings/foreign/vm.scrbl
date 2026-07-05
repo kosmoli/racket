@@ -2,57 +2,27 @@
 @(require "utils.rkt" (for-label ffi/unsafe/vm
                                  racket/linklet))
 
-@title[#:tag "vm"]{Virtual Machine Primitives}
+@title[#:tag "vm"]{Virtual Machine 原语}
 
-@defmodule[ffi/unsafe/vm]{The
-@racketmodname[ffi/unsafe/vm] library provides access to functionality
-in the underlying virtual machine that is used to implement Racket.}
+@defmodule[ffi/unsafe/vm]{@racketmodname[ffi/unsafe/vm] 库提供了对底层 virtual machine 功能的访问，该 virtual machine 用于实现 Racket。}
 
 @history[#:added "7.6.0.7"]
 
 @defproc[(vm-primitive [name symbol?]) any/c]{
 
-Accesses a primitive values at the level of the running Racket virtual
-machine, or returns @racket[#f] if @racket[name] is not the name of a
-primitive.
+访问运行中 Racket virtual machine 层面的 primitive 值，如果 @racket[name] 不是 primitive 的名称则返回 @racket[#f]。
 
-Virtual-machine primitives are the ones that can be referenced in a
-@tech[#:doc reference.scrbl]{linklet} body. The specific set of
-primitives depends on the virtual machine. Many ``primitives'' at the
-@racketmodname[racket/base] level or even the @racket['#%kernel] level
-are not primitives at the
-virtual-machine level. For example, if @racket['eval] is available as
-a primitive, it is not the @racket[eval] from
-@racketmodname[racket/base].
+Virtual-machine primitive 是那些可以在 @tech[#:doc reference.scrbl]{linklet} 体内引用的 primitive。具体的 primitive 集合取决于 virtual machine。许多 @racketmodname[racket/base] 层面甚至是 @racket['#%kernel] 层面的 "primitive" 并不是 virtual-machine 层面的 primitive。例如，如果 @racket['eval] 作为 primitive 可用，它并非 @racketmodname[racket/base] 中的 @racket[eval]。
 
-In general, primitives are unsafe and can only be used with enough
-knowledge about Racket's implementation. Here are some tips for
-currently available virtual machines:
+一般来说，primitive 是不安全的，只有在充分了解 Racket 实现的情况下才能使用。以下是一些针对当前可用 virtual machine 的建议：
 
 @itemlist[
 
- @item{@racket[(system-type 'vm)] is @racket['racket] --- The
-       primitives in this virtual machine are mostly the same as the
-       ones available from libraries like @racketmodname[racket/base]
-       and @racketmodname[racket/unsafe/ops]. As a result, accessing
-       virtual machine primitives with @racket[vm-primitive] is rarely
-       useful.}
+ @item{@racket[(system-type 'vm)] 为 @racket['racket] --- 该 virtual machine 中的 primitive 大多与 @racketmodname[racket/base] 和 @racketmodname[racket/unsafe/ops] 等库中可用的 primitive 相同。因此，使用 @racket[vm-primitive] 访问 virtual machine primitive 通常没有什么用处。}
 
- @item{@racket[(system-type 'vm)] is @racket['chez-scheme] --- The
-       primitives in this virtual machine are Chez Scheme primitives,
-       except as replaced by a Racket compatibility layer. The
-       @racket['eval] primitive is Chez Scheme's @racketidfont{eval}.
+ @item{@racket[(system-type 'vm)] 为 @racket['chez-scheme] --- 该 virtual machine 中的 primitive 是 Chez Scheme 的 primitive，除了被 Racket 兼容性层替换的部分。@racket['eval] primitive 是 Chez Scheme 的 @racketidfont{eval}。
 
-       Beware of directly calling a Chez Scheme primitive that uses
-       Chez Scheme parameters or @racketidfont{dynamic-wind}
-       internally. Note that @racketidfont{eval}, in particular, is
-       such a primitive. The problem is that Chez Scheme's
-       @racketidfont{dynamic-wind} does not automatically cooperate
-       with Racket's continuations or threads. To call such
-       primitives, use the @racketidfont{call-with-system-wind}
-       primitive, which takes a procedure of no arguments to run in a
-       context that bridges Chez Scheme's @racketidfont{dynamic-wind}
-       and Racket continuations and threads. For example,
+       注意不要直接调用内部使用 Chez Scheme parameter 或 @racketidfont{dynamic-wind} 的 Chez Scheme primitive。特别注意，@racketidfont{eval} 就是这样的一类 primitive。问题在于 Chez Scheme 的 @racketidfont{dynamic-wind} 不会自动与 Racket 的 continuation 或 thread 协作。要调用这类 primitive，请使用 @racketidfont{call-with-system-wind} primitive，它接受一个无参数的 procedure，在桥接 Chez Scheme 的 @racketidfont{dynamic-wind} 与 Racket continuation 和 thread 的上下文中运行。例如，
 
        @racketblock[
          (define primitive-eval (vm-primitive 'eval))
@@ -63,41 +33,24 @@ currently available virtual machines:
              (primitive-eval s))))
        ]
 
-       is how @racket[vm-eval] is implemented on Chez Scheme.
+       这就是在 Chez Scheme 上实现 @racket[vm-struct] 的方式。
 
-       Symbols, numbers, booleans, pairs, vectors, boxes, strings,
-       byte strings (i.e., bytevectors), and structures (i.e.,
-       records) are interchangeable between Racket and Chez Scheme. A
-       Chez Scheme procedure is a Racket procedure, but not all Racket
-       procedures are Chez Scheme procedures. To call a Racket
-       procedure from Chez Scheme, use the @racketidfont{#%app} form
-       that is defined in the Chez Scheme environment when it hosts
-       Racket.
+       Symbol、number、boolean、pair、vector、box、string、byte string（即 bytevector）和 structure（即 record）在 Racket 与 Chez Scheme 之间是可互换的。Chez Scheme procedure 是 Racket procedure，但并非所有 Racket procedure 都是 Chez Scheme procedure。要在 Chez Scheme 中调用 Racket procedure，请使用在 Chez Scheme 环境中定义的 @racketidfont{#%app} form，该环境在承载 Racket 时定义。
 
-       Note that you can access Chez Scheme primitives, including ones
-       that are shadowed by Racket's primitives, through the Chez
-       Scheme @racketidfont{$primitive} form. For example,
-       @racket[(vm-eval '($primitive call-with-current-continuation))]
-       accesses the Chez Scheme
-       @racketidfont{call-with-current-continuation} primitive instead
-       of Racket's replacement (where the replacement works with
-       Racket continuations and threads).}
+       注意，你可以通过 Chez Scheme 的 @racketidfont{$primitive} form 访问 Chez Scheme primitive，包括那些被 Racket primitive 遮蔽的 primitive。例如，@racket[(vm-eval '($primitive call-with-current-continuation))] 访问的是 Chez Scheme 的 @racketidfont{call-with-current-continuation} primitive，而非 Racket 的替代品（该替代品在 Racket continuation 和 thread 中工作）。}
 
 ]}
 
 @defproc[(vm-eval [s-expr any/c]) any/c]{
 
-Evaluates @racket[s-expr] using the most primitive available evaluator:
+使用最原始的求值器来求值 @racket[s-expr]：
 
 @itemlist[
 
- @item{@racket[(system-type 'vm)] is @racket['racket] --- Uses
-       @racket[compile-linklet] and @racket[instantiate-linklet].}
+ @item{@racket[(system-type 'vm)] 为 @racket['racket] --- 使用 @racket[compile-linklet] 和 @racket[instantiate-linklet]。}
 
- @item{@racket[(system-type 'vm)] is @racket['chez-scheme] --- Uses
-       Chez Scheme's @racketidfont{eval}.}
+ @item{@racket[(system-type 'vm)] 为 @racket['chez-scheme] --- 使用 Chez Scheme 的 @racketidfont{eval}。}
 
 ]
 
-See @racket[vm-primitive] for some information about how
-virtual-machine primitives interact with Racket.}
+关于 virtual-machine primitive 如何与 Racket 交互，请参见 @racket[vm-primitive]。}

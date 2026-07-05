@@ -2,117 +2,49 @@
 
 @(require "shared.rkt")
 
-@title[#:tag "correct-maintain-speed"]{Basic Facts of Life}
+@title[#:tag "correct-maintain-speed"]{基本生活法则}
 
-@nested[#:style 'inset]{ @italic{Favor readers over writers.}
- --- Yaron Minsky, JaneStreet, 2010 at NEU/CCS}
+@nested[#:style 'inset]{ @italic{优先考虑读者而非写者。}
+ --- Yaron Minsky, JaneStreet, 2010 于 NEU/CCS}
 
-@margin-note*{This ordering is occasionally wrong. For example, we could
- avoid IEEE floating point numbers nearly all of the time. To make this
- precise, the Racket @scheme[sqrt] function could return a rational number
- close to the IEEE float result.  We don't do such silly things, however,
- because we have decided to value speed over precision in this context.}
-Strive to write code that is correct; maintainable; and fast. The ordering
- of these adjectives is critical: correct is more important than
- maintainable; maintainable is more important than fast; and fast is
- important to include, because nobody wants to live with slow programs.
+@margin-note*{这个排序偶尔会有错误。例如，我们几乎可以避免使用 IEEE 浮点数。为了做到这一点，Racket 的 @scheme[sqrt] function 可以返回一个接近 IEEE float 结果的有理数。然而，我们没有做这种傻事，因为我们在这个上下文中决定以精度换取速度。}
+努力写出正确、可维护且快速的代码。这些形容词的顺序至关重要：正确比可维护更重要；可维护比快速更重要；快速也很重要，因为没有人想忍受慢速程序。
 
-This section explains these three points as far as the Racket code base is
- concerned. The rest of this guide is to spell out suggestions that should
- help you make correct, maintainable, and fast contributions to the Racket
- code base.
+本部分解释了这三点对 Racket 代码库的影响。本指南的其余部分是要详细阐述的建议，以帮助你对 Racket 代码库做出正确、可维护且快速的贡献。
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "correctness"]{Correctness and Testing}
+@section[#:tag "correctness"]{正确性和测试}
 
-@nested[#:style 'inset]{@italic{I have bug reports, therefore I exist.} -- Matthias,
-watching Matthew, Robby, Shriram and others create the original code base}
+@nested[#:style 'inset]{@italic{我有 bug 报告，故我在。} --- Matthias,观看 Matthew、Robby、Shriram 等人创建原始代码库}
 
-@nested[#:style 'inset]{@italic{It is the way we choose to fight our bugs that
- determines our character, not their presence or absence.} -- Robby, in response}
+@nested[#:style 'inset]{@italic{选择如何对抗 bug 决定了我们的性格，而非它们存在或不存在。} --- Robby,在回应中}
 
-PLT aims to release good code and to eliminate mistakes as quickly as
- possible.  All software has mistakes; complete correctness is a
- perfectionist goal.  If mistakes are unknown, the software isn't being
- used. The goal is, however, to ensure some basic level of correctness
- before a feature is released and to ensure that the same mistake isn't
- introduced again.
+PLT 的目标是发布好代码并尽快消除错误。所有软件都有错误；完全正确性是 perfectionist 目标。如果错误未知，软件就没有被使用。然而，目标是在功能发布前确保某种基本的正确性水平，并确保同样的错误不再引入。
 
-We ensure this basic level of correctness with large test suites. Our test
- suites contain tests at all levels. In addition to unit tests, you will
- find test suites that use a ``random testing'' strategy and tools, others
- use fuzz testing, yet others are end-to-end ``systems level'' tests, and
- DrRacket comes with an automatic GUI player that explores its
- functionality.
+我们通过大型测试套件确保这个基本的正确性。我们的测试套件包含各级测试。除了 unit test 外，你还会发现使用 "random testing" 策略工具和工具的测试套件，其它使用 fuzz testing，还有端到端 "systems level" 测试，DrRacket 附带一个自动 GUI player 来探索其功能。
 
-For details on testing in the context of the Racket code base, see
- @secref{testing}.
+有关 Racket 代码库上下文中测试的详细信息，请参见 @secref{testing}。
 
 @; -----------------------------------------------------------------------------
-@section{Maintenance}
+@section{维护}
 
-If we wish to create maintainable code, we must ensure that our code is
- comprehensible. Code is comprehensible when you can understand its
- external purpose; when you can guess from its external purpose at its
- organization; when the organization and the code live up to consistent
- criteria of style; and when the occasional complex part comes with
- internal documentation.
+如果我们想创建可维护的代码，必须确保代码是可理解的。当你可以理解其外部目标时，代码是可理解的；当你能从外部目标猜测其组织时；当组织和代码符合一致的 style 标准时；偶尔复杂部分配有内部文档。
 
-Released code must have documentation. Conversely a change to the external
- behavior of code must induce a simultaneous change to its documentation.
- Here ``simultaneous'' means that the two changes are in the same 'push'
- to the code base, not necessarily in the same 'commit'. Also see
- @secref{branch-and-commit} for more on Git actions.
+已发布的代码必须有文档。相反，代码外部行为的更改必须引起其文档的同时更改。这里 "同时" 的意思是两个更改在同一个 push 到代码库中，不一定在同一个 commit。另见 @secref{branch-and-commit} 了解 Git 操作。
 
-For style rules on documenting code, refer to the
- @hyperlink["http://docs.racket-lang.org/scribble/how-to-doc.html#%28part._reference-style%29"]{style
- guide in the Scribble manual}.  Ideally documentation comes in two parts,
- possibly located in the same document: a ``Guide'' section, which explains
- the purpose and suggests use cases, and a traditional ``Reference''
- section, which presents the minutiae. The documentation for HtDP/2e
- teachpacks is an example where the two parts are collocated. Also consider
- adding examples for each function and construct in your ``Reference''
- section.  Finally, ensure you have all the correct @tt{for-label}
- @tt{require}s and make use of other useful cross-references.
+关于记录代码的 style rule，参考 @hyperlink["http://docs.racket-lang.org/scribble/how-to-doc.html#%28part._reference-style%29"]{Scribble 手册中的 style guide}。理想情况下文档分为两部分，可能在同一文档中：一个 "Guide" 部分解释目标并建议使用案例，一个传统的 "Reference" 部分呈现细节。HtDP/2e teachpack 的文档是两部分共址的一个例子。还为 "Reference" 部分考虑为每个 function 和 construct 添加示例。最后，确保你有所有正确的 @tt{for-label} @tt{require}s 并利用其它有用的交叉引用。
 
-Having said that, the production of a system like Racket occasionally
- requires experimentation. Once we understand these new pieces of
- functionality, though, it is imperative to discard the ``failure
- branches'' of an experiment and to turn the successful part into a
- maintainable package.  You may even consider converting your code to Typed
- Racket eventually.
+话虽如此，像 Racket 这样的系统的生产偶尔需要实验。一旦我们理解了新功能部分，就必须放弃实验的 "failure branches" 并将成功部分转变为可维护的包。你甚至可以考虑最终将代码转换为 Typed Racket。
 
-Without adherence to basic elements of style, code comprehension becomes
- impossible. The rest of this document is mostly about these elements of
- style, including some suggestions on minimal internal documentation.
+没有遵循 style 的基本要素，代码理解变得不可能。本文档的其余部分大多是关于这些 style 元素，包括一些关于内部文档的建议。
 
 @; -----------------------------------------------------------------------------
-@section{Speed}
+@section{速度}
 
-Making code fast is an endless task. Making code @emph{reasonably fast} is the goal.
+使代码快速是一项无止境的任务。目标是让 code 合理地快速。
 
-As with correctness, performance demands some ``testing.'' At a minimum,
- exercise your code on some reasonably realistic inputs and some larger
- ones. Add a file to the test suite that runs large inputs regularly. For
- example, a regular test suite for a Universe display deals with a 50 x 50
- display window; one of its stress tests checks whether Universe event
- handlers and drawing routines can cope with laptop size displays or even a
- 30in display. Or, if you were to write a library for a queue data
- structure, a regular test suite ensures that it deals correctly with
- enqueue and dequeue for small queues, including empty ones; a stress test
- suite for the same library would run the queue operations on a variety of
- queue sizes, including very large queues of say tens of thousands
- elements.
+与正确性一样，性能需要一些 "测试"。最低限度地，在一些相当真实的输入和一些较大的输入上测试你的代码。向测试套件添加一个定期运行大输入的文件。例如，Universe display 的常规测试套件处理 50 x 50 的显示窗口；其 stress test 检查 Universe event handler 和绘图 routine 是否能处理笔记本大小甚至 30 英寸的显示。或者，如果你要编写一个队列数据结构的库，常规测试套件确保它正确处理小队列的 enqueue 和 dequeue（包括空队列）；同库的 stress test 在各种队列大小上运行队列操作，包括说数万个元素的大队列。
 
-Stress tests don't normally have an expected output, so they never
- pass. The practice of writing stress tests exposes implementation flaws or
- provides comparative data to be used when choosing between two APIs. Just
- writing them and keeping them around reminds us that things can go bad and
- we can detect when performance degrades through some other door. Most
- importantly, a stress test may reveal that your code isn't implementing an
- algorithm with the expected @math{O(.)} running time. Finding out that
- much alone is useful. If you can't think of an improvement, just document
- the weakness in the external library and move on.
+Stress test 通常没有预期输出，因此它们永远不会通过。编写 stress test 的实践暴露实现缺陷或提供在选择两个 API 时使用的比较数据。仅仅编写并保留它们就可以提醒我们事情可能会出错，并且我们可以通过某个其它门检测性能何时退化。最重要的是，stress test 可能揭示你的代码没有实现预期的 @math{O(.)} 运行时间。仅发现这些就很有帮助。如果你无法想到改进，只需在外部库中记录弱点并继续。
 
-And as you read on, keep in mind that we are not perfectionists. We produce
- reasonable software.
+当你继续阅读时，记住我们不是 perfectionist。我们生产合理的软件。

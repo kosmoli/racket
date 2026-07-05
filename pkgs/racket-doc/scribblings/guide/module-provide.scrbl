@@ -1,73 +1,49 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "module-provide"]{Exports: @racket[provide]}
+@title[#:tag "module-provide"]{导出：@racket[provide]}
 
-By default, all of a module's definitions are private to the
-module. The @racket[provide] form specifies definitions to be made
-available where the module is @racket[require]d.
+默认情况下，模块的所有定义对该模块都是私有的。@racket[form] 指定要在 @racket[require] 该模块的位置可用的定义。
 
 @specform[(provide provide-spec ...)]{}
 
-A @racket[provide] form can only appear at module level (i.e., in the
-immediate body of a @racket[module]).  Specifying multiple
-@racket[_provide-spec]s in a single @racket[provide] is exactly the
-same as using multiple @racket[provide]s each with a single
-@racket[_provide-spec].
+@racket[provide] form 只能出现在模块级别（即 @racket[module] 的直接体中）。在单个 @racket[provide] 中指定多个 @racket[_provide-spec] 与分别使用多个 @racket[provide]、每个带单个 @racket[_provide-spec] 完全相同。
 
-Each identifier can be exported at most once from a module across all
-@racket[provide]s within the module. More precisely, the external name
-for each export must be distinct; the same internal binding can be
-exported multiple times with different external names.
+在模块的所有 @racket[provide] 中，每个标识符最多只能导出一次。更准确地说，每个导出的外部名称必须不同；同一个内部绑定可以用不同的外部名称多次导出。
 
-The allowed shape of a @racket[_provide-spec] is defined recursively:
+@racket[_provide-spec] 允许的形状递归定义如下：
 
 @;------------------------------------------------------------------------
 @specspecsubform[identifier]{
 
-In its simplest form, a @racket[_provide-spec] indicates a binding
-within its module to be exported. The binding can be from either a
-local definition, or from an import.
+在其最简单的形式中，@racket[_provide-spec] 指示其模块内要导出的绑定。该绑定可以来自局部定义或导入。
 
 }
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals(rename-out)
-                 (rename-out [orig-id export-id] ...)]{
-
-A @racket[rename-out] form is similar to just specifying an identifier,
-but the exported binding @racket[orig-id] is given a different name,
-@racket[export-id], to importing modules.
+                 (rename-out [orig-id export-id] ...)]]{
+@racket[rename-out] form 类似于只指定标识符，但导出的绑定 @racket[orig-id] 被赋予一个不同的名称 @racket[export-id]，供导入模块使用。
 
 }
-
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals(struct-out)
                  (struct-out struct-id)]{
 
-A @racket[struct-out] form exports the bindings created by
-@racket[(struct struct-id ....)].
+@racket[struct-out] form 导出由 @racket[(struct struct-id ...)] 创建的绑定。
 
-@guideother{See @secref["define-struct"] for information on
-@racket[define-struct].}
+@guideother{关于 @racket[define-struct] 的信息请参见 @secref["define-struct"]。}
 
 }
-
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals (all-defined-out)
                  (all-defined-out)]{
 
-The @racket[all-defined-out] shorthand exports all bindings that are
-defined within the exporting module (as opposed to imported).
+@racket[all-defined-out] 简写导出导出模块内定义的所有绑定（而不是导入的）。
 
-Use of the @racket[all-defined-out] shorthand is generally
-discouraged, because it makes less clear the actual exports for a
-module, and because Racket programmers get into the habit of
-thinking that definitions can be added freely to a module without
-affecting its public interface (which is not the case when
-@racket[all-defined-out] is used).
+通常不鼓励使用 @racket[all-defined-out] 简写，因为这使得模块的实际导出不够清楚，也因为 Racket 程序员容易养成一种习惯，认为可以自由地向模块添加定义而不会影响其公共接口（在使用 @racket[all-defined-out] 时情况并非如此）。
 
 }
 
@@ -75,34 +51,24 @@ affecting its public interface (which is not the case when
 @specspecsubform[#:literals (all-from-out)
                  (all-from-out module-path)]{
 
-The @racket[all-from-out] shorthand exports all bindings in the module
-that were imported using a @racket[_require-spec] that is based on
-@racket[module-path].
+@racket[all-from-out] 简写导出模块中所有使用基于 @racket[module-path] 的 @racket[_require-spec] 导入的绑定。
 
-Although different @racket[module-path]s could refer to the same
-file-based module, re-exporting with @racket[all-from-out] is based
-specifically on the @racket[module-path] reference, and not the module
-that is actually referenced.
+尽管不同的 @racket[module-path] 可能引用同一个基于文件的模块，但使用 @racket[all-from-out] 重新导出基于具体的 @racket[module-path] 引用，而非实际引用的模块。
 
 }
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals (except-out)
-                 (except-out provide-spec id ...)]{
+                 (except-out provide-spec id ...]{
 
-Like @racket[provide-spec], but omitting the export of each
-@racket[id], where @racket[id] is the external name of the binding to
-omit.
+类似于 @racket[provide-spec]，但省略了每个 @racket[id] 的导出，其中 @racket[id] 是要省略的绑定的外部名称。
 
 }
-
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals (prefix-out)
                  (prefix-out prefix-id provide-spec)]{
 
-Like @racket[provide-spec], but adding @racket[prefix-id] to the
-beginning of the external name for each exported binding.
+类似于 @racket[provide-spec]，但在每个导出绑定的外部名称前添加 @racket[prefix-id]。
 
 }
-

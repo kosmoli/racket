@@ -1,22 +1,15 @@
 #lang scribble/manual
 @(require scribble/eval "guide-utils.rkt" scribblings/private/docname)
 
-@title{The Racket Guide}
+@title{Racket 指南}
 
-@author["Matthew Flatt" "Robert Bruce Findler" "PLT"]
+@["Matthew Flatt" "Robert Bruce Findler" "PLT"]
 
-This guide is intended for programmers who are new to Racket or new to
-some part of Racket. It assumes programming experience, so if you are
-new to programming, consider instead reading @|HtDP|. If you want an
-especially quick introduction to Racket, start with @Quick[Quick-title].
+本指南面向 Racket 新手或 Racket 的某个部分的新手程序员。已有编程经验的读者适合阅读本书，如果是编程新手请考虑阅读 @|HtDP|。如果你想快速了解 Racket，请从 @Quick[Quick-title] 开始。
 
-@seclink["to-scheme"]{Chapter 2} provides a brief introduction to
-Racket. From @seclink["datatypes"]{Chapter 3} on, this guide dives
-into details---covering much of the Racket toolbox, but leaving
-precise details to @|Racket| and other reference manuals.
+@seclink["to-scheme"]{第 2 章} 提供了 Racket 的简要介绍。从 @seclink["datatypes"]{第 3 章} 开始，本指南深入细节——涵盖 Racket 工具箱的大部分内容，但精确细节请参考 @|Racket| 和其他参考手册。
 
-@margin-note{The source of this manual is available on
-@hyperlink["https://github.com/racket/racket/tree/master/pkgs/racket-doc/scribblings/guide"]{GitHub}.}
+@margin-note{@hyperlink["https://github.com/racket/racket/tree/master/pkgs/racket-doc/scribblings/guide"]{GitHub}。}
 
 @table-of-contents[]
 
@@ -70,8 +63,8 @@ precise details to @|Racket| and other reference manuals.
 
 @; ----------------------------------------------------------------------
 
-@(bibliography
- 
+@(bibliography 
+
   (bib-entry #:key "Goldberg04"
              #:author "David Goldberg, Robert Bruce Findler, and Matthew Flatt"
              #:title "Super and Inner---Together at Last!"

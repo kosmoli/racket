@@ -4,16 +4,11 @@
           scribble/racket
           (for-label racket/extflonum))
 
-@title[#:tag "homogeneous-vectors"]{Safe Homogenous Vectors}
+@title[#:tag "homogeneous-vectors"]{安全的同质 Vector}
 
 @defmodule[ffi/vector]
 
-Homogenous vectors are similar to C vectors (see
-@secref["foreign:cvector"]), except that they define different types
-of vectors, each with a fixed element type. An exception is the
-@racketidfont{u8} family of bindings, which are just aliases for
-byte-string bindings; for example, @racket[make-u8vector] is an alias
-for @racket[make-bytes].
+同质 vector 类似于 C vector（见 @secref["foreign:cvector"]），除了它们定义不同类型的 vector，每种类型有固定的元素类型。例外的是 @racketidfont{u8} 绑定族，它们只是 byte-string 绑定的别名；例如，@racket[make-u8vector] 是 @racket[make-bytes] 的别名。
 
 @(begin
    (require (for-syntax scheme/base))
@@ -65,8 +60,7 @@ for @racket[make-bytes].
                   (list
                    " The " (racket ->cpointer)
                    " function extracts a plain pointer to the underlying array.")))
-               ;; Big pain: make up relatively-correct source locations
-               ;; for pieces in the _vec definition:
+               ;; 大麻烦：为 _vec 定义中的部分构建相对正确的源位置
                (defform* [#,(datum->syntax
                              #'_vec
                              (cons #'_vec
@@ -90,7 +84,7 @@ for @racket[make-bytes].
                                                         span))
                                                  (loop (cdr l)
                                                        (+ col 1 span)
-                                                       (+ pos 1 span)))))))
+                                                       (+ pos 1 span))))))
                              (list (syntax-source #'_vec)
                                    (syntax-line #'_vec)
                                    (sub1 (syntax-column #'vec))
@@ -98,14 +92,13 @@ for @racket[make-bytes].
                                    10))
                            _vec]
                  "Like " (racket _cvector) ", but for vectors of "
-                 (racket elem) " elements.")))))])))
+                 (racket elem) " elements.")))))))
 
 
-@srfi-4-vector/desc[u8 _uint8 byte? (lambda (x) (make-splice null))]{
+@srfi-4-vector/desc[u8 _uint8 byte? (lambda (x) (make-spline null))]{
 
-Like @racket[_cvector], but for vectors of @racket[_uint8] elements. These are
-aliases for @racketidfont{byte} operations, where @racket[u8vector->cpointer]
-is the identity function.}
+类似于 @racket[_cvector]，但用于 @racket[_uint8] 元素的 vector。这些是 @racketidfont{byte} 操作的别名，其中 @racket[u8vector->cpointer]
+是恒等函数。}
 
 @srfi-4-vector[s8 _int8 (integer-in -128 127)]
 @srfi-4-vector[s16 _int16 (integer-in -32768 32767)]

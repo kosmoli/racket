@@ -5,25 +5,16 @@
 @(define the-eval (make-base-eval))
 @(the-eval '(require racket/contract))
 
-@title{Structure Type Property Contracts}
+@title{Structure Type Property 的 Contract}
 
 @defproc[(struct-type-property/c [value-contract contract?])
          contract?]{
 
-Produces a contract for a @tech{structure type property}. When the
-contract is applied to a struct type property, it produces a wrapped
-struct type property that applies @racket[value-contract] to the value
-associated with the property when it used to create a new struct type
-(via @racket[struct], @racket[make-struct-type], etc).
+产生一个用于 @tech{structure type property} 的 contract。当契约应用于一个 struct type 属性时，它会产生一个包装后的 struct type property，在用于创建新 struct 类型时（通过 @racket[struct]、@racket[make-struct-type] 等）将 @racket[value-contract] 应用于与该属性关联的值。
 
-The struct type property's accessor function is not affected; if it is
-exported, it must be protected separately.
+该 struct type property 的 accessor function 不受影响；如果它被导出，必须单独保护。
 
-As an example, consider the following module. It creates a structure
-type property, @racket[prop], whose value should be a function mapping
-a structure instance to a numeric predicate. The module also exports
-@racket[app-prop], which extracts the predicate from a structure
-instance and applies it to a given value.
+作为示例，考虑以下模块。它创建了一个 structure type property @racket[prop]，其值应是一个将 structure 实例映射到 numeric predicate 的函数。该模块还导出 @racket[app-prop]，它从 structure 实例中提取 predicate 并将其应用于给定值。
 
 @interaction[#:eval the-eval
 (module propmod racket
@@ -40,12 +31,7 @@ instance and applies it to a given value.
   (provide prop-ref))
 ]
 
-The @racket[structmod] module creates a structure type named
-@racket[s] with a single field; the value of @racket[prop] is a
-function that extracts the field value from an instance. Thus the
-field ought to be an integer predicate, but notice that
-@racket[structmod] places no contract on @racket[s] enforcing that
-constraint.
+@racket[structmod] 模块创建了一个名为 @racket[s] 的 structure type，带有一个单字段；@racket[prop] 的值是一个从实例中提取字段值的函数。因此该字段本应是 integer predicate，但请注意 @racket[structmod] 没有对 @racket[s] 放置任何 contract 来执行该约束。
 
 @interaction[#:eval the-eval
 (module structmod racket
@@ -55,10 +41,7 @@ constraint.
 (require 'propmod 'structmod)
 ]
 
-First we create an @racket[s] instance with an integer predicate, so
-the constraint on @racket[prop] is in fact satisfied. The first call
-to @racket[app-prop] is correct; the second simply violates the
-contract of @racket[app-prop].
+首先我们创建一个带有 integer predicate 的 @racket[s] 实例，因此实际上满足了对 @racket[prop] 的约束。对 @racket[app-prop] 的第一次调用是正确的；第二次调用只是违反了 @racket[app-prop] 的 contract。
 
 @interaction[#:eval the-eval
 (define s1 (s even?))
@@ -66,11 +49,7 @@ contract of @racket[app-prop].
 (app-prop s1 'apple)
 ]
 
-We are able to create @racket[s] instances with values other than
-integer predicates, but applying @racket[app-prop] on them blames
-@racket[structmod], because the function associated with
-@racket[prop]---that is, @racket[(lambda (s) (s-f s))]---does not
-always produce a value satisfying @racket[(-> integer? boolean?)]. 
+我们可以创建值不是 integer predicate 的 @racket[s] 实例，但对它们应用 @racket[app-prop] 会 blame @racket[structmod]，因为与 @racket[prop] 关联的函数——即 @racket[(lambda (s) (s-f s))]——并不总是产生满足 @racket[(-> integer? boolean?)] 的值。
 
 @interaction[#:eval the-eval
 (define s2 (s "not a fun"))
@@ -80,31 +59,22 @@ always produce a value satisfying @racket[(-> integer? boolean?)].
 (app-prop s3 5)
 ]
 
-The fix would be to propagate the obligation inherited from
-@racket[prop] to @racket[s]:
+修复方法是将从 @racket[prop] 继承的 obligation 传播到 @racket[s]：
 
 @racketblock[
 (provide (contract-out
            [struct s ([f (-> integer? boolean?)])]))
 ]
 
-Finally, if we directly apply the property accessor,
-@racket[prop-ref], and then misuse the resulting function, the
-@racket[propmod] module is blamed:
+最后，如果我们直接应用 property accessor @racket[prop-ref]，然后误用结果函数，则会 blame @racket[propmod] 模块：
 
 @interaction[#:eval the-eval
 ((prop-ref s3) 'apple)
 ]
 
-The @racket[propmod] module has an obligation to ensure a function
-associated with @racket[prop] is applied only to values satisfying
-@racket[prop?]. By directly providing @racket[prop-ref], it enables
-that constraint to be violated (and thus it is blamed), even though
-the bad application actually occurs elsewhere.
+@racket[propmod] 模块有义务确保与 @racket[prop] 关联的函数仅应用于满足 @racket[prop?] 的值。通过直接提供 @racket[prop-ref]，它使该约束可以被违反（因此被 blame），即使实际的不良应用发生在别处。
 
-Generally there is no need to provide a structure type property
-accessor at all; it is typically only used by other functions within
-the module. But if it must be provided, it should be protected thus:
+通常完全没有必要提供 structure type property accessor；它通常只被模块内部的其它函数使用。但如果必须提供，应按如下方式保护：
 
 @racketblock[
 (provide (contract-out
