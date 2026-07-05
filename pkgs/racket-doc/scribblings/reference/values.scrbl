@@ -1,18 +1,13 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "values"]{Multiple Values}
+@title[#:tag "values"]{多值}
 
-See @secref["values-model"] for general information about multiple
-result values. In addition to @racket[call-with-values] (described in
-this section), the @racket[let-values], @racket[let*-values],
-@racket[letrec-values], and @racket[define-values] forms (among
-others) create continuations that receive multiple values.
+关于多结果值的一般信息，见 @secref["values-model"]。除了 @racket[call-with-values]（在本节中描述）之外，@racket[let-values]、@racket[let*-values]、@racket[letrec-values] 和 @racket[define-values] 等形式（以及其他）创建接收多个值的 continuations。
 
 @defproc[(values [v any/c] ...) any]{
 
-Returns the given @racket[v]s. That is, @racket[values] returns its
-provided arguments.
+返回给定的 @racket[v]。即，@racket[values] 返回其提供的参数。
 
 @examples[
 (values 1)
@@ -22,12 +17,7 @@ provided arguments.
 
 @defproc[(call-with-values [generator (-> any)] [receiver procedure?]) any]{
 
-Calls @racket[generator], and passes the values that
-@racket[generator] produces as arguments to @racket[receiver]. Thus,
-@racket[call-with-values] creates a continuation that accepts any
-number of values that @racket[receiver] can accept. The
-@racket[receiver] procedure is called in tail position with respect to
-the @racket[call-with-values] call.
+调用 @racket[generator]，并将 @racket[generator] 生成的值作为参数传递给 @racket[receiver]。因此，@racket[call-with-values] 创建一个 continuation，接受 @racket[receiver] 可接受的任意数量的值。@racket[receiver] procedure 在 @racket[call-with-values] 调用的尾位置被调用。
 
 @examples[
 (call-with-values (lambda () (values 1 2)) +)

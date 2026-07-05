@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@title[#:style 'toc]{Derived Utilities}
+@title[#:style 'toc]{派生工具}
 
 @local-table-of-contents[]
 

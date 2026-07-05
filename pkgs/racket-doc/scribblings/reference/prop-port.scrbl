@@ -1,35 +1,21 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "portstructs"]{Structures as Ports}
+@title[#:tag "portstructs"]{作为端口的结构}
 
 @defthing[prop:input-port struct-type-property?]
 @defthing[prop:output-port struct-type-property?]
 
-The @racket[prop:input-port] and @racket[prop:output-port] structure type
-properties identify structure types whose instances can serve as input
-and output ports, respectively.
+@racket[prop:input-port] 和 @racket[prop:output-port] structure type 属性标识其实例可分别作为输入和输出端口的 structure types。
 
-Each property value can be either of the following:
+每个属性值可以是以下之一：
 
 @itemize[
  
- @item{An input port (for @racket[prop:input-port]) or output port
-  (for @racket[prop:output-port]): In this case, using the structure
-  as port is equivalent to using the given input or output port.}
+ @item{输入端口（对于 @racket[prop:input-port]）或输出端口（对于 @racket[prop:output-port]）：在这种情况下，将结构用作端口等同于使用给定的输入或输出端口。}
 
- @item{An exact, non-negative integer between @racket[0] (inclusive) and
-  the number of non-automatic fields in the structure type (exclusive, not
-  counting supertype fields): The integer identifies a field in
-  the structure, and the field must be designated as immutable. If the
-  field contains an input port (for @racket[prop:input-port]) or
-  output port (for @racket[prop:output-port]), the port is used.
-  Otherwise, an empty string input port is used for @racket[prop:input-port],
-  and a port that discards all data is used for @racket[prop:output-port].}
+ @item{@racket[0]（含）到 structure type 中非自动字段数量（不含，不包含 supertype 字段）之间的精确非负整数：该整数标识 structure 中的一个字段，该字段必须指定为 immutable。如果该字段包含输入端口（对于 @racket[prop:input-port]）或输出端口（对于 @racket[prop:output-port]），则使用该端口。否则，使用空字符串输入端口作为 @racket[prop:input-port]，使用丢弃所有数据的端口作为 @racket[prop:output-port]。}
 
 ]
 
-Some procedures, such as @racket[file-position], work on both input
-and output ports. When given an instance of a structure type with both
-the @racket[prop:input-port] and @racket[prop:output-port] properties,
-the instance is used as an input port.
+一些 procedure，如 @racket[file-position]，同时适用于输入和输出端口。当给定同时具有 @racket[prop:input-port] 和 @racket[prop:output-port] 属性的 structure type 的实例时，该实例用作输入端口。

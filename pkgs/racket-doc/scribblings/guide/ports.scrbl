@@ -1,29 +1,17 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "ports"]{Input and Output Ports}
+@title[#:tag "ports"]{输入和输出端口}
 
-A @deftech{port} encapsulates an I/O stream, normally for just one
-direction. An @deftech{input port} reads from a stream, and an
-@deftech{output port} writes to a string.
+@deftech{port} 封装了一个 I/O 流，通常只用于一个方向。@deftech{input port} 从流中读取，@deftech{output port} 写入字符串。
 
-For many procedures that accept a port argument, the argument is
-optional, and it defaults to either the @defterm{current input port}
-or @defterm{current output port}. For @exec{mzscheme}, the current
-ports are initialized to the process's stdin and stdout. The
-@racket[current-input-port] and @racket[current-output-port]
-procedures, when called with no arguments, return the current output
-and input port, respectively.
+对于许多接受 port 参数的 procedure，该参数是可选的，默认为 @defterm{current input port} 或 @defterm{current output port}。对于 @exec{mzscheme}，当前端口被初始化为进程的 stdin 和 stdout。@racket[current-input-port] 和 @racket[current-output-port] procedure 在无参数调用时，分别返回当前输出和输入端口。
 
 @examples[
 (display "hello world\n")
 (display "hello world\n" (current-output-port))
 ]
 
-Ports are created by various procedures that specific to the different
-kinds of streams. For example, @racket[open-input-file] creates an
-input port for reading from a file. Procedures like
-@racket[with-input-from-file] both create a port and install it as the
-current port while calling a given body procedure.
+端口由特定于不同流类型的各种 procedure 创建。例如，@racket[open-input-file] 创建用于从文件读取的输入端口。像 @racket[with-input-from-file] 这样的 procedure 既创建端口，又在调用给定 body procedure 时将其安装为当前端口。
 
-See @secref["io"] for information about using ports.
+关于使用端口的信息，见 @secref["io"]。

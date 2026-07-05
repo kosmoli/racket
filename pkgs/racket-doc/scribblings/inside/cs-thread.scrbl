@@ -1,34 +1,20 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@cs-title[#:tag "cs-thread"]{Managing OS-Level Threads}
+@cs-title[#:tag "cs-thread"]{管理操作系统级线程}
 
-Chez Scheme functionality can only be accessed from OS-level threads
-that are known to the Chez Scheme runtime system. Otherwise, there's a
-race condition between such an access and a garbage collection that is
-triggered by other threads.
+Chez Scheme 功能只能被 Chez Scheme 运行时系统所知的操作系统级线程访问。否则，此类访问与其他线程触发的垃圾收集之间会发生竞态条件。
 
-A thread not created by Chez Scheme can be made known to the runtime
-system by activating it with @cppi{Sactivate_thread}. As long as a
-thread is active by not running Chez Scheme code, the thread prevents
-garbage collection in all other running threads. Deactivate a thread
-using @cppi{Sdeactivate_thread}.
+非 Chez Scheme 创建的线程可以通过使用 @cppi{Sactivate_thread} 激活来让运行时系统知道。只要一个线程通过不运行 Chez Scheme 代码保持活跃，该线程就会阻止所有其他运行线程的垃圾收集。使用 @cppi{Sdeactivate_thread} 停用一个线程。
 
 @function[(int Sactivate_thread)]{
 
-Activates the current OS-level thread. An already-activated thread can
-be activated again, but each activation must be balanced by a
-decativation. The result is @cpp{0} if the thread was previously
-activated @cpp{1} otherwise.}
+激活当前操作系统级线程。已激活的线程可以再次激活，但每次激活必须与停用平衡。如果线程之前已激活，则结果为 @cpp{0}，否则为 @cpp{1}。}
 
 @function[(void Sdeactivate_thread)]{
 
-Deactivates the current OS-level thread---or, at least, balances on
-activation, making the thread deactive if there are no remaining
-activations to balance with deactivation.}
+停用当前操作系统级线程---或者至少在激活上平衡，如果没有剩余的激活与停用平衡，则使线程不活跃。}
 
 @function[(int Sdestroy_thread)]{
 
-Releases any Chez Scheme resources associated with the current OS
-thread, which must have been previously activated but which must not
-be activated still.}
+释放与当前操作系统线程关联的所有 Chez Scheme 资源，该线程必须先前已激活但必须不再激活。}

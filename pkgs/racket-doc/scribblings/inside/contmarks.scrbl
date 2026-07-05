@@ -1,28 +1,22 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "contmarks"]{Continuation Marks}
+@bc-title[#:tag "contmarks"]{Continuation 标记}
 
-A mark can be attached to the current continuation frame using
-@cppi{scheme_set_cont_mark}. To force the creation of a new frame
-(e.g., during a nested function call within your function), use
-@cppi{scheme_push_continuation_frame}, and then remove the frame with
-@cppi{scheme_pop_continuation_frame}.
+可以使用 @cppi{scheme_set_cont_mark} 将标记附加到当前 continuation 帧。要强制创建新帧（例如，在你的 function 内部嵌套 function 调用期间），使用 @cppi{scheme_push_continuation_frame}，然后使用 @cppi{scheme_pop_continuation_frame} 移除该帧。
 
 @function[(void scheme_set_cont_mark
            [Scheme_Object* key]
            [Scheme_Object* val])]{
 
-Add/sets a continuation mark in the current continuation.}
+添加/设置当前 continuation 中的标记。}
 
 @function[(void scheme_push_continuation_frame
            [Scheme_Cont_Frame_Data* data])]{
 
-Creates a new continuation frame. The @var{data} record need not be
- initialized, and it can be allocated on the C stack. Supply @var{data} to
- @cpp{scheme_pop_continuation_frame} to remove the continuation frame.}
+创建新的 continuation 帧。@var{data} 记录不需要初始化，可以在 C 栈上分配。将 @var{data} 提供给 @cpp{scheme_pop_continuation_frame} 以移除 continuation 帧。}
 
 @function[(void scheme_pop_continuation_frame
            [Scheme_Cont_Frame_Data* data])]{
 
-Removes a continuation frame created by  @cpp{scheme_push_continuation_frame}.}
+移除由 @cpp{scheme_pop_continuation_frame} 创建的 continuation 帧。}

@@ -4,23 +4,17 @@
 @(define ev (make-base-eval))
 @(ev '(require racket/block))
 
-@title[#:tag "block"]{Blocks: @racket[block]}
+@title[#:tag "block"]{块：@racket[block]}
 
 @note-lib-only[racket/block]
 
 @defform[(block defn-or-expr ...)]{
 
-Supports a mixture of expressions and mutually recursive definitions,
-as in a @racket[module] body. Unlike an @tech{internal-definition
-context}, the last @racket[defn-or-expr] need not be an expression.
+支持表达式和相互递归定义的混合，如同在 @racket[module] 主体中一样。与 @tech{internal-definition context} 不同，最后一个 @racket[defn-or-expr] 不必是表达式。
 
-The result of the @racket[block] form is the result
-of the last @racket[defn-or-expr] if it is an expression,
-@|void-const| otherwise. If no @racket[defn-or-expr] is provided
-(after flattening @racket[begin] forms), the result is @|void-const|.
+@racket[block] 形式的结果是最后一个 @racket[defn-or-expr] 的结果（如果它是表达式），否则为 @|void-const|。如果未提供 @racket[defn-or-expr]（在展平 @racket[begin] 形式之后），则结果为 @|void-const|。
 
-The final @racket[defn-or-expr] is executed in tail position, if it is
-an expression.  
+最终的 @racket[defn-or-expr] 在尾位置执行（如果它是表达式）。
 
 
 @examples[#:eval ev

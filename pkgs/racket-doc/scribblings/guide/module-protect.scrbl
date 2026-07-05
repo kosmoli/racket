@@ -1,27 +1,10 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "protect-out"]{Protected Exports}
+@title[#:tag "protect-out"]{受保护的导出}
 
-Sometimes, a module needs to export bindings to other modules that are
-at the same trust level as the exporting module, while at the same
-time preventing access from untrusted modules. Such exports should use
-the @racket[protect-out] form in @racket[provide]. For example,
-@racketmodname[ffi/unsafe] exports all of its unsafe bindings as
-@deftech{protected} in this sense.
+有时，module 需要向与导出 module 处于相同信任级别的其他 module 导出绑定，同时阻止不受信任的 module 访问。此类导出应在 @racket[provide] 中使用 @racket[protect-out] 形式。例如，@racketmodname[ffi/unsafe] 以这种方式将其所有不安全绑定导出为 @deftech{protected}。
 
-Levels of trust are implemented with @tech{code inspectors} (see
-@secref["code-inspectors+protect"]).
-Only modules loaded with an equally strong code inspector as an
-exporting module can use protected bindings from the exporting module.
-Operations like @racket[dynamic-require] are granted access depending
-on the current code inspector as determined by
-@racket[current-code-inspector].
+信任级别通过 @tech{code inspectors} 实现（见 @secref["code-inspectors+protect"]）。只有使用与导出 module 同等强度的 code inspector 加载的 module 才能使用导出 module 的受保护绑定。像 @racket[dynamic-require] 这样的操作根据 @racket[current-code-inspector] 确定的当前 code inspector 来授予访问权限。
 
-When a module re-exports a protected binding, it does not need to use
-@racket[protect-out] again. Access is always determined by the code
-inspector of the module that originally defines a protected binding.
-When using a protected binding within a module, take care to either
-provide new bindings from the module with @racket[protect-out] or
-ensure that no provided bindings expose functionality that was meant
-to be protected in the first place.
+当 module 重新导出受保护绑定时，不需要再次使用 @racket[protect-out]。访问权限始终由最初定义受保护绑定的 module 的 code inspector 决定。在 module 内使用受保护绑定时，请注意要么从 module 使用 @racket[protect-out] 提供新绑定，要么确保没有提供暴露本应受保护功能的绑定。

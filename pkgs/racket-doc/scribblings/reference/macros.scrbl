@@ -5,11 +5,7 @@
 
 @guideintro["macros"]{Macros}
 
-See @secref["syntax-model"] for general information on how programs
-are parsed. In particular, the subsection @secref["expand-steps"]
-describes how parsing triggers macros, and
-@secref["transformer-model"] describes how macro transformers are
-called.
+关于程序如何解析的一般信息，见 @secref["syntax-model"]。特别地，@secref["expand-steps"] 子节描述了解析如何触发 macros，@secref["transformer-model"] 描述了如何调用 macro transformers。
 
 
 @local-table-of-contents[]

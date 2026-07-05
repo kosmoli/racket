@@ -1,10 +1,8 @@
 #lang scribble/base
 
-@title[#:style '(toc grouper) #:tag "bc"]{Inside Racket BC (3m and CGC)}
+@title[#:style '(toc grouper) #:tag "bc"]{Racket BC 内部机制（3m 和 CGC）}
 
-The Racket BC API was originally designed for a tight integration with
-C code. As a result, the BC API is considerably larger than the Racket
-CS API.
+Racket BC API 最初设计用于与 C 代码紧密集成。因此，BC API 比 Racket CS API 大得多。
 
 @local-table-of-contents[]
 
