@@ -9,7 +9,7 @@
                        [ptr-type (or/c ctype? #f) _pointer]
                        [racket-to-c (or/c (any/c . -> . any/c) #f) values]
                        [c-to-racket (or/c (any/c . -> . any/c) #f) values])
-            ctype?]
+            ctype?
            [(_cpointer/null [tag any/c]
                             [ptr-type (or/c ctype? #f) _pointer]
                             [racket-to-c (or/c (any/c . -> . any/c) #f) values]
@@ -42,11 +42,11 @@ Pointer tag 通过 @racket[cpointer-has-tag?] 检查并通过 @racket[cpointer-p
 
 可选表达式产生 @racket[_cpointer] 的可选参数。
 
-除了将 @racket[_id] 定义为 @racket[_cpointer] 生成的类型外，@racket[_id]@racketidfont{/null} 绑定到 @racket[_cpointer/null] 产生的类型。最后，@racketvarfont{id}@racketidfont{?} 定义为 predicate，@racketvarfont{id}@racketidfont{-tag} 定义为获取 tag 的 accessor。如果提供了 tag，则为 @racket[tag-expr]，否则为 @racketvarfont{id} 的 symbol 形式。}
+除了将 @racket[_id] 定义为 @racket[_cpointer] 生成的类型外，@racket[_id]@racketidfont{/null} 绑定到 @racket[_cpointer/null] 产生的类型。最后，@racketvarfont{id}@racketidfont{?} 定义为 predicate，@racketvarfont{id}@racketidfont{-tag} 定义为获取 tag 的 accessor。如果提供了 tag，则为 @racket[tag-expr]，否则为 @racketvarfont{id} 的 symbol 形式。
 
 @defproc[(cpointer-predicate-procedure? [v any/c]) boolean?]{如果 @racket[v] 是由 @racket[define-cpointer-type] 或 @racket[define-cstruct] 生成的 predicate procedure 则返回 @racket[#t]，否则返回 @racket[#f]。
 
-@history[#:added "6.6.0.1"]
+@history[#:added "6.6.0.1"]}
 
 @defproc*[([(cpointer-has-tag? [cptr cpointer?] [tag any/c]) boolean?]
            [(cpointer-push-tag! [cptr cpointer?] [tag any/c]) void?])]{
