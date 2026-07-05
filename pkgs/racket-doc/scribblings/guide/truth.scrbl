@@ -7,7 +7,7 @@
 @(define list-eval (make-base-eval))
 @(interaction-eval #:eval list-eval (require racket/list))
 
-@title{Pairs, Lists, and Racket Syntax}
+@title{点对、列表和 Racket 语法}
 
 The @racket[cons] function actually accepts any two values, not just
 a list for the second argument. When the second argument is not
@@ -18,10 +18,8 @@ whitespace) in between:
 
 @interaction[(cons 1 2) (cons "banana" "split")]
 
-Thus, a value produced by @racket[cons] is not always a list. In
-general, the result of @racket[cons] is a @defterm{pair}. The more
-traditional name for the @racket[cons?] function is @racket[pair?],
-and we'll use the traditional name from now on.
+因此，@racket[cons] 产生的值不一定是 list。通常，@racket[cons] 的结果是 @defterm{pair}。
+@racket[cons?] 函数更传统的名称是 @racket[pair?]，我们将从现在开始使用这个传统名称。
 
 The name @racket[rest] also makes less sense for non-list pairs; the
 more traditional names for @racket[first] and @racket[rest] are
@@ -40,49 +38,39 @@ and @racket[cdr] is pronounced ``could-er.'')
 
 @close-eval[list-eval]
 
-Racket's pair datatype and its relation to lists is essentially a
-historical curiosity, along with the dot notation for printing and the
-funny names @racket[car] and @racket[cdr]. Pairs are deeply wired into
-the culture, specification, and implementation of Racket, however,
-so they survive in the language.
+Racket 的 pair 数据类型及其与 list 的关系本质上是一种历史遗留问题，
+与打印的点符号以及 @racket[car] 和 @racket[cdr] 等有趣名称一样。
+但 pair 深深植根于 Racket 的文化、规范和实现中，因此它们仍在语言中保留。
 
-You are perhaps most likely to encounter a non-list pair when making a
-mistake, such as accidentally reversing the arguments to
-@racket[cons]:
+最可能遇到非 list pair 的情况通常是犯错时，例如不小心颠倒了 @racket[cons] 的参数：
 
 @interaction[(cons (list 2 3) 1) (cons 1 (list 2 3))]
 
-Non-list pairs are used intentionally, sometimes. For example, the
-@racket[make-hash] function takes a list of pairs, where the
-@racket[car] of each pair is a key and the @racket[cdr] is an
-arbitrary value.
+非 list pair 有时也是有意使用的。例如，@racket[make-hash] 函数接受一个 pair 列表，
+其中每个 pair 的 @racket[car] 是键，@racket[cdr] 是任意值。
 
-The only thing more confusing to new Racketeers than non-list pairs is
-the printing convention for pairs where the second element @italic{is}
-a pair, but @italic{is not} a list:
+对新 Racketeers 来说，唯一比非 list pair 更令人困惑的是第二个元素 @italic{是}
+pair 但 @italic{不是} list 的 pair 的打印约定：
 
 @interaction[(cons 0 (cons 1 2))]
 
-In general, the rule for printing a pair is as follows: use the dot
-notation unless the dot is immediately followed by an open
-parenthesis. In that case, remove the dot, the open parenthesis, and the
-matching close parenthesis. Thus, @racketresultfont[#:decode? #f]{'(0 . (1 . 2))}
+一般来说，打印 pair 的规则如下：使用点符号，除非点后面紧跟一个左括号。
+在这种情况下，移除点、左括号以及匹配的右括号。 Thus, @racketresultfont[#:decode? #f]{'(0 . (1 . 2))}
 becomes @racketresult['(0 1 . 2)], and
 @racketresultfont[#:decode? #f]{'(1 . (2 . (3 . ())))} becomes @racketresult['(1 2 3)].
 
 @;------------------------------------------------------------------------
-@section[#:tag "quoting-lists"]{Quoting Pairs and Symbols with @racket[quote]}
+@section[#:tag "quoting-lists"]{使用 @racket[quote] 引用 pair 和 symbol}
 
-A list prints with a quote mark before it, but if an element of a list
-is itself a list, then no quote mark is printed for the inner list:
+list 打印时前面有一个引号标记，但如果 list 的元素本身也是 list，
+则内部 list 不打印引号：
 
 @interaction[
 (list (list 1) (list 2 3) (list 4))
 ]
 
-For nested lists, especially, the @racket[quote] form lets you write a
-list as an expression in essentially the same way that the list
-prints:
+特别是对于嵌套 list，@racket[quote] 形式让你可以以与 list 打印方式
+本质相同的方式将 list 写成表达式：
 
 @interaction[
 (eval:alts (@#,racket[quote] ("red" "green" "blue")) '("red" "green" "blue"))
@@ -90,24 +78,22 @@ prints:
 (eval:alts (@#,racket[quote] ()) '())
 ]
 
-The @racket[quote] form works with the dot notation, too, whether the
-quoted form is normalized by the dot-parenthesis elimination rule or
-not:
+@racket[quote] 形式也与点符号配合使用，无论引用形式是否通过点括号消除规则进行规范化：
 
 @interaction[
 (eval:alts (@#,racket[quote] (1 . 2)) '(1 . 2))
 (eval:alts (@#,racket[quote] (0 @#,racketparenfont{.} (1 . 2))) '(0 . (1 . 2)))
 ]
 
-Naturally, lists of any kind can be nested:
+自然地，任何类型的 list 都可以嵌套：
 
 @interaction[
 (list (list 1 2 3) 5 (list "a" "b" "c"))
 (eval:alts (@#,racket[quote] ((1 2 3) 5 ("a" "b" "c"))) '((1 2 3) 5 ("a" "b" "c")))
 ]
 
-If you wrap an identifier with @racket[quote], then you get output
-that looks like an identifier, but with a @litchar{'} prefix:
+如果用 @racket[quote] 包装一个标识符，会得到看起来像标识符的输出，
+但带有 @litchar{'} 前缀：
 
 @interaction[
 (eval:alts (@#,racket[quote] jane-doe) 'jane-doe)
@@ -122,11 +108,9 @@ identifier or the predefined function that is bound to
 @racket[map], except that the symbol and the identifier happen
 to be made up of the same letters.
 
-Indeed, the intrinsic value of a symbol is nothing more than its
-character content. In this sense, symbols and strings are almost the
-same thing, and the main difference is how they print. The functions
-@racket[symbol->string] and @racket[string->symbol] convert between
-them.
+实际上，symbol 的内在价值不过是其字符内容。在这个意义上，
+symbol和 string 几乎相同，主要区别在于它们的打印方式。
+@racket[symbol->string] 和 @racket[string->symbol] 在它们之间转换。
 
 @examples[
 map
@@ -138,26 +122,22 @@ map
 (eval:alts (symbol->string (@#,racket[quote] @#,racketidfont{map})) (symbol->string 'map))
 ]
 
-In the same way that @racket[quote] for a list automatically applies
-itself to nested lists, @racket[quote] on a parenthesized sequence of
-identifiers automatically applies itself to the identifiers to create
-a list of symbols:
+正如 @racket[quote] 对 list 自动应用于嵌套 list 一样，
+@racket[quote] 对括号内的标识符序列自动应用于这些标识符来创建 symbol 列表：
 
 @interaction[
 (eval:alts (car (@#,racket[quote] (@#,racketidfont{road} @#,racketidfont{map}))) (car '(road map)))
 (eval:alts (symbol? (car (@#,racket[quote] (@#,racketidfont{road} @#,racketidfont{map})))) (symbol? (car '(road map))))
 ]
 
-When a symbol is inside a list that is printed with
-@litchar{'}, the @litchar{'} on the symbol is omitted, since
-@litchar{'} is doing the job already:
+当 symbol 在用 @litchar{'} 打印的 list 内部时，symbol 上的 @litchar{'} 会被省略，
+因为 @litchar{'} 已经在起作用：
 
 @interaction[
 (eval:alts (@#,racket[quote] (@#,racketidfont{road} @#,racketidfont{map})) '(road map))
 ]
 
-The @racket[quote] form has no effect on a literal expression such as
-a number or string:
+@racket[quote] 形式对字面值表达式（如数字或字符串）没有影响：
 
 @interaction[
 (eval:alts (@#,racket[quote] 42) 42)
@@ -167,9 +147,8 @@ a number or string:
 @;------------------------------------------------------------------------
 @section{Abbreviating @racket[quote] with @racketvalfont{@literal{'}}}
 
-As you may have guessed, you can abbreviate a use of
-@racket[quote] by just putting @litchar{'} in front of a form to
-quote:
+正如你可能已经猜到的，你可以通过将 @litchar{'} 放在要引用的形式前面
+来缩写 @racket[quote]:
 
 @interaction[
 '(1 2 3)
@@ -185,19 +164,17 @@ vary depending on the context of an expression. In the documentation,
 however, we routinely assume that standard bindings are in scope, and
 so we paint quoted forms in green for extra clarity.
 
-A @litchar{'} expands to a @racket[quote] form in quite a literal
-way. You can see this if you put a @litchar{'} in front of a form that has a
-@litchar{'}:
+@litchar{'} 以非常字面的方式展开为 @racket[quote] 形式。
+如果在已经包含 @litchar{'} 的形式前再加一个 @litchar{'}, 你会发现这一点：
 
 @interaction[
 (car ''road)
 (eval:alts (car '(@#,racketvalfont{quote} @#,racketvalfont{road})) 'quote)
 ]
 
-The @litchar{'} abbreviation works in output as well as input. The
-@tech{REPL}'s printer recognizes the symbol @racket['quote] as the
-first element of a two-element list when printing output, in which
-case it uses @racketidfont{'} to print the output:
+@litchar{'} 缩写在输出和输入中都有效。@tech{REPL} 的打印器在打印输出时
+将 symbol @racket['quote] 识别为两元素 list 的第一个元素，
+此时它使用 @racketidfont{'} 来打印输出：
 
 @interaction[
 (eval:alts (@#,racket[quote] (@#,racketvalfont{quote} @#,racketvalfont{road})) ''road)
@@ -210,14 +187,12 @@ case it uses @racketidfont{'} to print the output:
 @; different than what "list" creates
 
 @;------------------------------------------------------------------------
-@section[#:tag "lists-and-syntax"]{Lists and Racket Syntax}
+@section[#:tag "lists-and-syntax"]{List 与 Racket 语法}
 
-Now that you know the truth about pairs and lists, and now that you've
-seen @racket[quote], you're ready to understand the main way in which
-we have been simplifying Racket's true syntax.
+既然你已经了解了 pair 和 list 的真相，也看过 @racket[quote]，
+你已经准备好理解我们一直在简化 Racket 真实语法的主要方式。
 
-The syntax of Racket is not defined directly in terms of character
-streams. Instead, the syntax is determined by two layers:
+Racket 的语法不是直接按字符流定义的。相反，语法由两层决定：
 
 @itemize[
 
@@ -229,38 +204,27 @@ streams. Instead, the syntax is determined by two layers:
 
 ]
 
-The rules for printing and reading go together. For example, a list is
-printed with parentheses, and reading a pair of parentheses produces a
-list. Similarly, a non-list pair is printed with the dot notation, and
-a dot on input effectively runs the dot-notation rules in reverse to
-obtain a pair.
+打印和读取的规则相辅相成。例如，list 用括号打印，读取一对括号会产生一个 list。
+类似地，非 list pair 用点符号打印，而输入上的 dot 会反向运行点符号规则以获得 pair。
 
-One consequence of the read layer for expressions is that you can use
-the dot notation in expressions that are not quoted forms:
+读取层对表达式的一个后果是，你可以在非引用形式的表达式中使用点符号：
 
 @interaction[
 (eval:alts (+ 1 . @#,racket[(2)]) (+ 1 2))
 ]
 
-This works because @racket[(+ 1 . @#,racket[(2)])] is just another
-way of writing @racket[(+ 1 2)]. It is practically never a good idea
-to write application expressions using this dot notation; it's just a
-consequence of the way Racket's syntax is defined.
+这可行是因为 @racket[(+ 1 . @#,racket[(2)])] 只是 @racket[(+ 1 2)] 的另一种写法。
+实际上，使用这种点符号编写应用表达式从来都不是好主意；这只是 Racket 语法定义方式的后果。
 
-Normally, @litchar{.} is allowed by the reader only with a
-parenthesized sequence, and only before the last element of the
-sequence. However, a pair of @litchar{.}s can also appear around a
-single element in a parenthesized sequence, as long as the element is
-not first or last. Such a pair triggers a reader conversion that moves
-the element between @litchar{.}s to the front of the list. The
-conversion enables a kind of general infix notation:
+通常，读取器仅在括号内的序列中，且仅在序列最后一个元素之前允许 @litchar{.}。
+然而，一对 @litchar{.} 也可以出现在括号序列中的单个元素周围，
+只要该元素不是第一个或最后一个。这样的一对会触发读取器转换，
+将 @litchar{.} 之间的元素移到 list 的前面。这种转换启用了一种通用的中缀符号：
 
 @interaction[
 (1 . < . 2)
 '(1 . < . 2)
 ]
 
-This two-dot convention is non-traditional, and it has essentially
-nothing to do with the dot notation for non-list pairs. Racket
-programmers use the infix convention sparingly---mostly for asymmetric
-binary operators such as @racket[<] and @racket[is-a?].
+这种双点约定是非传统的，与非 list pair 的点符号本质上无关。
+Racket 程序员谨慎使用中缀约定——主要用于非对称二元运算符，如 @racket[<] 和 @racket[is-a?]。
