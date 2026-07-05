@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@title{Miscellaneous Support}
+@title{杂项支持}
 
 @defproc[(list->cblock [lst list?]
                        [type ctype?]
@@ -9,20 +9,16 @@
                        [#:malloc-mode malloc-mode (or/c #f symbol?) #f])
          cpointer?]{
 
-Allocates a memory block of an appropriate size---using
-@racket[malloc] with @racket[type] and @racket[(length lst)]---and
-initializes it using values from @racket[lst].  The
-@racket[lst] must hold values that can all be converted to C values
-according to the given @racket[type].
+为适当大小的内存块分配空间——使用 @racket[malloc] 配合 @racket[type] 和
+@racket[(length lst)]——并用 @racket[lst] 中的值进行初始化。
+@racket[lst] 必须包含都可以根据给定的 @racket[type] 转换为 C 值的元素。
 
-If @racket[expect-length] is not @racket[#f] and not the same as
-@racket[(length lst)], then an exception is raised instead of
-allocating memory.
+如果 @racket[expect-length] 不是 @racket[#f] 且不等于 @racket[(length lst)]，
+则不会分配内存，而是引发异常。
 
-If @racket[malloc-mode] is not @racket[#f], it is provided as an
-additional argument to @racket[malloc].
+如果 @racket[malloc-mode] 不是 @racket[#f]，它将作为额外的参数传递给 @racket[malloc]。
 
-@history[#:changed "7.7.0.2" @elem{Added the @racket[#:malloc-mode] argument.}]}
+@history[#:changed "7.7.0.2" @elem{添加了 @racket[#:malloc-mode] 参数。}]}
 
 
 @defproc[(vector->cblock [vec vector?]
@@ -31,61 +27,53 @@ additional argument to @racket[malloc].
                          [#:malloc-mode malloc-mode (or/c #f symbol?) #f])
          cpointer?]{
 
-Like @racket[list->cblock], but using values from a vector instead of
-a list.
+类似于 @racket[list->cblock]，但使用 vector 而非 list 中的值。
 
-@history[#:changed "7.7.0.2" @elem{Added the @racket[#:malloc-mode] argument.}]}
+@history[#:changed "7.7.0.2" @elem{添加了 @racket[#:malloc-mode] 参数。}]}
 
 
 @defproc[(vector->cpointer [vec vector?]) cpointer?]{
 
-Returns a pointer to an array of @racket[_scheme] values, which is the
-internal representation of @racket[vec].}
+返回指向一个 @racket[_scheme] 值数组的指针，即 @racket[vec] 的内部表示。}
 
 @defproc[(flvector->cpointer [flvec flvector?]) cpointer?]{
 
-Returns a pointer to an array of @racket[_double] values, which is the
-internal representation of @racket[flvec].}
+返回指向一个 @racket[_double] 值数组的指针，即 @racket[flvec] 的内部表示。}
 
 @defproc*[([(saved-errno) exact-integer?]
            [(saved-errno [new-value exact-integer?]) void?])]{
 
-Returns or sets the error code saved for the current Racket
-thread. The saved error code is set after a foreign call with a
-non-@racket[#f] @racket[#:save-errno] option (see @racket[_fun] and
-@racket[_cprocedure]), but it can also be set explicitly (for example,
-to create mock foreign functions for testing).
+返回或设置当前 Racket 线程的保存错误码。保存的错误码是在 foreign 调用
+时通过非 @racket[#f] 的 @racket[#:save-errno] 选项（参见 @racket[_fun] 和
+@racket[_cprocedure]）设置的，但也可以显式设置（例如，用于创建测试用的 mock
+foreign 函数）。
 
-@history[#:changed "6.4.0.9"]{Added the one-argument variant.}}
+@history[#:changed "6.4.0.9"]{添加了一个参数的变体。}}
 
 @defproc[(lookup-errno [sym symbol?])
          (or/c exact-integer? #f)]{
 
-Returns a platform-specific positive integer corresponding to a POSIX
-@tt{errno} code, or @racket[#f] if the code is unknown. A code's value
-is known if the code is one of the recognized symbols described below
-@emph{and} the code was defined by the @tt{"errno.h"} header used to
-compile Racket. Note that the contents of @tt{"errno.h"} vary based on
-platform and compiler.
+返回对应于 POSIX @tt{errno} 码的特定于平台的正整数，或如果该码未知则返回
+@racket[#f]。一个码的值是已知的，当且仅当它是下面描述的已识别的 symbols 之一，
+并且该码是由编译 Racket 时使用的 @tt{"errno.h"} 头文件定义的。注意，
+@tt{"errno.h"} 的内容因平台和编译器而异。
 
-The recognized symbols currently consist of the 81 codes defined by
+当前识别的 symbols 包括
 @hyperlink["http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html"]{IEEE
-Std 1003.1, 2013 Edition} (also known as POSIX.1), including
-@racket['EINTR], @racket['EEXIST], and @racket['EAGAIN].
+Std 1003.1, 2013 Edition}（又称 POSIX.1）中定义的 81 个码，
+包括 @racket['EINTR]、@racket['EEXIST] 和 @racket['EAGAIN]。
 
-See also @racket[exn-classify-errno].
+另参见 @racket[exn-classify-errno]。
 
-@history[#:changed "6.6.0.5" @elem{Relaxed the contract and added
-support for more symbols.}]}
+@history[#:changed "6.6.0.5" @elem{放宽了 contract 并添加了对更多 symbols 的支持。}]}
 
 
 @defproc[(cast [v any/c] [from-type ctype?] [to-type ctype?]) any/c]{
 
-Converts @racket[v] from a value matching @racket[from-type] to a
-value matching @racket[to-type], where @racket[(ctype-sizeof from-type)]
-matches @racket[(ctype-sizeof to-type)].
+将 @racket[v] 从匹配 @racket[from-type] 的值转换为匹配 @racket[to-type] 的值，
+其中 @racket[(ctype-sizeof from-type)] 与 @racket[(ctype-sizeof to-type)] 相匹配。
 
-The conversion is roughly equivalent to
+转换大致等同于
 
 @racketblock[
   (let ([p (malloc from-type)])
@@ -93,30 +81,27 @@ The conversion is roughly equivalent to
     (ptr-ref p to-type))
 ]
 
-If @racket[v] is a cpointer, @racket[(cpointer-gcable?  v)] is true,
-and @racket[from-type] and @racket[to-type] are both based on
-@racket[_pointer] or @racket[_gcpointer], then @racket[from-type] is
-implicitly converted with @racket[_gcable] to ensure that the result
-cpointer is treated as referring to memory that is managed by the
-garbage collector.
+如果 @racket[v] 是一个 cpointer，@racket[(cpointer-gcable?  v)] 为 true，
+并且 @racket[from-type] 和 @racket[to-type] 都基于 @racket[_pointer] 或
+@racket[_gcpointer]，则 @racket[from-type] 会通过 @racket[_gcable]
+隐式转换，以确保结果的 cpointer 被视为指向由垃圾收集器管理的内存。
 
-If @racket[v] is a pointer with an offset component (e.g., from
-@racket[ptr-add]), @racket[(cpointer-gcable? v)] is true, and the
-result is a cpointer, then the result pointer has the same offset
-component as @racket[v]. If @racket[(cpointer-gcable? v)] is false,
-then any offset is folded into the pointer base for the result.}
+如果 @racket[v] 是具有 offset 分量的 pointer（例如，来自
+@racket[ptr-add]），@racket[(cpointer-gcable? v)] 为 true，结果是 cpointer，
+则结果 pointer 与 @racket[v] 具有相同的 offset 分量。如果
+@racket[(cpointer-gcable? v)] 为 false，则任何 offset 都会被合并到结果的 pointer
+base 中。}
 
 
 @defproc[(cblock->list [cblock any/c] [type ctype?] [length exact-nonnegative-integer?])
          list?]{
 
-Converts C @racket[cblock], which is a vector of @racket[type]s, to a
-Racket list.  The arguments are the same as in the
-@racket[list->cblock]. The @racket[length] must be specified because
-there is no way to know where the block ends.}
+将 C @racket[cblock]（一个 @racket[type]s 的 vector）转换为 Racket list。
+参数与 @racket[list->cblock] 中的相同。必须指定 @racket[length]，因为
+无法知道 block 的末尾在哪里。}
 
 
 @defproc[(cblock->vector [cblock any/c] [type ctype?] [length exact-nonnegative-integer?])
          vector?]{
 
-Like @racket[cblock->list], but for Racket vectors.}
+类似 @racket[cblock->list]，但用于 Racket vectors。}

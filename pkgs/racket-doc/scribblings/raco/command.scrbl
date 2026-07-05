@@ -2,17 +2,11 @@
 @(require scribble/manual "common.rkt"
           (for-label racket/base raco/all-tools raco/command-name racket/contract/base racket/cmdline))
 
-@title[#:tag "command"]{Adding a @exec{raco} Command}
+@title[#:tag "command"]{添加一个 @exec{raco} 命令}
 
-The set of commands supported by @exec{raco} can be extended by
-installed packages, @|PLaneT| packages, and other collections. A
-command is added by defining @indexed-racket[raco-commands] in the
-@filepath{info.rkt} library of a collection (see @secref["info.rkt"]),
-and then @exec{raco setup} (as called directly or as part of a package
-or @|PLaneT| installation) must index the @filepath{info.rkt} file.
+@exec{raco} 支持的命令集可以通过安装的包、@|PLaneT| 包以及其他集合来扩展。命令是通过在集合的 @filepath{info.rkt} 库中定义 @indexed-racket[raco-commands] 来添加的（参见 @secref["info.rkt"]），然后必须通过 @exec{raco setup}（作为直接调用或包安装或 @|PLaneT| 安装的一部分）来索引 @filepath{info.rkt} 文件。
 
-The value bound to @racket[raco-commands] must be a list of @deftech{command
-specifications}, where each specification is a list of four values:
+绑定到 @racket[raco-commands] 的值必须是一个 @deftech{command specifications} 列表，其中每个 specification 是一个包含四个值的列表：
 
 @racketblock[
    (list _command-string
@@ -21,36 +15,28 @@ specifications}, where each specification is a list of four values:
          _prominence)
 ]
 
-The @racket[_command-string] is the command name. Any unambiguous
-prefix of a command name can be supplied to @exec{raco} to invoke the
-command.
+@racket[_command-string] 是命令名称。命令名称的任何非
+模糊前缀都可以提供给 @exec{raco} 来调用该命令。
 
-The @racket[_implementation-module-path] names the implementation though a
-module path (in the sense of @racket[module-path?]). The module is loaded and
-invoked through @racket[dynamic-require] to run the command. The
-module can access command-line arguments through the
-@racket[current-command-line-arguments] parameter, which is adjusted
-before loading the command module to include only the arguments to the
-command. The @racket[current-command-name] parameter is also set to
-the command name used to load the command. When @exec{raco help} is
-used on a command, the command is launched with an initial
-@DFlag{help} argument in @racket[current-command-line-arguments].
+@racket[_implementation-module-path] 通过 module path（
+在 @racket[module-path?] 的意义上）命名实现模块。该模块通过
+@racket[dynamic-require] 加载和调用来运行命令。该模块可以
+通过 @racket[current-command-line-arguments] parameters 访问 command-line 参数，
+这些参数在加载命令模块之前被调整为只包含要传递给 command 的参数。
+@racket[current-command-name] parameter 也被设置为用来加载命令的 command 名称。
+当对命令使用 @exec{raco help} 时，命令会在 @racket[current-command-line-arguments]
+中使用一个初始的 @DFlag{help} 参数来启动。
 
-The @racket[_description-string] is a short string used to describe the
-command in response to @exec{raco help}. The description should not be
-capitalized or end with a period.
+@racket[_description-string] 是一个短字符串，用于描述
+@exec{raco help} 响应中的命令。描述不应大写也不应以句号结尾。
 
-The @racket[_prominence] value should be a real number or
-@racket[#f]. A @racket[#f] value means that the command should not be
-included in the short list of ``frequently used commands.'' A number
-indicates the relative prominence of the command; the @exec{help}
-command has a value of @racket[110], and probably no command should be
-more prominent. The @exec{pack} tool, which is currently ranked as the
-least-prominent of the frequently used commands, has a value of
-@racket[10].
+@racket[_prominence] 值应该是一个实数或 @racket[#f]。
+@racket[#f] 值意味着该命令不应包含在"常用命令"的短列表中。
+数字表示命令的相对突出程度；@exec{help} 命令的值为 @racket[110]，
+可能没有命令应该比这更突出。@exec{pack} 工具目前被评为最低调的
+常用命令，其值为 @racket[10]。
 
-As an example, the @filepath{info.rkt} of the @filepath{compiler} collection
-might contain the
+例如，@filepath{compiler} 集合的 @filepath{info.rkt} 可能包含
 
 @racketblock[
  (define raco-commands
@@ -58,37 +44,31 @@ might contain the
      ("decompile" compiler/commands/decompile "decompile bytecode" #f)))
 ]
 
-so that @exec{make} is treated as a frequently used command, while
-@exec{decompile} is available as an infrequently used command.
+以便 @exec{make} 被视为常用命令，而 @exec{decompile} 则作为不常用的命令可用。
 
 @section{Command Argument Parsing}
 
-@defmodule[raco/command-name]{The @racketmodname[raco/command-name]
-library provides functions to help a @exec{raco} command identify
-itself to users.}
+@defmodule[raco/command-name]{@racketmodname[raco/command-name]
+库提供函数来帮助 @exec{raco} 命令向用户标识自己。}
 
 @defparam[current-command-name name (or/c string? #f)]{
 
-The name of the command currently being loaded via
-@racket[dynamic-require], or @racket[#f] if @exec{raco} is not loading
-any command.
+当前通过 @racket[dynamic-require] 正在加载的命令的名称，
+如果 @exec{raco} 未加载任何命令则为 @racket[#f]。
 
-A command implementation can use this parameter to determine whether
-it was invoked via @exec{raco} or through some other means.}
+命令实现可以使用此参数来区分它是通过 @exec{raco} 调用
+还是通过其他方式调用。}
 
 @defproc[(short-program+command-name) string?]{
 
-Returns a string that identifies the current command. When
-@racket[current-command-name] is a string, then the result is the
-short name of the @exec{raco} executable followed by a space and the
-command name. Otherwise, it is the short name of the current
-executable, as determined by stripping the path from the result of
-@racket[(find-system-path 'run-file)]. In either case, on Windows, an
-@filepath{.exe} extension is removed from the executable name.
+返回标识当前 command 的字符串。当 @racket[current-command-name]
+是 string 时，结果是 @exec{raco} 可执行文件的短名称后跟一个空格
+和命令名称。否则，它是当前可执行文件的短名称，
+通过从 @racket[(find-system-path 'run-file)] 的结果中去除路径来确定。
+在 Windows 上，@filepath{.exe} 扩展名从可执行文件名中移除。
 
-The result of this function is suitable for use with
-@racket[command-line]. For example, the @exec{decompile} tool parses
-command-line arguments with
+此函数的结果适合与 @racket[command-line] 一起使用。例如，
+@exec{decompile} 工具通过以下方式解析 command-line 参数：
 
 @racketblock[
  (define source-files
@@ -98,7 +78,7 @@ command-line arguments with
     source-or-bytecode-file))
 ]
 
-so that @exec{raco decompile --help} prints
+以便 @exec{raco decompile --help} 打印
 
 @verbatim[#:indent 2]{
 usage: raco decompile [ <option> ... ] [<source-or-bytecode-file>] ...
@@ -116,18 +96,19 @@ usage: raco decompile [ <option> ... ] [<source-or-bytecode-file>] ...
 
 @defproc[(program+command-name) string?]{
 
-Like @racket[short-program+command-name], but the path (if any) is not
-stripped from the current executable's name.}
+类似于 @racket[short-program+command-name]，但路径（如果有）
+不会从当前可执行文件名中去除。}
 
-@section{Accessing @exec{raco} Commands}
+@section{访问 @exec{raco} 命令}
 
-@defmodule[raco/all-tools]{The @racketmodname[raco/all-tools]
-library collects the @indexed-racket[raco-commands] specifications for
-installed packages, @|PLaneT| packages, and other collections.}
+@defmodule[raco/all-tools]{@racketmodname[raco/all-tools]
+库为安装的包、@|PLaneT| 包和其他集合收集 @indexed-racket[racco-commands] specifications。}
 
-@defproc[(all-tools) (hash/c string? (list/c string? module-path? string? (or/c real? #f)))]{
-Returns a hashtable with collection names as keys and @tech{command specifications} as values.
-For example, the following program invokes @exec{raco make file.rkt}:
+@defproc[(all-tools) (hash/c string? (list/c string? module-path? string? (or/c real? #f)))]
+
+返回一个以集合名称为 keys、@tech{command specifications} 为 values 的 hashtable。
+例如，以下程序调用 @exec{racco make file.rkt}：
+
 @racketblock[
   (require raco/all-tools)
 
@@ -136,5 +117,3 @@ For example, the following program invokes @exec{raco make file.rkt}:
   (parameterize ([current-command-line-arguments (vector "file.rkt")])
     (dynamic-require (second raco-make-spec) #f))
 ]
-}
-

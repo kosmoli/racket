@@ -2,59 +2,47 @@
 @(require "utils.rkt"
           (for-label ffi/unsafe/alloc ffi/unsafe/define ffi/unsafe/atomic))
 
-@title{Allocation and Finalization}
+@title{内存分配与终结}
 
-@defmodule[ffi/unsafe/alloc]{The
-@racketmodname[ffi/unsafe/alloc] library provides utilities for
-ensuring that values allocated through foreign functions are reliably
-deallocated.}
+@defmodule[ffi/unsafe/alloc]{@racketmodname[ffi/unsafe/alloc] 库提供了
+用于确保通过 foreign 函数分配的内存被可靠地释放的工具。}
 
 @defproc[((allocator [dealloc (any/c . -> . any)] [#:merely-uninterruptible? uninterruptible? any/c #f])
           [alloc (or/c procedure? #f)])
          (or/c procedure? #f)]{
 
-Produces an @deftech{allocator} procedure that behaves like
-@racket[alloc], but each result @racket[_v] of the @tech{allocator},
-if not @racket[#f], is given a finalizer that calls @racket[dealloc]
-on @racket[_v]---unless the call has been canceled by applying a
-@tech{deallocator} (produced by @racket[deallocator]) to @racket[_v].
-Any existing @racket[dealloc] registered for @racket[_v] is canceled.
-If and only if @racket[alloc] is @racket[#f], @racket[((allocator
-dealloc) alloc)] produces @racket[#f].
+产生一个 @deftech{allocator} procedure，其行为类似于 @racket[alloc]，
+但每个结果 @racket[_v]（如果非 @racket[#f]）会被赋予一个 finalizer，
+该 finalizer 对 @racket[_v] 调用 @racket[dealloc]——除非调用已通过
+@tech{deallocator}（由 @racket[deallocator] 产生）应用于 @racket[_v] 而被取消。
+任何已注册的现有 @racket[dealloc] 都会被取消。
+当且仅当 @racket[alloc] 是 @racket[#f] 时，@racket[((allocator dealloc) alloc)]
+产生 @racket[#f]。
 
-The resulting @tech{allocator} calls @racket[alloc] in @tech{atomic
-mode} (see @racket[call-as-atomic]), unless @racket[uninterruptible?]
-is true, in which case @tech{uninterruptible mode} is used (see
-@racket[call-as-uninterruptible]). The result from @racket[alloc] is
-received and registered in atomic or uninterruptible mode, so that the result is reliably
-deallocated as long as no exception is raised.
+产生的 @tech{allocator} 在 @tech{atomic mode} 下调用 @racket[alloc]
+（参见 @racket[call-as-atomic]），除非 @racket[uninterruptible?] 为 true，
+此时使用 @racket[call-as-uninterruptible] 中的 @tech{uninterruptible mode}。
+来自 @racket[alloc] 的结果在 atomic 或 uninterruptible 模式下接收和注册，
+以便结果可以被可靠地释放，前提是没有引发异常。
 
-The @racket[dealloc] procedure will be called in atomic mode, and it
-must obey the same constraints as a finalizer procedure provided to
-@racket[register-finalizer]. The @racket[dealloc] procedure itself
-need not be specifically a @tech{deallocator} produced by
-@racket[deallocator]. If a @tech{deallocator} is called explicitly, it
-need not be the same as @racket[dealloc].
+@racket[dealloc] procedure 将在 atomic mode 被调用，并且必须遵守与提供给
+@racket[register-finalizer] 的 finalizer procedure 相同的约束。
+@racket[dealloc] procedure 本身不需要特别是由 @racket[deallocator] 产生的
+@tech{deallocator}。如果 @tech{deallocator} 被显式调用，它不需要等同于
+@racket[dealloc]。
 
-When a non-main @tech[#:doc reference.scrbl]{place} exits, after all
-@tech[#:doc reference.scrbl]{custodian}-shutdown actions, for every
-@racket[dealloc] still registered via an @tech{allocator} or
-@tech{retainer} (from @racket[allocator] or @racket[retainer]), the
-value to deallocate is treated as immediately unreachable. At that
-point, @racket[dealloc] functions are called in reverse order of their
-registrations. Note that references in a @racket[dealloc] function's
-closure do @emph{not} prevent running a @racket[dealloc] function for
-any other value. If deallocation needs to proceed in an order
-different than reverse of allocation, use a @tech{retainer} to insert
-a new deallocation action that will run earlier.
+当非主 @tech[#:doc reference.scrbl]{place} 退出时，在所有 @tech[#:doc
+reference.scrbl]{custodian}-shutdown 动作之后，每个仍然通过 @tech{allocator} 或
+@tech{retainer}（来自 @racket[allocator] 或 @racket[retainer]）注册的
+@racket[dealloc] 都将被视为立即不可达。此时，@racket[dealloc] 函数按照其注册的
+相反顺序被调用。注意，@racket[dealloc] 函数闭包中的引用不会阻止任何其他值的
+@racket[dealloc] 函数运行。如果释放需要以不同于分配相反顺序进行，请使用
+@tech{retainer} 来插入较早运行的新的释放动作。
 
-@history[#:changed "7.0.0.4" @elem{Added atomic mode for @racket[dealloc]
-                                   and changed non-main place exits to call
-                                   all remaining @racket[dealloc]s.}
-         #:changed "7.4.0.4" @elem{Produce @racket[#f] when @racket[alloc]
-                                   is @racket[#f].}
-         #:changed "8.17.0.7" @elem{Added the @racket[#:merely-uninterruptible?]
-                                    optional argument.}]}
+@history[#:changed "7.0.0.4" @elem{为 @racket[dealloc] 添加了 atomic mode，
+                                  并在非主 place 退出时调用所有剩余的 @racket[dealloc]s。}
+         #:changed "7.4.0.4" @elem{当 @racket[alloc] 为 @racket[#f] 时产生 @racket[#f]。}
+         #:changed "8.17.0.7" @elem{添加了 @racket[#:merely-uninterruptible?] 可选参数。}]}
 
 @deftogether[(
 @defproc[((deallocator [get-arg (list? . -> . any/c) car]
@@ -65,26 +53,21 @@ a new deallocation action that will run earlier.
          procedure?]
 )]{
 
-Produces a @deftech{deallocator} procedure that behaves like
-@racket[dealloc]. The @tech{deallocator} calls @racket[dealloc] in
-@tech{atomic mode} (see @racket[call-as-atomic]) or @tech{uninterruptible mode} (see
-@racket[call-as-uninterruptible]), and for one of its
-arguments, the it cancels the most recent remaining deallocator
-registered by a @tech{allocator} or @tech{retainer}.
+产生一个 @deftech{deallocator} procedure，其行为类似于 @racket[dealloc]。
+@tech{deallocator} 在 @tech{atomic mode}（参见 @racket[call-as-atomic]）或
+@tech{uninterruptible mode}（参见 @racket[call-as-uninterruptible]）下调用
+@racket[dealloc]，并且对于其一个参数，它会取消最近剩下的由 @tech{allocator} 或
+@tech{retainer} 注册的 deallocator。
 
-The optional @racket[get-arg] procedure determines which of
-@racket[dealloc]'s arguments correspond to the released object;
-@racket[get-arg] receives a list of arguments passed to
-@racket[dealloc], so the default @racket[car] selects the first one.
-Note that @racket[get-arg] can only choose one of the by-position
-arguments to @racket[dealloc], though the @tech{deallocator} will
-require and accept the same keyword arguments as @racket[dealloc], if any.
+可选的 @racket[get-arg] procedure 确定 @racket[dealloc] 的哪个参数对应于
+被释放的对象；@racket[get-arg] 接收传递给 @racket[dealloc] 的参数列表，
+因此默认的 @racket[car] 选择第一个参数。注意，@racket[get-arg] 只能选择
+@racket[dealloc] 的位置参数中的一个，但是 @tech{deallocator} 将要求并接受与
+@racket[dealloc] 相同的关键字参数（如果有的话）。
 
-The @racket[releaser] procedure is a synonym for
-@racket[deallocator].
+@racket[releaser] procedure 是 @racket[deallocator] 的同义词。
 
-@history[#:changed "8.17.0.7" @elem{Added the @racket[#:merely-uninterruptible?]
-                                    optional argument.}]}
+@history[#:changed "8.17.0.7" @elem{添加了 @racket[#:merely-uninterruptible?] 可选参数。}]}
 
 
 @defproc[((retainer [release (any/c . -> . any)]
@@ -93,33 +76,27 @@ The @racket[releaser] procedure is a synonym for
           [retain procedure?]) 
          procedure?]{
 
-Produces a @deftech{retainer} procedure that behaves like
-@racket[retain]. A @tech{retainer} acts the same as an
-@tech{allocator} produced by @racket[allocator], except that
+产生一个 @deftech{retainer} procedure，其行为类似于 @racket[retain]。
+@tech{retainer} 的作用与 @racket[allocator] 产生的 @tech{allocator} 相同，
+但有以下例外：
 
 @itemlist[
 
- @item{a @tech{retainer} does not cancel any existing @racket[release]
-       or @racket[_dealloc] registrations when registering
-       @racket[release]; and}
+ @item{@tech{retainer} 在注册 @racket[release] 时不会取消任何现有的
+       @racket[release] 或 @racket[_dealloc] 注册；且}
 
- @item{@racket[release] is registered for a value @racket[_v] that is
-       is an argument to the @tech{retainer}, instead of the result
-       for an @tech{allocator}.}
+ @item{@racket[release] 是为作为 @tech{retainer} 参数的值 @racket[_v] 注册的，
+       而不是为 @tech{allocator} 的结果注册的。}
 
 ]
 
-The optional @racket[get-arg] procedure determines which of the
-@tech{retainer}'s arguments (that is, which of @racket[retain]'s
-arguments) correspond to the retained object @racket[_v];
-@racket[get-arg] receives a list of arguments passed to
-@racket[retain], so the default @racket[car] selects the first one.
-Note that @racket[get-arg] can only choose one of the by-position
-arguments to @racket[retain], though the @tech{retainer} will
-require and accept the same keyword arguments as @racket[retain], if any.
+可选的 @racket[get-arg] procedure 确定 @tech{retainer} 的哪个参数
+（即 @racket[retain] 的哪个参数）对应于被保留的对象 @racket[_v]；
+@racket[get-arg] 接收传递给 @racket[retain] 的参数列表，
+因此默认的 @racket[car] 选择第一个参数。注意，@racket[get-arg] 只能选择
+@racket[retain] 的位置参数中的一个，但是 @tech{retainer} 将要求并接受与
+@racket[retain] 相同的关键字参数（如果有的话）。
 
-@history[#:changed "7.0.0.4" @elem{Added atomic mode for @racket[release]
-                                   and changed non-main place exits to call
-                                   all remaining @racket[release]s.}
-         #:changed "8.17.0.7" @elem{Added the @racket[#:merely-uninterruptible?]
-                                    optional argument.}]}
+@history[#:changed "7.0.0.4" @elem{为 @racket[release] 添加了 atomic mode，
+                                  并在非主 place 退出时调用所有剩余的 @racket[release]s。}
+         #:changed "8.17.0.7" @elem{添加了 @racket[#:merely-uninterruptible?] 可选参数。}]}

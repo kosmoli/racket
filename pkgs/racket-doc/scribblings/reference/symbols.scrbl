@@ -6,80 +6,74 @@
 
 @guideintro["symbols"]{symbols}
 
-@section-index["symbols" "generating"]
-@section-index["symbols" "unique"]
+@section-index["symbols" "生成"]
+@section-index["symbols" "唯一"]
 
-A @deftech{symbol} is like an immutable string, but symbols are
-normally @tech{interned}, so that two symbols with the same
-character content are normally @racket[eq?]. All symbols produced by
-the default reader (see @secref["parse-symbol"]) are @tech{interned}.
+一个 @deftech{symbol} 就像一个不可变的 string，但 symbols 通常是
+@tech{interned}，因此具有相同字符内容的两个 symbols 通常是 @racket[eq?]。
+默认 reader（参见 @secref["parse-symbol"]）产生的所有 symbols 都是
+@tech[interned]。
 
-The two procedures @racket[string->uninterned-symbol] and
-@racket[gensym] generate @deftech{uninterned} symbols, i.e., symbols
-that are not @racket[eq?], @racket[eqv?], or @racket[equal?] to any
-other symbol, although they may print the same as other symbols.
+@racket[string->uninterned-symbol] 和 @racket[gensym] 这两个 procedures 生成
+@deftech{uninterned} symbols，即不与任何其他 symbol @racket[eq?]、
+@racket[eqv?] 或 @racket[equal?] 的 symbols，尽管它们可能与其他 symbols 
+打印得相同。
 
-The procedure @racket[string->unreadable-symbol] returns an
-@deftech{unreadable symbol} that is partially interned.  The default
-reader (see @secref["parse-symbol"]) never produces an unreadable
-symbol, but two calls to @racket[string->unreadable-symbol] with
-@racket[equal?] strings produce @racket[eq?] results. An unreadable
-symbol can print the same as an interned or uninterned
-symbol. Unreadable symbols are useful in expansion and
-compilation to avoid collisions with symbols that appear in the
-source; they are usually not generated directly, but they can appear
-in the result of functions like @racket[identifier-binding].
+@racket[string->unreadable-symbol] procedure 返回一个 @deftech{unreadable symbol}，
+该 symbol 是部分 interned 的。默认 reader（参见 @secref["parse-symbol"]）从不
+产生 unreadable symbol，但对 @racket[string->unreadable-symbol] 的两次调用
+如果使用 @racket[equal?] 的 strings，会产生 @racket[eq?] 的结果。
+一个 unreadable symbol 可能与 interned 或 uninterned symbol 打印得相同。
+Unreadable symbols 在 expansion 和 compilation 中用于避免与源文件中
+出现的 symbols 发生冲突；它们通常不会直接生成，但可能出现在
+@racket[identifier-binding] 等函数的结果中。
 
-Interned and unreadable symbols are only weakly held by the internal
-symbol table. This weakness can never affect the result of an
-@racket[eq?], @racket[eqv?], or @racket[equal?] test, but a symbol may
-disappear when placed into a weak box (see @secref["weakbox"]), used as
-the key in a weak @tech{hash table} (see @secref["hashtables"]), or
-used as an ephemeron key (see @secref["ephemerons"]).
+Interned 和 unreadable symbols 仅由内部 symbol 表 weak 持有。这种弱性永远
+不会影响 @racket[eq?]、@racket[eqv?] 或 @racket[equal?] 测试的结果，但当
+一个 symbol 被放入 weak box 时（参见 @secref["weakbox"]），用作
+weak @tech{hash table} 的 key 时（参见 @secref["hashtables"]），或用作
+ephemeron key 时（参见 @secref["ephemerons"]），可能会消失。
 
 @see-read-print["symbol"]{symbols}
 
-@defproc[(symbol? [v any/c]) boolean?]{Returns @racket[#t] if @racket[v] is
- a symbol, @racket[#f] otherwise.
+@defproc[(symbol? [v any/c]) boolean?]{如果 @racket[v] 是一个
+ symbol，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @mz-examples[(symbol? 'Apple) (symbol? 10)]}
 
 
-@defproc[(symbol-interned? [sym symbol?]) boolean?]{Returns @racket[#t] if @racket[sym] is
- @tech{interned}, @racket[#f] otherwise.
+@defproc[(symbol-interned? [sym symbol?]) boolean?]{如果 @racket[sym] 是
+ @tech{interned}，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @mz-examples[(symbol-interned? 'Apple)
              (symbol-interned? (gensym))
              (symbol-interned? (string->unreadable-symbol "Apple"))]}
 
-@defproc[(symbol-unreadable? [sym symbol?]) boolean?]{Returns @racket[#t] if @racket[sym] is
- an @tech{unreadable symbol}, @racket[#f] otherwise.
+@defproc[(symbol-unreadable? [sym symbol?]) boolean?]{如果 @racket[sym] 是一个
+ @tech{unreadable symbol}，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @mz-examples[(symbol-unreadable? 'Apple)
              (symbol-unreadable? (gensym))
              (symbol-unreadable? (string->unreadable-symbol "Apple"))]}
 
-@defproc[(symbol->string [sym symbol?]) string?]{Returns a freshly
- allocated mutable string whose characters are the same as in
- @racket[sym].
+@defproc[(symbol->string [sym symbol?]) string?]{返回一个新分配的
+ mutable string，其字符与 @racket[sym] 中的字符相同。
 
-See also @racket[symbol->immutable-string] from
-@racketmodname[racket/symbol].
+另参见 @racketmodname[racket/symbol] 中的 @racket[symbol->immutable-string]。
 
 @mz-examples[(symbol->string 'Apple)]}
 
 
-@defproc[(string->symbol [str string?]) symbol?]{Returns an
- @tech{interned} symbol whose characters are the same as in
- @racket[str].
+@defproc[(string->symbol [str string?]) symbol?]{返回一个
+ @tech{interned} symbol，其字符与 @racket[str] 中的字符相同。
 
 @mz-examples[(string->symbol "Apple") (string->symbol "1")]}
 
 
-@defproc[(string->uninterned-symbol [str string?]) symbol?]{Like
- @racket[(string->symbol str)], but the resulting symbol is a new
- @tech{uninterned} symbol. Calling @racket[string->uninterned-symbol]
- twice with the same @racket[str] returns two distinct symbols.
+@defproc[(string->uninterned-symbol [str string?]) symbol?]{类似于
+ @racket[(string->symbol str)]，但结果是一个新的 @tech{uninterned} symbol。
+ 用相同的 @racket[str] 调用 @racket[string->uninterned-symbol] 两次会返回两个
+ 不同的 symbols。
 
 @mz-examples[(string->uninterned-symbol "Apple")
              (eq? 'a (string->uninterned-symbol "a"))
@@ -87,11 +81,10 @@ See also @racket[symbol->immutable-string] from
                   (string->uninterned-symbol "a"))]}
 
 
-@defproc[(string->unreadable-symbol [str string?]) symbol?]{Like
- @racket[(string->symbol str)], but the resulting symbol is a new
- @tech{unreadable symbol}. Calling @racket[string->unreadable-symbol]
- twice with equivalent @racket[str]s returns the same symbol, but
- @racket[read] never produces the symbol.
+@defproc[(string->unreadable-symbol [str string?]) symbol?]{类似于
+ @racket[(string->symbol str)]，但结果是一个新的 @tech{unreadable symbol}。
+ 对等效的 @racket[str]s 调用 @racket[string->unreadable-symbol] 两次会返回
+ 相同的 symbol，但 @racket[read] 从不产生该 symbol。
 
 @mz-examples[(string->unreadable-symbol "Apple")
              (eq? 'a (string->unreadable-symbol "a"))
@@ -99,19 +92,18 @@ See also @racket[symbol->immutable-string] from
                   (string->unreadable-symbol "a"))]}
 
 
-@defproc[(gensym [base (or/c string? symbol?) "g"]) symbol?]{Returns a
- new @tech{uninterned} symbol with an automatically-generated name. The
- optional @racket[base] argument is a prefix symbol or string.}
+@defproc[(gensym [base (or/c string? symbol?) "g"]) symbol?]{返回一个
+ 具有自动生成名称的新 @tech{uninterned} symbol。可选的 @racket[base] 参数
+ 是一个前缀 symbol 或 string。
 
-@mz-examples[(gensym "apple")]
+@mz-examples[(gensym "apple")]}
 
 
 @defproc[(symbol<? [a-sym symbol?] [b-sym symbol?] ...) boolean?]{
 
-Returns @racket[#t] if the arguments are sorted, where the comparison
-for each pair of symbols is the same as using
-@racket[symbol->string] with @racket[string->bytes/utf-8] and
-@racket[bytes<?].
+如果参数按顺序排序则返回 @racket[#t]，其中每对 symbols 的比较
+使用 @racket[symbol->string] 与 @racket[string->bytes/utf-8]
+和 @racket[bytes<?] 进行。
 
 @history/arity[]}
 
@@ -126,8 +118,8 @@ for each pair of symbols is the same as using
 
 @defproc[(symbol->immutable-string [sym symbol?]) (and/c string? immutable?)]{
 
-Like @racket[symbol->string], but the result is an immutable string,
-not necessarily freshly allocated.
+类似于 @racket[symbol->string]，但结果是一个 immutable string，
+不一定是新分配的。
 
 @examples[#:eval symbol-eval
           (symbol->immutable-string 'Apple)

@@ -3,125 +3,105 @@
           (for-label ffi/unsafe/os-thread
                      ffi/unsafe/os-async-channel))
 
-@title{Operating System Threads}
+@title{操作系统线程}
 
-@defmodule[ffi/unsafe/os-thread]{The
-@racketmodname[ffi/unsafe/os-thread] library provides functions for
-running constrained Racket code in a separate thread at the
-operating-system level. Except for @racket[os-thread-enabled?], the
-functions of @racketmodname[ffi/unsafe/os-thread] are currently
-supported only when @racket[(system-type 'vm)] returns
-@racket['chez-scheme], and even then only in certain build modes. The
-functions raise @racket[exn:fail:unsupported] when not supported.}
+@defmodule[ffi/unsafe/os-thread]{@racketmodname[ffi/unsafe/os-thread] 库
+提供了用于在操作系统级单独线程中运行受限 Racket 代码的函数。除
+@racket[os-thread-enabled?] 之外，@racketmodname[ffi/unsafe/os-thread]
+的函数仅在满足以下条件时才受支持：当 @racket[(system-type 'vm)] 返回
+@racket['chez-scheme]，甚至仅在特定的构建模式下。当不受支持时，
+这些函数会引发 @racket[exn:fail:unsupported]。}
 
 @history[#:added "6.90.0.9"]
 
 
 @defproc[(os-thread-enabled?) boolean?]{
 
-Returns @racket[#t] if the other functions of
-@racketmodname[ffi/unsafe/os-thread] work without raising
-@racket[exn:fail:unsupported], @racket[#f] otherwise.}
+如果 @racketmodname[ffi/unsafe/os-thread] 中的其他函数在不引发
+@racket[exn:fail:unsupported] 的情况下工作，则返回 @racket[#t]，
+否则返回 @racket[#f]。}
 
 
 @defproc[(call-in-os-thread [thunk (-> any)]) void?]{
 
-Runs @racket[thunk] in a separate operating-system thread, which runs
-concurrently to all Racket threads.
+在单独的操作系统的线程中运行 @racket[thunk]，该线程与所有 Racket 线程
+并发运行。
 
-The @racket[thunk] is run in @tech{atomic mode}, and it must not
-inspect its continuation or use any Racket thread functions (such as
-@racket[thread] or @racket[current-thread]), any Racket
-synchronization functions (such as @racket[semaphore-post] or
-@racket[sync]), or any parameters (such as
-@racket[current-output-port]). Variables may be safely mutated with
-@racket[set!], and vectors, mutable pairs, boxes, mutable structure
-fields, and @racket[eq?]- and @racket[eqv?]-based hash tables can be
-mutated, but the visibility of mutations to other threads is
-unspecified except as synchronized through @racket[os-semaphore-wait]
-and @racket[os-semaphore-post].}
+@racket[thunk] 在 @tech{atomic mode} 中运行，并且不得检查其
+continuation 或使用任何 Racket 线程函数（如 @racket[thread] 或
+@racket[current-thread]）、任何 Racket 同步函数（如 @racket[semaphore-post] 或
+@racket[sync]）或任何 parameters（如 @racket[current-output-port]）。
+变量可以安全地通过 @racket[set!] 修改，并且 vectors、mutable pairs、boxes、
+mutable structure fields 和基于 @racket[eq?]- 和 @racket[eqv?]-based hash tables
+可以被修改，但修改对其他线程的可见性是未指定的，除非通过
+@racket[os-semaphore-wait] 和 @racket[os-semaphore-post] 进行同步。}
 
 
 @defproc[(make-os-semaphore) any]{
 
-Creates a semaphore that can be used with @racket[os-semaphore-wait]
-and @racket[os-semaphore-post] to synchronize an operating-system
-thread with Racket threads and other operating-system threads.}
+创建一个可以与 @racket[os-semaphore-wait] 和 @racket[os-semaphore-post]
+一起使用以同步操作系统线程与 Racket 线程以及其他操作系统线程的 semaphore。}
 
 
 @defproc[(os-semaphore-post [sema any/c]) void?]{
 
-Analogous to @racket[semaphore-post], but posts to a semaphore created
-by @racket[make-os-semaphore].}
+类似于 @racket[semaphore-post]，但作用于由 @racket[make-os-semaphore]
+创建的 semaphore。}
 
 
 @defproc[(os-semaphore-wait [sema any/c]) void?]{
 
-Analogous to @racket[semaphore-wait], but waits on a semaphore created
-by @racket[make-os-semaphore]. Waiting blocks the current thread; if
-the current thread is a Racket @tech[#:doc reference.scrbl]{coroutine threads},
-then waiting also blocks all other coroutine threads in the same
-@tech[#:doc reference.scrbl]{place}. Waiting from a @tech[#:doc reference.scrbl]{parallel thread},
-does not necessarily block other Racket threads, but it consumes
-a processor resource for the thread's pool, and it may block coroutine
-threads or others if they attempt to synchronize with the blocked
-parallel thread.}
+类似于 @racket[semaphore-wait]，但在由 @racket[make-os-semaphore]
+创建的 semaphore 上等待。等待会阻止当前线程；如果当前线程是一个 Racket 
+@tech[#:doc reference.scrbl]{coroutine threads}，那么等待也会阻止同一
+@tech[#:doc reference.scrbl]{place} 中的所有其他 coroutine 线程。从一个
+@tech[#:doc reference.scrbl]{parallel thread} 等待，不一定会阻止其他 Racket 线程，
+但它会消耗线程池的处理器资源，并且如果 coroutine 线程或其他线程
+试图与阻塞的 parallel thread 同步，则可能会阻塞它们。}
 
 @; ----------------------------------------
 
-@section{Operating System Asynchronous Channels}
+@section{操作系统异步通道}
 
-@defmodule[ffi/unsafe/os-async-channel]{The
-@racketmodname[ffi/unsafe/os-async-channel] library provides an
-asynchronous channels that work with operating-system threads, where
-normal racket channels or place channels are not allowed. These
-channels are typically used in combination with
-@racketmodname[ffi/unsafe/os-thread].}
+@defmodule[ffi/unsafe/os-async-channel]{@racketmodname[ffi/unsafe/os-async-channel]
+库提供了一个可与操作系统线程配合使用的异步通道，而正常的 Racket channels 或
+place channels 是不允许的。这些通道通常与
+@racketmodname[ffi/unsafe/os-thread] 组合使用。}
 
-An asynchronous operating-system channel is a @tech[#:doc
-reference.scrbl]{synchronizable event}, so can it can be used with
-@racket[sync] to receive a value in a Racket thread. Other threads
-must use @racket[os-async-channel-try-get] or
-@racket[os-async-channel-get].
+一个异步的操作系统的通道是一个 @tech[#:doc reference.scrbl]{synchronizable event}，
+因此可以通过 @racket[sync] 在 Racket 线程中使用以接收值。其他线程必须使用
+@racket[os-async-channel-try-get] 或 @racket[os-async-channel-get]。
 
-When a thread is blocked on an otherwise inaccessible asynchronous
-channel that was produced by @racket[make-os-async-channel], the
-thread is @emph{not} available for garbage collection. That's
-different from a thread is blocked on a regular Racket channel or a
-place channel.
+当线程在由 @racket[make-os-async-channel] 产生的不可达的异步通道上阻塞时，
+该线程对于垃圾收集是**不可用**的。这与线程在正常 Racket 通道或 place 通道上
+阻塞时不同。
 
 @history[#:added "8.0.0.4"]
 
 @defproc[(make-os-async-channel) os-async-channel?]{
 
-Creates a new, empty asynchronous channel for use with
-operating-system threads.}
+创建一个新的、空的用于操作系统线程的异步通道。}
 
 
 @defproc[(os-async-channel? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is an asynchronous channel produced
-by @racket[make-os-async-channel], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[make-os-async-channel] 产生的异步通道，
+则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(os-async-channel-put [ch os-async-channel?] [v any/c]) void?]{
 
-Enqueues @racket[v] in the asynchronous channel @racket[ch]. This
-function can be called from a Racket thread or any operating-system
-thread.}
+将 @racket[v] 入队到异步通道 @racket[ch] 中。此函数可以从 Racket 线程
+或任何操作系统线程中调用。}
 
 @defproc[(os-async-channel-try-get [ch os-async-channel?] [default-v any/c #f]) any/c]{
 
-Dequeues a value from the the asynchronous channel @racket[ch] and
-returns it, if a value is available. If no value is immediately
-available in the channel, @racket[default-v] is returned. This
-function can be called from a Racket thread or any operating-system
-thread.}
+从异步通道 @racket[ch] 中出队一个值并返回它，如果可用的话。如果通道中
+没有立即可用的值，则返回 @racket[default-v]。此函数可以从 Racket 线程
+或任何操作系统线程中调用。}
 
 @defproc[(os-async-channel-get [ch os-async-channel?]) any/c]{
 
-Dequeues a value from the the asynchronous channel @racket[ch] and
-returns it, blocking until a value is available. This function can be
-called from any non-Racket operating-system thread. This function
-should @emph{not} be called from a Racket thread, since it blocks in a
-way that will block all Racket threads within a place; in a Racket
-thread, use @racket[sync], instead. }
+从异步通道 @racket[ch] 中出队一个值并返回它，阻塞直到值可用。此函数
+可以从任何非 Racket 操作的系统的线程中调用。此函数**不应**从 Racket 线程中调用，
+因为它会以一种阻止一个 place 中所有 Racket 线程的方式进行阻塞；
+在 Racket 线程中应该使用 @racket[sync]。}

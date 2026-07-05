@@ -1,27 +1,24 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "begin"]{Sequencing}
+@title[#:tag "begin"]{序列化}
 
-Racket programmers prefer to write programs with as few side-effects
-as possible, since purely functional code is more easily tested and
-composed into larger programs. Interaction with the external
-environment, however, requires sequencing, such as when writing to a
-display, opening a graphical window, or manipulating a file on disk.
+Racket 程序员倾向于编写尽可能少副作用的程序，因为纯 functional 代码
+更易于测试和组合成更大的程序。然而，与外部环境的交互需要序列化，
+例如在显示器上显示内容、打开图形窗口或在磁盘上操作文件时。
 
 @;------------------------------------------------------------------------
-@section{Effects Before: @racket[begin]}
+@section{效果之前：@racket[begin]}
 
 @refalso["begin"]{@racket[begin]}
 
-A @racket[begin] expression sequences expressions:
+一个 @racket[begin] 表达式序列化表达式：
 
 @specform[(begin expr ...+)]{}
 
-The @racket[_expr]s are evaluated in order, and the result of all but
-the last @racket[_expr] is ignored. The result from the last
-@racket[_expr] is the result of the @racket[begin] form, and it is in
-tail position with respect to the @racket[begin] form.
+@racket[_expr] 按顺序求值，除最后一个 @racket[_expr] 外其余所有 @racket[_expr] 
+的结果均被忽略。最后一个 @racket[_expr] 的结果即为 @racket[begin] 形式的结果，
+并且相对于 @racket[begin] 形式，它处于 tail position。
 
 @defexamples[
 (define (print-triangle height)
@@ -34,9 +31,8 @@ tail position with respect to the @racket[begin] form.
 (print-triangle 4)
 ]
 
-Many forms, such as @racket[lambda] or @racket[cond] support a
-sequence of expressions even without a @racket[begin]. Such positions are
-sometimes said to have an @deftech{implicit begin}.
+诸如 @racket[lambda] 或 @racket[cond] 等许多形式，即使没有显式使用 @racket[begin]，
+也支持表达式序列。这些位置有时被称为 @deftech{implicit begin}。
 
 @defexamples[
 (define (print-triangle height)
@@ -48,10 +44,9 @@ sometimes said to have an @deftech{implicit begin}.
 (print-triangle 4)
 ]
 
-The @racket[begin] form is special at the top level, at module level,
-or as a @racket[body] after only internal definitions. In those
-positions, instead of forming an expression, the content of
-@racket[begin] is spliced into the surrounding context.
+@racket[begin] 形式在顶层、module level 或作为仅跟随 internal 
+definitions 的 @racket[body] 中是特殊的。在这些位置上，
+@racket[begin] 的内容会被嵌入周围的上下文中，而不是形成一个表达式。
 
 @defexamples[
 (let ([curly 0])
@@ -61,24 +56,20 @@ positions, instead of forming an expression, the content of
   (list larry curly moe))
 ]
 
-This splicing behavior is mainly useful for macros, as we discuss
-later in @secref["macros"].
+这种嵌入行为主要用于宏，我们将在 @secref["macros"] 中稍后讨论。
 
 @;------------------------------------------------------------------------
-@section{Effects After: @racket[begin0]}
+@section{效果之后：@racket[begin0]}
 
 @refalso["begin"]{@racket[begin0]}
 
-A @racket[begin0] expression has the same syntax as a @racket[begin]
-expression:
+@racket[begin0] 表达式的语法与 @racket[begin] 相同：
 
 @specform[(begin0 expr ...+)]{}
 
-The difference is that @racket[begin0] returns the result of the first
-@racket[expr], instead of the result of the last @racket[expr]. The
-@racket[begin0] form is useful for implementing side-effects that
-happen after a computation, especially in the case where the
-computation produces an unknown number of results.
+不同之处在于 @racket[begin0] 返回第一个 @racket[_expr] 的结果，
+而不是最后一个 @racket[_expr] 的结果。@racket[begin0] 形式适用于
+在计算产生未知数量结果时实现 side-effects。
 
 @defexamples[
 (define (log-times thunk)
@@ -91,28 +82,24 @@ computation produces an unknown number of results.
 ]
 
 @;------------------------------------------------------------------------
-@section[#:tag "when+unless"]{Effects If...: @racket[when] and @racket[unless]}
+@section[#:tag "when+unless"]{效果如果……：@racket[when] 和 @racket[unless]}
 
-@refalso["when+unless"]{@racket[when] and @racket[unless]}
+@refalso["when+unless"]{@racket[when] 和 @racket[unless]}
 
-The @racket[when] form combines an @racket[if]-style conditional with
-sequencing for the ``then'' clause and no ``else'' clause:
+@racket[when] 形式将 @racket[if] 风格的条件与"then"序列（没有"else"）组合在一起：
 
 @specform[(when test-expr then-body ...+)]
 
-If @racket[_test-expr] produces a true value, then all of the
-@racket[_then-body]s are evaluated. The result of the last
-@racket[_then-body] is the result of the @racket[when] form.
-Otherwise, no @racket[_then-body]s are evaluated and the
-result is @|void-const|.
+如果 @racket[_test-expr] 产生真值，则所有 @racket[_then-body] 都会被求值。
+最后一个 @racket[_then-body] 的结果就是 @racket[when] 形式的结果。
+否则，不 @racket[_then-body] 被求值，结果为 @|void-const|。
 
-The @racket[unless] form is similar:
+@racket[unless] 形式类似：
 
 @specform[(unless test-expr then-body ...+)]
 
-The difference is that the @racket[_test-expr] result is inverted: the
-@racket[_then-body]s are evaluated only if the @racket[_test-expr]
-result is @racket[#f].
+不同之处在于 @racket[_test-expr] 的结果被反转：只有当 @racket[_test-expr]
+结果为 @racket[#f] 时，@racket[_then-body] 才被求值。
 
 @defexamples[
 (define (enumerate lst)

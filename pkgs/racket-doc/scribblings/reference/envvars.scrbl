@@ -1,45 +1,41 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "envvars"]{Environment Variables}
+@title[#:tag "envvars"]{环境变量}
 
-An @deftech{environment variable set} encapsulates a partial mapping
-from byte strings to byte strings. A Racket process's initial
-@tech{environment variable set} is connected to the operating system's
-environment variables: accesses or changes to the set read or change
-operating-system environment variables for the Racket process.
+一个 @deftech{environment variable set} 封装了一个从 byte strings 到 byte strings
+的部分映射。一个 Racket 进程的 initial @tech{environment variable set} 连接到
+操作系统的环境变量：对该 set 的访问或修改会读取或改变 Racket 进程的操作系统
+环境变量。
 
-Since Windows environment variables are case-insensitive,
-@tech{environment variable set}'s key byte strings on Windows are
-case-folded. More precisely, key byte strings are coerced to a UTF-8
-encoding of characters that are converted to lowercase via
-@racket[string-locale-downcase].
+由于 Windows 环境变量不区分大小写，Windows 上的 @tech{environment variable set}
+的 key byte strings 会被 case-folded。更精确地说，key byte strings 会被强制转换为
+一个 UTF-8 encoding 的字符序列，该序列通过 @racket[string-locale-downcase] 转换
+为小写。
 
-The current @tech{environment variable set}, which is determined by
-the @racket[current-environment-variables] parameter, is propagated to
-a @tech{subprocess} when the @tech{subprocess} is created.
+当前的 @tech{environment variable set}（由 @racket[current-environment-variables]
+parameter 确定）在创建 @tech{subprocess} 时会被传播给它。
 
 
 @defproc[(environment-variables? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is an @tech{environment variable
-set}, @racket[#f] otherwise.}
+如果 @racket[v] 是一个 @tech{environment variable set}，则返回 @racket[#t]，
+否则返回 @racket[#f]。}
 
 
 @defparam[current-environment-variables env environment-variables?]{
 
-A @tech{parameter} that determines the @tech{environment variable set}
-that is propagated to a @tech{subprocess} and that is used as the
-default set for @racket[getenv] and @racket[putenv].}
+一个 @tech{parameter}，它确定传播到 @tech{subprocess} 的
+@tech{environment variable set}，并且作为 @racket[getenv] 和 @racket[putenv]
+的默认 set 使用。}
 
 
 @defproc[(bytes-environment-variable-name? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a byte string and if it is valid
-for an environment variable name. An environment variable name must
-contain no bytes with the value @racket[0] or @racket[61], where
-@racket[61] is @racket[(char->integer #\=)]. On Windows, an
-environment variable name also must have a non-zero length.}
+如果 @racket[v] 是一个 byte string 并且它是有效的环境变量名，则返回 @racket[#t]。
+环境变量名不得包含值为 @racket[0] 或 @racket[61]（其中 @racket[61] 是
+@racket[(char->integer #\=)]）的 bytes。在 Windows 上，环境变量名的长度
+也必须为非零。}
 
 
 @defproc[(make-environment-variables [name bytes-environment-variable-name?]
@@ -47,20 +43,19 @@ environment variable name also must have a non-zero length.}
                                      ... ...)
          environment-variables?]{
 
-Creates a fresh @tech{environment variable set} that is initialized
-with the given @racket[name] to @racket[val] mappings.}
+创建一个新的 @tech{environment variable set}，用给定的 @racket[name] 到
+@racket[val] 映射进行初始化。}
 
 
 @defproc[(environment-variables-ref [env environment-variables?]
                                     [name bytes-environment-variable-name?])
          (or/c #f (and/c bytes-no-nuls? immutable?))]{
 
-Returns the mapping for @racket[name] in @racket[env], returning
-@racket[#f] if @racket[name] has no mapping.
+返回 @racket[env] 中 @racket[name] 的映射，如果 @racket[name] 没有映射则
+返回 @racket[#f]。
 
-Normally, @racket[name] should be a byte-string encoding of a string
-using the default encoding of the current @tech{locale}. On Windows,
-@racket[name] is coerced to a UTF-8 encoding and case-normalized.}
+通常，@racket[name] 应该是使用当前 @tech{locale} 的默认编码的 byte-string。
+在 Windows 上，@racket[name] 会被强制转换为 UTF-8 encoding 并进行大小写标准化。}
 
 
 @defproc[(environment-variables-set! [env environment-variables?]
@@ -71,40 +66,33 @@ using the default encoding of the current @tech{locale}. On Windows,
                                              (raise (make-exn:fail ....)))])
          any]{
 
-Changes the mapping for @racket[name] in @racket[env] to
-@racket[maybe-bstr].  If @racket[maybe-bstr] is @racket[#f] and
-@racket[env] is the initial @tech{environment variable set} of the
-Racket process, then the operating system environment-variable mapping
-for @racket[name] is removed.
+将 @racket[env] 中 @racket[name] 的映射更改为 @racket[maybe-bstr]。
+如果 @racket[maybe-bstr] 是 @racket[#f] 并且 @racket[env] 是 Racket 进程的
+initial @tech{environment variable set}，则操作系统环境变量映射中对应
+@racket[name] 的映射将被移除。
 
-Normally, @racket[name] and @racket[maybe-bstr] should be a
-byte-string encoding of a string using the default encoding of the
-current @tech{locale}. On Windows, @racket[name] is
-coerced to a UTF-8 encoding and case-normalized, and
-@racket[maybe-bstr] is coerced to a UTF-8 encoding if @racket[env] is
-the initial @tech{environment variable set} of the Racket process.
+通常，@racket[name] 和 @racket[maybe-bstr] 应该是使用当前 @tech{locale} 的
+默认编码的 byte-string。在 Windows 上，@racket[name] 会被强制转换为 UTF-8 
+encoding 并进行大小写标准化，@racket[maybe-bstr] 会被强制转换为 UTF-8 
+encoding（当 @racket[env] 是 Racket 进程的 initial @tech{environment variable
+set} 时）。
 
-On success, the result of @racket[environment-variables-set!] is
-@|void-const|. If @racket[env] is the initial @tech{environment
-variable set} of the Racket process, then attempting to adjust the
-operating system environment-variable mapping might fail for some reason,
-in which case @racket[fail] is called in tail position with respect to the
-@racket[environment-variables-set!]. The default @racket[fail] raises
-an exception.}
+成功时，@racket[environment-variables-set!] 的结果是 @|void-const|。
+如果 @racket[env] 是 Racket 进程的 initial @tech{environment variable set}，
+则调整操作系统环境变量映射可能会因某些原因而失败，此时 @racket[fail] 会在
+tail position 中被调用。默认的 @racket[fail] 会引发异常。}
 
 
 @defproc[(environment-variables-names [env environment-variables?])
          (listof (and/c bytes-environment-variable-name? immutable?))]{
 
-Returns a list of byte strings that corresponds to names mapped by
-@racket[env].}
+返回一个 byte strings 列表，对应于 @racket[env] 映射的 names。}
 
 
 @defproc[(environment-variables-copy [env environment-variables?])
          environment-variables?]{
 
-Returns an @tech{environment variable set} that is initialized with
-the same mappings as @racket[env].}
+返回一个用 @racket[env] 的相同映射初始化的 @tech{environment variable set}。}
 
 
 @deftogether[(
@@ -114,18 +102,15 @@ the same mappings as @racket[env].}
                  [value string-no-nuls?]) boolean?]
 )]{
 
-Convenience wrappers for @racket[environment-variables-ref] and
-@racket[environment-variables-set!] that convert between strings and
-byte strings using the current @tech{locale}'s default encoding (using
-@racket[#\?] as the replacement character for encoding errors) and
-always using the current @tech{environment variable set} from
-@racket[current-environment-variables]. The @racket[putenv] function
-returns @racket[#t] for success and @racket[#f] for failure.}
+@racket[environment-variables-ref] 和 @racket[environment-variables-set!] 的
+便利包装器，它们使用当前 @tech{locale} 的默认编码（在编码错误时使用 @racket[#\?]
+作为替换字符）在 strings 和 byte strings 之间进行转换，并且总是使用
+@racket[current-environment-variables] 提供的当前 @tech{environment variable set}。
+@racket[putenv] 函数成功时返回 @racket[#t]，失败时返回 @racket[#f]。}
 
 
 @defproc[(string-environment-variable-name? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a string and if its encoding
-using the current @tech{locale}'s encoding is valid for an environment
-variable name according to @racket[bytes-environment-variable-name?].}
-
+如果 @racket[v] 是一个 string 并且它使用当前 @tech{locale} 的编码是有效的
+环境变量名（根据 @racket[bytes-environment-variable-name?] 判定），则返回
+@racket[#t]，否则返回 @racket[#f]。}

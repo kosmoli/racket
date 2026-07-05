@@ -1,137 +1,119 @@
 #lang scribble/doc 
 @(require "mz.rkt" (for-label racket/future future-visualizer/trace)) 
 
-@title[#:tag "future-logging"]{Future Performance Logging}
+@title[#:tag "future-logging"]{Future 性能日志}
 
-Racket traces use logging (see @secref["logging"]) extensively to
-report information about how futures are evaluated.  Logging output is
-useful for debugging the performance of programs that use futures.
+Racket traces 使用 logging（参见 @secref["logging"]）广泛地报告关于 futures 
+如何被求值的信息。Logging 输出对调试使用 futures 的程序的性能很有用。
 
-Though textual log output can be viewed directly (or retrieved in 
-code via @racket[trace-futures]), it is much  
-easier to use the graphical profiler tool provided by 
-@racketmodname[future-visualizer #:indirect].
+尽管文本日志输出可以直接查看（或通过代码中 @racket[trace-futures] 检索），
+但使用 @racketmodname[future-visualizer #:indirect] 提供的图形化
+profiler 工具更容易。
 
-Future events are logged with the topic @racket['future].
-In addition to its string message, each event logged for a future has
-a data value that is an instance of a @racket[future-event]
-@tech{prefab} structure:
+Future events 的日志主题是 @racket['future]。除了 string message 之外，
+每个为 future 记录的事件都有一个数据值，该数据值是一个 @racket[future-event]
+@tech{prefab} 结构体的实例：
 
 @racketblock[
 (struct future-event (future-id proc-id action time prim-name user-data)
   #:prefab)
 ]
 
-The @racket[future-id] field is an exact integer that identifies a
-future, or it is @racket[#f] when @racket[action] is
-@racket['missing]. The @racket[future-id] field is particularly useful
-for correlating logged events.
+@racket[future-id] 字段是一个用于标识 future 的精确整数，
+或在 @racket[action] 是 @racket['missing] 时为 @racket[#f]。
+@racket[future-id] 字段对关联记录的事件特别有用。
 
-The @racket[proc-id] fields is an exact, non-negative integer that
-identifies a parallel process. Process 0 is the main Racket process,
-where all expressions other than future thunks evaluate.
+@racket[proc-id] 字段是一个用于标识 parallel process 的精确非负整数。
+进程 0 是主 Racket 进程，除了 future thunks 之外的所有表达式都在
+该进程中求值。
 
-The @racket[time] field is an inexact number that represents time in
-the same way as @racket[current-inexact-milliseconds].
+@racket[time] 字段是一个表示时间的 inexact 数，表示方式与
+@racket[current-inexact-milliseconds] 相同。
 
-The @racket[action] field is a symbol:
+@racket[action] 字段是一个 symbol：
 
 @itemlist[
 
- @item{@racket['create]: a future was created.}
+ @item{@racket['create]：创建了一个 future。}
 
- @item{@racket['complete]: a future's thunk evaluated successfully, so
-       that @racket[touch] will produce a value for the future
-       immediately.}
+ @item{@racket['complete]：future 的 thunk 成功完成，使得
+       @racket[touch] 会立即为该 future 生成一个值。}
 
- @item{@racket['start-work] and @racket['end-work]: a particular
-       process started and ended working on a particular future.}
+ @item{@racket['start-work] 和 @racket['end-work]：特定进程开始和停止处理
+       特定 future。}
 
- @item{@racket['start-0-work]: like @racket['start-work], but for a
-       future thunk that for some structural reason could not be
-       started in a process other than 0 (e.g., the thunk requires too
-       much local storage to start).}
+ @item{@racket['start-0-work]：类似于 @racket['start-work]，但用于因某种
+       结构原因而无法在进程 0 以外的进程中开始的 future thunk（例如，thunk
+       需要大量本地存储才能开始）。}
 
- @item{@racket['start-overflow-work]: like @racket['start-work], where
-       the future thunk's work was previously stopped due to an
-       internal stack overflow.}
+ @item{@racket['start-overflow-work]：类似于 @racket['start-work]，其中
+       future thunk 的工作之前由于内部 stack overflow 而停止。}
 
- @item{@racket['sync]: blocking (processes other than 0) or initiation
-       of handing (process 0) for an ``unsafe'' operation in a future
-       thunk's evaluation; the operation must run in process 0.}
+ @item{@racket['sync]：阻塞（进程 0 除外）或发起交付（进程 0），用于
+       future thunk 求值中的"不安全"操作；该操作必须在进程 0 中运行。}
 
- @item{@racket['block]: like @racket['sync], but for a part of
-       evaluation that must be delayed until the future is
-       @racket[touch]ed, because the evaluation may depend on the
-       current continuation.}
+ @item{@racket['block]：类似于 @racket['sync]，但用于必须延迟到 future
+       被 @racket[touch] 时才能进行的求值部分，因为求值可能依赖于当前
+       continuation。}
 
- @item{@racket['touch] (never in process 0): like @racket['sync] or
-       @racket['block], but for a @racket[touch] operation within a
-       future thunk.}
+ @item{@racket['touch]（从不在进程 0 中）：类似于 @racket['sync] 或
+       @racket['block]，但用于 future thunk 内的 @racket[touch] 操作。}
 
- @item{@racket['overflow] (never in process 0): like @racket['sync] or
-       @racket['block], but for the case that a process encountered an
-       internal stack overflow while evaluating a future thunk.}
+ @item{@racket['overflow]（从不在进程 0 中）：类似于 @racket['sync] 或
+       @racket['block]，但用于进程在求值 future thunk 时遇到内部栈溢出的情况。}
 
- @item{@racket['result] or @racket['abort]: waiting or handling for
-       @racket['sync], @racket['block], or @racket['touch] ended with
-       a value or an error, respectively.}
+ @item{@racket['result] 或 @racket['abort]：等待或处理 @racket['sync]、
+       @racket['block] 或 @racket['touch]，以值或错误分别结束。}
 
- @item{@racket['suspend] (never in process 0): a process blocked by
-       @racket['sync], @racket['block], or @racket['touch] abandoned
-       evaluation of a future; some other process may pick up the
-       future later.}
+ @item{@racket['suspend]（从不在进程 0 中）：@racket['sync]、@racket['block]
+       或 @racket['touch] 阻塞的进程放弃对 future 的求值；某个其他进程可能
+       稍后会接手该 future。}
 
- @item{@racket['touch-pause] and @racket['touch-resume] (in process 0,
-       only): waiting in @racket[touch] for a future whose thunk is
-       being evaluated in another process.}
+ @item{@racket['touch-pause] 和 @racket['touch-resume]（仅在进程 0 中）：
+       在 @racket[touch] 中等待一个 thunk 在另一个进程中被求值的 future。}
 
- @item{@racket['missing]: one or more events for the process were lost
-       due to internal buffer limits before they could be reported,
-       and the @racket[time-id] field reports an upper limit on the time
-       of the missing events; this kind of event is rare.}
+ @item{@racket['missing]：一个或多个进程的事件在可以报告之前由于内部 buffer
+       限制而丢失，而 @racket[time-id] 字段报告丢失事件的时间的上限；这种
+       类型的事件很少见。}
 
 ]
 
-Assuming no @racket['missing] events, then @racket['start-work],
-@racket['start-0-work], @racket['start-overflow-work] is always paired with @racket['end-work];
-@racket['sync], @racket['block], and @racket['touch] are always paired
-with @racket['result], @racket['abort], or @racket['suspend]; and
-@racket['touch-pause] is always paired with @racket['touch-resume].
+假设没有 @racket['missing] 事件，那么 @racket['start-work]、
+@racket['start-0-work]、@racket['start-overflow-work] 总是与 @racket['end-work] 成对出现；
+@racket['sync]、@racket['block] 和 @racket['touch] 总是与
+@racket['result]、@racket['abort] 或 @racket['suspend] 成对出现；而
+@racket['touch-pause] 总是与 @racket['touch-resume] 成对出现。
 
-In process 0, some event pairs can be nested within other event pairs:
-@racket['sync], @racket['block], or @racket['touch] with
-@racket['result] or @racket['abort]; @racket['touch-pause] with
-@racket['touch-resume]; and @racket['start-work] with @racket['end-work].
+在进程 0 中，某些事件对可以嵌套在其他事件对内：
+@racket['sync]、@racket['block] 或 @racket['touch] 与
+@racket['result] 或 @racket['abort]；@racket['touch-pause] 与
+@racket['touch-resume]；@racket['start-work] 与 @racket['end-work]。
 
-A @racket['block] in process 0 is generated when an unsafe operation 
-is handled.  This type of event will contain a symbol in the 
-@racket[unsafe-op-name] field that is the name of the operation.  In all 
-other cases, this field contains @racket[#f].
+在进程 0 中，当处理不安全操作时会生成 @racket['block]。这种类型的事件在
+@racket[unsafe-op-name] 字段中包含一个 symbol，该 symbol 是操作的名称。
+在所有其他情况下，此字段包含 @racket[#f]。
 
-The @racket[prim-name] field will always be @racket[#f] unless the event occurred 
-on process 0 and its @racket[action] is either @racket['block] or @racket['sync].  If 
-these conditions are met, @racket[prim-name] will contain the name 
-of the Racket primitive which required the future to synchronize with the runtime 
-thread (represented as a symbol).
+@racket[prim-name] 字段始终为 @racket[#f]，除非事件发生在进程 0 上，
+且其 @racket[action] 是 @racket['block] 或 @racket['sync]。如果满足
+这些条件，@racket[prim-name] 将包含一个 symbol，表示要求 future
+与 runtime thread 同步的 Racket primitive 的名称。
 
-The @racket[user-data] field may take on a number of different 
-values depending on both the @racket[action] and @racket[prim-name] fields:
+@racket[user-data] 字段根据 @racket[action] 和 @racket[prim-name] 字段
+的不同，可能采用多种不同的值：
 
 @itemlist[
           
- @item{@racket['touch] on process 0: contains the integer ID of the future 
-        being touched.}
+ @item{@racket['touch] 在进程 0 上：包含正在被 touch 的 future 的
+       整数 ID。}
   
- @item{@racket['sync] and @racket[prim-name] is @racket['|allocate memory|]: 
-        The size (in bytes) of the requested allocation.}
+ @item{@racket['sync] 且 @racket[prim-name] 是 @racket['|allocate memory|]：
+        所请求分配的字节大小。}
  
- @item{@racket['sync] and @racket[prim-name] is @racket['|jit_on_demand|]: 
-        The runtime thread is performing a JIT compilation on behalf of the 
-        future @racket[future-id].  The field contains the name of the function 
-        being JIT compiled (as a symbol).}
+ @item{@racket['sync] 且 @racket[prim-name] 是 @racket['|jit_on_demand|]：
+        runtime thread 正在为 future @racket[future-id] 执行 JIT 编译。
+        该字段包含被 JIT 编译的函数的名称（作为 symbol）。}
  
- @item{@racket['create]: A new future was created.  The field contains the integer ID 
-        of the newly created future.}
-                                     
+ @item{@racket['create]：创建了一个新的 future。该字段包含新创建
+       的 future 的整数 ID。}
+
  ]
