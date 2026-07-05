@@ -13,30 +13,22 @@
 
 @title[#:tag "decompile"]{@exec{raco decompile}: Decompiling Bytecode}
 
-The @exec{raco decompile} command takes the path of a bytecode file (which usually
- has the file extension @filepath{.zo}) or a source file with an
- associated bytecode file (usually created with @exec{raco make}) and
- converts the bytecode file's content back to an approximation of Racket code.
- When the ``bytecode'' file contains machine code, as for the @tech[#:doc guide-doc]{CS}
- variant of Racket, then it cannot be converted back to an approximation of
- Racket, but installing the @filepath{disassemble} package may enable disassembly
- of the machine code. Decompilation is mostly useful for checking the
- compiler's transformation and optimization of the source program.
+@exec{raco decompile} 命令接收字节码文件路径（通常扩展名为 @filepath{.zo}）
+或带有关联字节码文件的源文件（通常使用 @exec{raco make} 创建），
+并将字节码内容转换回近似的 Racket 代码。
+如果 ``字节码'' 文件包含机器码（如 Racket 的 @tech[#:doc guide-doc]{CS} 变体），
+则无法转换回近似 Racket，但安装 @filepath{disassemble} 包可以启用机器码反汇编。
+反编译主要用于检查编译器对源程序的转换和优化。
 
-The @exec{raco decompile} command accepts the following command-line flags:
+@exec{raco decompile} 命令接受以下命令行标志：
 
 @itemlist[
-  @item{@DFlag{force} --- skip modification-date comparison on the
-        given file's path and an associated @filepath{.zo} file (if any)}
-  @item{@Flag{n} @nonterm{n} or @DFlag{columns} @nonterm{n} --- format
-        output for a display with @nonterm{n} columns}
-  @item{@DFlag{linklet} --- decompile only as far as @tech[#:doc reference-doc]{linklets}, instead
-        of decoding linklets to approximate Racket @racket[module] forms}
-  @item{@DFlag{no-disassemble} --- show machine code as-is in a byte string,
-        instead of attempting to disassemble}
-  @item{@DFlag{no-syntax} --- avoid decompiling syntax-object literals}
-  @item{@DFlag{partial-fasl} --- preserve more of the original structure of
-        the bytecode file, instead of focusing on procedure bodies}
+  @item{@DFlag{force} --- 跳过给定文件路径与关联 @filepath{.zo} 文件（如有）的修改日期比较}
+  @item{@Flag{n} @nonterm{n} 或 @DFlag{columns} @nonterm{n} --- 格式化输出来适配 @nonterm{n} 列宽}
+  @item{@DFlag{linklet} --- 仅反编译到 @tech[#:doc reference-doc]{linklets}，而不是将 linklets 解码为近似的 Racket @racket[module] 形式}
+  @item{@DFlag{no-disassemble} --- 按原样以字节字符串显示机器码，而不是尝试反汇编}
+  @item{@DFlag{no-syntax} --- 避免反编译 syntax-object 字面值}
+  @item{@DFlag{partial-fasl} --- 保留更多字节码文件的原始结构，而不是只关注过程体}
 ]
 
 @history[#:changed "1.8" @elem{Added @DFlag{no-disassemble}.}
@@ -45,131 +37,49 @@ The @exec{raco decompile} command accepts the following command-line flags:
 
 @section{Racket CS Decompilation}
 
-Decompilation of Racket CS bytecode mostly shows the structure of a
-module around machine-code implementations of procedures.
+Racket CS 字节码的反编译主要显示围绕机器码实现过程的模块结构。
 
 @itemize[
 
-@item{A @racketidfont{#%machine-code} form corresponds to machine code
- that is not disassembled, where the machine code is in a byte string.}
+@item{@racketidfont{#%machine-code} 形式对应未反汇编的机器码，其中机器码在字节字符串中。}
 
-@item{A @racketidfont{#%assembly-code} form corresponds to disassembled
- machine code, where the assembly code is shown as a sequence of strings.}
+@item{@racketidfont{#%assembly-code} 形式对应已反汇编的机器码，其中汇编代码显示为字符串序列。}
 
-@item{A @racketidfont{#%interpret} form corresponds to a compiled form
- of a large procedure, where only smaller nested procedures are compiled
- to machine code.}
+@item{@racketidfont{#%interpret} 形式对应大型过程的编译形式，其中只有较小的嵌套过程被编译为机器码。}
 
 ]
 
 @section{Racket BC Decompilation}
 
-Racket @BC bytecode has a structure that is close enough to Racket's
- core language that it can more often be converted to an approximation
- of Racket code. To the degree that it can be converted back,
- many forms in the decompiled code have the same meanings as
- always, such as @racket[module], @racket[define], and @racket[lambda].
- Other forms and transformations are specific to the rendering
- of bytecode, and they reflect a specific execution model:
+Racket @BC 字节码的结构与 Racket 核心语言足够接近，因此通常可以更频繁地转换回近似 Racket 代码。就其能被转换的程度而言，反编译代码中的许多形式具有与通常相同的含义，如 @racket[module]、@racket[define] 和 @racket[lambda]。其他特定于字节码渲染的形式和转换反映了特定的执行模型：
 
 @itemize[
 
-@item{Top-level variables, variables defined within the module, and
- variables imported from other modules are prefixed with @litchar{_},
- which helps expose the difference between uses of local variables
- versus other variables. Variables imported from other modules,
- moreover, have a suffix starting with @litchar["@"] that indicates
- the source module. Finally, imported variables with constantness
- have a midfix: 
- @litchar{:c} to indicate constant shape across all instantiations, 
- @litchar{:f} to indicate a fixed value after initialization, 
- @litchar{:p} to indicate a procedure,
- @litchar{:P} to indicate a procedure that preserves continuation
-  marks on return, 
- @litchar{:t} to indicate a structure type,
- @litchar{:mk} to indicate a structure constructor,
- @litchar{:?} to indicate a structure predicate,
- @litchar{:ref} to indicate a structure accessor, or
- @litchar{:set!} to indicate a structure mutator.
+@item{顶层变量、模块内定义的变量以及从其他模块导入的变量都以 @litchar{_} 为前缀，有助于暴露使用局部变量与使用其他变量之间的区别。此外，从其他模块导入的变量有一个以 @litchar["@"] 开头的后缀，指示源模块。最后，具有常量性的导入变量有一个中缀：@litchar{:c} 表示所有实例化中的常量形状，@litchar{:f} 表示初始化后的固定值，@litchar{:p} 表示一个过程，@litchar{:P} 表示返回时保留 continuation marks 的过程，@litchar{:t} 表示一个结构类型，@litchar{:mk} 表示一个构造函数，@litchar{:?} 表示一个结构谓词，@litchar{:ref} 表示一个结构访问器，或 @litchar{:set!} 表示一个结构修改器。
 
- Non-local variables are always accessed indirectly though an implicit
- @racketidfont{#%globals} or @racketidfont{#%modvars} variable that
- resides on the value stack (which otherwise contains local
- variables). Variable accesses are further wrapped with
- @racketidfont{#%checked} when the compiler cannot prove that the
- variable will be defined before the access.
+非局部变量始终通过隐式的 @racketidfont{#%globals} 或 @racketidfont{#%modvars} 变量间接访问，该变量驻留在值栈上（否则值栈包含局部变量）。当编译器无法证明变量将在访问之前被定义时，变量访问会被 @racketidfont{#%checked} 进一步包装。
 
- Uses of core primitives are shown without a leading @litchar{_}, and
- they are never wrapped with @racketidfont{#%checked}.}
+ Core primitives 的用法显示时没有前导 @litchar{_}，并且永远不会被 @racketidfont{#%checked} 包装。}
 
-@item{Local-variable access may be wrapped with
- @racketidfont{#%sfs-clear}, which indicates that the variable-stack
- location holding the variable will be cleared to prevent the
- variable's value from being retained by the garbage collector.
- Variables whose name starts with @racketidfont{unused} are never
- actually stored on the stack, and so they never have
- @racketidfont{#%sfs-clear} annotations. (The bytecode compiler
- normally eliminates such bindings, but sometimes it cannot, either
- because it cannot prove that the right-hand side produces the right
- number of values, or the discovery that the variable is unused
- happens too late with the compiler.)
+@item{局部变量访问可能被 @racketidfont{#%sfs-clear} 包装，这表示保存该变量的变量栈位置将被清除，以阻止垃圾收集器保留该变量的值。名称 @racketidfont{unused} 开头的变量永远不会真正存储在堆栈上，因此它们永远不会具有 @racketidfont{#%sfs-clear} 注释。（字节码编译器通常会消除此类绑定，但有时无法做到——要么因为它无法证明右侧产生正确数量的值，要么发现该变量为 unused 时已经为时已晚。）
 
- Mutable variables are converted to explicitly boxed values using
- @racketidfont{#%box}, @racketidfont{#%unbox}, and
- @racketidfont{#%set-boxes!} (which works on multiple boxes at once).
- A @racketidfont{set!-rec-values} operation constructs
- mutually-recursive closures and simultaneously updates the
- corresponding variable-stack locations that bind the closures.  A
- @racketidfont{set!}, @racketidfont{set!-values}, or
- @racketidfont{set!-rec-values} form is always used on a local
- variable before it is captured by a closure; that ordering reflects
- how closures capture values in variable-stack locations, as opposed
- to stack locations.}
+ Mutable variables 被转换为显式的装箱值，使用 @racketidfont{#%box}、@racketidfont{#%unbox} 和 @racketidfont{#%set-boxes!}（可同时对多个 box 进行操作）。@racketidfont{set!-rec-values} 操作构造相互递归的闭包，并同时更新绑定这些闭包的对应变量栈位置。@racketidfont{set!}、@racketidfont{set!-values} 或 @racketidfont{set!-rec-values} 形式总是在局部变量被闭包捕获之前使用；该顺序反映了闭包如何捕获变量栈位置中的值，而不是栈位置。}
 
-@item{In a @racket[lambda] form, if the procedure produced by the
- @racket[lambda] has a name (accessible via @racket[object-name])
- and/or source-location information, then it is shown as a quoted
- constant at the start of the procedure's body. Afterward, if the
- @racket[lambda] form captures any bindings from its context, those
- bindings are also shown in a quoted constant. Neither constant
- corresponds to a computation when the closure is called, though the
- list of captured bindings corresponds to a closure allocation when
- the @racket[lambda] form itself is evaluated.
+@item{在 @racket[lambda] 形式中，如果由 @racket[lambda] 产生的过程具有名称（可通过 @racket[object-name] 访问）和/或源位置信息，则它被显示为在过程体开头的引用常量。随后，如果 @racket[lambda] 形式从其上下文中捕获了任何绑定，则这些绑定也显示在引用常量中。当调用闭包时，这两个常量都不对应计算，但捕获的绑定列表对应于评估 @racket[lambda] 形式本身的闭包分配。
 
- A @racket[lambda] form that closes over no bindings is wrapped with
- @racketidfont{#%closed} plus an identifier that is bound to the
- closure. The binding's scope covers the entire decompiled output, and
- it may be referenced directly in other parts of the program; the
- binding corresponds to a constant closure value that is shared, and
- it may even contain cyclic references to itself or other constant
- closures.}
+ 不捕获任何绑定的 @racket[lambda] 形式用 @racketidfont{#%closed} 加上一个绑定到闭包的标识符包装。绑定的作用域覆盖整个反编译输出，并且可以直接在程序的其他部分中引用；该绑定对应于共享的常量闭包值，它甚至可能包含对自身或其他常量闭包的循环引用。}
 
-@item{A form @racket[(#%apply-values _proc _expr)] is equivalent to
- @racket[(call-with-values (lambda () _expr) _proc)], but the run-time
- system avoids allocating a closure for @racket[_expr]. Similarly,
- a @racket[#%call-with-immediate-continuation-mark] call is equivalent to
- a @racket[call-with-immediate-continuation-mark] call, but avoiding
- a closure allocation.}
+@item{形式 @racket[(#%apply-values _proc _expr)] 等价于 @racket[(call-with-values (lambda () _expr) _proc)]，但运行时为 @racket[_expr] 避免闭包分配。类似地，@racket[#%call-with-immediate-continuation-mark] 调用等价于 @racket[call-with-immediate-continuation-mark] 调用，但避免闭包分配。}
 
-@item{A @racket[define-values] form may have @racket[(begin
- '%%inline-variant%% _expr1 _expr2)] for its expression, in which case
- @racket[_expr2] is the normal result, but @racket[_expr1] may be
- inlined for calls to the definition from other modules. Definitions
- of functions without an @racket['%%inline-variant%%] are never
- inlined across modules.}
+@item{@racket[define-values] 形式可能有 @racket[(begin '%%inline-variant%% _expr1 _expr2)] 作为其表达式，在这种情况下，@racket[_expr2] 是正常结果，但 @racket[_expr1] 可用于从其他模块调用时的内联。没有 @racket['%%inline-variant%%] 的函数定义绝不会被跨模块内联。}
 
-@item{Function arguments and local bindings that are known to have a
- particular type have names that embed the known type. For example, an
- argument might have a name that starts @racketidfont{argflonum} or a
- local binding might have a name that starts @racketidfont{flonum} to
- indicate a flonum value.}
+@item{已知具有特定类型的函数参数和局部绑定的名称嵌入了已知类型。例如，参数可能有一个以 @racketidfont{argflonum} 开头的名称，或者局部绑定可能有一个以 @racketidfont{flonum} 开头的名称，以指示一个 flonum 值。}
 
 ]
 
 @; ------------------------------------------------------------
 
 @section{API for Decompiling}
-
 @defmodule[compiler/decompile]
 
 @defproc[(decompile [top (or/c linkl-directory? linkl-bundle? linkl?
@@ -178,17 +88,17 @@ Racket @BC bytecode has a structure that is close enough to Racket's
                     [#:skip-syntax-literals? skip-syntax-literals? any/c #f])
          any/c]{
 
-Consumes the result of parsing bytecode and returns an S-expression
-(as described above) that represents the compiled code.
+如果 @racket[top] 是 @racket[linkl-directory?]，@racket[linkl-bundle?]，
+@racket[linkl?]，@racket[linklet?] 或 @racket[faslable-correlated-linklet?]，
+接收字节码解析结果并返回表示编译代码的 S-表达式。
 
-If @racket[to-linklets?] is true, then the result S-expression shows
-raw @racket[linklet] forms within @racket[top] instead of
-reconstructing a @racket[module] form.
+如果 @racket[to-linklets?] 为真，则结果 S-表达式在 @racket[top] 中显示原始的
+@racket[linklet] 形式，而不是重构 @racket[module] 形式。
 
-If @racket[skip-syntax-literals?] is true, then the result S-expression
-omits the decompilation of syntax-object literals.
+如果 @racket[skip-syntax-literals?] 为真，则结果 S-表达式省略 syntax-object
+字面值的反编译。
 
-@history[#:changed "1.17" @elem{Added the @racket[#:skip-syntax-literals?] argument.}]}
+@history[#:changed "1.17" @elem{Added @racket[#:skip-syntax-literals?] argument.}]}
 
 @; ------------------------------------------------------------
 
@@ -202,12 +112,11 @@ omits the decompilation of syntax-object literals.
 
 @defproc[(zo-marshal-to [top (or/c linkl-directory? linkl-bundle?)] [out output-port?]) void?]{
 
-Consumes a representation of bytecode and writes it to @racket[out].}
+接收字节码表示并将其写入 @racket[out]。}
 
 @defproc[(zo-marshal [top (or/c linkl-directory? linkl-bundle?)]) bytes?]{
 
-Consumes a representation of bytecode and generates a byte string for
-the marshaled bytecode.}
+接收字节码表示并为封送的字节码生成字节字符串。}
 
 @; ------------------------------------------------------------
 
@@ -221,27 +130,17 @@ the marshaled bytecode.}
 
 @nested[#:style 'inset]{
 @elem[#:style (style #f (list (background-color-property "yellow")))]{@bold{Warning:}}
-      The @racketmodname[compiler/faslable-correlated] library exposes internals
-      of the Racket bytecode abstraction. Unlike other Racket
-      libraries, @racketmodname[compiler/faslable-correlated] is subject to
-      incompatible changes across Racket versions.}
+      @racketmodname[compiler/faslable-correlated] 库暴露了 Racket 字节码抽象的内部。与其他 Racket 库不同，@racketmodname[compiler/faslable-correlated] 可能会在不同 Racket 版本间发生不兼容更改。}
 
 @history[#:added "1.3"]
 
 @defstruct[faslable-correlated-linklet ([expr any/c]
-                                        [name symbol?])
+                                        [symbol? name])
            #:prefab]{
 
-A @racket[faslable-correlated-linklet] structure represents a
-@tech[#:doc reference-doc]{linklet} that has been ``compiled'' to
-machine-independent form, which just contains an S-expression
-representing the @racket[linklet] form. The S-expression is enriched
-with source-location information by wrapping some nested S-expressions
-with @racket[faslable-correlated] structures.
+@racket[faslable-correlated-linklet] 结构表示已 ``编译'' 为机器无关形式的 @tech[#:doc reference-doc]{linklet}，其中包含表示 @racket[linklet] 形式的 S-表达式。该 S-表达式通过用 @racket[faslable-correlated] 结构包装一些嵌套的 S-表达式来丰富源位置信息。
 
-Since @racket[faslable-correlated-linklet] is a @tech[#:doc
-reference-doc]{prefab} structure type, the contracts documented above
-for its fields are not enforced.}
+由于 @racket[faslable-correlated-linklet] 是 @tech[#:doc reference-doc]{prefab} 结构类型，上面文档化的字段合同不会被执行。}
 
 @defstruct[faslable-correlated ([e any/c]
                                 [source any/c]
@@ -252,18 +151,10 @@ for its fields are not enforced.}
                                 [props (hash/c symbol? any/c)])
            #:prefab]{
 
-Wraps an S-expression @racket[e] to give it a @tech[#:doc
-reference-doc]{source location}. The S-expression @racket[e] may
-contain nested @racket[faslable-correlated] structures, but nesting is
-expected only within pairs.
+包装一个 S-表达式 @racket[e] 以给它一个 @tech[#:doc reference-doc]{源位置}。S-表达式 @racket[e] 可能包含嵌套的 @racket[faslable-correlated] 结构，但预期嵌套仅在点对内。
 
-Since @racket[faslable-correlated] is a @tech[#:doc
-reference-doc]{prefab} structure type, the contracts documented above
-for its fields are not enforced.}
+由于 @racket[faslable-correlated] 是 @tech[#:doc reference-doc]{prefab} 结构类型，上面文档化的字段合同不会被执行。}
 
 @defproc[(strip-correlated [e any/c]) any/c]{
 
-Recurs through @racket[e] to strip away any
-@racket[faslable-correlated] structures that are reachable through
-pairs. The given @racket[e] must not contain any cycles that are
-reachable through pairs.}
+递归通过 @racket[e] 以剥离可通过点对到达的任何 @racket[faslable-correlated] 结构。给定的 @racket[e] 不能包含可通过点对到达的任何循环。}
