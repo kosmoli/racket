@@ -77,7 +77,7 @@ several changed additional bindings:
 
 当 C struct 包含指针时，建议使用 custom allocator。它应基于非移动内存分配（如 @racket['raw]），可能需要手动释放以避免 garbage collection 后的内存泄漏。
 
-@history[#:changed "1.1" @elem{Added @racket[#:version] and @racket[#:other-versions].}}
+@history[#:changed "1.1" @elem{Added @racket[#:version] and @racket[#:other-versions]}.]}
 
 @examples[
 #:eval serialize-eval
@@ -134,7 +134,6 @@ several changed additional bindings:
                        (lambda () (error "cycles not possible!"))]))
 (code:comment @#,elem{Deserialized content upgraded to new @racket[fish]:})
 (fish-color (aq-b (deserialize aq1/s)))
-(fish-weight (aq-b (deserialize aq1/s)))
-]}
+(fish-weight (aq-b (deserialize aq1/s)))]
 
 @close-eval[serialize-eval]

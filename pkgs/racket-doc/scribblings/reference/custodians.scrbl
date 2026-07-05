@@ -10,112 +10,72 @@
 
 @defproc[(custodian? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{custodian} value,
-@racket[#f] otherwise.}
+当 @racket[v] 是 @tech{custodian} 值时返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(make-custodian [cust (and/c custodian? (not/c custodian-shut-down?))
                                (current-custodian)])
          custodian?]{
 
-Creates a new custodian that is subordinate to @racket[cust]. When
-@racket[cust] is directed (via @racket[custodian-shutdown-all]) to
-shut down all of its managed values, the new subordinate custodian is
-automatically directed to shut down its managed values as well.}
+创建一个隶属于 @racket[cust] 的新 custodian。当 @racket[cust] 被指示（通过
+@racket[custodian-shutdown-all]）关闭所有托管值时，新的隶属 custodian 也被自动指示关闭其托管值。}
 
 
 @defproc[(custodian-shutdown-all [cust custodian?]) void?]{
 
-@margin-note{In @racketmodname[racket/gui/base],
-             @|eventspaces| managed by @racket[cust] are also
-             shut down.}
+@margin-note{在 @racketmodname[racket/gui/base] 中，由 @racket[cust] 管理的 @|eventspaces| 也会被关闭。}
 
-Closes all @tech{file-stream ports}, @tech{TCP ports}, @tech{TCP
-listeners}, and @tech{UDP sockets} that are managed by @racket[cust]
-(and its subordinates), and empties all @tech{custodian box}es
-associated with @racket[cust] (and its subordinates). It also removes
-@racket[cust] (and its subordinates) as managers of all threads; when
-a thread has no managers, it is killed (or suspended; see
-@racket[thread/suspend-to-kill]) If the current thread is to be
-killed, all other shut-down actions take place before killing the
-thread.
+关闭由 @racket[cust] 管理（包括隶属 custodian）的所有 @tech{file-stream port}、@tech{TCP port}、@tech{TCP listener} 和 @tech{UDP socket}，并清空与 @racket[cust]关联的所有 @tech{custodian box}。它还将 @racket[cust] 及其隶属 custodian 作为 thread 的管理者移除；当一个 thread 没有管理者时，它会被 kill（或挂起，见 @racket[thread/suspend-to-kill]）。如果当前 thread 被 kill，所有其他关闭动作在 kill 该 thread 之前执行。
 
-If @racket[cust] is already shut down, then
-@racket[custodian-shutdown-all] has no effect. When a custodian is
-shut down and it has subordinate custodians, the subordinates are not
-only shut down, they no longer count as subordinates.}
+如果 @racket[cust] 已被关闭，@racket[custodian-shutdown-all] 无效。当一个 custodian 被关闭时，如果它有隶属 custodian，隶属 custodian 不仅被关闭，也不再被计为隶属 custodian。}
 
 
 @defproc[(custodian-shut-down? [cust custodian?]) boolean?]{
 
-Returns @racket[#t] if @racket[cust] has been shut down with
-@racket[custodian-shutdown-all] or if it was a subordinate of a
-custodian that is shut down, @racket[#f] otherwise.
+当 @racket[cust] 已通过 @racket[custodian-shutdown-all] 被关闭、或是被关闭 custodian 的隶属 custodian 时，返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.11.0.5"]}
 
 
 @defparam[current-custodian cust custodian?]{
 
-@margin-note{Custodians also manage @|eventspaces|
-             from @racketmodname[racket/gui/base].}
+@margin-note{Custodian 还管理来自 @racketmodname[racket/gui/base] 的 @|eventspaces|。}
 
-A @tech{parameter} that determines a custodian that assumes responsibility
-for newly created threads, @tech{file-stream ports}, TCP ports,
-@tech{TCP listeners}, @tech{UDP sockets}, and @tech{byte converters}.}
+一个 @tech{parameter}，确定承担新创建的 thread、@tech{file-stream port}、TCP port、@tech{TCP listener}、@tech{UDP socket} 和 @tech{byte converter} 责任的 custodian。}
 
 
 @defproc[(custodian-managed-list [cust custodian?] [super custodian?]) list?]{
 
-Returns a list of immediately managed objects (not including
-@tech{custodian box}es) and subordinate custodians for @racket[cust],
-where @racket[cust] is itself subordinate to @racket[super] (directly
-or indirectly). If @racket[cust] is not strictly subordinate to
-@racket[super], the @exnraise[exn:fail:contract].
+返回 @racket[cust] 的直属托管对象列表（不包括 @tech{custodian box}）及其隶属 custodian，其中 @racket[cust] 本身隶属于 @racket[super]（直接或间接）。如果 @racket[cust] 不是 @racket[super] 的严格隶属 custodian，则以 @exnraise[exn:fail:contract] 抛错。
 
-If @racket[cust] has been shut down, the result is @racket['()]. If
-@racket[cust] was a subordinate of a custodian that was shut
-down, then it cannot be a subordinate of @racket[super].}
+如果 @racket[cust] 已被关闭，返回值为 @racket['()]。如果 @racket[cust] 是已关闭 custodian 的隶属，则它不可能是 @racket[super] 的隶属 custodian。}
 
 
 @defproc[(custodian-memory-accounting-available?) boolean?]{
 
-@margin-note{Memory accounting is normally available, but not in
-the @tech{CGC} implementation.}
+@margin-note{Memory accounting 通常可用，但在 @tech{CGC} 实现中不可用。}
 
-Returns @racket[#t] if Racket is compiled with support for
-per-custodian memory accounting, @racket[#f] otherwise.}
+当 Racket 编译时支持基于 custodian 的 memory accounting 时返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(custodian-require-memory [limit-cust custodian?]
                                    [need-amt exact-nonnegative-integer?]
                                    [stop-cust custodian?]) void?]{
 
-Registers a required-memory check if Racket is compiled with
-support for per-custodian memory accounting, otherwise the
-@exnraise[exn:fail:unsupported].
+注册 memory requirement 检查（仅当 Racket 编译时支持 custodian memory accounting），否则 @exnraise[exn:fail:unsupported]。
 
-If a check is registered, and if Racket later reaches a state after
-garbage collection (see @secref["gc-model"]) where allocating
-@racket[need-amt] bytes charged to @racket[limit-cust] would fail or
-trigger some shutdown, then @racket[stop-cust] is shut down.
+注册检查后，若 Racket 在 garbage collection 后（参见 @secref["gc-model"]）达到一种状态——向 @racket[limit-cust] 分配 @racket[need-amt] 字节会失败或触发某种关闭——则 @racket[stop-cust] 被关闭。
 
-The @racket[stop-cust] must be a subordinate custodian of
-@racket[limit-cust].}
+@racket[stop-cust] 必须是 @racket[limit-cust] 的隶属 custodian。}
 
 
 @defproc[(custodian-limit-memory [limit-cust custodian?]
                                  [limit-amt exact-nonnegative-integer?]
                                  [stop-cust custodian? limit-cust]) void?]{
 
-Registers a limited-memory check if Racket is compiled with
-support for per-custodian memory accounting, otherwise the
-@exnraise[exn:fail:unsupported].
+注册 memory limit 检查（仅当 Racket 编译时支持 custodian memory accounting），否则 @exnraise[exn:fail:unsupported]。
 
-If a check is registered, and if Racket later reaches a state
-after garbage collection (see @secref["gc-model"]) where
-@racket[limit-cust] owns more than @racket[limit-amt] bytes, then
-@racket[stop-cust] is shut down.
+注册检查后，若 Racket 在 garbage collection 后（参见 @secref["gc-model"]）达到一种状态——@racket[limit-cust] 拥有超过 @racket[limit-amt] 字节——则 @racket[stop-cust] 被关闭。
 
 @margin-note{A custodian's limit is checked only after a garbage
              collection, except that it may also be checked during
@@ -125,15 +85,7 @@ after garbage collection (see @secref["gc-model"]) where
              only one of the custodians would have reduced memory use
              for other custodians.}
 
-For reliable shutdown, @racket[limit-amt] for
-@racket[custodian-limit-memory] must be much lower than the total
-amount of memory available (minus the size of memory that is
-potentially used and not charged to @racket[limit-cust]). Moreover, if
-individual allocations that are initially charged to
-@racket[limit-cust] can be arbitrarily large, then @racket[stop-cust]
-must be the same as @racket[limit-cust], so that excessively large
-immediate allocations can be rejected with an
-@racket[exn:fail:out-of-memory] exception.
+对于可靠的关闭，@racket[custodian-limit-memory] 的 @racket[limit-amt] 必须远低于可用内存总量（减去可能已使用但未计入 @racket[limit-cust] 的内存大小）。此外，如果初始分配给 @racket[limit-cust] 的单独分配可以任意大，则 @racket[stop-cust] 必须与@racket[limit-cust] 相同，这样过大的即时分配会被 @racket[exn:fail:out-of-memory] exception 拒绝。
 
 @margin-note{New memory allocation will be accounted to the running
  @seclink["threads"]{thread}'s managing custodian. In other words, a custodian's limit applies
@@ -184,22 +136,19 @@ immediate allocations can be rejected with an
 
 @defproc[(make-custodian-box [cust custodian?] [v any/c]) custodian-box?]{
 
-Returns a @tech{custodian box} that contains @racket[v] as long as
-@racket[cust] has not been shut down. If @racket[cust] is already
-shut down, the custodian box's value is immediately removed.
+返回一个 @tech{custodian box}，只要 @racket[cust] 尚未关闭即包含 @racket[v]。
+如果 @racket[cust] 已经关闭，custodian box 的值会立即被移除。
 
-A @tech{custodian box} is a @tech{synchronizable event} (see @secref["sync"]).
-The @tech{custodian box} becomes ready when its custodian is shut down;
-@resultItself{@tech{custodian box}}.}
+@tech{Custodian box} 是一个 @tech{synchronizable event}（参见 @secref["sync"]）。
+当其 custodian 关闭时，@tech{custodian box} 变为 ready；
+@resultItself{@tech{custodian box}}。}
 
 
 @defproc[(custodian-box? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{custodian box} produced
-by @racket[make-custodian-box], @racket[#f] otherwise.}
+当 @racket[v] 是 @racket[make-custodian-box] 产生的 @tech{custodian box} 时返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(custodian-box-value [cb custodian-box?]) any]{
 
-Returns the value in the given @tech{custodian box}, or @racket[#f] if
-the value has been removed.}
+返回给定 @tech{custodian box} 的值，如果值已被移除则返回 @racket[#f]。}
