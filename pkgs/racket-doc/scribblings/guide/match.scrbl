@@ -6,29 +6,20 @@
   (define match-eval (make-base-eval))
   (interaction-eval #:eval match-eval (require racket/match)))
 
-@title[#:tag "match"]{Pattern Matching}
+@title[#:tag "match"]{Mode Matching}
 
 @hash-lang-note[racket/match #:lang racket/base]
 
-The @racket[match] form supports pattern matching on arbitrary Racket
-values, as opposed to functions like @racket[regexp-match] that
-compare regular expressions to byte and character sequences (see
-@secref["regexp"]).
+@racket[match] form 支持对任意 Racket 值进行 mode matching，而 @racket[regexp-match] 等函数则比较正则表达式与字节和字符序列（参见 @secref["regexp"]）。
 
 @specform[
 (match target-expr
   [pattern expr ...+] ...)
 ]
 
-The @racket[match] form takes the result of @racket[target-expr] and
-tries to match each @racket[_pattern] in order. As soon as it finds a
-match, it evaluates the corresponding @racket[_expr] sequence to
-obtain the result for the @racket[match] form. If @racket[_pattern]
-includes @deftech{pattern variables}, they are treated like wildcards,
-and each variable is bound in the @racket[_expr] to the input
-fragments that it matched.
+@racket[match] form 获取 @racket[target-expr] 的结果，并尝试按顺序匹配每个 @racket[_pattern]。一旦找到匹配，它就求值对应的 @racket[_expr] 序列以获得 @racket[match] form 的结果。如果 @racket[_pattern] 包含 @deftech{mode variable}，它们将被视为通配符，并且每个 variable 都绑定到它所匹配的输入片段。
 
-Most Racket literal expressions can be used as patterns:
+大多数 Racket 字面量表达式都可以用作 mode：
 
 @interaction[
 #:eval match-eval
@@ -45,8 +36,7 @@ Most Racket literal expressions can be used as patterns:
   [#f 'boolean])
 ]
 
-Constructors like @racket[cons], @racket[list], and @racket[vector]
-can be used to create patterns that match pairs, lists, and vectors:
+Constructor（如 @racket[cons]、@racket[list] 和 @racket[vector]）可用于创建匹配 pair、list 和 vector 的 mode：
 
 @interaction[
 #:eval match-eval
@@ -61,8 +51,7 @@ can be used to create patterns that match pairs, lists, and vectors:
   [(vector 1 2) 'vector])
 ]
 
-A constructor bound with @racket[struct] also can be used as a pattern
-constructor:
+用 @racket[struct] 绑定的 constructor 也可以用作 mode constructor：
 
 @interaction[
 #:eval match-eval
@@ -73,9 +62,7 @@ constructor:
  [(hat 23 'bowler) "top"])
 ]
 
-Unquoted, non-constructor identifiers in a pattern are @tech{pattern
-variables} that are bound in the result expressions, except @racket[_],
-which does not bind (and thus is usually used as a catch-all):
+模式中未加引号的、非 constructor 的 identifier 是 @tech{mode variable}，它们在结果表达式中绑定，但 @racket[_] 除外，它不绑定（因此通常用作 catch-all）：
 
 @interaction[
 #:eval match-eval
@@ -86,18 +73,15 @@ which does not bind (and thus is usually used as a catch-all):
   [(list x) (+ x 1)]
   [(list x y) (+ x y)])
 (match (hat 23 'bowler)
-  [(shoe sz col) sz] 
+  [(shoe sz col) sz]
   [(hat sz stl) sz])
 (match (hat 11 'cowboy)
-  [(shoe sz 'black) 'a-good-shoe] 
+  [(shoe sz 'black) 'a-good-shoe]
   [(hat sz 'bowler) 'a-good-hat]
   [_ 'something-else])
 ]
 
-Note that the identifier @racket[else] is @bold{not} a reserved catch-all (like @racket[_]).
-If @racket[else] appears in a pattern then its binding from
-@racketmodname[racket/base] may be shadowed, and this can cause problems with
-@racket[cond] and @racket[case].
+注意，identifier @racket[else] @bold{不是} catch-all 保留字（像 @racket[_] 那样）。如果 @racket[else] 出现在模式中，则它来自 @racketmodname[racket/base] 的绑定可能会被遮蔽，这可能导致 @racket[cond] 和 @racket[case] 出现问题。
 
 @interaction[
 #:eval match-eval
@@ -113,7 +97,7 @@ If @racket[else] appears in a pattern then its binding from
      [else 'also-not-evaluated])])
 ]
 
-To match against a value bound to an identifier, use @racket[==].
+要与绑定到 identifier 的值进行匹配，请使用 @racket[==]。
 
 @interaction[
 #:eval match-eval
@@ -125,16 +109,11 @@ To match against a value bound to an identifier, use @racket[==].
   [_ 'this-branch-is-evaluated])
 (match (list 43)
   [(list val)
-   (code:comment @#,t{without @racket[==], @racket[val] is a pattern variable})
+   (code:comment @#,t{没有 @racket[==]，@racket[val] 是 mode variable})
    (format "match binds val to ~a" val)])
 ]
 
-An ellipsis, written @litchar{...}, acts like a Kleene star within a
-list or vector pattern: the preceding sub-pattern can be used to match
-any number of times for any number of consecutive elements of the list
-or vector. If a sub-pattern followed by an ellipsis includes a pattern
-variable, the variable matches multiple times, and it is bound in the
-result expression to a list of matches:
+省略号（ellipsis），写作 @litchar{...}，在 list 或 vector mode 中充当 Kleene 星号：前面的子模式可用于匹配任意次数以匹配 list 或 vector 中任意数量的连续元素。如果省略号前的子模式包含 mode variable，则 variable 匹配多次，并在结果表达式中绑定到匹配列表：
 
 @interaction[
 #:eval match-eval
@@ -145,13 +124,12 @@ result expression to a list of matches:
   [(list 1 ...) 'ones]
   [_ 'other])
 (match '(1 2 3 4)
-  [(list 1 x ... 4) x])
+  [(list 1 x ...) x])
 (match (list (hat 23 'bowler) (hat 22 'pork-pie))
   [(list (hat sz styl) ...) (apply + sz)])
 ]
 
-Ellipses can be nested to match nested repetitions, and in that case,
-pattern variables can be bound to lists of lists of matches:
+省略号可以嵌套以匹配嵌套重复，在这种情况下，mode variable 可以绑定到匹配列表的列表：
 
 @interaction[
 #:eval match-eval
@@ -160,13 +138,9 @@ pattern variables can be bound to lists of lists of matches:
 ]
 
 
-The @racket[quasiquote] form  (see @secref["qq"] for more about it) can also be used to build patterns.
-While unquoted portions of a normal quasiquoted form mean regular racket evaluation, here unquoted
-portions mean go back to regular pattern matching.
+@racket[quasiquote] form（参见 @secref["qq"] 了解更多信息）也可用于构建 mode。虽然普通 quasiquote form 中未引用的部分表示常规 racket 求值，但在这里，未引用的部分表示返回到常规 mode 匹配。
 
-So, in the example below, the with expression is the pattern and it gets rewritten into the
-application expression, using quasiquote as a pattern in the first instance and quasiquote
-to build an expression in the second.
+因此，在下面的示例中，with expression 是 mode，它被重写为 application expression，在第一个实例中用作模式，在第二个实例中用于构建 expression。
 
 @interaction[
 #:eval match-eval
@@ -175,12 +149,9 @@ to build an expression in the second.
    `{{lambda {,id} ,body} ,rhs}])
 ]
 
-For information on many more pattern forms, see @racketmodname[racket/match].
+有关许多其他 mode form 的信息，请参见 @racketmodname[racket/match]。
 
-Forms like @racket[match-let] and @racket[match-lambda] support
-patterns in positions that otherwise must be identifiers. For example,
-@racket[match-let] generalizes @racket[let] to a @as-index{destructing
-bind}:
+@racket[match-let] 和 @racket[match-lambda] 等 form 支持在原本必须是 identifier 的位置使用 mode。例如，@racket[match-let] 将 @racket[let] 泛化为 @as-index{destructing bind}：
 
 @interaction[
 #:eval match-eval
@@ -188,8 +159,8 @@ bind}:
   (list z y x))
 ]
 
-For information on these additional forms, see @racketmodname[racket/match].
+有关这些附加 form 的信息，请参见 @racketmodname[racket/match]。
 
-@refdetails["match"]{pattern matching}
+@refdetails["match"]{mode matching}
 
 @close-eval[match-eval]

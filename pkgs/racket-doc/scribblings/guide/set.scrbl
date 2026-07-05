@@ -1,18 +1,15 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "set!"]{Assignment: @racket[set!]}
+@title[#:tag "set!"]{赋值：@racket[set!]}
 
 @refalso["set!"]{@racket[set!]}
 
-Assign to a variable using @racket[set!]:
+使用 @racket[set!] 赋值给 variable：
 
 @specform[(set! id expr)]
 
-A @racket[set!] expression evaluates @racket[_expr] and changes
-@racket[_id] (which must be bound in the enclosing environment) to the
-resulting value. The result of the @racket[set!]  expression itself is
-@|void-const|.
+@racket[set!] 表达式对 @racket[_expr] 求值，并将 @racket[_id]（必须绑定在封闭 environment 中）更改为结果值。@racket[set!] 表达式本身的结果是 @|void-const|。
 
 @defexamples[
 (define greeted null)
@@ -41,19 +38,15 @@ greeted
 ]
 
 @;------------------------------------------------------------------------
-@section[#:tag "using-set!"]{Guidelines for Using Assignment}
+@section[#:tag "using-set!"]{赋值使用指南}
 
-Although using @racket[set!] is sometimes appropriate, Racket style
-generally discourages the use of @racket[set!]. The following
-guidelines may help explain when using @racket[set!] is appropriate.
+尽管有时使用 @racket[set!] 是适当的，但 Racket 风格通常不鼓励使用 @racket[set!]。以下准则可能有助于解释何时使用 @racket[set!] 是适当的。
 
 @itemize[
 
- @item{As in any modern language, assigning to a shared identifier is no
-       substitute for passing an argument to a procedure or getting
-       its result.
+ @item{与任何现代语言一样，赋值给共享 identifier 并不是向 procedure 传递参数或获取其结果的替代品。
 
-       @as-examples[@t{@bold{@italic{Really awful}} example:}
+       @as-examples[@t{@bold{@italic{真正糟糕}} 的示例：}
        @defs+int[
        [(define name "unknown")
         (define result "unknown")
@@ -64,7 +57,7 @@ guidelines may help explain when using @racket[set!] is appropriate.
         result
        ]]
 
-      @as-examples[@t{Ok example:}
+      @as-examples[@t{好的示例：}
       @def+int[
         (define (greet name)
           (string-append "Hello, " name))
@@ -72,11 +65,9 @@ guidelines may help explain when using @racket[set!] is appropriate.
         (greet "Anna")
       ]]}
 
-@;-- FIXME: explain more _why_ it's inferior
- @item{A sequence of assignments to a local variable is far inferior
-       to nested bindings.
+ @item{对本地 variable 的一系列赋值远不如嵌套绑定。
 
-       @as-examples[@t{@bold{Bad} example:}
+       @as-examples[@t{@bold{糟糕} 的示例：}
        @interaction[
        (let ([tree 0])
          (set! tree (list tree 1 tree))
@@ -84,7 +75,7 @@ guidelines may help explain when using @racket[set!] is appropriate.
          (set! tree (list tree 3 tree))
          tree)]]
 
-       @as-examples[@t{Ok example:}
+       @as-examples[@t{好的示例：}
        @interaction[
        (let* ([tree 0]
               [tree (list tree 1 tree)]
@@ -92,10 +83,9 @@ guidelines may help explain when using @racket[set!] is appropriate.
               [tree (list tree 3 tree)])
          tree)]]}
 
- @item{Using assignment to accumulate results from an iteration is
-       bad style. Accumulating through a loop argument is better.
+ @item{使用赋值从 iteration 累积结果是不好的 style。通过 loop argument 累积更好。
 
-       @as-examples[@t{Somewhat bad example:}
+       @as-examples[@t{有点糟糕的示例：}
        @def+int[
        (define (sum lst)
          (let ([s 0])
@@ -105,7 +95,7 @@ guidelines may help explain when using @racket[set!] is appropriate.
        (sum '(1 2 3))
        ]]
 
-       @as-examples[@t{Ok example:}
+       @as-examples[@t{好的示例：}
        @def+int[
        (define (sum lst)
          (let loop ([lst lst] [s 0])
@@ -115,14 +105,14 @@ guidelines may help explain when using @racket[set!] is appropriate.
        (sum '(1 2 3))
        ]]
 
-       @as-examples[@t{Better (use an existing function) example:}
+       @as-examples[@t{更好（使用现有函数）的示例：}
        @def+int[
        (define (sum lst)
          (apply + lst))
        (sum '(1 2 3))
        ]]
 
-       @as-examples[@t{Good (a general approach) example:}
+       @as-examples[@t{好（通用方法）的示例：}
        @def+int[
        (define (sum lst)
          (for/fold ([s 0])
@@ -131,11 +121,9 @@ guidelines may help explain when using @racket[set!] is appropriate.
        (sum '(1 2 3))
        ]]  }
 
- @item{For cases where stateful objects are necessary or appropriate,
-       then implementing the object's state with @racket[set!] is
-       fine.
+ @item{对于 stateful 对象是必要或适当的情况，使用 @racket[set!] 来实现对象的状态是好的。
 
-       @as-examples[@t{Ok example:}
+       @as-examples[@t{好的示例：}
        @def+int[
        (define next-number!
          (let ([n 0])
@@ -148,31 +136,20 @@ guidelines may help explain when using @racket[set!] is appropriate.
 
 ]
 
-All else being equal, a program that uses no assignments or mutation
-is always preferable to one that uses assignments or mutation. While
-side effects are to be avoided, however, they should be used if the
-resulting code is significantly more readable or if it implements a
-significantly better algorithm.
+在所有其他条件相同的情况下，不使用赋值或 mutation 的程序总是优于使用赋值或 mutation 的程序。但是，如果结果代码具有显著更好的可读性或者实现了显著更好的算法，则应该使用 side effect。
 
-The use of mutable values, such as vectors and hash tables, raises
-fewer suspicions about the style of a program than using @racket[set!]
-directly. Nevertheless, simply replacing @racket[set!]s in a program
-with @racket[vector-set!]s obviously does not improve the style of
-the program.
+使用可变值（如 vector 和 hash table）比直接使用 @racket[set!] 引起的 style 怀疑更少。不过，简单地将程序中的 @racket[set!] 替换为 @racket[vector-set!] 显然不会改善程序的 style。
 
 @;------------------------------------------------------------------------
-@section{Multiple Values: @racket[set!-values]}
+@section{多值：@racket[set!-values]}
 
 @refalso["set!"]{@racket[set!-values]}
 
-The @racket[set!-values] form assigns to multiple variables at once,
-given an expression that produces an appropriate number of values:
+@racket[set!-values] 形式一次赋值给多个 variable，给定一个产生适当数量值的 expression：
 
 @specform[(set!-values (id ...) expr)]
 
-This form is equivalent to using @racket[let-values] to receive
-multiple results from @racket[_expr], and then assigning the results
-individually to the @racket[_id]s using @racket[set!].
+此形式等同于使用 @racket[let-values] 接收来自 @racket[_expr] 的多个结果，然后使用 @racket[set!] 将结果分别赋值给 @racket[_id]。
 
 @defexamples[
 (define game
@@ -184,7 +161,7 @@ individually to the @racket[_id]s using @racket[set!].
           (set! l (+ l 1)))
       (begin0
         (values w l)
-        (code:comment @#,t{swap sides...})
+        (code:comment @#,t{交换方...})
         (set!-values (w l) (values l w))))))
 (game #t)
 (game #t)

@@ -11,7 +11,7 @@
                                                   ffi/unsafe
                                                   racket/serialize)]
 
-@title[#:tag "serialize-struct"]{Serializable C Struct Types}
+@title[#:tag "serialize-struct"]{可序列化 C 结构体类型}
 
 @defmodule[ffi/serialize-cstruct]
 
@@ -65,63 +65,19 @@ several changed additional bindings:
 
 ]
 
-Instances of the new type fulfill the @racket[serializable?] predicate and can
-be used with @racket[serialize] and @racket[deserialize]. Serialization may
-fail if one of the fields contains an arbitrary pointer, an embedded
- non-serializable C struct, or a pointer to a non-serializable C struct.
-Array-types are supported as long as they don't contain one of these types.
+新的类型实例满足 @racket[serializable?] 谓词，可用于 @racket[serialize] 和 @racket[deserialize]。如果某个字段包含任意指针、内嵌的不可序列化 C 结构体或指向不可序列化 C 结构体的指针，序列化可能失败。只要不包含上述类型，array-type 即受支持。
 
-The default @racket[vers] is @racket[0], and @racket[vers] must be a
-literal, exact, non-negative integer. An @racket[#:other-versions]
-clause provides deserializers for previous versions of the structure
-with the name @racketvarfont{id}, so that previously serialized data can be
-deserialized after a change to the declaration of @racketvarfont{id}. For
-each @racket[other-vers], @racket[deserialize-chain-expr] should be
-the value of a
-@racketidfont{deserialize:cstruct:@racketvarfont{other-id}} binding
-for some other @racket{other-id} declared with
-@racket[define-serializable-cstruct] that has the same shape that the
-previous version of @racketvarfont{id}; the function produced by
-@racket[convert-proc-expr] should convert an instance of
-@racket[_other-id] to an instance of @racketvarfont{id}. The functions
-produced by @racket[unconvert-proc-expr] and
-@racket[cycle-convert-proc-expr] are used if a record is involved in a
-cycle; the function from @racket[unconvert-proc-expr] takes an
-@racketvarfont{id} instance produced by @racket[convert-proc-expr]'s function
-back to a @racket[_other-id], while @racket[cycle-convert-proc-expr]
-returns two values: a shell instance of @racketidfont{id} and function to
-accept a filled @racket[_other-id] whose content should be moved to
-the shell instance of @racketidfont{id}.
+默认 @racket[vers] 为 @racket[0]，@racket[vers] 必须是字面量、精确、非负整数。@racket[#:other-versions] 子句为名为 @racketvarfont{id} 的先前版本结构体提供反序列化器，以便在对 @racketvarfont[id] 的声明进行更改后仍能反序列化先前序列化的数据。对于每个 @racket[other-vers]，@racket[deserialize-chain-expr] 应为一个由 @racket[define-serializable-cstruct] 声明的其他 @racket[other-id] 的 @racketidfont{deserialize:cstruct:@racketvarfont{other-id}} 绑定值，该 @racket[other-id] 具有与 @racketvarfont[id] 前一个版本相同的形状；由 @racket[convert-proc-expr] 产生的函数应将 @racket[_other-id] 实例转换为 @racketvarfont{id} 实例。由 @racket[unconvert-proc-expr] 和 @racket[cycle-convert-proc-expr] 产生的函数在涉及循环时使用；来自 @racket[unconvert-proc-expr] 的函数将 @racket[convert-proc-expr]'s 函数产生的 @racketvarfont{id} 实例转换回 @racket[_other-id]，而 @racket[cycle-convert-proc-expr] 返回两个值：一个 @racketidfont{id} 的壳实例和一个接受填充后的 @racket[_other-id] 并将其内容移动到壳实例中的函数。
 
-The @racket[malloc-mode-expr] arguments control the memory allocation
-for this type during deserialization and
-@racketidfont{make-@racketvarfont{id}/mode}. It can be one of the mode
-arguments to @racket[malloc], or a procedure
-@;
-@racketblock[(-> exact-positive-integer? cpointer?)]
-@;
-that allocates memory of the given size. The default is
-@racket[malloc] with @racket['atomic].
+@racket[malloc-mode-expr] 参数控制此类型在反序列化期间和 @racketidfont{make-@racketvarfont{id}/mode} 期间的内存分配。可以是 @racket[malloc] 的 mode 参数之一，或一个过程 @racket[(-> exact-positive-integer? cpointer?)] 用于分配给定大小的内存。默认值是使用 @racket['atomic] 的 @racket[malloc]。
 
-When @racket[#:serialize-inplace] is specified, the serialized
-representation shares memory with the C struct object. While being more
-efficient, especially for large objects, changes to the object after
-serialization may lead to changes in the serialized representation.
+指定 @racket[#:serialize-inplace] 时，序列化表示形式与 C struct 对象共享内存。虽然效率更高（尤其对于大对象），序列化后对对象的修改可能导致序列化表示形式的改变。
 
-A @racket[#:deserialize-inplace] option reuses the memory of the serialized
-representation, if possible. This option is more efficient for large objects,
-but it may fall back to allocation via @racket[malloc-mode-expr] for cyclic
-structures. As the allocation mode of the serialized representation
-will be @racket['atomic] by default or may be arbitrary if
-@racket[#:serialize-inplace] is specified, inplace deserialisation
-should be used with caution whenever the object contains pointers.
+@racket[#:deserialize-inplace] 选项尽可能重用序列化表示形式的内存。此选项对大对象更高效，但对于循环结构可能回退到通过 @racket[malloc-mode-expr] 进行分配。由于序列化表示形式的 allocation mode 默认为 @racket['atomic]，或者如果指定了 @racket[#:serialize-inplace] 则可能是任意的，因此在对象包含指针时应谨慎使用 inplace 反序列化。
 
-When the C struct contains pointers, it is advisable to use a custom
-allocator. It should be based on a non-moving-memory allocation like
-@racket['raw], potentially with manual freeing to avoid memory leaks
-after garbage collection.
+当 C struct 包含指针时，建议使用 custom allocator。它应基于非移动内存分配（如 @racket['raw]），可能需要手动释放以避免 garbage collection 后的内存泄漏。
 
-@history[#:changed "1.1" @elem{Added @racket[#:version] and @racket[#:other-versions].}]
+@history[#:changed "1.1" @elem{Added @racket[#:version] and @racket[#:other-versions].}}
 
 @examples[
 #:eval serialize-eval
@@ -165,7 +121,7 @@ after garbage collection.
 (code:comment "Deserialize old instance to new cstruct:")
 (fish-color (aq-a (aq-d (aq-d (deserialize aq0/s)))))
 
-(define aq1/s (serialize (make-aq/mode (make-fish 1) (make-fish 2) #f)))
+(define aq1/s (serialize (make-aq/mode (make-fish 1) (make-fish 2) #f))
 (code:comment @#,elem{New version of @racket[fish]:})
 (define-serializable-cstruct _old-fish ([color _int]))
 (define-serializable-cstruct _fish ([weight _float]
@@ -182,4 +138,3 @@ after garbage collection.
 ]}
 
 @close-eval[serialize-eval]
-

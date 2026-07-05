@@ -7,128 +7,63 @@
                      setup/link
                      setup/dirs))
 
-@title[#:tag "link"]{@exec{raco link}: Library Collection Links}
+@title[#:tag "link"]{@exec{raco link}: 库集合链接}
 
-The @exec{raco link} command inspects and modifies a @tech[#:doc
-reference-doc]{collection links file} to display, add, or remove
-mappings from collection names to filesystem directories.
+@exec{raco link} 命令检查和修改 @tech[#:doc reference-doc]{集合链接文件}，用于显示、添加或删除从集合名称到文件系统目录的映射。
 
-Managing links directly is somewhat discouraged. Instead, use the
-package manager (see @other-manual['(lib
-"pkg/scribblings/pkg.scrbl")]), which installs and manages links
-(i.e., it builds on @exec{raco link}) in a way that more gracefully
-leads to sharing collections with others. Nevertheless, @exec{raco
-link} is available for direct use.
+通常不建议直接管理链接。相反，请使用包管理器（参见 @other-manual['(lib "pkg/scribblings/pkg.scrbl")]），它安装和管理链接（即建立在 @exec{raco link} 之上），能够更好地支持与他人共享集合。尽管如此，仍可直接使用 @exec{raco link}。
 
-For example, the command
+例如，以下命令
 
 @commandline{raco link maze}
 
-installs a user-specific and version-specific link for the @racket["maze"] collection,
-mapping it to the @filepath{maze} subdirectory of the current
-directory. Supply multiple directory paths to create multiple links at
-once, especially with a command-shell wildcard:
+为 @racket["maze"] 集合安装一个用户特定且版本特定的链接，将当前目录的 @filepath{maze} 子目录映射到该集合。提供多个目录路径可一次创建多个链接，特别适合使用命令行 shell 通配符：
 
 @commandline{raco link *}
 
-By default, the linked collection name is the same as each directory's
-name, but the collection name can be set separately for a single
-directory with the @DFlag{name} flag.
+默认情况下，链接后的集合名称与每个目录的名称相同，但可通过 @DFlag{name} 标志为单个目录单独设置集合名称。
 
-To remove the link created by the first example above, use
+要删除上面第一个示例创建的链接，可使用
 
 @commandline{raco link --remove maze}
 
-or 
+或
 
 @commandline{raco link -r maze}
 
-Like link-adding mode, removing mode accepts multiple directory paths to
-remove multiple links, and all links that match any directory are
-removed.  If @DFlag{name} is used with @DFlag{remove}, then only
-links matching both the collection name and directory are removed.
+与添加链接模式类似，删除模式也接受多个目录路径以删除多个链接，并且所有与任一目录匹配的链接都会被删除。如果 @DFlag{name} 与 @DFlag{remove} 一起使用，则只会删除同时匹配集合名称和目录的链接。
 
-Full command-line options:
+完整的命令行选项：
 
 @itemlist[
 
- @item{@Flag{l} or @DFlag{list} --- Shows the current link table. If
-       any other command-line arguments are provided that modify the
-       link table, the table is shown after modifications. If no
-       directory arguments are provided, and if none of @Flag{u},
-       @DFlag{user}, @Flag{i}, @DFlag{installation}, @Flag{f}, or
-       @DFlag{file} are specified, then the link table is shown for
-       all user-specific and installation-wide @tech[#:doc
-       reference-doc]{collection links files}.}
+ @item{@Flag{l} 或 @DFlag{list} --- 显示当前链接表。如果提供了其他修改链接表的命令行参数，修改完成后将显示该表。如果未提供目录参数，并且未指定 @Flag{u}、@DFlag{user}、@Flag{i}、@DFlag{installation}、@Flag{f} 或 @DFlag{file}，则显示所有用户范围和安装范围的 @tech[#:doc reference-doc]{集合链接文件}的链接表。}
 
- @item{@Flag{n} @nonterm{name} or @DFlag{name} @nonterm{name} --- Sets
-       the collection name for adding a single link or removing
-       matching links.  By default, the collection name for an added
-       link is derived from the directory name. When the @Flag{r} or
-       @DFlag{remove} flag is also used, only links with a collection
-       name matching @nonterm{name} are removed, and if no directory
-       arguments are provided, all links with a match to
-       @nonterm{name} are removed. This flag is mutually exclusive with
-       @Flag{d} and @DFlag{root}.}
+ @item{@Flag{n} @nonterm{name} 或 @DFlag{name} @nonterm{name} --- 设置添加单个链接或删除匹配链接的集合名称。默认情况下，添加链接的集合名称从目录名派生。当同时使用 @Flag{r} 或 @DFlag{remove} 标志时，只会删除集合名称匹配 @nonterm{name} 的链接；如果未提供目录参数，则删除所有与 @nonterm{name} 匹配的链接。此标志与 @Flag{d} 和 @DFlag{root} 互斥。}
 
- @item{@Flag{d} or @DFlag{root} --- Treats each directory as a
-       collection root that contains collection directories, instead of
-       a directory for a specific collection. When the @Flag{r} or
-       @DFlag{remove} flag is also used, only collection-root links
-       that match a directory are removed. This flag is mutually
-       exclusive with @Flag{n} and @DFlag{name}.}
+ @item{@Flag{d} 或 @DFlag{root} --- 将每个目录视为包含集合目录的集合根目录，而不是用于特定集合的目录。当同时使用 @Flag{r} 或 @DFlag{remove} 标志时，只会删除与目录匹配的集合根链接。此标志与 @Flag{n} 和 @DFlag{name} 互斥。}
 
- @item{@Flag{D} or @DFlag{static-root} --- Like @Flag{d} or
-       @DFlag{root}, but each directory is assumed to have a constant
-       set of subdirectories (to improve the use of collection-search
-       caches) as long as the links file itself does not change.}
+ @item{@Flag{D} 或 @DFlag{static-root} --- 类似于 @Flag{d} 或 @DFlag{root}，但假设每个目录具有一组固定的子目录（以改进集合搜索缓存的使用），只要链接文件自身不发生变化。}
 
- @item{@Flag{x} @nonterm{regexp} or @DFlag{version-regexp}
-       @nonterm{regexp} --- Sets a version regexp that limits the link
-       to use only by Racket versions (as reported by
-       @racket[version]) matching @nonterm{regexp}. This flag
-       is normally used with @Flag{u} or @DFlag{user} with installations
-       that have different versions but the same installation name. When the @Flag{r}
-       or @DFlag{remove} flag is also used, only links with a
-       version regexp matching @nonterm{regexp} are removed.}
+ @item{@Flag{x} @nonterm{regexp} 或 @DFlag{version-regexp} @nonterm{regexp} --- 设置版本正则表达式，将链接限定为仅由与 @nonterm{regexp} 匹配的 Racket 版本（如 @racket[version] 所报告）使用。此标志通常与 @Flag{u} 或 @DFlag{user} 一起用于具有不同版本但相同安装名称的安装。当同时使用 @Flag{r} 或 @DFlag{remove} 标志时，只会删除版本正则表达式匹配 @nonterm{regexp} 的链接。}
 
- @item{@Flag{r} or @DFlag{remove} --- Selects remove mode instead
-       of add mode.}
+ @item{@Flag{r} 或 @DFlag{remove} --- 选择删除模式而非添加模式。}
 
- @item{@Flag{u} or @DFlag{user} --- Limits listing and removal
-       of links to the user-specific @tech[#:doc
-       reference-doc]{collection links file} and not the
-       installation-wide @tech[#:doc reference-doc]{collection links
-       file}. This flag is mutually exclusive with @Flag{i},
-       @DFlag{installation}, @Flag{f}, and @DFlag{file}.}
+ @item{@Flag{u} 或 @DFlag{user} --- 将链接的显示和删除限制为用户特定的 @tech[#:doc reference-doc]{集合链接文件}，而非安装范围的 @tech[#:doc reference-doc]{集合链接文件}。此标志与 @Flag{i}、@DFlag{installation}、@Flag{f} 和 @DFlag{file} 互斥。}
 
- @item{@Flag{i} or @DFlag{installation} --- Reads and writes links in
-       installation-wide @tech[#:doc reference-doc]{collection links
-       file} and not the user-specific @tech[#:doc
-       reference-doc]{collection links file}. This flag is mutually
-       exclusive with @Flag{u}, @DFlag{user}, @Flag{f}, and
-       @DFlag{file}.}
+ @item{@Flag{i} 或 @DFlag{installation} --- 在安装范围的 @tech[#:doc reference-doc]{集合链接文件} 中读取和写入链接，而非用户特定的 @tech[#:doc reference-doc]{集合链接文件}。此标志与 @Flag{u}、@DFlag{user}、@Flag{f} 和 @DFlag{file} 互斥。}
 
- @item{@Flag{f} @nonterm{file} or @DFlag{file} @nonterm{file} ---
-       Reads and writes links in @nonterm{file} instead of the
-       user-specific @tech[#:doc reference-doc]{collection links
-       file}.  This flag is mutually exclusive with @Flag{u},
-       @DFlag{user}, @Flag{s}, @DFlag{shared}, @Flag{i}, and @DFlag{installation}.}
+ @item{@Flag{f} @nonterm{file} 或 @DFlag{file} @nonterm{file} --- 在 @nonterm{file} 中读取和写入链接，而非用户特定的 @tech[#:doc reference-doc]{集合链接文件}。此标志与 @Flag{u}、@DFlag{user}、@Flag{s}、@DFlag{shared}、@Flag{i} 和 @DFlag{installation} 互斥。}
 
- @item{@Flag{v} @nonterm{vers} or @DFlag{version} @nonterm{vers} ---
-       Selects @nonterm{vers} as relevant installation name for
-       operations on the user-specific @tech[#:doc
-       reference-doc]{collection links file}.}
+ @item{@Flag{v} @nonterm{vers} 或 @DFlag{version} @nonterm{vers} --- 选择 @nonterm{vers} 作为对用户特定 @tech[#:doc reference-doc]{集合链接文件} 进行操作的相关安装名称。}
 
- @item{@DFlag{repair} --- Enables repairs to the existing file content
-       when the content is erroneous. The file is repaired by deleting
-       individual links when possible.}
+ @item{@DFlag{repair} --- 当文件内容出错时，允许修复现有文件内容。通过尽可能单独删除链接来修复文件。}
 
 ]
 
 @; ----------------------------------------
 
-@section{API for Collection Links}
+@section{集合链接 API}
 
 @defmodule[setup/link]
 
@@ -147,27 +82,10 @@ Full command-line options:
                 [#:with-path? with-path? any/c #f])
           list?]{
 
-A function version of the @exec{raco link} command that always works
-on a single file---either @racket[file] if it is a path string, the
-user--specific @tech[#:doc reference-doc]{collection links file} if
-@racket[user?] is true, or the installation-wide @tech[#:doc
-reference-doc]{collection links file} otherwise. If @racket[user?]
-is true, then @racket[user-version] determines the relevant
-installation name (defaulting to the current installation's name).
+@exec{raco link} 命令的函数版本，始终在单个文件上操作——如果 @racket[file] 是路径字符串则为该文件，如果 @racket[user?] 为真则为用户特定的 @tech[#:doc reference-doc]{集合链接文件}，否则为安装范围的 @tech[#:doc reference-doc]{集合链接文件}。如果 @racket[user?] 为真，则 @racket[user-version] 决定相关的安装名称（默认为当前安装的名称）。
 
-The @racket[static-root?] flag value is ignored unless @racket[root?]
-is true and @racket[remove?] is false, in which case each given
-@racket[dir] is added as a static root if @racket[static-root?] is true.
+除非 @racket[root?] 为真且 @racket[remove?] 为假，否则 @racket[static-root?] 标志值将被忽略；在这种情况下，如果 @racket[static-root?] 为真，则给定的每个 @racket[dir] 将被添加为静态根目录。
 
-The @racket[error-proc] argument is called to raise exceptions that
-would be fatal to the @exec{raco link} command.
+调用 @racket[error-proc] 参数来引发原本会使 @exec{raco link} 命令致命的异常。
 
-If @racket[remove?] is true, the result is a list of entries that were
-removed from the file.  If @racket[remove?] is @racket[#f] but
-@racket[root?] is true, the result is a list of paths for collection
-roots. If @racket[remove?] and @racket[root?] are both @racket[#f],
-the result is a list for top-level collections that are mapped by
-@racket[file] and that apply to the running version of Racket; the
-list is a list of strings for collection names if @racket[with-path?]
-is @racket[#f], or it is a list of pairs of collection-name strings
-and complete paths if @racket[with-path?] is true.}
+如果 @racket[remove?] 为真，结果是已从文件中删除的条目列表。如果 @racket[remove?] 为 @racket[#f] 但 @racket[root?] 为真，结果是集合根的路径列表。如果 @racket[remove?] 和 @racket[root?] 均为 @racket[#f]，结果是顶层集合的列表，这些集合由 @racket[file] 映射且适用于当前运行的 Racket 版本；如果 @racket[with-path?] 为 @racket[#f]，该列表为集合名称字符串的列表，如果 @racket[with-path?] 为真，则为集合名称字符串和完整路径的对对列表。}

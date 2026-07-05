@@ -4,23 +4,18 @@
 @(define bool-eval (make-base-eval))
 @(bool-eval '(require racket/bool))
 
-@title[#:tag "booleans"]{Booleans}
+@title[#:tag "booleans"]{布尔值}
 
-True and false @deftech{booleans} are represented by the values
-@racket[#t] and @racket[#f], respectively, though operations that
-depend on a boolean value typically treat anything other than
-@racket[#f] as true. The @racket[#t] value is always @racket[eq?] to
-itself, and @racket[#f] is always @racket[eq?] to itself.
+真和假 @deftech{booleans} 分别由值 @racket[#t] 和 @racket[#f] 表示，不过依赖于布尔值的操作通常将 @racket[#f] 以外的任何值视为真。@racket[#t] 值总是 @racket[eq?] 于自身，@racket[#f] 也总是 @racket[eq?] 于自身。
 
-@see-read-print["boolean" #:print "booleans"]{booleans}
+@see-read-print["boolean" #:print "booleans"]{布尔值}
 
-See also @racket[and], @racket[or], @racket[andmap], and @racket[ormap].
+另请参见 @racket[and]、@racket[or]、@racket[andmap] 和 @racket[ormap]。
 
 
 @defproc[(boolean? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is @racket[#t] or @racket[#f],
-@racket[#f] otherwise.
+如果 @racket[v] 是 @racket[#t] 或 @racket[#f]，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @examples[
 (boolean? #f)
@@ -31,7 +26,7 @@ Returns @racket[#t] if @racket[v] is @racket[#t] or @racket[#f],
 
 @defproc[(not [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is @racket[#f], @racket[#f] otherwise.
+如果 @racket[v] 是 @racket[#f]，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @examples[
 (not #f)
@@ -42,19 +37,11 @@ Returns @racket[#t] if @racket[v] is @racket[#f], @racket[#f] otherwise.
 
 @defproc[(immutable? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is an immutable @tech{string},
-@tech{byte string}, @tech{vector}, @tech{hash table}, or @tech{box},
-@racket[#f] otherwise.
+如果 @racket[v] 是不可变的 @tech{string}、@tech{byte string}、@tech{vector}、@tech{hash table} 或 @tech{box}，则返回 @racket[#t]，否则返回 @racket[#f]。
 
-Note that @racket[immutable?] is not a general predicate for
-immutability (despite its name). It works only for a handful of
-datatypes for which a single predicate---@racket[string?],
-@racket[vector?], @|etc|---recognizes both mutable and immutable variants
-of the datatype. In particular, @racket[immutable?] produces
-@racket[#f] for a @tech{pair}, even though pairs are immutable, since
-@racket[pair?] implies immutability.
+注意，@racket[immutable?] 不是不可变性的通用谓词（尽管它的名字暗示如此）。它只对少数几种 datatype 有效，这些 datatype 由单个谓词（@racket[string?]、@racket[vector?]、@|etc|）识别其可变和不可变变体。特别是，@racket[immutable?] 对 @tech{pair} 返回 @racket[#f]，尽管 pair 是不可变的，因为 @racket[pair?] 意味着不可变性。
 
-See also @racket[immutable-string?], @racket[mutable-string?], etc.
+另请参见 @racket[immutable-string?]、@racket[mutable-string?]，等等。
 
 @examples[
 (immutable? 'hello)
@@ -66,28 +53,28 @@ See also @racket[immutable-string?], @racket[mutable-string?], etc.
 (immutable? #t)
 ]}
 
-@section{Boolean Aliases}
+@section{布尔别名}
 
 @note-lib[racket/bool]
 
-@defthing[true boolean?]{An alias for @racket[#t].}
+@defthing[true boolean?]{@racket[#t] 的别名。}
 
-@defthing[false boolean?]{An alias for @racket[#f].}
+@defthing[false boolean?]{@racket[#f] 的别名。}
 
 @defproc[(symbol=? [a symbol?] [b symbol?]) boolean?]{
 
-Returns @racket[(equal? a b)] (if @racket[a] and @racket[b] are symbols).}
+返回 @racket[(equal? a b)]（当 @racket[a] 和 @racket[b] 都是 symbol 时）。}
 
 @defproc[(boolean=? [a boolean?] [b boolean?]) boolean?]{
 
-Returns @racket[(equal? a b)] (if @racket[a] and @racket[b] are booleans).}
+返回 @racket[(equal? a b)]（当 @racket[a] 和 @racket[b] 都是 boolean 时）。}
 
 @defproc[(false? [v any/c]) boolean?]{
 
-Returns @racket[(not v)].}
+返回 @racket[(not v)]。}
 
 @defform[(nand expr ...)]{
-  Same as @racket[(not (and expr ...))].
+  等同于 @racket[(not (and expr ...))]。
 
   @examples[#:eval
             bool-eval
@@ -96,10 +83,9 @@ Returns @racket[(not v)].}
 }
 
 @defform[(nor expr ...)]{
-  Same as @racket[(not (or expr ...))].
+  等同于 @racket[(not (or expr ...))]。
 
-  In the two argument case, returns @racket[#t] if neither of the
-  arguments is a true value.
+  在两个参数的情况下，如果两个参数都不是真值，则返回 @racket[#t]。
 
   @examples[#:eval
             bool-eval
@@ -110,10 +96,9 @@ Returns @racket[(not v)].}
 }
 
 @defform[(implies expr1 expr2)]{
-  Checks to be sure that the first
-  expression implies the second.
+  检查以确保第一个 expression 蕴含第二个 expression。
 
-  Same as @racket[(if expr1 expr2 #t)].
+  等同于 @racket[(if expr1 expr2 #t)]。
 
   @examples[#:eval
             bool-eval
@@ -125,11 +110,9 @@ Returns @racket[(not v)].}
 }
 
 @defproc[(xor [b1 any/c] [b2 any/c]) any]{
-  Returns the exclusive or of @racket[b1] and @racket[b2].
+  返回 @racket[b1] 和 @racket[b2] 的异或值。
 
-  If exactly one of @racket[b1] and @racket[b2] is
-  not @racket[#f], then return it. Otherwise, returns
-  @racket[#f].
+  如果 @racket[b1] 和 @racket[b2] 中恰好有一个不是 @racket[#f]，则返回该值。否则返回 @racket[#f]。
 
   @examples[#:eval
             bool-eval
@@ -141,7 +124,7 @@ Returns @racket[(not v)].}
 }
 
 
-@section{Mutability Predicates}
+@section{可变性谓词}
 
 @note-lib-only[racket/mutability]
 
@@ -160,12 +143,8 @@ Returns @racket[(not v)].}
 @defproc[(immutable-hash? [v any/c]) boolean?]
 )]{
 
-Predicates that combine @racket[string?], @racket[bytes?],
-@racket[vector?], @racket[box?], and @racket[hash?] with
-@racket[immutable?] or its inverse. The predicates are potentially
-faster than using @racket[immutable?] and other predicates separately.
+将 @racket[string?]、@racket[bytes?]、@racket[vector?]、@racket[box?] 和 @racket[hash?] 与 @racket[immutable?] 或其反义组合的谓词。这些谓词可能比分别使用 @racket[immutable?] 和其他谓词更快。
 
 }
 
 @close-eval[bool-eval]
-

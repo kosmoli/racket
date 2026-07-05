@@ -1,30 +1,21 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@cs-title[#:tag "cs-start"]{Starting and Declaring Initial Modules}
+@cs-title[#:tag "cs-start"]{启动和声明初始模块}
 
-As sketched in @secref["cs-embedding"], and embedded instance of
-Racket CS is started with @cppi{racket_boot}. Functions such as
-@cppi{racket_embedded_load_bytes} help to initialize a Racket
-namespace with already-compiled modules.
+如 @secref["cs-embedding"] 中概述，Racket CS 的嵌入式实例通过 @cppi{racket_boot} 启动。@cppi{racket_embedded_load_bytes} 等函数有助于用已编译的模块初始化 Racket 命名空间。
 
-For functions and struct fields that contain a path in @cpp{char*}
-form, the path is treated as UTF-8 encoded on Windows.
+对于包含 @cpp{char*} 形式路径的函数和结构体字段，在 Windows 上将路径视为 UTF-8 编码。
 
-@section[#:tag "cs-boot-arguments"]{Boot and Configuration}
+@section[#:tag "cs-boot-arguments"]{启动和配置}
 
 @function[(void racket_boot [racket_boot_arguments_t* boot_args])]{
 
-Initializes a Racket CS instance. A main thread is created and then
-suspended, waiting for further evaluation via @cppi{racket_apply},
-@cppi{racket_eval}, and similar functions.
+初始化 Racket CS 实例。创建一个主线程，然后挂起等待通过 @cppi{racket_apply}、@cppi{racket_eval} 及类似函数进行后续求值。
 
-A @cpp{racket_boot_arguments_t} struct contains fields to specify how
-@cppi{racket_boot} should initialize a Racket instance. New fields may
-be added in the future, but in that case, a @cpp{0} or @cpp{NULL}
-value for a field will imply backward-compatible default.
+@cpp{racket_boot_arguments_t} 结构体包含字段，用于指定 @cppi{racket_boot} 应如何初始化 Racket 实例。未来可能添加新字段，但在这种情况下，字段的 @cpp{0} 或 @cpp{NULL} 值将采用向后兼容的默认值。
 
-Fields in @cppdef{racket_boot_arguments_t}:
+@cppdef{racket_boot_arguments_t} 的字段：
 
 @itemlist[
 
@@ -167,7 +158,7 @@ from Racket. See also @secref["cs-procs"] for a discussion of
 
 @function[(char* racket_get_self_exe_path [const-char* argv0])]{
 
-Returns a path to the current process's executable. The @var{arg0}
+Returns a path to the current process's executable. The @var{argv0}
 argument should be the executable name delivered to @cpp{main}, which
 may or may not be used depending on the operating system and
 environment. The result is a string that is freshly allocated with

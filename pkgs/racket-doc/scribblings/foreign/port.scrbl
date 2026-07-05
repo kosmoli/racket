@@ -3,14 +3,10 @@
           (for-label ffi/unsafe/port
                      racket/tcp))
 
-@title{Ports}
+@title{端口}
 
-@defmodule[ffi/unsafe/port]{The
-@racketmodname[ffi/unsafe/port] library provides functions for working
-with ports, file descriptors, and sockets. The library's operations
-are unsafe, because no checking is performed on file descriptors and
-sockets, and misuse of file descriptors and sockets can break other
-objects.}
+@defmodule[ffi/unsafe/port]{该
+@racketmodname[ffi/unsafe/port] 库提供了用于操作端口、文件描述符和套接字的函数。该库的操作为不安全操作，因为不会对文件描述符和套接字进行任何检查，因此误用文件描述符和套接字可能破坏其他对象。}
 
 @history[#:added "6.11.0.4"]
 
@@ -22,37 +18,17 @@ objects.}
 @defproc[(unsafe-socket->port [socket exact-integer?]
                               [name bytes?]
                               [mode (listof (or/c 'no-close))])
-         (values input-port? output-port?)]
-)]{         
+         (values input-port? output-port?)]){
+         
+根据给定的文件描述符或套接字，返回一个输入端口和/或输出端口。在 Windows 上，"文件描述符"对应文件 @tt{HANDLE}，而套接字对应 @tt{SOCKET}。在 Unix 上，套接字也是文件描述符，但使用套接字专用的 @racket[unsafe-socket->port] 可能会启用特定于套接字的功能，例如通过 @racket[tcp-addresses] 报告地址。
 
-Returns an input port and/or output port for the given file descriptor
-or socket. On Windows, a ``file descriptor'' corresponds to a file
-@tt{HANDLE}, while a socket corresponds to a @tt{SOCKET}. On Unix, a
-socket is a file descriptor, but using the socket-specific
-@racket[unsafe-socket->port] may enable socket-specific functionality,
-such as address reporting via @racket[tcp-addresses].
+@racket[name] 参数决定如 @racket[object-name] 所报告的端口名称。@racket[name] 必须是 UTF-8 编码，该编码将被转换为套接字名称的符号。
 
-The @racket[name] argument determines the port's name as reported by
-@racket[object-name]. The @racket[name] must be a UTF-8 encoding that
-is converted to a symbol for the socket name.
+对于文件描述符，@racket[mode] 列表必须至少包含 @racket['read] 或 @racket['write] 之一；如果 @racket[mode] 同时包含两者，则返回两个端口。@racket['text] 模式仅影响 Windows 端口。@racket['regular-file] 模式表示文件描述符对应的是一个普通文件（例如，该属性意味着读取永远不会阻塞）。关闭所有返回的文件描述符端口将关闭该文件描述符。
 
-For a file descriptor, the @racket[mode] list must include at least
-one of @racket['read] or @racket['write], and two ports are returned
-if @racket[mode] includes both @racket['read] and @racket['write]. The
-@racket['text] mode affects only Windows ports. The
-@racket['regular-file] mode indicates that the file descriptor
-corresponds to a regular file (which has the property, for example,
-that reading never blocks). Closing all returned file-descriptor ports
-closes the file descriptor.
+对于套接字，@racket[mode] 列表可以包含 @racket['no-close]，在这种情况下关闭两个返回的端口不会关闭该套接字。
 
-For a socket, the @racket[mode] list can include @racket['no-close],
-in which case closing both of the returned ports does not close the
-socket.
-
-For any kind of result port, closing the resulting ports readies and
-unregisters any semaphores for the file descriptor or socket that were
-previously created with @racket[unsafe-file-descriptor->semaphore] or
-@racket[unsafe-socket->semaphore].}
+对于任何类型的结果端口，关闭这些端口将就绪并注销任何先前用 @racket[unsafe-file-descriptor->semaphore] 或 @racket[unsafe-socket->semaphore] 为文件描述符或套接字创建的信号量。}
 
 
 @deftogether[(
@@ -62,18 +38,12 @@ previously created with @racket[unsafe-file-descriptor->semaphore] or
          (or/c exact-integer? #f)]
 )]{
 
-Returns a file descriptor (which is a @tt{HANDLE} value on Windows) of
-a socket for @racket[port] if it has one, @racket[#f] otherwise.
+返回 @racket[port] 的文件描述符（在 Windows 上为 @tt{HANDLE} 值）或套接字（如果有的话）；否则返回 @racket[#f]。
 
-On Unix and Mac OS, the result of
-@racket[unsafe-port->file-descriptor] can be @racket[#f] if it
-corresponds to a port that is waiting for its peer as reported by
-@racket[port-waiting-peer?], such as the write end of a fifo where no
-reader is connected. Wait until such is ready by using @racket[sync]).
+在 Unix 和 Mac OS 上，如果 @racket[unsafe-port->file-descriptor] 对应于一个等待其对等端的端口（如 @racket[port-waiting-peer?] 所报告的），例如没有读取者连接的 fifo 写入端，则结果可能为 @racket[#f]。可通过 @racket[sync] 等待直至就绪。
 
-@history[#:changed "7.4.0.5" @elem{Accommodate a fifo write
-                                   end blocked on a reader by
-                                   returning @racket[#f].}]}
+@history[#:changed "7.4.0.5" @elem{为适应 fifo 写入端阻塞在读取者上的情况，
+                                   返回 @racket[#f]。}]}
 
 
 @deftogether[(
@@ -85,41 +55,23 @@ reader is connected. Wait until such is ready by using @racket[sync]).
          (or/c semaphore? #f)]
 )]{         
 
-Returns a semaphore that becomes ready when @racket[fd] or @racket[socket]
-is ready for reading or writing, as selected by @racket[mode]. Specifically,
-these functions provide a one-shot, @emph{edge-triggered} indicator; the
-semaphore is posted the @emph{first time} any of the following cases holds:
+返回一个信号量，当 @racket[fd] 或 @racket[socket] 就绪可供读写时（由 @racket[mode] 选择），该信号量即就绪。具体而言，这些函数提供的是单次、@emph{边沿触发}的指示器；信号量在以下情况中@emph{首次}出现时被提交：
 
 @itemlist[
 
-@item{@racket[fd] or @racket[socket] is ready for reading or writing
-(depending on @racket[mode]),}
+@item{@racket[fd] 或 @racket[socket] 就绪可供读写（取决于 @racket[mode]），}
 
-@item{ports were created from @racket[fd] or @racket[socket] using
-@racket[unsafe-file-descriptor->port] or @racket[unsafe-socket->port],
-and those ports were closed, or}
+@item{使用 @racket[unsafe-file-descriptor->port] 或 @racket[unsafe-socket->port] 为 @racket[fd] 或 @racket[socket] 创建了端口，并且这些端口已被关闭，或者}
 
-@item{a subsequent call occurred with the same @racket[fd] or
-@racket[socket] and with @racket['remove] for @racket[mode].}
+@item{之后使用相同的 @racket[fd] 或 @racket[socket] 以及 @racket['remove] 作为 @racket[mode] 进行调用。}
 
 ]
 
-The result is @racket[#f] if a conversion to a semaphore is not
-supported for the current platform or for the given file descriptor or
-socket.
+如果当前平台或给定的文件描述符、套接字不支持转换为信号量，则结果为 @racket[#f]。
 
-The @racket['check-read] and @racket['check-write] modes are like
-@racket['read] and @racket['write], but the result if @racket[#f] if a
-semaphore is not already generated for the specified file descriptor
-or socket in the specified mode.
+@racket['check-read] 和 @racket['check-write] 模式类似于 @racket['read] 和 @racket['write]，但如果针对指定模式尚未为指定的文件描述符或套接字生成信号量，则返回 @racket[#f]。
 
-The @racket['remove] mode readies and unregisters any semaphores
-previously created for the given file descriptor or socket. Semaphores
-must be unregistered before the file descriptor or socket is closed.
-Beware that closing a port from @racket[unsafe-file-descriptor->port]
-or @racket[unsafe-socket->port] will also ready and unregister
-semaphores. In all of those cases, however, the semaphore is made
-ready asynchronously, so there may be a detectable delay.}
+@racket['remove] 模式就绪并注销任何先前为给定文件描述符或套接字创建的信号量。必须在文件描述符或套接字关闭之前注销这些信号量。注意，从 @racket[unsafe-file-descriptor->port] 或 @racket[unsafe-socket->port] 返回的端口关闭时，也会就绪并注销信号量。但在这些所有情况下，信号量都是异步就绪的，因此可能存在可检测的延迟。}
 
 
 @defproc[(unsafe-fd->evt [fd exact-integer?]
@@ -127,35 +79,20 @@ ready asynchronously, so there may be a detectable delay.}
                          [socket? any/c #t])
          (or/c evt? #f)]{
 
-Returns an event that is ready when @racket[fd] is ready for reading
-or writing, as selected by @racket[mode]. Specifically, it returns a
-multi-use, @emph{level-triggered} indicator; the event is ready
-@emph{whenever} any of the following cases holds:
+返回一个事件，当 @racket[fd] 就绪可供读写时（由 @racket[mode] 选择），该事件即就绪。具体而言，它返回的是多用的、@emph{电平触发}的指示器；事件在以下情况@emph{持续}就绪时：
 
 @itemlist[
 
-@item{@racket[fd] is ready for reading or writing (depending on
-@racket[mode]),}
+@item{@racket[fd] 就绪可供读写（取决于 @racket[mode]），}
 
-@item{a subsequent call occurred with the same @racket[fd] and with
-@racket['remove] for @racket[mode] (once removed, the event is
-perpetually ready).}
+@item{之后使用相同的 @racket[fd] 以及 @racket['remove] 作为 @racket[mode] 进行调用（一旦移除，事件将永久就绪）。}
 
 ]
 
-The synchronization result of the event is the event itself.
+该事件的同步结果即为事件本身。
 
-The @racket['check-read] and @racket['check-write] modes are like
-@racket['read] and @racket['write], but the result is @racket[#f] if
-an event is not already generated for the specified file descriptor or
-socketin the specified mode.
+@racket['check-read] 和 @racket['check-write] 模式类似于 @racket['read] 和 @racket['write]，但如果针对指定模式尚未为指定的文件描述符或套接字生成事件，则返回 @racket[#f]。
 
-The @racket['remove] mode readies and unregisters any events
-previously created for the given file descriptor or socket. Events
-must be unregistered before the file descriptor or socket is
-closed. Unlike the semaphore result of @racket[unsafe-file-descriptor->semaphore] and
-@racket[unsafe-socket->semaphore], the event result of
-@racket[unsafe-fd->evt] is not triggered or unregistered by closing a port---not
-even a port from @racket[unsafe-file-descriptor->port] or @racket[unsafe-socket->port].
+@racket['remove] 模式就绪并注销任何先前为给定文件描述符或套接字创建的事件。必须在文件描述符或套接字关闭之前注销这些事件。与 @racket[unsafe-file-descriptor->semaphore] 和 @racket[unsafe-socket->semaphore] 的信号量结果不同，@racket[unsafe-fd->evt] 的事件结果不会被端口的关闭所触发或注销——即使该端口来自 @racket[unsafe-file-descriptor->port] 或 @racket[unsafe-socket->port]。
 
 @history[#:added "7.2.0.6"]}
