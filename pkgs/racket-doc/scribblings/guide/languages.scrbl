@@ -1,37 +1,26 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt")
 
-@title[#:tag "languages" #:style 'toc]{Creating Languages}
+@title[#:tag "languages" #:style 'toc]{创建语言}
 
-The @tech{macro} facilities defined in the preceding chapter let a
-programmer define syntactic extensions to a language, but a macro is
-limited in two ways:
+前一章定义的 @tech{macro} 工具允许程序员为某种语言定义语法扩展，但宏有两个局限性：
 
 @itemlist[
 
- @item{a macro cannot restrict the syntax available in its context or
-       change the meaning of surrounding forms; and}
+ @item{宏不能限制其上下文中可用的语法，也不能改变周围 form 的含义；且}
 
- @item{a macro can extend the syntax of a language only within the
-       parameters of the language's lexical conventions, such as using
-       parentheses to group the macro name with its subforms and using
-       the core syntax of identifiers, keywords, and literals.}
+ @item{宏只能在语言词法约定的范围内扩展语言的语法，例如使用括号将宏名称与其子 form 分组，以及使用标识符、关键字和字面量的核心语法。}
 
 ]
 
-@guideother{The distinction between the @tech{reader} and
-@tech{expander} layer is introduced in @secref["lists-and-syntax"].}
+@guideother{@secref["lists-and-syntax"] 中介绍了 @tech{reader} 和 @tech{expander} 层之间的区别。}
 
-That is, a macro can only extend a language, and it can do so only at
-the @tech{expander} layer. Racket offers additional facilities for
-defining a starting point of the @tech{expander} layer, for extending
-the @tech{reader} layer, for defining the starting point of the
-@tech{reader} layer, and for packaging a @tech{reader} and
-@tech{expander} starting point into a conveniently named language.
+也就是说，宏只能在 @tech{expander} 层扩展语言。Racket 还提供了额外的工具，用于定义 @tech{expander} 层的起点、扩展 @tech{reader} 层以及定义 @tech{reader} 层的起点，并且可以将 @tech{reader} 和 @tech{expander} 起点打包成便捷命名的语言。
 
 @local-table-of-contents[]
 
 @;------------------------------------------------------------------------
+
 @include-section["module-languages.scrbl"]
 @include-section["reader-extension.scrbl"]
 @include-section["hash-languages.scrbl"]

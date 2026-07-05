@@ -1,19 +1,16 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title{Named @racket[let]}
+@title{命名 @racket[let]}
 
-A named @racket[let] is an iteration and recursion form. It uses the
-same syntactic keyword @racket[let] as for local binding, but an
-identifier after the @racket[let] (instead of an immediate open
-parenthesis) triggers a different parsing.
+命名 @racket[let] 是一种迭代和递归形式。它使用与局部绑定相同的语法关键字 @racket[let]，但在 @racket[let] 后的标识符（而非直接是一个开括号）会触发不同的解析。
 
 @specform[
 (let proc-id ([arg-id init-expr] ...)
   body ...+)
 ]
 
-A named @racket[let] form is equivalent to
+命名 @racket[let] 形式等价于
 
 @racketblock[
 ((letrec ([_proc-id (lambda (_arg-id ...)
@@ -22,9 +19,7 @@ A named @racket[let] form is equivalent to
  _init-expr ...)
 ]
 
-That is, a named @racket[let] binds a function identifier that is
-visible only in the function's body, and it implicitly calls the
-function with the values of some initial expressions.
+也就是说，命名 @racket[let] 绑定一个函数标识符，该标识符仅在函数体内可见，并用一些初始表达式的值隐式调用该函数。
 
 @defexamples[
 (define (duplicate pos lst)

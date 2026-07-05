@@ -1,17 +1,11 @@
 #lang scribble/doc
 @(require scribble/manual "common.rkt")
 
-@title{@exec{raco}: Racket Command-Line Tools}
+@title{@exec{raco}: Racket 命令行工具}
 
-The @exec{raco} program supports various Racket tasks from a command
-line. The first argument to @exec{raco} is always a specific command
-name. For example, @exec{raco make} starts a command to compile a
-Racket source module to bytecode format.
+@exec{raco} 程序支持从命令行执行各种 Racket 任务。传递给 @exec{raco} 的第一个参数始终是具体的命令名称。例如，@exec{raco make} 启动一个将 Racket 源模块编译为 bytecode 格式的命令。
 
-The set of commands available through @exec{raco} is extensible. Use
-@exec{raco help} to get a complete list of available commands for your
-installation. This manual covers the commands that are available in
-a typical Racket installation.
+@exec{raco} 中可用的命令集是可扩展的。使用 @exec{raco help} 可获取您安装中可用命令的完整列表。本手册涵盖典型 Racket 安装中的可用命令。
 
 @table-of-contents[]
 

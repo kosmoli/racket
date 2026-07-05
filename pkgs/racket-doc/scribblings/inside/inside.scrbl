@@ -2,31 +2,18 @@
 @(require "utils.rkt")
 
 @title[#:tag-prefix '(lib "scribblings/inside/inside.scrbl") 
-       #:tag "top"]{Inside: Racket C API}
+       #:tag "top"]{内部：Racket C API}
 
 @author["Matthew Flatt"]
 
-The Racket runtime system is responsible for the implementation of
-primitive datatypes such as numbers and strings, the macro expansion
-and compilation of Racket from source, the allocation and reclamation
-of memory used during evaluation, and the scheduling of concurrent
-threads and parallel tasks.
+Racket 运行时系统负责以下实现：原始数据类型（如数字和字符串）、从源文件中进行 Racket 宏展开和编译、求值过程中使用的内存分配与回收，以及并发线程和并行任务的调度。
 
-This manual describes the C interface of Racket's runtime system,
-which varies depending on the implementation of Racket (see
+本手册描述了 Racket 运行时系统的 C 接口，该接口根据 Racket 的实现（参见
 @secref[#:doc '(lib "scribblings/guide/guide.scrbl")
-"virtual-machines"]): the CS implementation of Racket has one
-interface, while the BC (3m and CGC) implementation of Racket has
-another.
+"virtual-machines"]）而有所不同：Racket 的 CS 实现有一个接口，而 Racket 的 BC（3m 和 CGC）实现则有另一个接口。
 
-The C interface is relevant to some degree when interacting with
-foreign libraries as described in @other-manual['(lib
-"scribblings/foreign/foreign.scrbl")]. Even though interactions with
-foreign code are constructed in pure Racket using the
-@racketmodname[ffi/unsafe] module, many details of representations,
-memory management, and concurrency are described here. This manual
-also describes embedding the Racket run-time system in larger programs
-and extending Racket directly with C-implemented libraries.
+当与外部库交互时，C 接口在一定程度上是相关的，如 @other-manual['(lib
+"scribblings/foreign/foreign.scrbl")] 所述。尽管与外部代码的交互在纯 Racket 中使用 @racketmodname[ffi/unsafe] 模块构造，但关于表示、内存管理和并发的许多细节都在这里描述。本手册还描述了将 Racket运行时系统嵌入更大的程序中以及直接用 C 实现的库扩展 Racket 的方法。
 
 @table-of-contents[]
 

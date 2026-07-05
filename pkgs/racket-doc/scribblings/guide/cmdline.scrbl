@@ -4,37 +4,27 @@
 
 @(define xrepl-doc '(lib "xrepl/xrepl.scrbl"))
 
-@title[#:tag "cmdline-tools"]{Command-Line Tools}
+@title[#:tag "cmdline-tools"]{命令行工具}
 
-Racket provides, as part of its standard distribution, a number of
-command-line tools that can make racketeering more pleasant.
+Racket 作为其标准分发的一部分，提供了一些命令行工具，可以让 Racket 编程更加舒适。
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @include-section["compile.scrbl"] @; raco
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Interactive evaluation}
+@section{交互式求值}
 
-The Racket REPL provides everything you expect from a modern interactive
-environment. For example, it provides an @xreplcmd{enter} command to have a
-REPL that runs in the context of a given module, and an @xreplcmd{edit} command
-to invoke your editor (as specified by the @envvar{EDITOR} environment
-variable) on the file you entered. A @xreplcmd{drracket} command makes it easy
-to use your favorite editor to write code, and still have DrRacket at hand to
-try things out.
+Racket REPL 提供了现代交互式环境所期望的一切。例如，它提供 @xreplcmd{enter} 命令以便在指定模块上下文中运行 REPL，以及 @xreplcmd{edit} 命令可将编辑器（由 @envvar{EDITOR} 环境变量指定）调用来编辑所输入的文件。@xreplcmd{drracket} 命令可方便地使用您喜爱的编辑器编写代码，同时使用 DrRacket 来尝试运行。
 
-For more information, see @other-doc[xrepl-doc].
+更多信息请参见 @other-doc[xrepl-doc]。
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Shell completion}
+@section{Shell 自动补全}
 
-Shell auto-completion for @exec{bash} and @exec{zsh} is available in
-@filepath{share/pkgs/shell-completion/racket-completion.bash} and
-@filepath{share/pkgs/shell-completion/racket-completion.zsh},
-respectively.
-To enable it, just run the appropriate file from your @tt{.bashrc} or
-your @tt{.zshrc}.
+@exec{bash} 和 @exec{zsh} 的 Shell 自动补全分别在
+@filepath{share/pkgs/shell-completion/racket-completion.bash} 和
+@filepath{share/pkgs/shell-completion/racket-completion.zsh} 中可用。
+要启用它，请在您的 @tt{.bashrc} 或 @tt{.zshrc} 中运行相应文件即可。
 
-The @filepath{shell-completion} collection is only available in the Racket Full
-distribution. The completion scripts are also available
-@hyperlink["https://github.com/racket/shell-completion"]{online}.
+@filepath{shell-completion} 集合仅在 Racket Full 分发中可用。补全脚本也
+@hyperlink["https://github.com/racket/shell-completion"]{在线可用}。
