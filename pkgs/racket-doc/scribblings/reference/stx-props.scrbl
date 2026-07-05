@@ -1,117 +1,86 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "stxprops"]{Syntax Object Properties}
+@title[#:tag "stxprops"]{语法对象属性}
 
-Every syntax object has an associated @deftech{syntax property} list,
-which can be queried or extended with
-@racket[syntax-property]. A property is set as
-@deftech[#:key "stx-prop-preserved"]{preserved} or not; a preserved property is
-maintained for a syntax object in a compiled form that is marshaled to a byte
-string or @filepath{.zo} file, and other properties are discarded when
-marshaling.
+每个 syntax object 都关联一个 @deftech{syntax property} 列表，
+可通过 @racket[syntax-property] 查询或扩展。属性可以设为
+@deftech[#:key "stx-prop-preserved"]{preserved}（保留）或不保留；
+保留的属性在 syntax object 被编译并 marshal 为字节串或
+@filepath{.zo} 文件时仍被保留，而其他属性在 marshal 时被丢弃。
 
-In @racket[read-syntax], the reader attaches a preserved @racket['paren-shape]
-property to any pair or vector syntax object generated from parsing a
-pair @litchar{[} and @litchar{]} or @litchar["{"] and
-@litchar["}"]; the property value is @racket[#\[] in the former case,
-and @racket[#\{] in the latter case. The @racket[syntax] form copies
-any @racket['paren-shape] property from the source of a template to
-corresponding generated syntax.
+在 @racket[read-syntax] 中，reader 会为解析过程中生成的 pair 或 vector syntax object
+附加一个保留的 @racket['paren-shape] 属性：当解析 @litchar{[} 和 @litchar{]} 这一对时，
+属性值为 @racket[#\[]；当解析 @litchar["{"] 和 @litchar["}"] 这一对时，
+属性值为 @racket[#\{]。@racket[syntax] 形式会将源 template 上的任意 @racket['paren-shape]
+属性复制到对应生成的 syntax 上。
 
-Both the syntax input to a transformer and the syntax result of a
-transformer may have associated properties. The two sets of properties
-are merged by the syntax expander: each property in the original and
-not present in the result is copied to the result, and the values of
-properties present in both are combined with @racket[cons] (result
-value first, original value second) and the @racket[cons]ed value is
-@tech[#:key "stx-prop-preserved"]{preserved} if either of the values were
-preserved.
+一个 transformer 接受的 syntax input 以及它产生的 syntax result 都可以带有属性。
+这两组属性由 syntax expander 合并：原始 input 中存在但 result 中没有的属性会被复制到 result；
+两者都存在的属性值会通过 @racket[cons] 合并（result 的值在前，原始值在后），
+合并后的值在任意一方原值为保留时也被 @tech[#:key "stx-prop-preserved"]{preserved}。
 
-Before performing the merge, however, the syntax expander
-automatically adds a property to the original syntax object using the
-key @indexed-racket['origin]. If the source syntax has no
-@racket['origin] property, it is set to the empty list.  Then, still
-before the merge, the identifier that triggered the macro expansion
-(as syntax) is @racket[cons]ed onto the @racket['origin]
-property so far.  The @racket['origin] property thus records (in
-reverse order) the sequence of macro expansions that produced an
-expanded expression. Usually, the @racket['origin] value is a
-list of identifiers, but a transformer might return
-syntax that has already been expanded, in which case an
-@racket['origin] list can contain other lists after a merge. The
-@racket[syntax-track-origin] procedure implements this tracking.
-The @racket['origin] property is added as
-non-@tech[#:key "stx-prop-preserved"]{preserved}.
+但在执行合并之前，syntax expander 会使用 key @indexed-racket['origin]
+自动为原始 syntax object 添加一个属性。如果源 syntax 没有
+@racket['origin] 属性，则将其初始化为空列表。然后，在合并之前，
+触发 macro expansion 的 identifier（作为 syntax）被 @racket[cons]
+到目前的 @racket['origin] 属性上。因此，@racket['origin] 属性按逆序记录了
+生成最终展开式的 macro expansion 序列。通常 @racket['origin] 的值是 identifier 列表，
+但 transformer 可能返回已经被展开的 syntax，此时合并后的 @racket['origin] 列表可以包含其他列表。
+@racket[syntax-track-origin] 过程实现了此跟踪功能。
+@racket['origin] 属性以非 @tech[#:key "stx-prop-preserved"]{preserved} 方式添加。
 
-Besides @racket['origin] tracking for general macro expansion,
-Racket adds properties to expanded syntax (often using
-@racket[syntax-track-origin]) to record additional expansion details:
+除了通用 macro expansion 的 @racket['origin] 跟踪之外，
+Racket 还会通过展开后的 syntax 添加属性（通常借助 @racket[syntax-track-origin]），
+以记录更多展开细节：
 
 @itemize[
 
- @item{When a @racket[begin] form is spliced into a sequence with
- internal definitions (see @secref["intdef-body"]),
- @racket[syntax-track-origin] is applied to every spliced element from
- the @racket[begin] body. The second argument to
- @racket[syntax-track-origin] is the @racket[begin] form, and the
- third argument is the @racket[begin] keyword (extracted from the
- spliced form).}
+ @item{当 @racket[begin] 形式被拼接进包含 internal definitions 的序列中时
+（参见 @secref["intdef-body"]），
+对 @racket[begin] 体中的每个拼接元素应用 @racket[syntax-track-origin]。
+其第二个参数是 @racket[begin] 形式，第三个参数是该 @racket[begin] keyword
+（从拼接的形式中提取）。}
 
- @item{When an internal @racket[define-values] or
- @racket[define-syntaxes] form is converted into a
- @racket[letrec-syntaxes+values] form (see @secref["intdef-body"]),
- @racket[syntax-track-origin] is applied to each generated binding
- clause.  The second argument to @racket[syntax-track-origin] is the
- converted form, and the third argument is the @racket[define-values]
- or @racket[define-syntaxes] keyword form the converted form.}
+ @item{当内部的 @racket[define-values] 或 @racket[define-syntaxes] 被转换为
+ @racket[letrec-syntaxes+values] 形式时（参见 @secref["intdef-body"]），
+对每个生成的 binding clause 应用 @racket[syntax-track-origin]。
+其第二个参数是被转换的形式，第三个参数是该 @racket[define-values] 或
+@racket[define-syntaxes] keyword。}
 
- @item{When a @racket[letrec-syntaxes+values] expression is fully
- expanded, syntax bindings disappear, and the result is either a
- @racket[letrec-values] form (if the unexpanded form contained
- non-syntax bindings), or only the body of the
- @racket[letrec-syntaxes+values] form (wrapped with @racket[begin] if
- the body contained multiple expressions). To record the disappeared
- syntax bindings, a property is added to the expansion result: an
- immutable list of identifiers from the disappeared bindings, as a
- @indexed-racket['disappeared-binding] property.}
+ @item{当 @racket[letrec-syntaxes+values] 表达式被完全展开时，syntax bindings 消失，
+结果可能是 @racket[letrec-values] 形式（如果未展开形式中包括非 syntax bindings），
+也可能只是 @racket[letrec-syntaxes+values] 形式的 body（如果 body 包含多个表达式则用 @racket[begin] 包裹）。
+为了记录消失的 syntax bindings，会在展开结果中附加一个属性：用来自消失 bindings 的 identifier 构成的
+immutable list 作为 @indexed-racket['disappeared-binding] 属性的值。}
 
- @item{When a subtyping @racket[struct] form is expanded, the
- identifier used to reference the base type does not appear in the
- expansion. Therefore, the @racket[struct] transformer adds the
- identifier to the expansion result as a
- @indexed-racket['disappeared-use] property.}
+ @item{当 subtyping @racket[struct] 形式被展开时，用于引用基类的 identifier
+不会出现在展开结果中。因此，@racket[struct] transformer 会把这个 identifier
+添加到展开结果中，作为 @indexed-racket['disappeared-use] 属性。}
 
- @item{When a @tech{rename transformer} is used to replace a
- @racket[set!] target, @racket[syntax-track-origin] is used on the
- target identifier (the same as when the identifier is used as an
- expression).}
+ @item{当使用 @tech{rename transformer} 替换 @racket[set!] 的目标时，
+会对其目标 identifier 使用 @racket[syntax-track-origin]
+（与该 identifier 用作 expression 时的处理方式相同）。}
 
- @item{When a reference to an unexported or protected identifier from
- a module is discovered, the @indexed-racket['protected] property is
- added to the identifier with a @racket[#t] value.}
+ @item{当发现对 module 中未导出或受保护的 identifier 的引用时，
+会向该 identifier 添加 @indexed-racket['protected] 属性，值为 @racket[#t]。}
 
- @item{When @racket[read-syntax]
- generates a syntax object, it attaches a property to the object
- (using a private key) to mark the object as originating from a
- read. The @racket[syntax-original?]  predicate looks for the property
- to recognize such syntax objects. (See @secref["stxops"] for more
- information. The property is not transferred by the expander from
- a macro transformer input to its output or by @racket[syntax-track-origin].)}
+ @item{当 @racket[read-syntax] 生成 syntax object 时，它会在该对象上附加一个属性
+（使用一个私有 key），用以标记该对象来自读取操作。@racket[syntax-original?]
+ 谓词查找此属性以识别这类 syntax object。（参见 @secref["stxops"] 获取更多信息。
+此属性不会在 expander 从 macro transformer input 转移到 output 时被传递，
+也不会被 @racket[syntax-track-origin] 传递。）}
 
 ]
 
-See also @seclink["Syntax_Properties_that_Check_Syntax_Looks_For"
+另请参见关于 @racket['disappeared-use] 和 @racket['disappeared-binding] 属性
+的一个典型消费者@seclink["Syntax_Properties_that_Check_Syntax_Looks_For"
                   #:doc '(lib "scribblings/tools/tools.scrbl")
-                  #:indirect? #t]{Check Syntax}
-for one client of the @racket['disappeared-use] and @racket['disappeared-binding]
-properties.
+                  #:indirect? #t]{Check Syntax}。
 
-See @secref["modinfo"] for information about properties generated
-by the expansion of a module declaration. See @racket[lambda] and
-@secref["infernames"] for information about properties recognized
-when compiling a procedure. See @racket[current-compile] for
-information on properties and byte codes.
+参见 @secref["modinfo"] 了解 module 声明展开所生成属性的信息。
+参见 @racket[lambda] 和 @secref["infernames"] 了解 procedure 编译时所识别属性的信息。
+参见 @racket[current-compile] 了解属性与字节码的信息。
 
 @;------------------------------------------------------------------------
 
@@ -127,39 +96,35 @@ an arbitrary property value @racket[v] with the key @racket[key]; the
 result is a new syntax object with the association (while @racket[stx]
 itself is unchanged). The property is added as
 @tech[#:key "stx-prop-preserved"]{preserved} if @racket[preserved?] is true, in
-which case @racket[key] must be an @tech{interned} symbol, and @racket[v]
-should be a value as described below that can be saved in marshaled bytecode.
+此时 @racket[key] 必须是 @tech{interned} symbol，且 @racket[v] 应为下文所述的可以存入 marshal 后字节码的值。
 
-The two-argument form returns an arbitrary property value associated
-to @racket[stx] with the key @racket[key], or @racket[#f] if no value
-is associated to @racket[stx] for @racket[key]. If @racket[stx] is @tech{tainted},
-then syntax objects with the result value are tainted.
 
-To support marshaling to bytecode, a value for a preserved syntax
-property must be a non-cyclic value that is either
+两参数形式返回与 @racket[stx] 的 @racket[key] 关联的任意属性值，
+如果 @racket[stx] 没有与 @racket[key] 关联的值则返回 @racket[#f]。
+如果 @racket[stx] 是 @tech{tainted} 的，则包含结果值的 syntax object 也被 tainted。
+
+为了支持 marshal 到字节码，preserved syntax property 的值必须是满足以下任一条件的非循环值：
 
 @itemlist[
 
- @item{a @tech{pair} containing allowed preserved-property values;}
+ @item{包含允许的 preserved-property 值的 @tech{pair}；}
  
- @item{a @tech{vector} (unmarshaled as immutable) containing allowed preserved-property values;}
+ @item{包含允许的 preserved-property 值的 @tech{vector}（marshal 为 immutable）；}
 
- @item{a @tech{box} (unmarshaled as immutable) containing allowed preserved-property values;}
+ @item{包含允许的 preserved-property 值的 @tech{box}（marshal 为 immutable）；}
 
- @item{an immutable @tech{prefab} structure containing allowed preserved-property values;}
+ @item{包含允许的 preserved-property 值的 immutable @tech{prefab} structure；}
 
- @item{an immutable @tech{hash table} whose keys and values are allowed preserved-property values;}
+ @item{key 和 value 均为允许的 preserved-property 值的 immutable @tech{hash table}；}
 
- @item{a @tech{syntax object}; or}
+ @item{@tech{syntax object}；或}
 
- @item{an empty list, @tech{symbol}, @tech{number}, @tech{character},
-       @tech{string}, @tech{byte string}, or @tech{regexp
-       value}.}
+ @item{空 list、@tech{symbol}、@tech{number}、@tech{character}、
+       @tech{string}、@tech{byte string} 或 @tech{regexp 值}。}
 
 ]
 
-Any other value for a preserved property triggers an exception at an
-attempt to marshal the owning syntax object to bytecode form.
+对于 preserved property，任何其它值会在尝试将所属 syntax object marshal 为字节码形式时触发异常。
 
 @history[#:changed "6.4.0.14" @elem{Added the @racket[preserved?] argument.}]}
 
@@ -168,8 +133,7 @@ attempt to marshal the owning syntax object to bytecode form.
                                  [key any/c])
          syntax?]{
 
-Returns a syntax object like @racket[stx], but without a property (if
-any) for @racket[key].
+返回一个与 @racket[stx] 相同的 syntax object，但不含与 @racket[key] 关联的属性（如果有的话）。
 
 @history[#:added "6.90.0.20"]}
 
@@ -177,55 +141,48 @@ any) for @racket[key].
 @defproc[(syntax-property-preserved? [stx syntax?] [key (and/c symbol? symbol-interned?)])
          boolean?]{
 
-Returns @racket[#t] if @racket[stx] has a
-@tech[#:key "stx-prop-preserved"]{preserved} property value for @racket[key],
-@racket[#f] otherwise.
+如果 @racket[stx] 在 @racket[key] 上有一个
+@tech[#:key "stx-prop-preserved"]{preserved} 属性值则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.4.0.14"]}
 
 
 @defproc[(syntax-property-symbol-keys [stx syntax?]) list?]{
 
-Returns a list of all symbols that as keys have associated properties
-in @racket[stx]. @tech{Uninterned} symbols (see @secref["symbols"])
-are not included in the result list.}
+返回所有在 @racket[stx] 中关联了属性的 symbol 列表。
+@tech{Uninterned} symbol（参见 @secref["symbols"]）不包含在结果列表中。}
 
 
 @defproc[(syntax-track-origin [new-stx syntax?] [orig-stx syntax?] [id-stx identifier?])
          any]{
 
-Adds properties to @racket[new-stx] in the same way that macro
-expansion adds properties to a transformer result. In particular, it
-merges the properties of @racket[orig-stx] into @racket[new-stx],
-first adding @racket[id-stx] as an @racket['origin] property and removing
-the property recognized by @racket[syntax-original?], and it
-returns the property-extended syntax object. Use the
-@racket[syntax-track-origin] procedure in a macro transformer that
-discards syntax (corresponding to @racket[orig-stx] with a keyword
-@racket[id-stx]) leaving some other syntax in its place (corresponding
-to @racket[new-stx]).
+以 macro expansion 向 transformer result 添加属性的相同方式，
+向 @racket[new-stx] 添加属性。具体而言，它会将 @racket[orig-stx] 的属性合并到 @racket[new-stx]，
+先将 @racket[id-stx] 作为一个 @racket['origin] 属性添加，并移除 @racket[syntax-original?] 识别的属性，
+然后返回该扩展了属性的 syntax object。
+在丢弃 syntax（对应 @racket[orig-stx]）并以 keyword @racket[id-stx]
+留下另外 syntax（对应 @racket[new-stx]）的 macro transformer 中使用 @racket[syntax-track-origin] 过程。
 
-For example, the expression
+例如，表达式
 
 @racketblock[
 (or x y)
 ]
 
-expands to
+展开为
 
 @racketblock[
 (let ([or-part x]) (if or-part or-part (or y)))
 ]
 
-which, in turn, expands to
+which, in turn, 展开为
 
 @racketblock[
 (let-values ([(or-part) x]) (if or-part or-part y))
 ]
 
-The syntax object for the final expression will have an
-@racket['origin] property whose value is @racket[(list (quote-syntax
-let) (quote-syntax or))].
+最终表达式的 syntax object 将带有一个 @racket['origin] 属性，其值为
+@racket[(list (quote-syntax let) (quote-syntax or))]。
 
 @history[#:changed "7.0" @elem{Included the @racket[syntax-original?]
                                property among the ones transferred to
