@@ -3,15 +3,12 @@
 
 @title{Loading Foreign Libraries}
 
-The FFI is normally used by extracting functions and other objects
-from @as-index{shared objects} (a.k.a. @defterm{@as-index{shared
-libraries}} or @defterm{@as-index{dynamically loaded libraries}}). The
-@racket[ffi-lib] function loads a shared object.
+FFI 通常用于从 @as-index{shared objects}（又称 @defterm{@as-index{shared
+libraries}} 或 @defterm{@as-index{dynamically loaded libraries}}）中提取函数和其他对象。@racket[ffi-lib] 函数装载 shared object。
 
 @defproc[(ffi-lib? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @deftech{foreign-library value},
-@racket[#f] otherwise.}
+若 @racket[v] 是 @deftech{foreign-library value}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(ffi-lib [path (or/c path-string? #f)]
@@ -22,131 +19,54 @@ Returns @racket[#t] if @racket[v] is a @deftech{foreign-library value},
                   [#:custodian custodian (or/c 'place custodian? #f) #f])
          any]{
 
-Returns a @tech{foreign-library value} or the result of @racket[fail]. 
-Normally,
+返回 @tech{foreign-library value} 或 @racket[fail] 的结果。通常，
 
 @itemlist[
 
- @item{@racket[path] is a path without a version or suffix (i.e.,
-       without @filepath{.dll}, @filepath{.so}, or @filepath{.dylib});
-       and}
+ @item{@racket[path] 是不带版本或后缀的路径（即不带 @filepath{.dll}、@filepath{.so} 或 @filepath{.dylib}）；且}
 
- @item{@racket[version] is a list of versions to try in order with
-      @racket[#f] (i.e., no version) as the last element of the list;
-      for example, @racket['("2" #f)] indicates version 2 with a
-      fallback to a versionless library.
+ @item{@racket[version] 是按顺序尝试的版本列表，最后一个元素为 @racket[#f]（即无版本）；例如，@racket['("2" #f)] 表示带版本 2 的回退到无版本库。
 
-      When the library suffix as reported by @racket[(system-type
-      'so-suffix)] is @filepath{.dylib}, then a version is added to
-      @racket[path] after a @filepath{.} and before the
-      @filepath{.dylib} suffix. When the library suffix is
-      @filepath{.dll}, then a version is added to @racket[path] after a
-      @filepath{-} and before the @filepath{.dll} suffix. For any
-      other suffix, the version number is added after the suffix plus
-      @filepath{.}.}
+      当 @racket[(system-type 'so-suffix)] 报告的库后缀为 @filepath{.dylib} 时，@racket[path] 在 @filepath{.} 之后和 @filepath{.dylib} 后缀之前添加版本号。当库后缀为 @filepath{.dll} 时，@racket[path] 在 @filepath{-} 之后和 @filepath{.dll} 后缀之前添加版本号。对于任何其他后缀，版本号在后缀后添加 @filepath{.}。
 
 ]
 
-A string or @racket[#f] @racket[version] is equivalent to a list
-containing just the string or @racket[#f], and an empty string (by
-itself or in a list) is equivalent to @racket[#f].
+}
 
-Beware of relying on versionless library names. On some platforms,
-versionless library names are provided only by development
-packages. At the same time, other platforms may require a versionless
-fallback. A list of version strings followed by @racket[#f] is
-typically best for @racket[version].
+字符串或 @racket[#f] 类型的 @racket[version] 等价于只包含该字符串或 @racket[#f] 的列表，空字符串（单独或列表中）等价于 @racket[#f]。
 
-Assuming that @racket[path] is not @racket[#f], the result from
-@racket[ffi-lib] represents the library found by the following search
-process:
+警告依赖无版本的库名。某些平台上无版本库名仅由开发包提供。同时，其他平台可能需要无版本回退。通常 @racket[version] 最好使用版本字符串列表后跟 @racket[#f]。
+
+假设 @racket[path] 不是 @racket[#f]，@racket[ffi-lib] 返回的搜索过程如下：
 
 @itemlist[
 
- @item{If @racket[path] is not an absolute path, look in each
-       directory reported by @racket[get-lib-dirs]; the default list
-       is the result of @racket[(get-lib-search-dirs)].
-       In each directory, try @racket[path] with the first version in
-       @racket[version], adding a suitable suffix if @racket[path]
-       does not already end in the suffix, then try the second version
-       in @racket[version], etc. (If @racket[version] is an empty list,
-       no paths are tried in this step.)}
+ @item{若 @racket[path] 不是绝对路径，查看 @racket[get-lib-dirs] 报告的每个目录；默认列表为 @racket[(get-lib-search-dirs)] 的结果。在每个目录中，尝试 @racket[path] 与 @racket[version] 中的第一个版本组合，如果 @racket[path] 不以该后缀结尾则添加适当后缀，然后尝试第二个版本，以此类推。（若 @racket[version] 为空，此步骤不尝试任何路径。）}
 
- @item{Try the same filenames again, but without converting the path
-       to an absolute path, which allows the operating system to use
-       its own search paths. (If @racket[version] is an empty list, no
-       paths are tried in this step.)}
+ @item{再次尝试相同的文件名，但不将路径转换为绝对路径，让操作系统使用自己的搜索路径。（若 @racket[version] 为空，此步骤不尝试任何路径。）}
 
- @item{Try @racket[path] without adding any version or suffix, and
-       without converting to an absolute path.}
+ @item{尝试不添加任何版本或后缀的 @racket[path]，也不转换为绝对路径。}
 
- @item{Try the version-adjusted filenames again, but relative to the
-       current directory. (If @racket[version] is an empty list, no
-       paths are tried in this step.)}
+ @item{再次尝试版本调整后的文件名，但相对于当前目录。（若 @racket[version] 为空，此步骤不尝试任何路径。）}
 
- @item{Try @racket[path] without adding any version or suffix, but
-      converted to an absolute path relative to the current
-      directory.}
+ @item{尝试不添加任何版本或后缀但转换为当前目录绝对路径的 @racket[path]。}
 
 ]
 
-If none of the paths succeed and @racket[fail] is a function, then
-@racket[fail] is called in tail position. If @racket[fail] is
-@racket[#f], an error is reported from trying the
-first path from the second bullet above or (if @racket[version] is an
-empty list) from the third bullet above. A library file may exist but
-fail to load for some reason; the eventual error message will
-unfortunately name the fallback from the second or third bullet, since
-some operating systems offer no way to determine why a given library
-path failed.
+若没有路径成功且 @racket[fail] 是函数，则以尾调用方式调用 @racket[fail]。若 @racket[fail] 为 @racket[#f]，则报告错误，尝试上面第二个项目符号的第一个路径（或若 @racket[version] 为空列表，则尝试第三个项目符号的第一个路径）。库文件可能由于某种原因加载失败；最终的错误消息将遗憾地命名来自第二或第三个项目符号的回退路径，因为某些操作系统无法提供确定给定库路径失败的方法。
 
-If @racket[path] is @racket[#f], then the resulting foreign-library
-value represents all libraries loaded in the current process,
-including libraries previously opened with @racket[ffi-lib].  In
-particular, use @racket[#f] to access C-level functionality exported
-by the run-time system (as described in @|InsideRacket|). The
-@racket[version] argument is ignored when @racket[path] is
-@racket[#f].
+若 @racket[path] 为 @racket[#f]，则得到的 foreign-library value 表示当前进程中加载的所有库，包括之前已通过 @racket[ffi-lib] 打开的库。特别是对用于访问运行时段系统导出的 C 级功能的 @racket[#f]（见 @|InsideRacket|）。当 @racket[path] 为 @racket[#f] 时，@racket[version] 参数被忽略。
 
-If @racket[path] is not @racket[#f], @racket[global?] is true, and the
-operating system supports opening a library in ``global'' mode so that
-the library's symbols are used for resolving references from libraries
-that are loaded later, then global mode is used to open the
-library. Otherwise, the library is opened in ``local'' mode, where the
-library's symbols are not made available for future resolution. This
-local-versus-global choice does not affect whether the library's
-symbols are available via @racket[(ffi-lib #f)].
+若 @racket[path] 不为 @racket[#f]，@racket[global?] 为真，且操作系统支持以 "global" 模式打开库（以将库的符号用于之后加载的库的引用解析），则使用全局模式打开库。否则以 "local" 模式打开库，此模式不将库的符号用于未来的解析。本地与全局的选择不影响库的符号是否通过 @racket[(ffi-lib #f)] 可用。
 
-If @racket[custodian] is @racket['place] or a custodian, the
-library is unloaded when a custodian is shut down---either the given
-custodian or the place's main custodian if @racket[custodian] is
-@racket['place]. When a library is unloaded, all references to the
-library become invalid. Supplying @racket['place] for
-@racket[custodian] is consistent with finalization via
-@racketmodname[ffi/unsafe/alloc] but will not, for example, unload the
-library when hitting in the @onscreen{Run} button in DrRacket.
-Supplying @racket[(current-custodian)] for @racket[custodian] tends to
-unload the library for eagerly, but requires even more care to ensure
-that library references are not accessed after the library is
-unloaded.
+若 @racket[custodian] 为 @racket['place] 或一个 custodian，则库在 custodian 关闭时被卸载——即给定的 custodian 或如果 @racket[custodian] 为 @racket['place] 则为主要 place custodian。库被卸载时，对库的所有引用将失效。为 @racket[custodian] 提供 @racket['place] 与通过 @racketmodname[ffi/unsafe/alloc] 进行终结化一致，但例如在 DrRacket 中点击 @onscreen{Run} 按钮时不会卸载库。为 @racket[custodian] 提供 @racket[(current-custodian)] 倾向于立即卸载库，但需要更小心以确保在库被卸载后不访问库引用。
 
-If @racket[custodian] is @racket[#f], the loaded library is associated
-with Racket (or DrRacket) for the duration of the process. Loading
-again with @racket[ffi-lib], will not force a re-load of the
-corresponding library.
+若 @racket[custodian] 为 @racket[#f]，则加载的库关联到 Racket（或 DrRacket）全程进程的生命周期。再次通过 @racket[ffi-lib] 加载不会强制重新加载对应的库。
 
-When @racket[ffi-lib] returns a reference to a library that was
-previously loaded within the current place, it increments a
-reference count on the loaded library rather than loading the library
-fresh. Unloading a library reference decrements the reference count
-and requests unloading at the operating-system level only if the
-reference count goes to zero.
+当 @racket[ffi-lib] 返回对当前 place 中先前加载的库的引用时，它增加已加载库的引用计数而不是重新加载它。卸载库引用递减引用计数，并且仅在引用计数为零时请求操作系统级卸载。
 
-The @racket[ffi-lib] procedure logs (see @secref["logging" #:doc '(lib
-"scribblings/reference/reference.scrbl")]) on the topic
-@racket['ffi-lib]. In particular, on failure it logs the paths
-attempted according to the rules above, but it cannot report the
-paths tried due to the operating system's library search path.
+@racket[ffi-lib] 过程在主题 @racket['ffi-lib] 上记录日志（见 @secref["logging" #:doc '(lib
+"scribblings/reference/reference.scrbl")]）。特别地，失败时它根据上述规则记录尝试的路径，但不能报告由于操作系统库搜索路径而尝试的路径。
 
 @history[#:changed "6.1.0.5" @elem{Changed the way a version number is
                                    added with a @filepath{.dll} suffix
@@ -161,20 +81,11 @@ paths tried due to the operating system's library search path.
                       [failure-thunk (or/c (-> any) #f) #f]) 
          any]{
 
-Looks for @racket[objname] in
-@racket[lib] library.  If @racket[lib] is not a @tech{foreign-library value}
-it is converted to one by calling @racket[ffi-lib]. If @racket[objname] 
-is found in @racket[lib], it is
-converted to Racket using the given @racket[type]. Types are described
-in @secref["types"]; in particular the @racket[get-ffi-obj] procedure
-is most often used with function types created with @racket[_fun].
+在 @racket[lib] 库中查找 @racket[objname]。若 @racket[lib] 不是 @tech{foreign-library value}，则通过调用 @racket[ffi-lib] 将其转换为 one。若在 @racket[lib] 中找到 @racket[objname]，则使用给定的 @racket[type] 将其转换为 Racket。类型在 @secref["types"] 中描述；特别地，@racket[get-ffi-obj] 最常与 @racket[_fun] 创建的功能类型一起使用。
 
-Keep in mind that @racket[get-ffi-obj] is an unsafe procedure; see
-@secref["intro"] for details.
+需注意 @racket[get-ffi-obj] 是不安全的过程；详见 @secref["intro"]。
 
-If the name is not found, and @racket[failure-thunk] is provided, it is
-used to produce a return value.  For example, a failure thunk can be
-provided to report a specific error if a name is not found:
+若名称未提供，且提供了 @racket[failure-thunk]，则用于产生返回值。例如，可以提供失败 thunk 以在名称未找到时报告特定错误：
 
 @racketblock[
 (define foo
@@ -184,8 +95,7 @@ provided to report a specific error if a name is not found:
              "installed foolib does not provide \"foo\""))))
 ]
 
-The default (also when @racket[failure-thunk] is provided as @racket[#f]) is to
-raise an exception.}
+默认值（或当 @racket[failure-thunk] 作为 @racket[#f] 提供时）是抛出异常。}
 
 
 @defproc[(set-ffi-obj! [objname (or/c string? bytes? symbol?)]
@@ -194,11 +104,7 @@ raise an exception.}
                        [new any/c])
          void?]{
 
-Looks for @racket[objname] in @racket[lib] similarly to
-@racket[get-ffi-obj], but then it stores the given @racket[new] value
-into the library, converting it to a C value.  This can be used for
-setting library customization variables that are part of its
-interface, including Racket callbacks.}
+类似 @racket[get-ffi-obj] 在 @racket[lib] 中查找 @racket[objname]，但随后将给定的 @racket[new] 值存入库中，将其转换为 C 值。这可用于设置库接口的一部分，包括 Racket 回调的库定制变量。}
 
 
 @defproc[(make-c-parameter [objname (or/c string? bytes? symbol?)]
@@ -208,34 +114,22 @@ interface, including Racket callbacks.}
          (case-> (-> any)
                  (any/c . -> . void?))]{
 
-Returns a parameter-like procedure that can either references the
-specified foreign value, or set it.  The arguments are handled as in
-@racket[get-ffi-obj].
+返回一个参数类过程可以引用指定的 foreign value 或设置它。参数处理与 @racket[get-ffi-obj] 相同。
 
-A parameter-like function is useful in case Racket code and library
-code interact through a library value.  Although
-@racket[make-c-parameter] can be used with any type, it is not
-recommended to use this for foreign functions, since each reference
-through the parameter will construct the low-level interface before the
-actual call.
+若 Racket 代码和库代码通过库值交互，则参数类过程很有用。虽然 @racket[make-c-parameter] 可用于任何类型，但不建议将其用于 foreign functions，因为在实际调用之前每次引用都会构造底层接口。
 
 @history[#:changed "8.4.0.5" @elem{Added @racket[failure-thunk] argument.}]}
 
 
 @defform[(define-c id lib-expr type-expr)]{
 
-Defines @racket[id] behave like a Racket binding, but @racket[id] is
-actually redirected through a parameter-like procedure created by
-@racket[make-c-parameter]. The @racket[id] is used both for the Racket
-binding and for the foreign name.}
+将 @racket[id] 定义为类似 Racket 绑定，但实际上 @racket[id] 被重定向到由 @racket[make-c-parameter] 创建的参数类过程。@racket[id] 同时用于 Racket 绑定和 foreign 名称。}
 
 @defproc[(ffi-obj-ref [objname (or/c string? bytes? symbol?)]
                       [lib (or/c ffi-lib? path-string? #f)]
                       [failure-thunk (or/c (-> any) #f) #f]) 
          any]{
 
-Returns a pointer for the specified foreign name, calls
-@racket[failure-thunk] if the name is not found, or raises an
-exception if @racket[failure-thunk] is @racket[#f].
+返回指定 foreign 名称的指针，若名称未找到则调用 @racket[failure-thunk]；若 @racket[failure-thunk] 为 @racket[#f]，则抛出异常。
 
-Normally, @racket[get-ffi-obj] should be used, instead.}
+通常应使用 @racket[get-ffi-obj]，而非此过程。}

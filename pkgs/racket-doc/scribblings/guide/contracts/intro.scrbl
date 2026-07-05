@@ -38,7 +38,7 @@ require the contracts library like this:
 
 @racketmod[
 racket/base
-(require racket/contract) (code:comment "now we can write contracts")
+(require racket/contract) (code:comment "现在可以编写合约了")
 
 (provide (contract-out [amount positive?]))
 
@@ -84,7 +84,7 @@ positive, combining the two contracts with @racket[and/c]:
 (provide (contract-out [amount (and/c number? positive?)]))
 ]
 
-@;{
+@; @;{
 
 ==================================================
 
@@ -118,7 +118,7 @@ Of course, this breaks assignment to the provided variable.
 
 <question title="Example" tag="example">
 
-<table src="simple.rkt">
+<table src="simple.example">
 <tr><td bgcolor="e0e0fa">
 <racket>
 ;; Language: Pretty Big
@@ -166,6 +166,7 @@ set amount to 4,
 the "client" module 
 requires functionality from a
 
+
 first reference to @racket[amount] (okay)
 a call to @racket[do-it], 
 second reference to @racket[amount] (fail)
@@ -180,7 +181,7 @@ violation. The contract violation takes place only when the client module
 the module boundary for a second time. 
 
 </question>
-}
+@;}
 
 @ctc-section{Experimenting with Contracts and Modules}
 

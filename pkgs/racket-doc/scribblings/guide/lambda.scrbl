@@ -3,18 +3,16 @@
 
 @(define greet-eval (make-base-eval))
 
-@title[#:tag "lambda"]{Functions@aux-elem{ (Procedures)}: @racket[lambda]}
+@title[#:tag "lambda"]{函数@aux-elem{ (Procedures)}: @racket[lambda]}
 
-A @racket[lambda] expression creates a function. In the simplest
-case, a @racket[lambda] expression has the form
+@racket[lambda] 表达式创建函数。在最简单的情况下，@racket[lambda] 表达式具有以下形式
 
 @specform[
 (lambda (arg-id ...)
   body ...+)
 ]
 
-A @racket[lambda] form with @math{n} @racket[_arg-id]s accepts
-@math{n} arguments:
+带有 @math{n} 个 @racket[_arg-id] 的 @racket[lambda] 形式接受 @math{n} 个参数：
 
 @interaction[
 ((lambda (x) x)
@@ -28,17 +26,14 @@ A @racket[lambda] form with @math{n} @racket[_arg-id]s accepts
 @;------------------------------------------------------------------------
 @section[#:tag "rest-args"]{Declaring a Rest Argument}
 
-A @racket[lambda] expression can also have the form
+@racket[lambda] 表达式还可以具有以下形式
 
 @specform[
 (lambda rest-id
   body ...+)
 ]
 
-That is, a @racket[lambda] expression can have a single
-@racket[_rest-id] that is not surrounded by parentheses. The resulting
-function accepts any number of arguments, and the arguments are put
-into a list bound to @racket[_rest-id].
+即，@racket[lambda] 表达式可以具有单个不被括号包围的 @racket[_rest-id]。生成的函数接受任意数量的参数，参数被放入绑定到 @racket[_rest-id] 的列表中。
 
 @examples[
 ((lambda x x)
@@ -48,8 +43,7 @@ into a list bound to @racket[_rest-id].
  1 2 3)
 ]
 
-Functions with a @racket[_rest-id] often use @racket[apply] to call
-another function that accepts any number of arguments.
+带有 @racket[_rest-id] 的函数通常使用 @racket[apply] 来调用另一个接受任意数量参数的函数。
 
 @guideother{@secref["apply"] describes @racket[apply].}
 
@@ -62,17 +56,14 @@ another function that accepts any number of arguments.
 (max-mag 1 -2 0)
 ]
 
-The @racket[lambda] form also supports required arguments combined
-with a @racket[_rest-id]:
+@racket[lambda] 形式还支持必需参数与 @racket[_rest-id] 的组合：
 
 @specform[
 (lambda (arg-id ...+ . rest-id)
   body ...+)
 ]
 
-The result of this form is a function that requires at least as many
-arguments as @racket[_arg-id]s, and also accepts any number of
-additional arguments.
+此形式的结果函数要求至少有 @racket[_arg-id]s 数量的参数，并接受任意数量的附加参数。
 
 @defexamples[
 (define max-mag
@@ -83,17 +74,12 @@ additional arguments.
 (max-mag)
 ]
 
-A @racket[_rest-id] variable is sometimes called a @deftech{rest
-argument}, because it accepts the ``rest'' of the function arguments.
-A function with a rest argument is sometimes called a @deftech{variadic} function,
-with elements in the rest argument called variadic arguments.
+@racket[_rest-id] 变量有时被称为 @deftech{rest argument}，因为它接受函数参数的"rest"。带 rest 参数的函数有时被称为 @deftech{variadic} 函数，rest 参数中的元素称为 variadic arguments。
 
 @;------------------------------------------------------------------------
 @section{Declaring Optional Arguments}
 
-Instead of just an identifier, an argument (other than a rest
-argument) in a @racket[lambda] form can be specified with an
-identifier and a default value:
+不仅限于标识符，@racket[lambda] 形式中的参数（除 rest 参数外）可以指定标识符和默认值：
 
 @specform/subs[
 (lambda gen-formals
@@ -105,11 +91,7 @@ identifier and a default value:
       [arg-id default-expr]])
 ]{}
 
-An argument of the form @racket[[arg-id default-expr]] is
-optional. When the argument is not supplied in an application,
-@racket[_default-expr] produces the default value. The
-@racket[_default-expr] can refer to any preceding @racket[_arg-id],
-and every following @racket[_arg-id] must have a default as well.
+@racket[[arg-id default-expr]] 形式的参数是可选的。当应用不提供该参数时，@racket[_default-expr] 产生默认值。@racket[_default-expr] 可以引用任何先前的 @racket[_arg-id]，每个后续的 @racket[_arg-id] 必须有默认值。
 
 @defexamples[
 (define greet
@@ -133,10 +115,7 @@ and every following @racket[_arg-id] must have a default as well.
 
 @section[#:tag "lambda-keywords"]{Declaring Keyword Arguments}
 
-A @racket[lambda] form can declare an argument to be passed by
-keyword, instead of position. Keyword arguments can be mixed with
-by-position arguments, and default-value expressions can be supplied
-for either kind of argument:
+@racket[lambda] 形式可以声明按关键字传递的参数，而非位置传递。关键字参数可以与位置参数混合使用，可以为两种类型的参数提供默认值表达式：
 
 @guideother{@secref["keyword-args"] introduces function
 calls with keywords.}
@@ -153,11 +132,7 @@ calls with keywords.}
       (code:line arg-keyword [arg-id default-expr])])
 ]{}
 
-An argument specified as @racket[(code:line _arg-keyword _arg-id)] is
-supplied by an application using the same @racket[_arg-keyword].  The
-position of the keyword--identifier pair in the argument list does not
-matter for matching with arguments in an application, because it will
-be matched to an argument value by keyword instead of by position.
+以 @racket[(code:line _arg-keyword _arg-id)] 指定的参数由应用使用相同的 @racket[_arg-keyword] 提供。关键字标识符对在参数列表中的位置对于匹配应用中的参数无关紧要，因为它是通过关键字而非位置进行匹配的。
 
 @def+int[
 (define greet
@@ -168,8 +143,7 @@ be matched to an argument value by keyword instead of by position.
 (greet #:last "Doe" "John")
 ]
 
-An @racket[(code:line _arg-keyword [_arg-id _default-expr])] argument
-specifies a keyword-based argument with a default value.
+@racket[(code:line _arg-keyword [_arg-id _default-expr])] 参数指定带默认值的关键字参数。
 
 @defexamples[
 #:eval greet-eval
@@ -183,14 +157,7 @@ specifies a keyword-based argument with a default value.
 (greet "Karl" #:last "Marx" #:hi "Guten Tag")
 ]
 
-The @racket[lambda] form does not directly support the creation
-of a function that accepts ``rest'' keywords. To construct a
-function that accepts all keyword arguments, use
-@racket[make-keyword-procedure]. The function supplied to
-@racket[make-keyword-procedure] receives keyword arguments
-through parallel lists in the first two (by-position) arguments,
-and then all by-position arguments from an application as the
-remaining by-position arguments.
+@racket[lambda] 形式不直接支持创建接受"rest"关键字的函数。要构造接受所有关键字参数的函数，请使用 @racket[make-keyword-procedure]。提供给 @racket[make-keyword-procedure] 的关键字参数在前两个（位置）参数中通过并行列表接收，然后是来自应用的所有位置参数作为其余的位置参数。
 
 @guideother{@secref["apply"] introduces @racket[keyword-apply].}
 
@@ -209,9 +176,7 @@ remaining by-position arguments.
 @;------------------------------------------------------------------------
 @section[#:tag "case-lambda"]{Arity-Sensitive Functions: @racket[case-lambda]}
 
-The @racket[case-lambda] form creates a function that can have
-completely different behaviors depending on the number of arguments
-that are supplied. A case-lambda expression has the form
+@racket[case-lambda] 形式创建根据提供的参数数量可以具有完全不同行为的函数。case-lambda 表达式具有以下形式
 
 @specform/subs[
 (case-lambda
@@ -222,10 +187,8 @@ that are supplied. A case-lambda expression has the form
           (arg-id ...+ . rest-id)])
 ]
 
-where each @racket[[_formals _body ...+]] is analogous to @racket[(lambda
-_formals _body ...+)]. Applying a function produced by
-@racket[case-lambda] is like applying a @racket[lambda] for the first
-case that matches the number of given arguments.
+其中每个 @racket[[_formals _body ...+]] 类比于 @racket[(lambda
+_formals _body ...+)]。应用 @racket[case-lambda] 产生的函数类似应用第一个匹配给定参数数量的 @racket[lambda]。
 
 @defexamples[
 (define greet
@@ -238,8 +201,7 @@ case that matches the number of given arguments.
 (greet)
 ]
 
-A @racket[case-lambda] function cannot directly support optional or
-keyword arguments.
+@racket[case-lambda] 函数不能直接支持可选或关键字参数。
 
 @; ----------------------------------------------------------------------
 

@@ -29,12 +29,9 @@ with a partial compatibility library that redirects to this one.}
 @defproc[(iid? [v any/c]) boolean?]
 )]{
 
-Returns @racket[#t] if @racket[v] is a structure representing a
-@tech{GUID}, @racket[#f] otherwise. The @racket[clsid?] and
-@racket[iid?] functions are the same as @racket[guid?].
+如果 @racket[v] 是表示 @tech{GUID} 的结构体，则返回 @racket[#t]，否则返回 @racket[#f]。@racket[clsid?] 和 @racket[iid?] 函数与 @racket[guid?] 相同。
 
-A @tech{GUID} corresponds an a @racket[_GUID] structure at the unsafe
-layer.}
+@tech{GUID} 对应于底层的不安全层 @racket[_GUID] 结构体。}
 
 @deftogether[(
 @defproc[(string->guid [str string?]) guid?]
@@ -42,35 +39,26 @@ layer.}
 @defproc[(string->iid [str string?]) iid?]
 )]{
 
-Converts a string of the form
-@racket["{00000000-0000-0000-0000-0000000000}"], where each @tt{0} can
-be a hexadecimal digit, to a @tech{GUID}. If @racket[str] does not
-have te expected form, the @racket[exn:fail] exception is raised.
+将形如 @racket["{00000000-0000-0000-0000-0000000000}"] 的字符串（其中每个 @tt{0} 可为十六进制数字）转换为 @tech{GUID}。若 @racket[str] 格式不符，则抛出 @racket[exn:fail] 异常。
 
-The @racket[string->clsid] and @racket[string->iid] functions are the
-same as @racket[string->guid].}
+@racket[string->clsid] 和 @racket[string->iid] 函数与 @racket[string->guid] 等价。}
 
 @defproc[(guid->string [g guid?]) string?]{
 
-Converts a @tech{GUID} to its string form.}
+将 @tech{GUID} 转换为其字符串形式。}
 
 @defproc[(guid=? [g1 guid?] [g2 guid?]) boolean?]{
 
-Determines whether @racket[g1] and @racket[g2] represent the same @tech{GUID}.}
+判断 @racket[g1] 和 @racket[g2] 是否表示相同的 @tech{GUID}。}
 
 @deftogether[(
 @defproc[(progid->clsid [progid string?]) clsid?]
 @defproc[(clsid->progid [clsid clsid?]) (or/c string? #f)]
 )]{
 
-Converts a @tech{ProgID} to a @tech{CLSID} or vice versa. Not evey
-@tech{COM class} has a @tech{ProgID}, so the result of
-@racket[clsid->progid] can be @racket[#f].
+将 @tech{ProgID} 转换为 @tech{CLSID} 或反之。并非每个 @tech{COM class} 都有 @tech{ProgID}，因此 @racket[clsid->progid] 的结果可能为 @racket[#f]。
 
-The @racket[progid->clsid] function accepts a versionless
-@tech{ProgID}, in which case it produces the @tech{CLSID} of the most
-recent available version. The @racket[clsid->progid] function always
-produces a @tech{ProgID} with its version.}
+@racket[progid->clsid] 接受无版本信息的 @tech{ProgID}，此时它生成最新可用版本的 @tech{CLSID}。@racket[clsid->progid] 始终生成带版本信息的 @tech{ProgID}。}
 
 @; ----------------------------------------
 
@@ -78,91 +66,66 @@ produces a @tech{ProgID} with its version.}
 
 @defproc[(com-object? [obj com-object?]) boolean?]{
 
-  Returns @racket[#t] if the argument represents a @tech{COM object}, @racket[#f]
-  otherwise.}
+  若参数表示一个 @tech{COM object}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(com-create-instance [clsid-or-progid (or/c clsid? string?)]
                               [where (or/c 'local 'remote string?) 'local])
          com-object?]{
 
-  Returns an instance of the @tech{COM class} specified by
-  @racket[clsid-or-progid], which is either a @tech{CLSID} or a
-  @tech{ProgID}.
+  返回 @racket[clsid-or-progid] 指定的 @tech{COM class} 的实例，其中 @racket[clsid-or-progid] 可为 @tech{CLSID} 或 @tech{ProgID}。
 
-  The optional @racket[where] argument indicates a location for
-  running the instance, and may be @racket['local], @racket['remote],
-  or a string indicating a machine name.  See @secref["remote"] for
-  more information.
+  可选参数 @racket[where] 指示实例的运行位置，可为 @racket['local]、@racket['remote] 或表示机器名称的字符串。详见 @secref["remote"]。
 
-  An object can be created this way for any COM class, but functions
-  such as @racket[com-invoke] work only if the object supports the
-  @cpp{IDispatch} COM automation interface.
+  任何 COM 类均可通过此方式创建对象，但 @racket[com-invoke] 等函数仅在对象支持 @cpp{IDispatch} COM 自动化接口时才能正常工作。
 
- The resulting object is registered with the current custodian, which
- retains a reference to the object until it is released with
- @racket[com-release] or the custodian is shut down.}
+ 所得对象会注册到当前 custodian，后者保留对该对象的引用，直到通过 @racket[com-release] 释放或 custodian 关闭为止。}
 
 
 @defproc[(com-release [obj com-object?]) void?]{
 
-Releases the given @tech{COM object}. The given @racket[obj] is
-subsequently unusable, and the underlying COM object is destroyed
-unless its reference count has been incremented (via COM methods or
-unsafe operations).
+释放指定的 @tech{COM object}。释放后 @racket[obj] 不可再使用，且底层 COM 对象将被销毁（除非其引用计数已通过 COM 方法或不安全操作增加）。
 
-If @racket[obj] has already been released, @racket[com-release] has
-no effect.}
+若 @racket[obj] 已被释放，则 @racket[com-release] 无效果。}
 
 
 @defproc[(com-get-active-object [clsid-or-progid (or/c clsid? string?)])
          com-object?]{
 
-  Like @racket[com-create-instance], but gets an existing
-  active object (always local) instead of creating a new one.}
+  类似 @racket[com-create-instance]，但获取已有的活动对象（始终为本地对象）而非创建新对象。}
 
 
 @defproc[(com-object-clsid [obj com-object?]) clsid?]{
 
-  Returns the @racket{CLSID} of the COM class instantiated by
-  @racket[obj], or raises an error if the COM class is not known.}
+  返回实例化 @racket[obj] 的 COM 类的 @racket{CLSID}，若 COM 类未知则报错。}
 
 
 @defproc[(com-object-set-clsid! [obj com-object?] [clsid clsid?]) void?]{
 
-  Sets the COM @tech{CLSID} for @racket[obj] to @racket[clsid]. This
-  is useful when COM event-handling procedures can obtain only
-  ambiguous information about the object's COM class.}
+  设置 @racket[obj] 的 COM @tech{CLSID}。当 COM 事件处理过程只能获取对象 COM 类的模糊信息时，此函数很有用。}
 
 
 @defproc[(com-object-eq? [obj1 com-object?] [obj2 com-object?])
          boolean?]{
 
-  Returns @racket[#t] if @racket[obj1] and @racket[obj2] refer to the
-  same @tech{COM object}, @racket[#f] otherwise.
+  若 @racket[obj1] 和 @racket[obj2] 指向同一个 @tech{COM object}，则返回 @racket[#t]，否则返回 @racket[#f]。
 
-  If two references to a COM object are the same according to
-  @racket[com-object-eq?], then they are also the same according to
-  @racket[equal?]. Two @racket[com-object-eq?]  references are not
-  necessarily @racket[eq?], however.}
+  若两个 COM 对象引用根据 @racket[com-object-eq?] 判断为相同，则它们在 @racket[equal?] 意义上也相同。但两个 @racket[com-object-eq?] 判断为相同的引用不一定是 @racket[eq?] 的。}
 
 
 @defproc[(com-type? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] represents reflective information
-about a COM object's type, @racket[#f] otherwise.}
+若 @racket[v] 表示某个 COM 对象类型的反射信息，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(com-object-type [obj com-object?]) com-type?]{
 
-Returns a representation of a COM object's type that is independent of
-the object itself.}
+返回独立于对象本身的 COM 对象类型表示。}
 
 
 @defproc[(com-type=? [t1 com-type?] [t2 com-type?]) boolean?]{
 
-Returns @racket[#t] if @racket[t1] and @racket[t2] represent the same
-type information, @racket[#f] otherwise.}
+若 @racket[t1] 和 @racket[t2] 表示相同类型信息，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @; ----------------------------------------
@@ -172,8 +135,7 @@ type information, @racket[#f] otherwise.}
 @defproc[(com-methods [obj/type (or/c com-object? com-type?)]) 
          (listof string?)]{
 
-   Returns a list of strings indicating the names of methods on
-   @racket[obj/type].}
+   返回指示 @racket[obj/type] 中方法名称的字符串列表。}
 
 
 @defproc[(com-method-type [obj/type (or/c com-object? com-type?)]
@@ -181,38 +143,25 @@ type information, @racket[#f] otherwise.}
          (list/c '-> (listof type-description?) 
                      type-description?)]{
 
-  Returns a list indicating the type of the specified method in
-  @racket[obj/type]. The list after the @racket['->] represents the
-  argument types, and the final value represents the result type. See
-  @secref["com-types"] for more information.}
+  返回指示 @racket[obj/type] 中指定方法类型的列表。@racket['->] 之后的列表表示参数类型，最后一个值表示返回值类型。详见 @secref["com-types"]。}
 
 
 @defproc[(com-invoke [obj com-object?] [method-name string?] [v any/c] ...)
          any/c]{
 
-  Invokes @racket[method-name] on @racket[obj] with @racket[v]s as the
-  arguments. The special value @racket[com-omit] may be used for
-  optional arguments, which useful when values are supplied for
-  arguments after the omitted argument(s).
+  以 @racket[v]s 为参数，在 @racket[obj] 上调用 @racket[method-name]。特殊值 @racket[com-omit] 可用于省略可选参数，在为省略参数之后的参数提供值时很有好。
 
-  The types of arguments are determined via @racket[com-method-type],
-  if possible, and @racket[type-describe] wrappers in the @racket[v]s
-  are simply replaced with the values that they wrap. If the types are
-  not available from @racket[com-method-type], then types are inferred
-  for each @racket[v] with attention to descriptions in any
-  @racket[type-describe] wrappers in @racket[v].}
+  参数类型尽可能通过 @racket[com-method-type] 确定，@racket[v] 中的 @racket[type-describe] 包装器将被替换为其包装的值。若无法从 @racket[com-method-type] 获得类型，则根据 @racket[v] 中任何 @racket[type-describe] 包装器的描述推断每个 @racket[v] 的类型。}
 
 
 @defthing[com-omit any/c]{
 
-A constant for use with @racket[com-invoke] in place of an optional
-argument.}
+与 @racket[com-invoke] 配合使用的常量，用于替代可选参数。}
 
 
 @defproc[(com-omit? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is @racket[com-omit], @racket[#f]
-otherwise.
+若 @racket[v] 为 @racket[com-omit]，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.3.0.3"]}
 
@@ -224,57 +173,43 @@ otherwise.
 @defproc[(com-get-properties [obj/type (or/c com-object? com-type?)])
          (listof string?)]{
 
-  Returns a list of strings indicating the names of readable
-  properties in @racket[obj/type].}
+  返回指示 @racket[obj/type] 中可读属性名称的字符串列表。}
 
 
 @defproc[(com-get-property-type [obj/type (or/c com-object? com-type?)]
                                 [property-name string?])
          (list/c '-> '() type-description?)]{
 
-  Returns a type for @racket[property-name] like a result of
-  @racket[com-method], where the result type corresponds to the
-  property value type. See @secref["com-types"] for information on the
-  symbols.}
+  返回 @racket[property-name] 的类型，类似于 @racket[com-method] 的结果，其中结果类型对应于属性值类型。关于符号含义，见 @secref["com-types"]。}
 
 
 @defproc[(com-get-property [obj com-object?] 
                            [property (or/c string?
-                                           (cons/c string? list?))]
+                                           (cons/c string? list?))] 
                            ...+)
          any/c]{
 
-  Returns the value of the final property by following the indicated
-  path of @racket[property]s, where each intermediate property must be a
-  COM object.
+  通过 @racket[property] 路径返回最终属性的值，其中每个中间属性必须为 COM 对象。
 
-  Each @racket[property] is either a property-name string or a list
-  that starts with a property-name string and continues with arguments
-  for a parameterized property.}
+  每个 @racket[property] 是一个属性名字符串或以属性名字符串开头并包含参数化属性参数的列表。}
+
 
 @defproc[(com-get-property* [obj com-object?] [property string?] [v any/c] ...)
          any/c]{
 
-  Returns the value of a parameterized property, which behaves like a
-  method and accepts the @racket[v]s as arguments (like
-  @racket[com-invoke]).  When no @racket[v]s are provided,
-  @racket[com-get-property*] is the same as @racket[com-get-property].}
+  返回一个参数化属性的值，其行为类似方法，接受 @racket[v]s 作为参数（类似 @racket[com-invoke]）。若未提供 @racket[v]s，则 @racket[com-get-property*] 等同于 @racket[com-get-property]。}
 
 @defproc[(com-set-properties [obj/type (or/c com-object? com-type?)]) 
          (listof string?)]{
 
-  Returns a list of strings indicating the names of writeable
-  properties in @racket[obj/type].}
+  返回指示 @racket[obj/type] 中可写属性名称的字符串列表。}
 
 
 @defproc[(com-set-property-type [obj/type (or/c com-object? com-type?)] 
                                 [property-name string?])
          (list/c '-> (list/c type-description?) 'void)]{
 
-  Returns a type for @racket[property-name] like a result of
-  @racket[com-method], where the sole argument type corresponds to the
-  property value type. See @secref["com-types"] for
-  information on the symbols.}
+  返回 @racket[property-name] 的类型，类似于 @racket[com-method] 的结果，其中唯一参数类型对应于属性值类型。关于符号含义，见 @secref["com-types"]。}
 
 
 @defproc[(com-set-property! [obj com-object?]
@@ -283,19 +218,9 @@ otherwise.
                             [v any/c])
          void?]{
 
-   Sets the value of the final property in @racket[obj] to @racket[v]
-   by following the @racket[property]s, where the value of each
-   intermediate property must be a COM object. A @racket[property]
-   can be a list instead of a string to represent a parameterized property
-   and its arguments.
+  通过 @racket[property] 链将 @racket[obj] 的最终属性值设置为 @racket[v]，其中每个中间属性的值必须为 COM 对象。@racket[property] 可为列表而非字符串，以表示参数化属性及其参数。
 
-   The type of the property is determined via
-   @racket[com-property-type], if possible, and
-   @racket[type-describe] wrappers in @racket[v] are then replaced
-   with the values that they wrap. If the type is not available from
-   @racket[com-property-type], then a type is inferred for @racket[v]
-   with attention to the descriptions in any @racket[type-describe]
-   wrappers in @racket[v].}
+  属性类型尽可能通过 @racket[com-property-type] 确定，@racket[v] 中的 @racket[type-describe] 包装器随后被替换为其包装的值。若无法从 @racket[com-property-type] 获得类型，则根据 @racket[v] 中任何 @racket[type-describe] 包装器的描述推断 @racket[v] 的类型。}
 
 @; ----------------------------------------
 
@@ -304,32 +229,24 @@ otherwise.
 @defproc[(com-events [obj/type (or/c com-object? com-type?)]) 
          (listof string?)]{
 
-   Returns a list of strings indicating the names of events on
-   @racket[obj/type].}
+   返回指示 @racket[obj/type] 中事件名称的字符串列表。}
 
 
 @defproc[(com-event-type [obj/type (or/c com-object? com-type?)]
                          [event-name string?])
          (list/c '-> (listof type-description?) 'void)]{
 
-  Returns a list indicating the type of the specified events in
-  @racket[obj/type]. The list after the @racket['->] represents the
-  argument types. See @secref["com-types"] for more information.}
+  返回指示 @racket[obj/type] 中指定事件类型的列表。@racket['->] 之后的列表表示参数类型。详见 @secref["com-types"]。}
 
 
 @defproc[(com-event-executor? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @deftech{COM event executor},
-which queues event callbacks. A @tech{COM event executor}
-@racket[_com-ev-ex] is a synchronizable event in the sense of
-@racket[sync], and @racket[(sync _com-ev-ex)] returns a thunk for a
-ready callback.}
+若 @racket[v] 是一个 @deftech{COM event executor}（用于排队事件回调），则返回 @racket[#t]。@tech{COM event executor} @racket[_com-ev-ex] 在 @racket[sync] 意义下是可同步事件，@racket[(sync _com-ev-ex)] 返回一个准备回调的 thunk。}
 
 
 @defproc[(com-make-event-executor) com-event-executor?]{
 
-Creates a fresh @tech{COM event executor} for use with
-@racket[com-register-event-callback].}
+创建一个新的 @tech{COM event executor}，供 @racket[com-register-event-callback] 使用。}
 
 
 @defproc[(com-register-event-callback [obj com-object?]
@@ -338,26 +255,18 @@ Creates a fresh @tech{COM event executor} for use with
                                       [com-ev-ex com-event-executor?])
          void?]{
 
-Registers a callback for the event named by @racket[name] in
-@racket[obj]. When the event fires, an invocation of @racket[proc] to
-event arguments (which depends on @racket[obj] and @racket[name]) is
-queued in @racket[com-ev-ex]. Synchronizing on @racket[com-ev-ex]
-produces a thunk that applies @racket[proc] to the event arguments and
-returns the result.
+为 @racket[obj] 中名为 @racket[name] 的事件注册回调。当事件触发时，将一次以事件参数调用 @racket[proc]（取决于 @racket[obj] 和 @racket[name]）的操作排队到 @racket[com-ev-ex] 中。对 @racket[com-ev-ex] 进行同步将产生一个将 @racket[proc] 应用于事件参数并返回结果的 thunk。
 
-Only one callback can be registered for each @racket[obj] and
-@racket[name] combination.
+每个 @racket[obj] 和 @racket[name] 组合只能注册一个回调。
 
-Registration of event callbacks relies on prior registration of the
-COM class implemented by @filepath{myssink.dll} as distributed with
-Racket. (The DLL is the same for all Racket versions.)}
+事件回调的注册依赖于随 Racket 分发的 @filepath{myssink.dll} 所实现的 COM 类的预先注册。（所有 Racket 版本的 DLL 相同。）}
 
 
 @defproc[(com-unregister-event-callback [obj com-object?]
                                         [name string?])
          void?]{
 
-Removes any existing callback for @racket[name] in @racket[obj].}
+移除 @racket[obj] 中 @racket[name] 的任何已有回调。}
 
 
 @; ----------------------------------------
@@ -366,19 +275,16 @@ Removes any existing callback for @racket[name] in @racket[obj].}
 
 @defproc[(com-enumerate-to-list [obj com-object?]) list?]{
 
-Produces the elements that @racket[obj] would generate as the
-driver of a for-each loop in Visual Basic or PowerShell.
+生成 @racket[obj] 作为 Visual Basic 或 PowerShell 中 for-each 循环驱动程序时会产生的元素。
 
-A call @racket[(com-enumerate-to-list obj)] is equivalent to
-@racket[(com-enumeration-to-list (com-get-property obj "_NewEnum"))].
+调用 @racket[(com-enumerate-to-list obj)] 等价于 @racket[(com-enumeration-to-list (com-get-property obj "_NewEnum"))]。
 
 @history[#:added "6.2"]}
 
 
 @defproc[(com-enumeration-to-list [obj com-object?]) list?]{
 
-Given a COM object that implements @cpp{IEnumVARIANT}, extracts the
-enumerated values into a list.
+给定一个实现 @cpp{IEnumVARIANT} 的 COM 对象，将枚举值提取到列表中。
 
 @history[#:added "6.2"]}
 
@@ -392,109 +298,85 @@ enumerated values into a list.
 @defproc[(com-object-get-idispatch [obj com-object?]) com-idispatch?]
 )]{
 
-Extracts an @cpp{IUnknown} or @cpp{IDispatch} pointer from
-@racket[obj]. The former succeeds for any @tech{COM object} that has
-not been released via @racket[com-release]. The latter succeeds
-only when the @tech{COM object} supports @cpp{IDispatch}, otherwise
-@racket[exn:fail] is raised.}
+从 @racket[obj] 提取 @cpp{IUnknown} 或 @cpp{IDispatch} 指针。前者对任何未通过 @racket[com-release] 释放的 @tech{COM object} 都可成功；后者仅在 @tech{COM object} 支持 @cpp{IDispatch} 时成功，否则抛出 @racket[exn:fail]。}
 
 
 @defproc[(com-iunknown? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] corresponds to an unsafe
-@racket[_IUnknown-pointer], @racket[#f] otherwise. Every @tech{COM
-interface} extends @cpp{IUnknown}, so @racket[com-iunknown?] returns
-@racket[#t] for every interface pointers.}
+若 @racket[v] 对应于不安全的 @racket[_IUnknown-pointer]，则返回 @racket[#t]，否则返回 @racket[#f]。每个 @tech{COM interface} 都扩展自 @cpp{IUnknown}，因此对所有接口指针，@racket[com-iunknown?] 都返回 @racket[#t]。}
 
 
 @defproc[(com-idispatch? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] corresponds to an unsafe
-@cpp{IDispatch}, @racket[#f] otherwise.}
+若 @racket[v] 对应于不安全的 @cpp{IDispatch}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @; ----------------------------------------
 
 @section[#:tag "remote"]{Remote COM servers (DCOM)}
 
-The optional @racket[_where] argument to @racket[com-create-instance]
-can be @racket['remote].  In that case, the server instance is run at
-the location given by the Registry key
+@racket[com-create-instance] 的可选 @racket[_where] 参数可以是 @racket['remote]。此时，服务器实例在由注册表项
 
 @centerline{@tt{HKEY_CLASSES_ROOT\AppID\@nonterm{CLSID}\RemoteServerName}}
 
-where @nonterm{CLSID} is the CLSID of the application.  This key may
-be set using the @exec{dcomcnfg} utility.  From @exec{dcomcnfg}, pick
-the application to be run on the @onscreen{Applications} tab, then
-click on the @onscreen{Properties} button.  On the @onscreen{Location}
-tab, choose @onscreen{Run application on the following computer}, and
-enter the machine name.
+指定的位置运行，其中 @nonterm{CLSID} 是应用程序的 CLSID。此键可使用 @exec{dcomcnfg} 工具设置。在 @exec{dcomcnfg} 中，在 @onscreen{Applications} 选项卡上选择要在的应用程序，然后点击 @onscreen{Properties} 按钮。在 @onscreen{Location} 选项卡上，选择 @onscreen{Run application on the following computer}，并输入机器名。
 
-To run a COM remote server, the registry on the client machine must
-contain an entry at
+要运行 COM 远程服务器，客户端机器的注册表必须包含以下项：
 
 @centerline{@tt{HKEY_CLASSES_ROOT\CLSID\@nonterm{CLSID}}}
 
-where @nonterm{CLSID} is the CLSID for the server.  The server
-application itself need not be installed on the client machine.
+其中 @nonterm{CLSID} 是服务器的 CLSID。服务器应用程序本身无需安装在客户端机器上。
 
-There are a number of configuration issues relating to DCOM. See
+DCOM 有许多配置问题。有关如何设置 DCOM 客户端和服务器的更多信息，参见
 
 @centerline{@link["https://web.archive.org/web/20061013184653/www.distribucon.com/dcom95.html"]{http://www.distribucon.com/dcom95.html}}
-
-for more information on how to setup client and server machines for DCOM.
 
 @; ----------------------------------------
 
 @section[#:tag "com-types"]{COM Types}
 
-In the result of a function like @racket[com-method-type], symbols are
-used to represent various atomic types:
+在 @racket[com-method-type] 等函数的结果中，符号用于表示各种原子类型：
 
 @itemlist[
 
- @item{@racket['int] --- a 32-bit signed integer}
+ @item{@racket['int] --- 32 位有符号整数}
 
- @item{@racket['unsigned-int] --- a 32-bit unsigned integer}
+ @item{@racket['unsigned-int] --- 32 位无符号整数}
 
- @item{@racket['short-int] --- a 16-bit signed integer}
+ @item{@racket['short-int] --- 16 位有符号整数}
 
- @item{@racket['unsigned-short] --- a 16-bit unsigned integer}
+ @item{@racket['unsigned-short] --- 16 位无符号整数}
 
- @item{@racket['signed-char] --- an 8-bit signed integer}
+ @item{@racket['signed-char] --- 8 位有符号整数}
 
- @item{@racket['char] --- an 8-bit unsigned integer}
+ @item{@racket['char] --- 8 位无符号整数}
 
- @item{@racket['long-long] --- a 64-bit signed integer}
+ @item{@racket['long-long] --- 64 位有符号整数}
 
- @item{@racket['unsigned-long-long] --- a 64-bit unsigned integer}
+ @item{@racket['unsigned-long-long] --- 64 位无符号整数}
 
- @item{@racket['float] --- a 32-bit floating-point number}
+ @item{@racket['float] --- 32 位浮点数}
 
- @item{@racket['double] --- a 64-bit floating-point number}
+ @item{@racket['double] --- 64 位浮点数}
 
- @item{@racket['currency] --- an exact number that, when multiplied by 10,000,
-                              is a 64-bit signed integer}
+ @item{@racket['currency] --- 精确数，乘以 10,000 后为 64 位有符号整数}
 
- @item{@racket['boolean] --- a boolean}
+ @item{@racket['boolean] --- 布尔值}
 
- @item{@racket['string] --- a string}
+ @item{@racket['string] --- 字符串}
 
- @item{@racket['date] --- a @racket[date] or @racket[date*]; when converting to
-       a @racket[date*], the timezone is reported as @racket["UTC"] and the
-       @racket[year-day] field is @racket[0]}
+ @item{@racket['date] --- @racket[date] 或 @racket[date*]；转换为 @racket[date*] 时，时区报告为 @racket["UTC"]，@racket[year-day] 字段为 @racket[0]}
 
- @item{@racket['com-object] --- a @tech{COM object} as in @racket[com-object?]}
+ @item{@racket['com-object] --- @racket[com-object?] 所描述的 @tech{COM object}}
 
- @item{@racket['iunknown] --- like @racket['com-object], but also accepts an @cpp{IUnknown} pointer as in @racket[com-iunknown?]}
+ @item{@racket['iunknown] --- 类似 @racket['com-object]，但也接受 @racket[com-iunknown?] 所描述的 @cpp{IUnknown} 指针}
 
- @item{@racket['com-enumeration] --- a 32-bit signed integer}
+ @item{@racket['com-enumeration] --- 32 位有符号整数}
 
- @item{@racket['any] --- any of the above, or an array when not nested in an array type}
+ @item{@racket['any] --- 上述任何类型，或数组（当不嵌套在数组类型中时）}
 
- @item{@racket['...] --- treated like @racket['any], but when it appears at the end of the sequence of types for
-                         arguments, allows the preceding type 0 or more times}
+ @item{@racket['...] --- 类似 @racket['any]，但当出现在参数类型序列末尾时，允许前面的类型出现 0 次或多次}
 
- @item{@racket['void] --- no value}
+ @item{@racket['void] --- 无值}
 
 ]
 
@@ -547,41 +429,28 @@ description as above, @racket[#f] otherwise.}
          type-description?]
 )]{
 
-The @racket[type-described?] predicate recognizes wrappers produced
-with @racket[type-describe], and @racket[type-described-value] and
-@racket[type-described-description] extract the value and description
-parts of a @racket[type-describe] value.
+@racket[type-described?] 谓词识别由 @racket[type-describe] 生成的包装器，@racket[type-described-value] 和 @racket[type-described-description] 用于提取 @racket[type-describe] 值的值和描述部分。
 
-A @racket[type-describe] wrapper combines a base value with a type
-description. The description is used instead of an automatically
-inferred COM argument type when no type is available for from COM
-automation a method for @racket[com-invoke] or a property for
-@racket[com-set-property!]. A wrapper can be placed on an immediate
-value, or it can be on a value within a box or vector.}
+@racket[type-describe] 包装器将基础值与类型描述组合。当 COM 自动化中 @racket[com-invoke] 的方法或 @racket[com-set-property!] 的属性无法获得类型信息时，使用该描述代替自动推断的 COM 参数类型。包装器可直接用于值，也可用于 box 或 vector 内的值。}
 
 @; ----------------------------------------
 
 @section{Class Display Names}
 
-@defmodule[ffi/com-registry]{The @racketmodname[ffi/com-registry]
-library provides a mapping from @tech{coclass} names to @tech{CLSIDs}
-for compatibility with the older @tech{MysterX} interface.}
+@defmodule[ffi/com-registry]{@racketmodname[ffi/com-registry]
+库提供了 @tech{coclass} 名称到 @tech{CLSIDs} 的映射，以兼容旧的 @tech{MysterX} 接口。}
 
-A @deftech{coclass} name corresponds to the display name of a COM
-class; the display name is not uniquely mapped to a COM class, and
-some COM classes have no display name.
+@deftech{coclass} 名称对应于 COM 类的显示名称；显示名称与 COM 类并非一一映射，某些 COM 类没有显示名称。
 
 
 @defproc[(com-all-coclasses) (listof string?)]{
 
-Returns a list of @tech{coclass} strings for all @tech{COM class}es
-registered on a system.}
+返回系统上注册的所有 @tech{COM class} 的 @tech{coclass} 字符串列表。}
 
 
 @defproc[(com-all-controls) (listof string?)]{
 
-Returns a list of @tech{coclass} strings for all COM classes in the
-system registry that have the @racket["Control"] subkey.}
+返回系统注册表中具有 @racket["Control"] 子键的所有 COM 类的 @tech{coclass} 字符串列表。}
 
 
 @deftogether[(
@@ -589,6 +458,4 @@ system registry that have the @racket["Control"] subkey.}
 @defproc[(clsid->coclass [clsid clsid?]) string?]
 )]{
 
-Converts a @tech{coclass} string to/from a @tech{CLSID}. This
-conversion is implemented by an enumeration an @tech{COM class}es from
-the system registry.}
+将 @tech{coclass} 字符串转换为 @tech{CLSID} 或反之。此转换通过枚举系统注册表中的 @tech{COM class} 实现。}

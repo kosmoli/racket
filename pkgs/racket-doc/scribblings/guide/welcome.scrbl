@@ -11,16 +11,15 @@ Depending on how you look at it, @bold{Racket} is
 
 @itemize[
 
- @item{a @defterm{programming language}---a dialect of Lisp and a
-       descendant of Scheme;
+ @item{一种 @defterm{programming language}——Lisp 的一种方言和 Scheme 的后裔；
 
        @margin-note{See @secref["dialects"] for more information on
        other dialects of Lisp and how they relate to Racket.}}
 
- @item{a @defterm{family} of programming languages---variants of
-       Racket, and more; or}
+ @item{一组编程@vdefterm{family}——Racket 的变体，或更广泛家族；或}
 
- @item{a set of @defterm{tools}---for using a family of programming languages.}
+ @item{一组 @defterm{tools}——用于使用一组编程@vdefterm{family}的工具集。}
+
 ]
 
 Where there is no room for confusion, we use simply @defterm{Racket}.
@@ -127,7 +126,7 @@ code:blank
 If calling @racket[(extract "the boy")] is part of the main action of
 your program, that would go in the @tech{definitions area}, too. But
 if it was just an example expression that you were using to explore
-@racket[extract], then you'd more likely leave the @tech{definitions
+@racket[extract], then you'd more likely leave the @deftech{definitions
 area} as above, click @onscreen{Run}, and then evaluate
 @racket[(extract "the boy")] in the @tech{REPL}.
 

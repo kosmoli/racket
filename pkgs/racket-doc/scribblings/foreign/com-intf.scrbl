@@ -25,53 +25,17 @@ FFI-based calls to COM object methods.}
               ([maybe-alloc-spec code:blank
                                  (code:line #:release-with-function function-id)
                                  (code:line #:release-with-method method-id)
-                                 #:releases])]{
+                                 #:releases)]{
 
-Defines @racket[_id] as an interface that extends @racket[_super-id],
-where @racket[_super-id] is often @racket[_IUnknown], and that
-includes methods named by @racket[method-id]. The @racket[_id] and
-@racket[_super-id] identifiers must start with an underscore. A
-@racket[@#,racket[_super-id]@#,racketidfont{_vt}] must also be defined
-for deriving a virtual-method table type.
+定义 @racket[_id] 为一个扩展 @racket[_super-id] 的接口，其中 @racket[_super-id] 通常为 @racket[_IUnknown]，并包含由 @racket[method-id] 命名的方法。@racket[_id] 和 @racket[_super-id] 标识符必须以下划线开头。@racket[@#,racket[_super-id]@#,racketidfont{_vt}] 也必须已定义，以生成虚方法表类型。
 
-The order of the @racket[method-id]s must match the specification of
-the @tech{COM interface}, not including methods inherited from
-@racket[_super-id]. Each method type produced by @racket[ctype-expr]
-that is not @racket[_fpointer] must be a function type whose first
-argument is the ``self'' pointer, usually constructed with
-@racket[_mfun] or @racket[_hmfun].
+@racket[method-id]s 的顺序必须与 @tech{COM interface} 规范匹配，但不包括从 @racket[_super-id] 继承的方法。由 @racket[ctype-expr] 生成的每个方法类型（非 @racket[_fpointer]）必须是一个函数类型，其第一个参数是 "self" 指针，通常使用 @racket[_mfun] 或 @racket[_hmfun] 构建。
 
-The @racket[define-com-interface] form binds @racket[_id],
-@racket[@#,racketvarfont{id}?], @racket[@#,racket[_id]-pointer],
-@racket[@#,racket[_id]@#,racketidfont{_}vt] (for the virtual-method
-table), @racket[@#,racket[_id]@#,racketidfont{_}vt-pointer], and
-@racket[method-id] for each method whose @racket[ctype-expr] is not
-@racket[_fpointer]. (In other words, use @racket[_fpointer] as a
-placeholder for methods of the interface that you do not need to
-call.) An instance of the interface will have type
-@racket[@#,racket[_id]-pointer]. Each defined @racket[method-id] is
-bound to a function-like macro that expects a
-@racket[@#,racket[_id]-pointer] as its first argument and the method
-arguments as the remaining arguments.
+@racket[define-com-interface] 形式绑定 @racket[_id]、@racket[@#,racketvarfont{id}?]、@racket[@#,racket[_id]-pointer]、@racket[@#,racket[_id]@#,racketidfont{_vt}]（虚方法表）、@racket[@#,racket[_id]@#,racketidfont{_vt-pointer]}，以及每个方法（@racket[ctype-expr] 非 @racket[_fpointer] 的）对应的 @racket[method-id]。（换句话说，对不需要调用的接口方法，使用 @racket[_fpointer] 作为占位符。）接口的实例类型为 @racket[@#,racket[_id]-pointer]。每个已定义的 @racket[method-id] 绑定到类函数宏，期望第一个参数为 @racket[@#,racket[_id]-pointer]，其余参数为方法参数。
 
-A @racket[maybe-alloc-spec] describes allocation and finalization
-information for a method along the lines of
-@racketmodname[ffi/unsafe/alloc].  If the @racket[maybe-alloc-spec] is
-@racket[#:release-with-function function-id], then
-@racket[function-id] is used to deallocate the result produced by the
-method, unless the result is explicitly deallocated before it becomes
-unreachable; for example, @racket[#:release-with-function Release] is
-suitable for a method that returns a COM interface reference that must
-be eventually released.  The @racket[#:release-with-method method-id]
-form is similar, except that the deallocator is a method on the same
-object as the allocating method (i.e., one of the other
-@racket[method-id]s or an inherited method). A @racket[#:releases]
-annotation indicates that a method is a deallocator (so that a value
-should not be automatically deallocated if it is explicitly
-deallocated using the method).
+@racket[maybe-alloc-spec] 描述方法的分配和终结化处理信息，类似于 @racketmodname[ffi/unsafe/alloc]。若 @racket[maybe-alloc-spec] 为 @racket[#:release-with-function function-id]，则使用 @racket[function-id] 来释放方法产生的结果，除非在该结果超出作用域之前已显式释放；例如，@racket[#:release-with-function Release] 适用于返回必须最终释放的 COM 接口引用的方法。@racket[#:release-with-method method-id] 形式类似，但释放器是同一对象上的一个方法（即其他 @racket[method-id] 或继承方法）。@racket[#:releases] 注解表明方法是释放器（因此，若值已显式通过方法释放，则不会自动释放）。
 
-See @secref["com-intf-example"] for an example using
-@racket[define-com-interface].}
+关于使用 @racket[define-com-interface] 的示例，参见 @secref["com-intf-example"]。}
 
 @; ----------------------------------------
 
@@ -80,42 +44,27 @@ See @secref["com-intf-example"] for an example using
 @defproc[(QueryInterface [iunknown com-iunknown?] [iid iid?] [intf-pointer-type ctype?]) 
          (or/c cpointer? #f)]{
 
-Attempts to extract a @tech{COM interface} pointer for the given
-@tech{COM object}. If the object does not support the requested
-interface, the result is @racket[#f], otherwise it is cast to the type
-@racket[intf-pointer-type].
+尝试提取给定 @tech{COM object} 的指定 @tech{COM interface} 指针。若对象不支持请求的接口，结果为 @racket[#f]，否则转换为 @racket[intf-pointer-type] 类型。
 
-Specific @tech{IIDs} and @racket[intf-pointer-type]s go together. For
-example, @racket[IID_IUnknown] goes with @racket[_IUnknown-pointer].
+具体的 @tech{IID} 和 @racket[intf-pointer-type] 是成对的，例如 @racket[IID_IUnknown] 对应 @racket[_IUnknown-pointer]。
 
-For a non-@racket[#f] result, @racket[Release] function is the
-automatic deallocator for the resulting pointer. The pointer is
-register with a deallocator after the cast to
-@racket[intf-pointer-type], which is why @racket[QueryInterface]
-accepts the @racket[intf-pointer-type] argument (since a cast
-generates a fresh reference).}
+对于非 @racket[#f] 的结果，@racket[Release] 函数是指针的自动释放器。指针在转换到 @racket[intf-pointer-type] 后注册释放器，这就是 @racket[QueryInterface] 接受 @racket[intf-pointer-type] 参数的原因（因为转换会生成一个新引用）。}
 
 @deftogether[(
 @defproc[(AddRef [iunknown com-iunknown?]) exact-positive-integer?]
-@defproc[(Release [iunknown com-iunknown?]) exact-nonnegative-integer?]
+@defproc[(Release [iunknown com-iunknown?]) exact-nonnegative-integer?)
 )]{
 
-Increments or decrements the reference count on @racket[iunknown],
-returning the new reference count and releasing the interface
-reference if the count goes to zero.}
+增加或减少 @racket[iunknown] 上的引用计数，返回新的引用计数；若计数降为零，则释放接口引用。}
 
 
 @defproc[(make-com-object [iunknown com-iunknown?] [clsid (or/c clsid? #f)]
                           [#:manage? manage? any/c #t])
          com-object?]{
 
-Converts a @tech{COM object} into an object that can be used with the
-COM automation functions, such as @racket[com-invoke].
+将 @tech{COM object} 转换为 COM 自动化函数（如 @racket[com-invoke]）可用的对象。
 
-If @racket[manage?] is true, the resulting object is registered with
-the current custodian and a finalizer to call @racket[com-release]
-when the custodian is shut down or when the object becomes
-inaccessible.}
+若 @racket[manage?] 为真，则所得对象注册到当前 custodian，并设置终结器在 custodian 关闭或对象不可达时调用 @racket[com-release]。}
 
 @; ----------------------------------------
 
@@ -125,14 +74,13 @@ inaccessible.}
 @defform[(_wfun fun-option ... maybe-args type-spec ... -> type-spec
             maybe-wrapper)]{
 
-Like @racket[_fun], but adds @racket[#:abi winapi].}
+类似 @racket[_fun]，但添加 @racket[#:abi winapi]。}
 
 
 @defform[(_mfun fun-option ... maybe-args type-spec ... -> type-spec
             maybe-wrapper)]{
 
-Like @racket[_wfun], but adds a @racket[_pointer] type (for the
-``self'' argument of a method) as the first argument @racket[type-spec].}
+类似 @racket[_wfun]，但在第一个参数位置添加 @racket[_pointer] 类型（作为方法的 "self" 参数）。}
 
 
 @defform[(_hfun fun-option ... type-spec ... -> id maybe-allow output-expr)
@@ -140,29 +88,17 @@ Like @racket[_wfun], but adds a @racket[_pointer] type (for the
          ([maybe-allow code:blank
                        (code:line #:allow [result-id allow?-expr])])]{
 
-Like @racket[_wfun], but for a function that returns an
-@racket[_HRESULT]. The result is bound to @racket[result-id] if
-@racket[#:allow] is specified, otherwise the result is not directly
-accessible.
+类似 @racket[_wfun]，但用于返回 @racket[_HRESULT] 的函数。若指定了 @racket[#:allow]，则结果绑定到 @racket[result-id]，否则结果不可直接访问。
 
-The @racket[_hfun] form handles the @racket[_HRESULT] value of the
-foreign call as follows:
+@racket[_hfun] 形式对外部调用的 @racket[_HRESULT] 值处理如下：
 
 @itemlist[
 
- @item{If the result is zero or if @racket[#:allow] is specified and
-       @racket[allow?-expr] produces @racket[#t], then
-       @racket[output-expr] (as in a @racket[_maybe-wrapper] for
-       @racket[_fun]) determines the result.}
+ @item{若结果为零，或已指定 @racket[#:allow] 且 @racket[allow?-expr] 返回 @racket[#t]，则 @racket[output-expr]（类似 @racket[_fun] 中 @racket[_maybe-wrapper]）决定返回结果。}
 
- @item{If the result is @cpp{RPC_E_CALL_REJECTED} or
-       @cpp{RPC_E_SERVERCALL_RETRYLATER}, the call is automatically
-       retried up to @racket[(current-hfun-retry-count)] times with a
-       delay of @racket[(current-hfun-retry-delay)] seconds between
-       each attempt.}
+ @item{若结果为 @cpp{RPC_E_CALL_REJECTED} 或 @cpp{RPC_E_SERVERCALL_RETRYLATER}，则自动重试最多 @racket[(current-hfun-retry-count)] 次，每次尝试间隔 @racket[(current-hfun-retry-delay)] 秒。}
 
- @item{Otherwise, an error is raised using @racket[windows-error] and
-       using @racket[id] as the name of the failed function.}
+ @item{否则，使用 @racket[windows-error] 报错，以 @racket[id] 作为失败函数的名称。}
 
 ]
 
@@ -171,23 +107,21 @@ foreign call as follows:
 
 @defform[(_hmfun fun-option ... type-spec ... -> id output-expr)]{
 
-Like @racket[_hfun], but lke @racket[_mfun] in that @racket[_pointer]
-is added for the first argument.}
+类似 @racket[_hfun]，但与 @racket[_mfun] 类似，第一个参数位置添加 @racket[_pointer]。}
 
 @deftogether[(
 @defparam[current-hfun-retry-count exact-nonnegative-integer? count]
-@defparam[current-hfun-retry-delay secs (>=/c 0.0)]
+@defparam[current-hfun-retry-delay secs (>=/c 0.0))]
 )]{
 
-Parameters that determine the behavior of automatic retries for @racket[_hfun].
+决定 @racket[_hfun] 自动重试行为的参数。
 
 @history[#:added "6.2"]}
 
 
 @defproc[(HRESULT-retry? [r exact-nonnegative-integer?]) boolean?]{
 
-Returns @racket[#t] if @racket[r] is @cpp{RPC_E_CALL_REJECTED}
-or @cpp{RPC_E_SERVERCALL_RETRYLATER}, @racket[#f] otherwise.
+若 @racket[r] 是 @cpp{RPC_E_CALL_REJECTED} 或 @cpp{RPC_E_SERVERCALL_RETRYLATER} 则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.2"]}
 
@@ -199,13 +133,12 @@ or @cpp{RPC_E_SERVERCALL_RETRYLATER}, @racket[#f] otherwise.
 @defthing[_LCID ctype?]
 )]{
 
-Some @tech{C types} that commonly appear in COM interface
-specifications.}
+COM 接口规范中常用的一些 @tech{C types}。}
 
 
 @defthing[LOCALE_SYSTEM_DEFAULT exact-integer?]{
 
-The usual value for a @racket[_LCID] argument.}
+@racket[_LCID] 参数的常用值。}
 
 
 @deftogether[(
@@ -213,12 +146,9 @@ The usual value for a @racket[_LCID] argument.}
 @defproc[(SysAllocStringLen [content _pointer] [len integer?]) cpointer?]
 )]{
 
-COM interfaces often require or return srings that must be allocated
-or freed as system strings.
+COM 接口通常需要或返回必须作为系统字符串分配或释放的字符串。
 
-When receiving a string value, @racket[cast] it to
-@racket[_string/utf-16] to extract a copy of the string, and then free
-the original pointer with @racket[SysFreeString].}
+接收字符串值时，将其 @racket[cast] 为 @racket[_string/utf-16] 以提取副本，然后用 @racket[SysFreeString] 释放原始指针。}
 
 
 @deftogether[(
@@ -226,7 +156,7 @@ the original pointer with @racket[SysFreeString].}
 @defthing[IID_IUnknown iid?]
 )]{
 
-Commonly used @tech{IIDs}.}
+常用的 @tech{IIDs}。}
 
 @deftogether[(
 @defthing[_IUnknown ctype?]
@@ -234,27 +164,19 @@ Commonly used @tech{IIDs}.}
 @defthing[_IUnknown_vt ctype?]
 )]{
 
-Types for the @cpp{IUnknown} @tech{COM interface}.}
+@cpp{IUnknown} @tech{COM interface} 的类型。}
 
 
 @defproc[(windows-error [msg string?] [hresult exact-integer?])
          any]{
 
-Raises an exception. The @racket[msg] string provides the base error
-message, but @racket[hresult] and its human-readable interpretation
-(if available) are added to the message.}
+抛出异常。@racket[msg] 字符串提供基本错误消息，同时附加 @racket[hresult] 及其可读解释（若有）。}
 
 @; ----------------------------------------
 
 @section[#:tag "com-intf-example"]{COM Interface Example}
 
-Here's an example using the Standard Component Categories Manager to
-enumerate installed COM classes that are in the different
-system-defined categories. The example illustrates instantiating a
-COM class by @tech{CLSID}, describing COM interfaces with
-@racket[define-com-interface], and using allocation specifications to
-ensure that resources are reclaimed even if an error is encountered or
-the program is interrupted.
+这里有一个示例，使用 Standard Component Categories Manager 枚举系统中不同预定义类别中已安装的 COM 类。该示例说明如何通过 @tech{CLSID} 实例化 COM 类、使用 @racket[define-com-interface] 描述 COM 接口，以及使用分配规范确保即便发生错误或中断也能回收资源。
 
 @(define-syntax-rule (define-literals id ...) (begin (define-literal id) ...))
 @(define-syntax-rule (define-literal id)
@@ -273,7 +195,7 @@ racket/base
 
 (provide show-all-classes)
 
-(code:comment @#,t{The function that uses COM interfaces defined further below:})
+(code:comment @#,t{使用下面定义的 COM 接口的函数:})
 
 (define (show-all-classes)
   (define ccm 
@@ -296,12 +218,12 @@ racket/base
   (Release eci)
   (Release icat))
 
-(code:comment @#,t{The class to instantiate:})
+(code:comment @#,t{要实例化的类:})
 
 (define CLSID_StdComponentCategoriesMgr
   (string->clsid "{0002E005-0000-0000-C000-000000000046}"))
 
-(code:comment @#,t{Some types and variants to match the specification:})
+(code:comment @#,t{与规范匹配的类型和变体:})
 
 (define _ULONG _ulong)
 (define _CATID _GUID)
@@ -316,13 +238,13 @@ racket/base
   (string->iid "{0002E000-0000-0000-C000-000000000046}"))
 
 (define-com-interface (_IEnumGUID _IUnknown)
-  ([Next/g (_mfun (_ULONG = 1) (code:comment @#,t{simplifed to just one})
+  ([Next/g (_mfun (_ULONG = 1) (code:comment @#,t{简化为仅返回一个})
                   (guid : (_ptr o _GUID))
                   (got : (_ptr o _ULONG))
                   -> (r : _HRESULT)
                   -> (cond
                        [(zero? r) guid]
-                       [(= r 1) #f] ; done
+                       [(= r 1) #f] ; 结束
                        [else (windows-error "Next/g failed" r)]))]
    [Skip _fpointer]
    [Reset _fpointer]
@@ -334,13 +256,13 @@ racket/base
   (string->iid "{0002E011-0000-0000-C000-000000000046}"))
 
 (define-com-interface (_IEnumCATEGORYINFO _IUnknown)
-  ([Next/ci (_mfun (_ULONG = 1) (code:comment @#,t{simplifed to just one})
+  ([Next/ci (_mfun (_ULONG = 1) (code:comment @#,t{简化为仅返回一个})
                    (catinfo : (_ptr o _CATEGORYINFO))
                    (got : (_ptr o _ULONG))
                    -> (r : _HRESULT)
                    -> (cond
                        [(zero? r) catinfo]
-                       [(= r 1) #f] ; done
+                       [(= r 1) #f] ; 结束
                        [else (windows-error "Next/ci failed" r)]))]
    [Skip _fpointer]
    [Reset _fpointer]
@@ -361,9 +283,9 @@ racket/base
                             (begin0
                              (cast p _pointer _string/utf-16)
                              (SysFreeString p)))]
-   [EnumClassesOfCategories (_hmfun (_ULONG = 1) (code:comment @#,t{simplifed})
+   [EnumClassesOfCategories (_hmfun (_ULONG = 1) (code:comment @#,t{简化版})
                                     _REFCATID
-                                    (_ULONG = 0) (code:comment @#,t{simplifed})
+                                    (_ULONG = 0) (code:comment @#,t{简化版})
                                     (_pointer = #f)
                                     (p : (_ptr o 
                                                _IEnumGUID-pointer))
