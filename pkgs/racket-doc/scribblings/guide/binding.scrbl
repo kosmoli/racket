@@ -1,56 +1,33 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "binding"]{Identifiers and Binding}
+@title[#:tag "binding"]{标识符与绑定}
 
-The context of an expression determines the meaning of identifiers
-that appear in the expression. In particular, starting a module with
-the language @racketmodname[racket], as in
+表达式的上下文决定了表达式中出现的 identifier 的含义。特别地，以语言 @racketmodname[racket] 开始一个模块时，例如
 
 @racketmod[racket]
 
-means that, within the module, the identifiers described in this guide
-start with the meaning described here: @racket[cons] refers to the
-function that creates a pair, @racket[car] refers to the function
-that extracts the first element of a pair, and so on.
+意味着在模块内部，本指南中描述的 identifier 从这里开始具有这里描述的含义：@racket[cons] 指的是创建 pair 的 function，@racket[car] 指的是提取 pair 第一个元素的 function，等等。
 
-@guideother{@secref["symbols"] introduces the syntax of
-identifiers.}
+@guideother{@secref["symbols"] 介绍了 identifier 的 syntax。}
 
-Forms like @racket[define], @racket[lambda], and @racket[let]
-associate a meaning with one or more identifiers; that is, they
-@defterm{bind} identifiers. The part of the program for which the
-binding applies is the @defterm{scope} of the binding. The set of
-bindings in effect for a given expression is the expression's
-@defterm{environment}.
+像 @racket[define]、@racket[lambda] 和 @racket[let] 这样的形式将一个含义与一个或多个 identifier 关联起来；也就是说，它们 @defterm{bind} 了标识符。绑定适用的程序部分称为该绑定的 @defterm{scope}。在给定表达式中有效的一组绑定称为表达式的 @defterm{环境}。
 
-For example, in
+例如，在
 
-@racketmod[
-racket
+@racketmod[racket
 
-(define f
-  (lambda (x)
-    (let ([y 5])
-      (+ x y))))
+(define f (lambda (x)
+               (let ([y 5])
+                    (+ x y))))
 
 (f 10)
 ]
 
-the @racket[define] is a binding of @racket[f], the @racket[lambda]
-has a binding for @racket[x], and the @racket[let] has a binding for
-@racket[y]. The scope of the binding for @racket[f] is the entire
-module; the scope of the @racket[x] binding is @racket[(let ([y 5]) (+
-x y))]; and the scope of the @racket[y] binding is just @racket[(+ x
-y)]. The environment of @racket[(+ x y)] includes bindings for
-@racket[y], @racket[x], and @racket[f], as well as everything in
-@racketmodname[racket].
+中，@racket[define] 绑定了 @racket[f]，@racket[lambda]
+绑定了 @racket[x]，而 @racket[let] 绑定了 @racket[y]。@racket[f] 的绑定 scope 是整个模块；@racket[x] 的绑定 scope 是 @racket[(let ([y 5]) (+ x y))]；@racket[y] 的绑定 scope 则是 @racket[(+ x y)]。@racket[(+ x y)] 的环境包括 @racket[y]、@racket[x] 和 @racket[f] 的绑定，以及 @racketmodname[racket] 中的所有内容。
 
-A module-level @racket[define] can bind only identifiers that are not
-already defined or @racket[require]d into the module. A local
-@racket[define] or other binding forms, however, can give a new local
-binding for an identifier that already has a binding; such a binding
-@deftech{shadows} the existing binding.
+模块级 @racket[define] 仅能绑定模块内未定义过的 identifier 或未 @racket[require] 过的 identifier。然而，局部 @racket[define] 或其它绑定形式可以为已有绑定的 identifier 赋予新的局部绑定；这样的绑定会 @deftech{遮蔽}（shadow）掉已有的绑定。
 
 @defexamples[
 (define f
@@ -61,26 +38,13 @@ binding for an identifier that already has a binding; such a binding
 (f list)
 ]
 
-Similarly, a module-level @racket[define] can @tech{shadow} a binding
-from the module's language. For example, @racket[(define cons 1)] in a
-@racketmodname[racket] module shadows the @racket[cons] that is
-provided by @racketmodname[racket]. Intentionally shadowing a language
-binding is rarely a good idea---especially for widely used bindings
-like @racket[cons]---but shadowing relieves a programmer from having
-to avoid every obscure binding that is provided by a language.
+同样地，模块级 @racket[define] 可以 @deftech{遮蔽}从模块语言中导入的绑定。例如，@racketmodname[racket] 模块中的 @racket[(define cons 1)] 会遮蔽 @racketmodname[racket] 提供的 @racket[cons]。故意遮蔽语言绑定通常并不是一个好主意——特别是像 @racket[cons] 这类广泛使用的绑定——但遮蔽让程序员可以无需避免语言所提供的每一个冷僻绑定。
 
-Even identifiers like @racket[define] and @racket[lambda] get their
-meanings from bindings, though they have @defterm{transformer}
-bindings (which means that they indicate syntactic forms) instead of
-value bindings. Since @racket[define] has a transformer binding, the
-identifier @racketidfont{define} cannot be used by itself to get a
-value. However, the normal binding for @racketidfont{define} can be
-shadowed.
+即便是 @racket[define] 和 @racket[lambda] 这类标识符，它们的含义也来自于绑定，不过它们拥有 @defterm{transformer} 绑定（即表示某种语法形式），而非值绑定。由于 @racket[define] 有 transformer 绑定，identifier @racketidfont{define} 不能直接用于获取一个值。不过 @racketidfont{define} 的常规绑定是可以被遮蔽的。
 
 @examples[
 define
 (eval:alts (let ([@#,racketidfont{define} 5]) @#,racketidfont{define}) (let ([define 5]) define))
 ]
 
-Again, shadowing standard bindings in this way is rarely a good idea, but the
-possibility is an inherent part of Racket's flexibility.
+同样地，像这样遮蔽标准语言绑定通常不是好主意，而这一可能性是 Racket 灵活性的固有部分。

@@ -6,74 +6,40 @@
 
 @note-lib-only[racket/engine]
 
-An @deftech{engine} is an abstraction that models processes that
-can be preempted by a timer or other external trigger. They are
-inspired by the work of Haynes and Friedman @cite["Haynes84"].
+@deftech{Engine} 是一种抽象，用于建模可被 timer 或其它外部触发器抢占（preempted）的进程。它们受到 Haynes 和 Friedman @cite["Haynes84"] 工作的启发。
 
-Engines log their behavior via a logger with the name 
-@racket['racket/engine]. The logger is created when the module
-is instantiated and uses the result of @racket[(current-logger)]
-as its parent. The library logs a @racket['debug]-level
-message: when @racket[engine-run]
-is called, when the engine timeout expires, and when the engine is
-stopped (either because it terminated or it reached a safe point to
-stop). Each log message holds a value of the struct:
+Engines 通过名为 @racket['racket/engine] 的 logger 记录其行为。该 logger 在模块实例化时创建，以 @racket[(current-logger)] 的结果为其父级。库在 @racket['debug] 级别记录以下消息：调用 @racket[engine-run] 时、engien 超时时以及 engine 被停止时（因为终止或已到达安全停止点）。每条日志消息承载以下 struct 的值：
+
 @racketblock[(struct engine-info (msec name) #:prefab)]
-where the @racket[_msec] field holds the result of 
-@racket[(current-inexact-milliseconds)] at the moment of logging,
-and the @racket[_name] field holds the name of the procedure
-passed to @racket[engine].
+
+其中，@racket[_msec] 是在记录时刻 @racket[(current-inexact-milliseconds)] 的返回值，而 @racket[_name] 是传给 @racket[engine] 的过程的名称。
 
 @defproc[(engine [proc ((any/c . -> . void?) . -> . any/c)])
          engine?]{
 
-Returns an engine object to encapsulate a thread that runs only when
-allowed. The @racket[proc] procedure should accept one argument, and
-@racket[proc] is run in the engine thread when
-@racket[engine-run] is called. If @racket[engine-run] returns
-due to a timeout, then the engine thread is suspended until a
-future call to @racket[engine-run]. Thus, @racket[proc] only
-executes during the dynamic extent of a @racket[engine-run] call.
+返回一个 engine 对象，用于封装一个线程——该线程只在被允许时才执行。过程 @racket[proc] 应接受一个参数；当 @racket[engine-run] 被调用时，@racket[proc] 在 engine 线程中运行。如果 @racket[engine-run] 因超时返回，那么 engine 线程会被挂起，直到下次调用 @racket[engine-run]。因此 @racket[proc] 仅在 @racket[engine-run] 调用的动态范围（dynamic extent）内被执行。
 
-The argument to @racket[proc] is a procedure that takes a boolean, and
-it can be used to disable suspends (in case @racket[proc] has critical
-regions where it should not be suspended). A true value passed to the
-procedure enables suspends, and @racket[#f] disables
-suspends. Initially, suspends are allowed.}
+传给 @racket[proc] 的参数是一个接受布尔值的过程，它可以用于禁用挂起（以防 @racket[proc] 有一些不应被挂起的关键区）。向该过程传入真值可启用挂起，@racket[#f] 则禁用挂起。初始状态下挂起是被允许的。}
 
 
 @defproc[(engine? [v any/c]) any]{
 
-Returns @racket[#t] if @racket[v] is an engine produced by
-@racket[engine], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[engine] 产生的 engine，返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(engine-run [until (or/c evt? real?)][engine engine?])
          boolean?]{
 
-Allows the thread associated with @racket[engine] to execute for up to
-as long as @racket[until] milliseconds (if @racket[until] is a real
-number) or @racket[until] is ready (if @racket[until] is an event). If
-@racket[engine]'s procedure disables suspends, then the engine
-can run arbitrarily long until it re-enables suspends.
+允许与 @racket[engine] 关联的线程最多执行直到 @racket[until] 毫秒（如果 @racket[until] 为实数），或直到 @racket[until] 就绪（如果 @racket[until] 为 event）。如果 @racket[engine] 的过程禁用了挂起，那么 engine 可以任意长地运行，直到它重新启用挂起。
 
-The @racket[engine-run] procedure returns @racket[#t] if
-@racket[engine]'s procedure completes (or if it completed earlier),
-and the result is available via @racket[engine-result]. The
-@racket[engine-run] procedure returns @racket[#f] if
-@racket[engine]'s procedure does not complete before it is
-suspended. If @racket[engine]'s
-procedure raises an exception, then it is re-raised by
-@racket[engine-run].}
+如果 @racket[engine] 的过程完成（或早于之前完成），@racket[engine-run] 返回 @racket[#t]，其结果可通过 @racket[engine-result] 获取。如果 @racket[engine] 的过程尚未完成即被挂起，@racket[engine-run] 返回 @racket[#f]。如果 @racket[engine] 的过程引发异常，该异常会被 @racket[engine-run] 再次引发。}
 
 
 @defproc[(engine-result [engine engine?]) any]{
 
-Returns the result for @racket[engine] if it has completed with a
-value (as opposed to an exception), @racket[#f] otherwise.}
+如果 @racket[engine] 以一个值（而非异常）完成，则返回它的结果，否则返回 @racket[#f]。}
 
 
 @defproc[(engine-kill [engine engine?]) void?]{
 
-Forcibly terminates the thread associated with @racket[engine] if
-it is still running, leaving the engine result unchanged.}
+如果与 @racket[engine] 关联的线程仍在运行，则强制终止它，同时保持 engine 的结果不变。}

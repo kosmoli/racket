@@ -1,85 +1,45 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@cs-title[#:tag "cs-overview"]{Overview}
+@cs-title[#:tag "cs-overview"]{概述}
 
-The Racket CS runtime system is implemented by a wrapper around the
-Chez Scheme kernel. The wrapper implements additional glue to the
-operating system (e.g., for I/O and networking) and provides entry
-points into the Racket layer's evaluator.
+Racket CS 运行时系统通过一个 Chez Scheme 内核的包装器实现。该包装器实现了额外的操作系统胶水代码（例如用于 I/O 和网络），以及到 Racket 层求值器的入口点。
 
 @; ----------------------------------------------------------------------
 
-@section{``S'' versus ``Racket''}
+@section{``S'' 与 ``Racket''}
 
-In the C API for Racket CS, names that start with @cpp{S} are from the
-Chez Scheme layer, while names that start with @cpp{racket_} are from
-the Racket wrapper.
+在 Racket CS 的 C API 中，以 @cpp{S} 开头的名称来自 Chez Scheme 层，而以 @cpp{racket_} 开头的名称来自 Racket 包装器。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-memory"]{Racket CS Memory Management}
+@section[#:tag "cs-memory"]{Racket CS 内存管理}
 
-@index['("allocation")]{Racket} values may be moved or garbage
-collected any time that @cpp{racket_...} functions are used to run
-Racket code. Do not retain a reference to any Racket value across such
-a call. This requirement contrasts with the BC implementation of
-Racket, which provides a way for C code to more directly cooperate with
-the memory manager.
+@index['("allocation")]{Racket} 值可能在任何使用 @cpp{racket_...} 函数运行 Racket 代码的时候被移动或垃圾回收。不要保留任何 Racket 值引用到此类调用之外。这一要求与 Racket 的 BC 实现不同，后者为 C 代码提供了更直接与内存管理器协作的方式。
 
-API functions that start with @cpp{S} do not collect or move objects
-unless noted otherwise, so references to Racket values across such
-calls is safe.
+以 @cpp{S} 开头的 API 函数在注明外不会收集或移动对象，因此将这些函数跨调用地保留对 Racket 值的引用是安全的。
 
-The @cpp{Slock_object} function can prevent an object from being moved
-or garbage collected, but it should be used sparingly. Garbage
-collection can be disabled entirely by calling the Chez Scheme
-function @tt{disable-interrupts}, and then reenabled with a balancing
-call to @tt{enable-interrupts}; access those functions via
-@cpp{racket_primitive} and call them via @cpp{Scall0}. Beware that
-disabling interrupts also disables context switching for Racket
-threads and signal handling for breaks. Assuming that interrupts start
-out enabled, calling @tt{disable-interrupts} could trigger a garbage
-collection before further collections are disabled.
+@cpp{Slock_object} 函数可以防止对象被移动或垃圾回收，但应当谨慎使用。通过调用 Chez Scheme 函数 @tt{disable-interrupts} 可以完全禁用垃圾回收，然后再通过 @tt{enable-interrupts} 禁用调用重新启用；这些函数通过 @cpp{racket_primitive} 访问，并通过 @cpp{Scall0} 调用。请注意，禁用中断还会禁用 Racket 线程的上下文切换以及 break 信号处理。假设中断起始为启用状态，调用 @tt{disable-interrupts} 可能会在进一步收集被禁用之前触发一次垃圾回收。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-places"]{Racket CS and Places}
+@section[#:tag "cs-places"]{Racket CS 与 Places}
 
-Each Racket @|tech-place| corresponds to a Chez Scheme thread, which
-also corresponds to an OS-implemented thread. Chez Scheme threads
-share a global allocation space, so GC-managed objects can be safely
-be communicated from one place to another. Beware, however, that Chez
-Scheme threads are unsafe; any synchronization needed to safely share
-a value across places is must be implemented explicitly. Racket-level
-functions for places will only share values across places when they
-can be safely used in both places.
+每个 Racket @|tech-place| 对应一个 Chez Scheme 线程，也对应一个操作系统实现的线程。Chez Scheme 线程共享一个全局分配空间，因此 GC 管理的对象可以从一个 place 安全地传递到另一个 place。但要注意的是，Chez Scheme 线程并不安全；任何跨 place 安全共享值所需的同步都必须显式实现。Racket 级别的 places 函数只会在两个 place 中都能安全使用时才跨 place 共享值。
 
-In an @seclink["cs-embedding"]{embedding application}, the OS thread
-that originally calls @cpp{racket_boot} is the OS thread of the
-original place.
+在 @seclink["cs-embedding"]{嵌入应用程序} 中，最初调用 @cpp{racket_boot} 函数的 OS 线程即为原始 place 的 OS 线程。
 
 @; ----------------------------------------------------------------------
 
-@section{Racket CS and Threads}
+@section{Racket CS 与线程}
 
-Racket implements threads for Racket programs without aid from the
-operating system or Chez Scheme's threads, so that Racket threads are
-cooperative from the perspective of C code. Stand-alone Racket uses a
-few private OS-implemented threads for background tasks, but these
-OS-implemented threads are never exposed by the Racket API.
+Racket 在没有操作系统或 Chez Scheme 线程辅助的情况下为 Racket 程序实现线程，因此从 C 代码的视角来看，Racket 线程是合作式（cooperative）的。独立（Stand-alone）的 Racket 使用一些私有的 OS 实现线程来执行后台任务，但这些 OS 实现线程从未被 Racket API 暴露。
 
-Racket can co-exist with additional OS-implemented threads, but care
-must be taken when calling @cpp{S} functions, and additional OS or
-Chez Scheme threads must not call any @cpp{racket_} function. For
-other OS threads to call @cpp{S} functions, the thread must be first
-activated as a Chez Scheme thread using @cppi{Sactivate_thread}.
+Racket 可以与其它 OS 实现线程共存，但在调用 @cpp{S} 函数时必须小心，且其它 OS 或 Chez Scheme 线程不得调用任何 @cpp{racket_} 函数。为了让其它 OS 调用 @cpp{S} 函数，该线程必须首先使用 @cppi{Sactivate_thread} 激活为一个 Chez Scheme 线程。
 
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-intsize"]{Racket CS Integers}
+@section[#:tag "cs-intsize"]{Racket CS 整数}
 
-The C type @cpp{iptr} is defined by Racket CS headers to be an integer
-type that is big enough to hold a pointer value. In other words, it is
-an alias for @cpp{intptr_t}. The @cpp{uptr} type is the unsigned variant.
+C 类型 @cpp{iptr} 由 Racket CS 头文件定义为一个足够大的整数类型以容纳指针值。换言之，它是 @cpp{intptr_t} 的别名。@cpp{uptr} 类型是其无符号变体。

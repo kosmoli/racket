@@ -6,81 +6,44 @@
 
 @note-lib-only[racket/unsafe/undefined]
 
-The constant @racket[unsafe-undefined] is used internally as a
-placeholder value. For example, it is used by @racket[letrec] as a
-value for a variable that has not yet been assigned a value.  Unlike
-the @racket[undefined] value exported by @racketmodname[racket/undefined],
-however, the @racket[unsafe-undefined] value should not leak as the
-result of a safe expression, and it should not be passed as an optional
-argument to a procedure (because it may count as ``no value provided'').
-Expression results that potentially
-produce @racket[unsafe-undefined] can be guarded by
-@racket[check-not-unsafe-undefined], so that an exception can be
-raised instead of producing an @racket[undefined] value.
+常量 @racket[unsafe-undefined] 在内部被用作占位值。例如，它被 @racket[letrec] 用作尚未赋值的 variable 的值。然而，与 @racketmodname[racket/undefined] 导出的 @racket[undefined] 值不同，@racket[unsafe-undefined] 值不应泄露为某个安全表达式的结果，也不应作为可选参数传给 procedure（因为可能被视作"未提供值"）。
+可能产生 @racket[unsafe-undefined] 的表达式结果可以由 @racket[check-not-unsafe-undefined] 保护，以便在产生 @racket[undefined] 值之前引发异常。
 
-The @racket[unsafe-undefined] value is always @racket[eq?] to itself.
+@racket[unsafe-undefined] 值始终与自身是 @racket[eq?] 的。
 
 @history[#:added "6.0.1.2"
-         #:changed "6.90.0.29" @elem{Procedures with optional arguments
-                                     sometimes use the @racket[unsafe-undefined]
-                                     value internally to mean ``no argument supplied.''}]
+         #:changed "6.90.0.29" @elem{带有可选参数的 Procedure 有时会在内部使用
+                                     @racket[unsafe-undefined] 来表示"未提供参数"。}]
 
 @defthing[unsafe-undefined any/c]{
 
-The unsafe ``undefined'' constant.
+不安全的"undefined"常量。
 
-See above for important constraints on the use of @racket[unsafe-undefined].}
+参见上面了解 @racket[unsafe-undefined] 使用的重要约束条件。}
 
 
 @defproc[(check-not-unsafe-undefined [v any/c] [sym symbol?])
          any/c]{
 
-Checks whether @racket[v] is @racket[unsafe-undefined], and raises
-@racket[exn:fail:contract:variable] in that case with an error message
-along the lines of ``@racket[sym]: undefined; use before
-initialization.''  If @racket[v] is not @racket[unsafe-undefined],
-then @racket[v] is returned.}
+检查 @racket[v] 是否为 @racket[unsafe-undefined]，如果是则引发 @racket[exn:fail:contract:variable] 异常，其错误消息形如“@racket[sym]：undefined；在初始化前使用”。如果 @racket[v] 不是 @racket[unsafe-undefined]，则返回 @racket[v]。}
 
 @defproc[(check-not-unsafe-undefined/assign [v any/c] [sym symbol?])
          any/c]{
 
-The same as @racket[check-not-unsafe-undefined], except that the error
-message (if any) is along the lines of ``@racket[sym]: undefined;
-assignment before initialization.''}
+与 @racket[check-not-unsafe-undefined] 相同，不过其错误消息（如果有）形如"@racket[sym]：undefined；在初始化前赋值"。}
 
 
 @defproc[(chaperone-struct-unsafe-undefined [v any/c]) any/c]{
 
-Chaperones @racket[v] if it is a structure (as viewed through some
-@tech{inspector}). Every access of a field in the structure is checked
-to prevent returning @racket[unsafe-undefined]. Similarly, every
-assignment to a field in the structure is checked (unless the check
-disabled as described below) to prevent assignment of a field whose
-current value is @racket[unsafe-undefined].
+如果 @racket[v] 是一个通过某 @tech{inspector} 看到的结构，则 chaperone 它。对结构中每个字段的访问都会进行检查，防止返回 @racket[unsafe-undefined]。同样，对结构中每个字段的赋值也会进行检查（除非检查已被如下方式禁用），防止将字段的当前值为 @racket[unsafe-undefined] 的字段赋值。
 
-When a field access would otherwise produce @racket[unsafe-undefined]
-or when a field assignment would replace @racket[unsafe-undefined], the
-@racket[exn:fail:contract] exception is raised.
+当某个字段访问可能产生 @racket[unsafe-undefined] 或某个字段赋值可能替换 @racket[unsafe-undefined] 时，会引发 @racket[exn:fail:contract] 异常。
 
-The chaperone's field-assignment check is disabled whenever
-@racket[(continuation-mark-set-first #f
-prop:chaperone-unsafe-undefined)] returns @racket[unsafe-undefined].
-Thus, a field-initializing assignment---one that is intended to replace the
-@racket[unsafe-undefined] value of a field---should be wrapped with
-@racket[(with-continuation-mark prop:chaperone-unsafe-undefined
-unsafe-undefined ....)].}
+当 @racket[(continuation-mark-set-first #f prop:chaperone-unsafe-undefined)] 返回 @racket[unsafe-undefined] 时，chaperone 的字段赋值检查被禁用。因此，字段初始化赋值——旨在替换字段 @racket[unsafe-undefined] 值的赋值——应包裹在 @racket[(with-continuation-mark prop:chaperone-unsafe-undefined unsafe-undefined ....)] 中。}
 
 
 @defthing[prop:chaperone-unsafe-undefined struct-type-property?]{
 
-A @tech{structure type property} that causes a structure type's
-constructor to produce a @tech{chaperone} of an instance
-in the same way as @racket[chaperone-struct-unsafe-undefined].
+一个 @tech{结构类型属性}，使结构类型的构造函数以与 @racket[chaperone-struct-unsafe-undefined] 相同的方式 chaperone 实例。
 
-The property value should be a list of symbols used as field names,
-but the list should be in reverse order of the structure's fields.
-When a field access or assignment would produce or replace
-@racket[unsafe-undefined], the @racket[exn:fail:contract:variable]
-exception is raised if a field name is provided by the structure
-property's value, otherwise the @racket[exn:fail:contract] exception
-is raised.}
+属性值应为一个用作字段名称的 symbol 列表，但顺序应与结构字段顺序相反。当某个字段访问或赋值会产生或替换 @racket[unsafe-undefined] 时，如果字段名称由结构属性的值提供，则引发 @racket[exn:fail:contract:variable] 异常，否则引发 @racket[exn:fail:contract] 异常。}

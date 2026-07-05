@@ -1,13 +1,10 @@
 #lang scribble/doc
-@(require "utils.rkt"
+@(require (except racket/contract any)
           (for-label ffi/unsafe/runtime-lib))
 
-@title[#:tag "runtime-lib"]{Declaring Foreign Libraries Needed at Run Time}
+@title[#:tag "runtime-lib"]{声明运行时所需的外部库}
 
-@defmodule[ffi/unsafe/runtime-lib]{The
-@racketmodname[ffi/unsafe/runtime-lib] library is similar to
-@racketmodname[racket/runtime-path] (and builds on it), but provides more
-support for platform-specific choices of libraries.}
+@defmodule[ffi/unsafe/runtime-lib]{@racketmodname[ffi/unsafe/runtime-lib] 库类似于 @racketmodname[racket/runtime-path]（并在其基础上构建），但为平台相关的库选择提供了更多支持。}
 
 @history[#:added "9.2.0.6"]
 
@@ -32,47 +29,14 @@ support for platform-specific choices of libraries.}
                     [maybe-ffi-lib-args code:blank
                                         (code:line #:ffi-lib-args (arg ...))])]{
 
- Similar to @racket[define-runtime-path], but binds @racket[id] to a
- result from @racket[ffi-lib] for a platform that matches one of the
- @racket[platform-spec]s (which are tried in order), or to the result
- of the @racket[else-body] sequence otherwise.
+与 @racket[define-runtime-path] 类似，但 @racket[id] 被绑定到指定平台的 @racket[ffi-lib] 调用结果——其中 @racket[platform-spec] 按顺序逐一尝试，直到找到一个匹配的平台——否则回退到求值 @racket[else-body] 的结果。
 
- A @racket[platform-spec] implies a set of libraries that are loaded
- in order as enumerated by the accompanying @racket[lib-spec]s, where
- the @racket[lib-string] within a @racket[lib-spec] becomes the first
- argument to @racket[ffi-lib], and the @racket[vers] sequence (if
- present) is quoted as the second argument. The defined @racket[id] is
- bound to a @racket[ffi-lib] result for the last @racket[lib-spec], or
- to @racket[#f] if no @racket[lib-spec]s are present in the matching
- clause. Besides loading the library for each @racket[lib-spec] at run
- time, the libraries are declared at compile time for use by tools
- such as @exec{raco exe} and @exec{raco dist}. Cross compilation is
- handled automatically, so that the target platforms libraries are
- listed at compile time, while run time loads libraries suitable to
- the host platform.
+一个 @racket[platform-spec] 对应一组要按顺序加载的库，由随附的 @racket[lib-spec] 逐一列举：每个 @racket[lib-spec] 中的 @racket[lib-string] 作为 @racket[ffi-lib] 的第一个参数，而 @racket[vers] 序列（如果存在）则以字面量形式作为第二个参数。@racket[id] 被绑定到匹配子句中最后一个 @racket[lib-spec] 所对应的 @racket[ffi-lib] 结果；如果匹配子句没有 @racket[lib-spec]，则绑定到 @racket[#f]。除了在为每个 @racket[lib-spec] 运行时加载库之外，还会在编译时声明这些库供 @exec{raco exe} 和 @exec{raco dist} 等工具使用。交叉编译会被自动处理：编译时会列出目标平台所需的库，而运行时则会加载适合宿主平台的库。
 
- If no @racket[platform-spec] matches, then @racket[id] is bound to
- the result of the @racket[else-body] sequence---which does not have
- to be a result from @racket[ffi-lib], but typically it is. The
- @racket[else-body] sequence is evaluated only at run-time, and no
- libraries are declared at compile time.
+如果没有 @racket[platform-spec] 匹配，@racket[id] 会被绑定到 @racket[else-body] 序列的结果——该结果不必是 @racket[ffi-lib] 的结果，但通常情况下如此。@racket[else-body] 序列仅在运行时求值，编译时也不会声明任何库。
 
- Each @racket[platform-spec] is is compared to the result of
- @racket[(system-type 'os)], @racket[(system-type 'os*)],
- @racket[(system-type 'arch)], @racket[(system-type 'platform)],
- and/or @racket[(system-type 'word)]. In an @racket[and] form, all
- @racket[platform-spec]s much match, while only one matching
- @racket[platform-spec] is needed ro an @racket[or] form.
+每个 @racket[platform-spec] 会与以下调用的结果进行比较：@racket[(system-type 'os)]、@racket[(system-type 'os*)]、@racket[(system-type 'arch)]、@racket[(system-type 'platform)] 和/或 @racket[(system-type 'word)]。在 @racket[and] 形式中，所有 @racket[platform-spec] 必须匹配；在 @racket[or] 形式中，只需其中之一匹配即可。
 
- Extra keyword arguments can be supplied the run-time @racket[ffi-lib]
- call for a @racket[platform-spec] match through an optional
- @racket[#:ffi-lib-args] declaration. There's a single
- @racket[#:ffi-lib-args] declaration, because it needs to be
- independent of the @racket[platform-spec] that turns out to match.
- The run-time call receives either an absolute path based on resolved
- @racket[lib-spec], or it receives just the initial
- @racket[lib-string] within a @racket[lib-spec] (due to limitations of
- @racket[define-runtime-path]), so @racket[#:fail] is the most likely
- useful extra argument to @racket[ffi-lib].
+可以通过可选的 @racket[#:ffi-lib-args] 声明，为匹配的 @racket[platform-spec] 在运行时 @racket[ffi-lib] 调用中附加关键字数参数。只有一个 @racket[package-spec] 匹配时才会使用同一条 @racket[#:ffi-lib-args] 声明，因为这条声明需要独立于最终匹配的 @racket[platform-spec]。运行时调用要么接收基于 @racket[lib-spec] 解析后的绝对路径，要么只接收 @racket[lib-spec] 内最初的 @racket[lib-string]（受 @racket[define-runtime-path] 的限制），因此 @racket[#:fail] 是最可能用得上的额外参数。
 
 }

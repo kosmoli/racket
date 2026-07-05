@@ -2,27 +2,21 @@
 @(require "mz.rkt"
           (for-label racket/keyword))
 
-@title[#:tag "keywords"]{Keywords}
+@title[#:tag "keywords"]{关键字}
 
-@guideintro["keywords"]{keywords}
+@guideintro["keywords"]{关键字}
 
-A @deftech{keyword} is like an @tech{interned} symbol, but its printed
-form starts with @litchar{#:}, and a keyword cannot be used as an
-identifier. Furthermore, a keyword by itself is not a valid
-expression, though a keyword can be @racket[quote]d to form an
-expression that produces the symbol.
+@deftech{Keyword} 类似于一个 @tech{interned} symbol，但其打印形式以 @litchar{#:} 开头，并且关键字不能被用作 identifier。此外，单独的关键字并不是有效的表达式，不过可以通过 @racket[quote] 来生成一个进而产生 symbol 的表达式。
 
-Two keywords are @racket[eq?] if and only if they print the same
-(i.e., keywords are always @tech{interned}).
+两个关键字是 @racket[eq?] 的，当且仅当它们打印形式相同（即，关键字总是 @tech{interned} 的）。
 
-Like symbols, keywords are only weakly held by the internal keyword
-table; see @secref["symbols"] for more information.
+与 symbol 类似，关键字仅被内部关键字表弱持有（weakly held）；参见 @secref["symbols"] 了解更多信息。
 
-@see-read-print["keyword"]{keywords}
+@see-read-print["keyword"]{关键字}
 
 @defproc[(keyword? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a keyword, @racket[#f] otherwise.
+如果 @racket[v] 是关键字，返回 @racket[#t]，否则返回 @racket[#f]。
 
 @mz-examples[(keyword? '#:apple)
              (keyword? 'define)
@@ -31,29 +25,23 @@ Returns @racket[#t] if @racket[v] is a keyword, @racket[#f] otherwise.
 
 @defproc[(keyword->string [keyword keyword?]) string?]{
 
-Returns a string for the @racket[display]ed form of @racket[keyword],
-not including the leading @litchar{#:}.
+返回 @racket[keyword] 的 @racket[display] 形式所对应的字符串，不包括开头的 @litchar{#:}。
 
-See also @racket[keyword->immutable-string] from
-@racketmodname[racket/keyword].
+另请参见 @racket[keyword->immutable-string] from @racketmodname[racket/keyword]。
 
 @mz-examples[(keyword->string '#:apple)]}
 
 
 @defproc[(string->keyword [str string?]) keyword?]{
 
-Returns a keyword whose @racket[display]ed form is the same as that of
-@racket[str], but with a leading @litchar{#:}.
+返回一个关键字，其 @racket[display] 形式与 @racket[str] 相同，但带有前导 @litchar{#:}。
 
 @mz-examples[(string->keyword "apple")]}
 
 
 @defproc[(keyword<? [a-keyword keyword?] [b-keyword keyword?] ...) boolean?]{
 
-Returns @racket[#t] if the arguments are sorted, where the comparison
-for each pair of keywords is the same as using
-@racket[keyword->string] with @racket[string->bytes/utf-8] and
-@racket[bytes<?].
+如果参数已排序，则返回 @racket[#t]，其中每对关键字之间的比较使用 @racket[keyword->string]、@racket[string->bytes/utf-8] 和 @racket[bytes<?] 进行。
 
 @mz-examples[(keyword<? '#:apple '#:banana)]
 
@@ -61,7 +49,7 @@ for each pair of keywords is the same as using
 
 
 @; ----------------------------------------
-@section{Additional Keyword Functions}
+@section{其他关键字函数}
 
 @note-lib-only[racket/keyword]
 @(define keyword-eval (make-base-eval))
@@ -71,8 +59,7 @@ for each pair of keywords is the same as using
 
 @defproc[(keyword->immutable-string [sym keyword?]) (and/c string? immutable?)]{
 
-Like @racket[keyword->string], but the result is an immutable string,
-not necessarily freshly allocated.
+与 @racket[keyword->string] 类似，但其结果是一个不可变字符串，不一定是新分配的。
 
 @examples[#:eval keyword-eval
           (keyword->immutable-string '#:apple)

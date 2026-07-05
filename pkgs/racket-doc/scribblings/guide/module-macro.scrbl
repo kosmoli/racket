@@ -5,18 +5,11 @@
 
 @(define noisy-eval (make-base-eval))
 
-@title[#:tag "module-macro"]{Modules and Macros}
+@title[#:tag "module-macro"]{模块和宏}
 
-Racket's module system cooperates closely with Racket's @tech{macro}
-system for adding new syntactic forms to Racket. For example, in the
-same way that importing @racketmodname[racket/base] introduces syntax
-for @racket[require] and @racket[lambda], importing other modules can
-introduce new syntactic forms (in addition to more traditional kinds
-of imports, such as functions or constants).
+Racket 的 module 系统与 @tech{macro} 系统密切协作，从而为 Racket 引入新的 syntax 形式。举例来说，@racketmodname[racket/base] 的导出为 @racket[require] 和 @racket[lambda] 提供 syntax 的方式一样，导入其他其它模块也可以引入新的 syntax 形式（除了更传统的导入，如函数或常量之外）。
 
-We introduce macros in more detail later, in @secref["macros"], but
-here's a simple example of a module that defines a pattern-based
-macro:
+我们后面会在 @secref["macros"] 中详细介绍 macros，这里先提供一个基于模式匹配的宏的简单示例：
 
 @examples[
 #:eval noisy-eval
@@ -30,13 +23,10 @@ macro:
       body))
 
   (define (show-arguments name args)
-    (printf "calling ~s with arguments ~e" name args)))
+    (printf "calling ~s with arguments ~e" name args))
 ]
 
-The @racket[define-noisy] binding provided by this module is a
-@tech{macro} that acts like @racket[define] for a function, but it
-causes each call to the function to print the arguments that are
-provided to the function:
+该模块提供的 @racket[define-noisy] 绑定是一个 @tech{macro}，它的行为类似于函数定义的 @racket[define]，不过会使得每次调用函数时打印出传给该函数的参数：
 
 @examples[
 #:label #f
@@ -47,31 +37,20 @@ provided to the function:
 (f 1 2)
 ]
 
-Roughly, the @racket[define-noisy] form works by replacing
+粗略地说，@racket[define-noisy] 形式通过将
 
 @racketblock[(define-noisy (f x y)
                (+ x y))]
 
-with
+替换为
 
 @racketblock[(define (f x y)
                (show-arguments 'f (list x y))
                (+ x y))]
 
-Since @racket[show-arguments] isn't provided by the @racket[noisy]
-module, however, this literal textual replacement is not quite right.
-The actual replacement correctly tracks the origin of identifiers like
-@racket[show-arguments], so they can refer to other definitions in the
-place where the macro is defined---even if those identifiers are not
-available at the place where the macro is used.
+来完成展开。但由于 @racket[show-arguments] 并未由 @racket[noisy] 模块所在处提供，因此这种纯文本替换并不完全正确。实际的替换会正确地追踪像 @racket[show-arguments] 这类 identifier 的来源，使它们能引用宏定义位置的其它定义——即使那些 identifier 在宏使用处还不可见。
 
-There's more to the macro and module interaction than identifier
-binding. The @racket[define-syntax-rule] form is itself a macro, and
-it expands to compile-time code that implements the transformation
-from @racket[define-noisy] into @racket[define]. The module system
-keeps track of which code needs to run at compile and which needs to
-run normally, as explained more in @secref["stx-phases"] and
-@secref["macro-module"].
+module 与宏的交互还不仅限于 identifier 绑定。@racket[define-syntax-rule] 形式本身也是一个宏，它展开为在编译期执行从 @racket[define-noisy] 到 @racket[define] 转换的代码。module 跟踪哪些代码需要在编译期执行、哪些需要正常执行，正如 @secref["stx-phases"] 和 @secref["macro-module"] 中进一步解释的那样。
 
 @; ----------------------------------------------------------------------
 

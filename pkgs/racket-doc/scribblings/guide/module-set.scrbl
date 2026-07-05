@@ -1,13 +1,9 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "module-set"]{Assignment and Redefinition}
+@title[#:tag "module-set"]{赋值与重定义}
 
-The use of @racket[set!] on variables defined within a module is
-limited to the body of the defining module. That is, a module is
-allowed to change the value of its own definitions, and such changes
-are visible to importing modules. However, an importing context is not
-allowed to change the value of an imported binding.
+对模块内部定义的 variable 使用 @racket[set!] 仅限于定义该模块的主体内。也就是说，模块可以修改自身定义的那些绑定的值，这些修改对导入模块而言是可见的。然而，不允许导入方修改被导入绑定的值。
 
 @examples[
 (module m racket
@@ -22,12 +18,9 @@ allowed to change the value of an imported binding.
 (eval:alts (set! counter -1) (eval '(set! counter -1)))
 ]
 
-As the above example illustrates, a module can always grant others the
-ability to change its exports by providing a mutator function, such as
-@racket[increment!].
+如上述示例所示，模块可以通过提供一个 mutator 函数（例如 @racket[increment!]）来授权他人修改其导出变量的值。
 
-The prohibition on assignment of imported variables helps support
-modular reasoning about programs. For example, in the module,
+禁止对导入的 variable 赋值有助于支持程序设计的模块化推理。例如在以下模块中：
 
 @racketblock[
 (module m racket
@@ -37,25 +30,11 @@ modular reasoning about programs. For example, in the module,
     (regexp-match? rx:fish s)))
 ]
 
-the function @racket[fishy-string?] will always match strings that
-contain ``fish'', no matter how other modules use the @racket[rx:fish]
-binding.  For essentially the same reason that it helps programmers,
-the prohibition on assignment to imports also allows many programs to
-be executed more efficiently.
+无论其它模块如何使用 @racket[rx:fish] 绑定，函数 @racket[fishy-string?] 始终会匹配包含 ``fish'' 的字符串。由于同样的原因——既帮助了程序员，禁止对导入变量赋值也允许许多程序更高效地执行。
 
-Along the same lines, when a module contains no @racket[set!] of a
-particular identifier that is defined within the module, then the
-identifier is considered a @defterm{constant} that cannot be
-changed---not even by re-declaring the module.
+同理，当一个模块内部对其中定义的某个 identifier 从不 @racket[set!]，那么这个 identifier 即被视为 @defterm{常量}——不可修改，即使通过重新声明模块也不能。
 
-Consequently, re-declaration of a module is not generally allowed.
-For file-based modules, simply changing the file does not lead to a
-re-declaration in any case, because file-based modules are loaded on
-demand, and the previously loaded declarations satisfy future
-requests. It is possible to use Racket's reflection support to
-re-declare a module, however, and non-file modules can be re-declared
-in the @tech{REPL}; in such cases, the re-declaration may fail if it
-involves the re-definition of a previously constant binding.
+因此，通常不允许对一个 module 进行重定义。对于文件式模块而言，简单地修改文件并不会导致重定义，因为文件式模块是按需加载的，已加载过的声明能满足后续请求。不过，借助 Racket 的反射机制仍然可以重定义一个模块；在这种情况下，如果重定义涉及对先前常量绑定的重新定义，便可能失败。
 
 @interaction[
 (module m racket
@@ -65,9 +44,7 @@ involves the re-definition of a previously constant binding.
   (define pie 3))
 ]
 
-For exploration and debugging purposes, the Racket reflective layer
-provides a @racket[compile-enforce-module-constants] parameter
-to disable the enforcement of constants.
+出于探索和调试目的，Racket 的反射层提供了 @racket[compile-enforce-module-constants] 参数来禁用常量强制。
 
 @interaction[
 (compile-enforce-module-constants #f)
