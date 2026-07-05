@@ -1,8 +1,8 @@
 #lang scribble/doc
-@(require "utils.rkt" 
+@(require "utils.rkt"
           (for-label racket/serialize
                      ffi/serialize-cstruct
-                     (except-in ffi/unsafe ->))
+                     (except-in ffi/unsafe ->)))
           scribble/racket
           scribble/example)
 

@@ -67,7 +67,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-embedded-load"]{Loading Racket Modules}
+@section[#:tag "cs-embedded-load"]{加载 Racket 模块}
 
 @together[(
 @function[(void racket_embedded_load_bytes [const-char* code] [uptr len] [int as_predefined])]
@@ -75,49 +75,27 @@
 @function[(void racket_embedded_load_file_region [const-char* path] [uptr start] [uptr end] [int as_predefined])]
 )]{
 
-These functions evaluate Racket code, either in memory as @var{code}
-or loaded from @var{path}, in the initial Racket thread. The intent is
-that the code is already compiled. Normally, also, the contains module
-declarations. The @seclink["c-mods" #:doc raco-doc]{@exec{raco ctool
---c-mods}} and @seclink["c-mods" #:doc raco-doc]{@exec{raco ctool
---mods}} commands generate code suitable for loading with these
-functions, and @DFlag{c-mods} mode generates C code that calls
-@cppi{racket_embedded_load_bytes}.
+这些函数在初始 Racket 线程中求值 Racket 代码，代码可以是内存中的 @var{code} 或从 @var{path} 加载的。意图是代码已经编译。还通常包含 module 声明。@seclink["c-mods" #:doc raco-doc]{@exec{raco ctool --c-mods}} 和 @seclink["c-mods" #:doc raco-doc]{@exec{raco ctool --mods}} 命令生成适合这些函数加载的代码，@DFlag{c-mods} 模式生成调用 @cppi{racket_embedded_load_bytes} 的 C 代码。
 
-If @var{as_predefined} is true, then the code is loaded during the
-creation of any new Racket @tech[#:doc reference-doc]{place} in the
-new place, so that modules declared by the code are loaded in the new
-place, too.
+如果 @var{as_predefined} 为 true，则代码会在创建任何新 Racket @tech[#:doc reference-doc]{place} 时加载，以便在新 place 中也加载由代码声明的模块。
 
-These functions are not meant to be called in C code that was called
-from Racket. See also @secref["cs-procs"] for a discussion of
-@emph{entry} points versus @emph{re-entry} points.}
+这些函数不打算在从 Racket 调用的 C 代码中调用。参见 @secref["cs-procs"] 了解 @emph{entry} 点与 @emph{re-entry} 点的讨论。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-self-exe"]{Startup Path Helpers}
+@section[#:tag "cs-self-exe"]{启动路径帮助函数}
 
 @function[(char* racket_get_self_exe_path [const-char* argv0])]{
 
-Returns a path to the current process's executable. The @var{argv0}
-argument should be the executable name delivered to @cpp{main}, which
-may or may not be used depending on the operating system and
-environment. The result is a string that is freshly allocated with
-@cpp{malloc}, and it will be an absolute path unless all attempts to
-find an absolute path fail.
+返回当前进程的可执行文件路径。@var{argv0} 参数应为传递到 @cpp{main} 的可执行文件名，根据操作系统和环境可能使用也可能不使用。结果是使用 @cpp{malloc} 新分配的字符串，除非所有试图查找绝对路径的尝试都失败，否则将是绝对路径。
 
-On Windows, the @var{argv0} argument is always ignored, and the result
-path is UTF-8 encoded.
+在 Windows 上，@var{argv0} 参数始终被忽略，结果路径使用 UTF-8 编码。
 
 @history[#:added "8.7.0.11"]}
 
 
 @function[(char* racket_path_replace_filename [const-char* path] [const-char* new_filename])]{
 
-Returns a path like @var{path}, but with the filename path replaced by
-@var{new_filename}. The @var{new_filename} argument does not have to
-be an immediate filename; it can be relative path that ends in a
-filename. The result is a string that is freshly allocated with
-@cpp{malloc}.
+返回类似 @var{path} 的路径，但文件名部分被 @var{new_filename} 替换。@var{new_filename} 参数不必是直接的 filename；它可以是相对于目录的路径。结果是使用 @cpp{malloc} 新分配的字符串。
 
 @history[#:added "8.7.0.11"]}
