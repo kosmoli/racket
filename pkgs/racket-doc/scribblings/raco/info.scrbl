@@ -11,26 +11,16 @@
        (define id @racket[require])))
    (define-racket-require racket:require))
 
-@title[#:tag "info.rkt"]{@filepath{info.rkt} File Format}
+@title[#:tag "info.rkt"]{@filepath{info.rkt} 文件格式}
 
 @defmodulelang*[(info setup/infotab)]
 
-In each collection, a special module file @filepath{info.rkt} provides
-general information about a collection for use by various tools. For
-example, an @filepath{info.rkt} file specifies how to build the
-documentation for a collection, and it lists plug-in tools for
-DrRacket or commands for @exec{raco} that the collection provides.
+在每个集合中，一个特殊的模块文件 @filepath{info.rkt} 提供各种工具使用的集合的常规信息。例如，@filepath{info.rkt} 文件指定如何构建集合的文档，并列出 DrRacket 的插件工具或集合提供的 @exec{raco} 命令。
 
 @margin-note{
-  The fields specified in an @filepath{info.rkt} file are documented
-  in @secref["metadata" #:doc '(lib "pkg/scribblings/pkg.scrbl")] for
-  packages and in @secref["setup-info" #:doc '(lib "scribblings/raco/raco.scrbl")]
-  for collections.
-}
+  在 @filepath{info.rkt} 文件中指定的字段在包的 @secref["metadata" #:doc '(lib "pkg/scribblings/pkg.scrbl")] 和集合的 @secref["setup-info" #:doc '(lib "scribblings/raco/raco.scrbl")] 中记录。}
 
-Although an @filepath{info.rkt} file contains a module declaration, the
-declaration has a highly constrained form. It must match the following
-grammar of @racket[_info-module]:
+虽然 @filepath{info.rkt} 文件包含模块声明，但声明具有高度受限的形式。它必须与以下 @racket[_info-module] 语法匹配：
 
 @racketgrammar*[
 #:literals (info lib setup/infotab module define quote quasiquote if
@@ -71,29 +61,20 @@ grammar of @racket[_info-module]:
                 getenv]
 ]
 
-For example, the following declaration could be the @filepath{info.rkt}
-library of the @filepath{games} collection. It contains definitions for
-three info tags, @racket[name], @racket[gracket-launcher-libraries], and
-@racket[gracket-launcher-names].
+例如，以下声明可以是 @filepath{games} 集合的 @filepath{info.rkt} 库。它包含三个 info 标签的定义，@racket[name]，@racket[gracket-launcher-libraries]，和 @racket[gracket-launcher-names]。
 
 @racketmod[
 info
 (define name "Games")
 (define gracket-launcher-libraries '("main.rkt"))
+
 (define gracket-launcher-names     '("PLT Games"))
 ]
 
-As illustrated in this example, an @filepath{info.rkt} file can use
-@hash-lang[] notation, but only with the @racketmodname[info] (or
-@racketmodname[setup/infotab]) language.
+如本例所示，@filepath{info.rkt} 文件可以使用 @hash-lang[] 符号，但只能与 @racketmodname[info]（或 @racketmodname[setup/infotab]）语言使用。
 
-Although @racket[getenv] is allowed in an @racketmodname[info] module,
-the @racket[get-info] function loads the module with an environment that
-prunes any variable not listed in the @indexed-envvar{PLT_INFO_ALLOW_VARS}
-environment variable, which holds a list of @litchar{;}-separated
-variable names. By default, the set of allowed environment variables
-is empty.
+虽然在 @racketmodname[info] 模块中允许使用 @racket[getenv]，但 @racket[get-info] 函数在加载模块时会修剪未在 @indexed-envvar{PLT_INFO_ALLOW_VARS} 环境变量中列出的任何变量，该环境变量包含以 @litchar{;} 分隔的变量名列表。默认情况下，允许的环境变量集为空。
 
-See also @racket[get-info] from @racketmodname[setup/getinfo].
+也参见 @racketmodname[setup/getinfo] 中的 @racket[get-info]。
 
-@history[#:changed "6.5.0.2" @elem{Added @racket[if], @racket[equal?], and @racket[getenv].}]
+@history[#:changed "6.5.0.2" @elem{添加 @racket[if]，@racket[equal?]，和 @racket[getenv]。}]

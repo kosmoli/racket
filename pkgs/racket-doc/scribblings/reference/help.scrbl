@@ -2,7 +2,7 @@
 @(require "mz.rkt" scribble/core scribble/html-properties
           (for-label racket/help net/url racket/gui/base))
 
-@; Beware of this hard-wired link to the main doc page:
+@; 注意这个到主文档页面的硬编码链接：
 @(define main-doc-page
    (hyperlink "../index.html"
               #:style (make-style
@@ -10,9 +10,9 @@
                        (list
                         (make-attributes 
                          `((onclick . ,(format "return GotoPLTRoot(\"~a\");" (version)))))))
-              "main documentation page"))
+              "主文档页面"))
 
-@title{Interactive Help}
+@title{交互式帮助}
 
 @note-init-lib[racket/help]
 
@@ -23,75 +23,55 @@
            (help id #:from module-path)
            (help #:search datum ...)]]{
 
-@emph{For general help, see the @|main-doc-page|.}
+@emph{如需常规帮助，请参见 @|main-doc-page|。}
 
-The @racket[help] form searches the documentation and opens a web
-browser (using the user's selected browser) to display the results.
+@racket[help] 形式搜索文档并打开用户的浏览器以显示结果。
 
-@margin-note{See @racketmodname[net/sendurl] for information on how
-the user's browser is launched to display help information.}
+@margin-note{参见 @racketmodname[net/sendurl] 了解如何启动用户的浏览器以显示帮助信息。}
 
-A simple @racket[help] or @racket[(help)] form opens the main
-documentation page.
+简单的 @racket[help] 或 @racket[(help)] 形式会打开主文档页面。
 
-The @racket[(help string ...)] form---using literal strings, as
-opposed to expressions that produce strings---performs a
-string-matching search. For example,
+@racket[(help string ...)] 形式——使用字面字符串，而不是产生字符串的表达式——执行字符串匹配搜索。例如，
 
 @racketblock[
 (help "web browser" "firefox")
 ]
 
-searches the documentation index for references that include the
-phrase ``web browser'' or ``firefox.''
+在文档索引中搜索包含短语 "web browser" 或 "firefox" 的引用。
 
-A @racket[(help id)] form looks for documentation specific to the
-current binding of @racket[id]. For example, 
+@racket[(help id)] 形式查找特定于当前 @racket[id] 绑定的文档。例如，
 
 @racketblock[
 (require net/url)
 (help url->string)
 ]
 
-opens a web browser to show the documentation for @racket[url->string]
-from the @racketmodname[net/url] library.
+打开 Web 浏览器以显示 @racketmodname[net/url] 库中 @racket[url->string] 的文档。
 
-For the purposes of @racket[help], a @racket[for-label] require
-introduces a binding without actually executing the
-@racketmodname[net/url] library---for cases when you want to check
-documentation, but cannot or do not want to run the providing module.
+对于 @racket[help] 而言，@racket[for-label] require 引入一个绑定，但不实际执行 @racketmodname[net/url] 库——用于当您想检查文档但无法或不想运行提供模块的情况。
 
 @racketblock[
-(require racket/gui) (code:comment @#,t{does not work in @exec{racket}})
-(require (for-label racket/gui)) (code:comment @#,t{ok in @exec{racket}})
+(require racket/gui) (code:comment @#,t{在 @exec{racket} 中不起作用})
+(require (for-label racket/gui)) (code:comment @#,t{在 @exec{racket} 中可以})
 (help frame%)
 ]
 
-If @racket[id] has no for-label and normal binding, then @racket[help]
-lists all libraries that are known to export a binding for
-@racket[id].
+如果 @racket[id] 没有 for-label 和正常绑定，则 @racket[help] 列出所有已知导出 @racket[id] 绑定的库。
 
-The @racket[(help id #:from module-path)] variant is similar to
-@racket[(help id)], but using only the exports of
-@racket[module-path]. (The @racket[module-path] module is required
-@racket[for-label] in a temporary namespace.)
+@racket[(help id #:from module-path)] 变体类似于 @racket[(help id)]，但仅使用 @racket[module-path] 的导出。（@racket[module-path] module 在一个临时命名空间中被 require for-label。）
 
 @racketblock[
-(help frame% #:from racket/gui) (code:comment @#,t{equivalent to the above})
+(help frame% #:from racket/gui) (code:comment @#,t{与上面的等价})
 ]
 
-The @racket[(help #:search datum ...)] form is similar to
-@racket[(help string ...)], where any non-string form of
-@racket[datum] is converted to a string using @racket[display]. No
-@racket[datum] is evaluated as an expression.
+@racket[(help #:search datum ...)] 形式类似于 @racket[(help string ...)]，其中 @racket[datum] 的任何非字符串形式使用 @racket[display] 转换为字符串。没有 @racket[datum] 被当作表达式求值。
 
-For example,
+例如，
 
 @racketblock[
 (help #:search "web browser" firefox)
 ]
 
-also searches the documentation index for references that include the
-phrase ``web browser'' or ``firefox.''
+也在文档索引中搜索包含短语 "web browser" 或 "firefox" 的引用。
 
 }

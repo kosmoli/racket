@@ -6,38 +6,25 @@
           "mz.rkt")
 
 
-@title{Deprecation}
+@title{弃用}
 
 
 @note-lib-only[racket/deprecation]
 
 
-A @deftech{deprecated} function, macro, or other API element is one that's been formally declared
-obsolete, typically with an intended replacement that users should migrate to. The
-@racketmodname[racket/deprecation] library provides a standardized mechanism for declaring
-deprecations in a machine-processable manner. These declarations can allow tools such as
-@racketmodname[resyntax #:indirect] to automate migrating code away from deprecated APIs. Note that a
-dependency on the @racketmodname[racket/deprecation] library does not imply a dependency on any such
-tools.
+一个 @deftech{deprecated} 的 function、macro 或其他 API 元素是已被正式声明为过时的元素，通常具有用户应迁移到的预期替换。
+@racketmodname[racket/deprecation] 库提供了一种标准化机制，用于以机器可处理的方式声明弃用。这些声明可以允许诸如 @racketmodname[resyntax #:indirect] 等工具自动迁移代码，使其不再使用已弃用的 API。请注意，
+依赖 @racketmodname[racket/deprecation] 库并不暗示依赖于任何此类工具。
 
 
-@section{Deprecated Aliases}
+@section{已弃用的别名}
 
 
 @defform[(define-deprecated-alias alias-id target-id)]{
 
- Binds @racket[alias-id] as an alias of @racket[target-id] with the intent that users of
- @racket[alias-id] should prefer to use @racket[target-id] instead. The given @racket[alias-id] is
- bound as a @tech{deprecated alias transformer}, which is a kind of @tech{rename transformer}. The
- given @racket[target-id] may be bound to a function, macro, or any other kind of binding.
+ 将 @racket[alias-id] 绑定为 @racket[target-id] 的别名，意图是让 @racket[alias-id] 的用户优先使用 @racket[target-id]。给定的 @racket[alias-id] 绑定为 @tech{deprecated alias transformer}，一种 @tech{rename transformer}。给定的 @racket[target-id] 可以绑定到 function、macro 或任何其他类型的绑定。
 
- Note that although @racket[alias-id] is an alias of @racket[target-id], it is @emph{not} considered
- the same binding as @racket[target-id] and is @emph{not} @racket[free-identifier=?]. This is because
- the alias binding must be inspectable at compile-time with @racket[deprecated-alias?] and
- @racket[deprecated-alias-target], and it must remain inspectable even if the alias is
- @racket[provide]d by a module. This requires a module providing the alias and the target to provide
- them as two distinct bindings: one which is bound to a @tech{deprecated alias transformer} and one
- which isn't.
+ 注意，虽然 @racket[alias-id] 是 @racket[target-id] 的别名，但它 @emph{不} 被视为与 @racket[target-id] 相同的绑定，并且 @emph{不} @racket[free-identifier=?]。这是因为别名绑定必须在编译时可以通过 @racket[deprecated-alias?] 和 @racket[deprecated-alias-target]，甚至在别名由模块 @racket[provide] 后仍可检查。这要求提供别名和目标的模块将它们作为两个不同的绑定提供：一个绑定到 @tech{deprecated alias transformer}，另一个则不是。
 
  @(examples
    (require racket/deprecation)
@@ -46,27 +33,19 @@ tools.
    legacy-a)}
 
 
-@section{Deprecated Alias Transformers}
+@section{已弃用别名转换器}
 @defmodule[racket/deprecation/transformer]
 
 
-The @racketmodname[racket/deprecation/transformer] module provides compile-time supporting code for
-the @racketmodname[racket/deprecation] library, primarily for use in tools that wish to reflect on
-deprecated code.
+@racketmodname[racket/deprecation/transformer] 模块提供 @racketmodname[racket/deprecation] 库的编译时支持代码，主要用于希望反映弃用代码的工具。
 
-A @deftech{deprecated alias transformer} is a kind of @tech{rename transformer} which signals that the
-transformer binding is a @tech{deprecated} alias of the target identifier. This signal is intended
-for consumption in tools such as editors (which may wish to display a warning when deprecated aliases
-are used) and automated refactoring systems (which may wish to replace deprecated aliases with their
-target identifiers automatically).
+@deftech{deprecated alias transformer} 是一种 @tech{rename transformer}，它信号表示转换器绑定是目标标识符的 @tech{deprecated} 别名。此信号旨在由诸如编辑器（在希望使用弃用时希望显示警告时）和自动重构系统（可能希望自动将弃用别名替换为其目标标识符）等工具使用。
 
 
 @defproc[(deprecated-alias? [v any/c]) boolean?]{
 
- Returns true if @racket[v] is a @tech{deprecated alias transformer} and returns false otherwise.
- Implies @racket[rename-transformer?]. To determine if an identifier is @emph{bound} to a deprecated
- alias transformer, use @racket[syntax-local-value/immediate] and then use @racket[deprecated-alias?]
- on the transformer value.
+ 如果 @racket[v] 是 @tech{deprecated alias transformer} 则返回真，否则返回假。
+ 暗示 @racket[rename-transformer?]。要确定标识符是 @emph{绑定} 到弃用别名转换器，请使用 @racket[syntax-local-value/immediate] 然后对转换器值使用 @racket[deprecated-alias?]。
 
 @(examples
   #:escape UNSYNTAX
@@ -88,16 +67,13 @@ target identifiers automatically).
 
 @defproc[(deprecated-alias [target identifier?]) deprecated-alias?]{
 
- Constructs a @tech{deprecated alias transformer} which expands to @racket[target] when used. The
- returned alias is a @tech{rename transformer} and is thus suitable for use with
- @racket[define-syntax]. When expanding, the usage of @racket[target] is annotated with the
- @racket['not-free-identifier=?] syntax property to ensure that the alias and the target are treated
- as distinct bindings, even when @racket[provide]d by a module.
+ 构造一个 @tech{deprecated alias transformer}，在使用时展开为 @racket[target]。
+ 返回的别名是一个 @tech{rename transformer}，因此适合与 @racket[define-syntax] 使用。展开时，@racket[target] 的使用会使用 @racket['not-free-identifier=?] 语法属性进行注释，以确保别名和目标被视为不同的绑定，即使在模块 @racket[provide] 时也是如此。
 
- This constructor is not intended for direct use by users who just want to declare a deprecated alias.
- Such users should prefer the @racket[define-deprecated-alias] form instead.}
+ 此构造函数不适合直接供仅想声明弃用别名的用户使用。
+ 这些用户应优先使用 @racket[define-deprecated-alias] 形式。}
 
 
 @defproc[(deprecated-alias-target [alias deprecated-alias?]) identifier?]{
 
- Returns the target identifier that @racket[alias] expands to.}
+ 返回 @racket[alias] 展开到的目标标识符。}

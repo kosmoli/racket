@@ -1,96 +1,35 @@
 #lang scribble/doc
 @(require scribble/manual "common.rkt" (for-label racket/runtime-path))
 
-@title[#:tag "exe-dist"]{@exec{raco distribute}: Sharing Stand-Alone Executables}
+@title[#:tag "exe-dist"]{@exec{raco distribute} 分发独立可执行文件}
 
-The @exec{raco distribute} command combines a
-stand-alone executable created by @seclink["exe"]{@exec{raco exe}} with all of the
-shared libraries that are needed to run it, along with any run-time
-files declared via @racket[define-runtime-path].  The resulting
-package can be moved to other machines that run the same operating
-system.
+@exec{raco distribute} 命令将由 @seclink["exe"]{@exec{raco exe}} 创建的独立可执行文件与所有必需的共享库以及通过 @racket[define-runtime-path] 声明的任何运行时文件组合在一起。生成的包可以移动到运行相同操作系统的其他机器。
 
-@margin-note{On Windows and Mac OS, native libraries tend to be
-included with the output of @exec{raco distribute}. On Unix platforms,
-native libraries tend not to be included, so system libraries will be
-used on the host machine. The difference is whether a Racket
-installation itself includes bundled native libraries or relies on
-system-installed libraries. Adding a symbolic link in Racket's
-@filepath{lib} directory to a system-installed library causes that
-library to be included with a distribution directory created by
-@exec{raco distribute}; see also @racket[define-runtime-path].}
+@margin-note{在 Windows 和 Mac OS 上，本机库倾向于包含在 @exec{raco distribute} 的输出中。在 Unix 平台上，本机库倾向于不包含在内，因此将在主机上使用系统库。差异在于 Racket 安装本身是否包含捆绑的本机库或依赖于系统安装的库。在 Racket 的 @filepath{lib} 目录中添加指向系统安装的库的符号链接会导致该库包含在由 @exec{raco distribute} 创建的发行目录中；另见 @racket[define-runtime-path]。}
 
-After the @exec{raco distribute} command, supply a directory to
-contain the combined files for a distribution. Each command-line
-argument is an executable to include in the distribution, so multiple
-executables can be packaged together. For example, on Windows,
+执行 @exec{raco distribute} 命令后，提供一个目录来包含用于分发的组合文件。每个命令行参数是要包含在分发中的可执行文件，因此可以打包多个可执行文件。例如，在 Windows 上，
 
 @commandline{raco distribute greetings hello.exe goodbye.exe}
 
-creates a directory @filepath{greetings} (if the directory doesn't
-exist already), and it copies the executables @filepath{hello.exe} and
-@filepath{goodbye.exe} into @filepath{greetings}. It also creates a
-@filepath{lib} sub-directory in @filepath{greetings} if needed to
-contain DLLs, and in that case it adjusts the copied
-@filepath{hello.exe} and @filepath{goodbye.exe} to use the DLLs in
-@filepath{lib}.
+创建目录 @filepath{greetings}（如果目录不存在），并将可执行文件 @filepath{hello.exe} 和 @filepath{goodbye.exe} 复制到 @filepath{greetings} 中。它还会创建一个 @filepath{lib} 子目录（如果需要），在这种情况下，它会调整复制的 @filepath{hello.exe} 和 @filepath{goodbye.exe} 以使用 @filepath{lib} 中的 DLL。
 
-The number of needed support files depends in part on the way that
-executables for a distribution are created. Supplying
-@DFlag{embed-dlls} or @DFlag{orig-exe} to @exec{raco exe} reduces the
-need for support files, but at the expense of making the distribution
-larger if it contains multiple executables.
+所需支持文件的部分取决于为分发创建可执行文件的方式。向 @exec{raco exe} 提供 @DFlag{embed-dlls} 或 @DFlag{orig-exe} 会减少对支持文件的需求，但代价是如果分发包含多个可执行文件，则分发会更大。
 
-The layout of files within a distribution directory is
-platform-specific:
+分发目录内的文件布局是特定于平台的：
 
 @itemize[
 
-@item{On Windows, executables are put directly into the
-      distribution directory, and DLLs and other run-time files go
-      into a @filepath{lib} sub-directory.}
+@item{在 Windows 上，可执行文件直接放入分发目录中，DLL 和其他运行时文件放入 @filepath{lib} 子目录。}
 
-@item{On Mac OS, GUI executables go into the distribution
-      directory, other executables go into a @filepath{bin}
-      subdirectory, and frameworks (i.e., shared libraries) go into a
-      @filepath{lib} sub-directory along with other run-time files. As
-      a special case, if the distribution has a single @DFlag{gui-exe}
-      executable, then the @filepath{lib} directory is hidden inside
-      the application bundle.}
+@item{在 Mac OS 上，GUI 可执行文件放入分发目录，其他可执行文件放入 @filepath{bin} 子目录，框架（即共享库）与其他运行时文件一起放入 @filepath{lib} 子目录。作为特殊情况，如果分发具有单个 @DFlag{gui-exe} 可执行文件，则 @filepath{lib} 目录隐藏在应用程序包内。}
 
-@item{On Unix, executables go into a @filepath{bin} subdirectory,
-      shared libraries (if any) go into a @filepath{lib} subdirectory
-      along with other run-time files, and wrapped executables are
-      placed into a @filepath{lib/plt} subdirectory with
-      version-specific names. This layout is consistent with Unix
-      installation conventions; the version-specific names for shared
-      libraries and wrapped executables means that distributions can
-      be safely unpacked into a standard place on target machines
-      without colliding with an existing Racket installation or
-      other executables created by @exec{raco exe}.}
+@item{在 Unix 上，可执行文件放入 @filepath{bin} 子目录，共享库（如果有）与其他运行时文件一起放入 @filepath{lib} 子目录，并且打包的可执行文件放入具有版本特定名称的 @filepath{lib/plt} 子目录。此布局符合 Unix 安装约定；共享库和打包可执行文件的版本特定名称意味着分发可以安全地解包到目标机器上的标准位置，而不会与现有的 Racket 安装或由 @exec{raco exe} 创建的其他可执行文件冲突。}
 
 ]
 
-A distribution also has a @filepath{collects} directory that is used
-as the main library collection directory for the packaged executables.
-By default, the directory is empty. Use the
-@as-index{@DPFlag{collects-copy}} flag of @exec{raco distribute} to
-supply a directory whose content is copied into the distribution's
-@filepath{collects} directory. The @DPFlag{collects-copy} flag can be
-used multiple times to supply multiple directories.
+分发还有一个 @filepath{collects} 目录，用作打包可执行文件的主库集合目录。默认情况下，该目录为空。使用 @as-index{@DPFlag{collects-copy}} 标志的 @exec{raco distribute} 提供要复制到分发的 @filepath{collects} 目录的目录。@DPFlag{collects-copy} 标志可以多次使用以提供多个目录。
 
-When multiple executables are distributed together, then separately
-creating the executables with @exec{raco exe} can generate multiple
-copies of collection-based libraries that are used by multiple
-executables. To share the library code, instead, specify a target
-directory for library copies using the
-@as-index{@DFlag{collects-dest}} flag with @exec{raco exe}, and
-specify the same directory for each executable (so that the set of
-libraries used by all executables are pooled together). Finally, when
-packaging the distribution with @exec{raco distribute}, use the
-@DPFlag{collects-copy} flag to include the copied libraries in the
-distribution.
-
+当多个可执行文件一起分发时，使用 @exec{raco exe} 单独创建可执行文件可能会生成多个由多个可执行文件使用的基于集合的库的副本。要共享库代码，请使用 @as-index{@DFlag{collects-dest}} 标志与 @exec{raco exe} 指定库副本的目标目录，并为每个可执行文件指定相同的目录（以便所有可执行文件使用的库集合汇集在一起）。最后，在使用 @exec{raco distribute} 打包分发时，使用 @DPFlag{collects-copy} 标志在分发中包含复制的库。
 
 @; ----------------------------------------------------------------------
 

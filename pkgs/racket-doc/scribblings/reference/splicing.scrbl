@@ -6,7 +6,7 @@
                                                racket/stxparam
                                                (for-syntax racket/base))]
 
-@title[#:tag "splicing"]{Local Binding with Splicing Body}
+@title[#:tag "splicing"]{使用 Splicing Body 的局部绑定}
 
 @note-lib-only[racket/splicing]
 
@@ -24,13 +24,7 @@
 @defidform[splicing-parameterize]
 )]{
 
-Like @racket[let] (not @tech{named @racket[let]}), @racket[letrec], @racket[let-values],
-@racket[letrec-values], @racket[let-syntax], @racket[letrec-syntax],
-@racket[let-syntaxes], @racket[letrec-syntaxes],
-@racket[letrec-syntaxes+values], @racket[local], and
-@racket[parameterize], except that in a definition context, the body
-forms are spliced into the enclosing definition context (in the same
-way as for @racket[begin]).
+与 @racket[let]（不是 @tech{named @racket[let]}）、@racket[letrec]、@racket[let-values]、@racket[letrec-values]、@racket[let-syntax]、@racket[letrec-syntax]、@racket[let-syntaxes]、@racket[letrec-syntaxes]、@racket[letrec-syntaxes+values]、@racket[local] 和 @racket[parameterize] 类似，不同之处在于，在定义上下文中，body 形式被拼接到封闭的定义上下文中（与 @racket[begin] 相同）。
 
 @examples[
 #:eval splice-eval
@@ -40,11 +34,7 @@ o
 (eval:error one)
 ]
 
-When a splicing binding form occurs in a @tech{top-level context} or
-@tech{module context}, its local bindings are treated similarly to
-definitions. In particular, syntax bindings are
-evaluated every time the module is @tech{visit}ed, instead of only
-once during compilation as in @racket[let-syntax], etc.
+当拼接绑定形式出现在 @tech{top-level context} 或 @tech{module context} 中时，其局部绑定被视为类似定义。特别是，语法绑定在每次 @tech{visit} 模块时求值，而不是像 @racket[let-syntax] 等仅在编译期间求值一次。
 
 @examples[
 #:eval splice-eval
@@ -53,50 +43,33 @@ once during compilation as in @racket[let-syntax], etc.
                    [bad 1])
    x))]
 
-If a definition within a splicing form is intended to be local to the
-splicing body, then the identifier should have a true value for the
-@indexed-racket['definition-intended-as-local] @tech{syntax property}. For
-example, @racket[splicing-let] itself adds the property to
-locally-bound identifiers as it expands to a sequence of definitions,
-so that nesting @racket[splicing-let] within a splicing form works as
-expected (without any ambiguous bindings).
+如果拼接形式中的定义旨在成为拼接 body 的局部，则标识符应具有 @indexed-racket['definition-intended-as-local] @tech{syntax property} 的真值。例如，@racket[splicing-let] 本身在展开为定义序列时会将属性添加到局部绑定的标识符中，以便将 @racket[splicing-let] 嵌套在拼接形式中按预期工作（没有任何歧义的绑定）。
 
 @history[
- #:changed "6.12.0.2" @elem{Added @racket[splicing-parameterize].}]}
+ #:changed "6.12.0.2" @elem{添加 @racket[splicing-parameterize]。}]}
 
 
 @defidform[splicing-syntax-parameterize]{
 
-Like @racket[syntax-parameterize], except that in a definition context, the body
-forms are spliced into the enclosing definition context (in the same way as for
-@racket[begin]). In a definition context, the body of
-@racket[splicing-syntax-parameterize] can be empty.
+与 @racket[syntax-parameterize] 类似，不同之处在于，在定义上下文中，body 形式被拼接到封闭的定义上下文中（与 @racket[begin] 相同）。在定义上下文中，@racket[splicing-syntax-parameterize] 的 body 可以为空。
 
-Note that @tech{require transformers} and @tech{provide transformers} are not
-affected by syntax parameterization.  While all uses of @racket[require] and
-@racket[provide] will be spliced into the enclosing context, derived import or
-export specifications will expand as if they had not been inside of the
-@racket[splicing-syntax-parameterize].
+注意 @tech{require transformers} 和 @tech{provide transformers} 不受语法参数化的影响。虽然所有 @racket[require] 和 @racket[provide] 的使用将被拼接到封闭的上下文中，但派生的导入或导出规范将展开，就像它们不在 @racket[splicing-syntax-parameterize] 内一样。
 
-Additionally, @tech{submodules} defined with @racket[module*] that specify
-@racket[#f] in place of a @tech{module path} @emph{are} affected by syntax
-parameterization, but other submodules (those defined with @racket[module] or
-@racket[module*] with a @tech{module path}) are @emph{not}.
+此外，使用 @racket[module*] 定义的 @tech{submodules} 在 @tech{module path} 位置指定 @racket[#f] 时会受语法参数化的影响，但其他 submodule（那些使用 @racket[module] 或具有 @tech{module path} 的 @racket[module*] 定义的）不受影响。
 
 @examples[
 #:eval splice-eval
-(define-syntax-parameter place (lambda (stx) #'"Kansas"))
+(define-syntax-parameter place (lambda (stx) #'\"Kansas\"))
 (define-syntax-rule (where) `(at ,(place)))
 (where)
-(splicing-syntax-parameterize ([place (lambda (stx) #'"Oz")])
+(splicing-syntax-parameterize ([place (lambda (stx) #'\"Oz\")])
   (define here (where)))
 here
 ]
 
 @history[
  #:changed "6.11.0.1"
- @elem{Modified to syntax parameterize @racket[module*] submodules that
-       specify @racket[#f] in place of a @tech{module path}.}]}
+ @elem{修改为语法参数化 @racket[module*] submodule，这些 submodule 在 @tech{module path} 位置指定 @racket[#f]。}]}
 
 @; ----------------------------------------------------------------------
 

@@ -1,90 +1,71 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@title[#:tag "foreign:cvector"]{Safe C Vectors}
+@title[#:tag "foreign:cvector"]{安全的 C 向量}
 
 @defmodule*[(ffi/cvector ffi/unsafe/cvector) 
-            #:use-sources (ffi/unsafe/cvector)]{The
-@racketmodname[ffi/unsafe/cvector] library exports the bindings of
-this section. The @racketmodname[ffi/cvector] library exports the same
-bindings, except for the unsafe @racket[make-cvector*] operation.}
+            #:use-sources (ffi/unsafe/cvector)]{@racketmodname[ffi/unsafe/cvector] 库导出本节中的绑定。@racketmodname[ffi/cvector] 库导出相同的绑定，但不包括不安全的 @racket[make-cvector*] 操作。}
 
-The @racket[cvector] form can be used as a type C vectors (i.e., a
-pointer to a memory block).
+@racket[cvector] 形式可以用作 C 向量类型（即指向内存块的指针）。
 
-@defform*[[(_cvector mode type maybe-len)
-           _cvector]]{
+@defform*[(_cvector mode type maybe-len)
+           _cvector]{
 
-Like @racket[_bytes], @racket[_cvector] can be used as a simple type
-that corresponds to a pointer that is managed as a safe C vector on
-the Racket side.  The longer form behaves similarly to the
-@racket[_list] and @racket[_vector] custom types, except that
-@racket[_cvector] is more efficient; no Racket list or vector is
-needed.}
+与 @racket[_bytes] 类似，@racket[_cvector] 可以用作简单类型，对应于在 Racket 端作为安全 C 向量管理的指针。较长形式的行为类似于 @racket[_list] 和 @racket[_vector] 自定义类型，但 @racket[_cvector] 更高效；不需要 Racket list 或 vector。}
 
 @defproc[(make-cvector [type ctype?] [length exact-nonnegative-integer?]) cvector?]{
 
-Allocates a C vector using the given @racket[type] and
-@racket[length]. The resulting vector is not guaranteed to 
-contain any particular values.}
+使用给定的 @racket[type] 和 @racket[length] 分配一个 C 向量。结果向量不保证包含任何特定值。}
 
 
 @defproc[(cvector [type ctype?] [val any/c] ...) cvector?]{
 
-Creates a C vector of the given @racket[type], initialized to the
-given list of @racket[val]s.}
+创建给定 @racket[type] 的 C 向量，用 @racket[val] 列表进行初始化。}
 
 
 @defproc[(cvector? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a C vector, @racket[#f] otherwise.}
+如果 @racket[v] 是 C 向量则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(cvector-length [cvec cvector?]) exact-nonnegative-integer?]{
 
-Returns the length of a C vector.}
+返回 C 向量的长度。}
 
 
 @defproc[(cvector-type [cvec cvector?]) ctype?]{
 
-Returns the C type object of a C vector.}
+返回 C 向量的 C 类型对象。}
 
 
 @defproc[(cvector-ptr [cvec cvector?]) cpointer?]{
 
-Returns the pointer that points at the beginning block of the given C vector.}
+返回指向给定 C 向量起始内存块的指针。}
 
 
 @defproc[(cvector-ref [cvec cvector?] [k exact-nonnegative-integer?]) any]{
 
-References the @racket[k]th element of the @racket[cvec] C vector.
-The result has the type that the C vector uses.}
+引用 @racket[cvec] C 向量的第 @racket[k] 个元素。结果具有 C 向量所使用的类型。}
 
 
 @defproc[(cvector-set! [cvec cvector?] [k exact-nonnegative-integer?] [val any]) void?]{
 
-Sets the @racket[k]th element of the @racket[cvec] C vector to
-@racket[val].  The @racket[val] argument should be a value that can be
-used with the type that the C vector uses.}
+将 @racket[cvec] C 向量的第 @racket[k] 个元素设置为 @racket[val]。@racket[val] 参数应该是可用于 C 向量类型的值。}
 
 
 @defproc[(cvector->list [cvec cvector?]) list?]{
 
-Converts the @racket[cvec] C vector object to a list of values.}
+将 @racket[cvec] C 向量对象转换为值列表。}
 
 
 @defproc[(list->cvector [lst list?] [type ctype?]) cvector?]{
 
-Converts the list @racket[lst] to a C vector of the given
-@racket[type].}
+将列表 @racket[lst] 转换为给定 @racket[type] 的 C 向量。}
 
 
 @defproc[(make-cvector* [cptr any/c] [type ctype?]
                         [length exact-nonnegative-integer?])
                         cvector?]{
 
-Constructs a C vector using an existing pointer object.  This
-operation is not safe, so it is intended to be used in specific
-situations where the @racket[type] and @racket[length] are known.}
-
+使用现有指针对象构造一个 C 向量。此操作不安全，因此仅在已知 @racket[type] 和 @racket[length] 的特定情况下使用。}
 

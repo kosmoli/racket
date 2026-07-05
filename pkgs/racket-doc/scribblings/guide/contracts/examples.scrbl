@@ -2,91 +2,64 @@
 @(require scribble/manual scribble/eval "utils.rkt"
           (for-label racket/contract racket/gui))
 
-@title[#:tag "contracts-examples"]{Additional Examples}
+@title[#:tag "contracts-examples"]{更多示例}
 
- This section illustrates the current state of Racket's contract
- implementation with a series of examples from @italic{Design by
- Contract, by Example} @cite["Mitchell02"].
+本节通过 @italic{Design by Contract, by Example} @cite["Mitchell02"] 中的一系列示例来说明 Racket contract 实现的现状。
 
-Mitchell and McKim's principles for design by contract DbC are derived
-  from the 1970s style algebraic specifications. The overall goal of DbC is
-  to specify the constructors of an algebra in terms of its
-  observers. While we reformulate Mitchell and McKim's terminology and 
-  we use a mostly applicative approach, we
-  retain their terminology of ``classes'' and ``objects'':
+Mitchell 和 McKim 的 design by contract DbC 原则源自 1970 年代风格的代数规范。DbC 的总体目标是依据代数构造函数的观测器来指定它们。虽然我们重新表述了 Mitchell 和 McKim 的术语并主要使用应用式方法，但我们保留了他们的"类"和"对象"术语：
 
 @itemize[
-@item{@bold{Separate queries from commands.}
+@item{@bold{将查询与命令分开。}
 
-    A @italic{query} returns a result but does not change the observable
-    properties of an object. A @italic{command} changes the visible
-    properties of an object, but does not return a result. In applicative
-    implementation a command typically returns an new object of the same
-    class.}
+    @italic{查询}返回结果但不改变对象的可观察属性。@italic{命令}改变对象的可观察属性但不返回结果。在应用式实现中，命令通常返回同一 class 的新对象。}
 
-@item{@bold{Separate basic queries from derived queries.}
+@item{@bold{将基本查询与派生查询分开。}
 
-    A @italic{derived query} returns a result that is computable in
-    terms of basic queries.}
+    @italic{派生查询}返回可根据基本查询计算的结果。}
 
-@item{@bold{For each derived query, write a post-condition contract that
-    specifies the result in terms of the basic queries.}}
+@item{@bold{为每个派生查询编写一个 post-condition contract，根据基本查询指定其结果。}}
 
-@item{@bold{For each command, write a post-condition contract that specifies the
-    changes to the observable properties in terms of the basic queries.}}
+@item{@bold{为每个命令编写一个 post-condition contract，根据基本查询指定可观察属性的更改。}}
 
-@item{@bold{For each query and command, decide on a suitable
-pre-condition contract.}}]
+@item{@bold{为每个查询和 command 决定适当的 pre-condition contract。}}]
 
-Each of the following sections corresponds to a chapter in
- Mitchell and McKim's book (but not all chapters show up
- here). We recommend that you read the contracts first (near
- the end of the first modules), then the implementation (in
- the first modules), and then the test module (at the end of
- each section).
+以下各节对应 Mitchell 和 McKim 书中的章节（但并非所有章节都会出现）。建议您先阅读 contract（靠近第一个 module 的末尾），然后阅读实现（在第一个 module 中），最后阅读测试 module（在每个部分的末尾）。
 
-Mitchell and McKim use Eiffel as the underlying programming language and
- employ a conventional imperative programming style. Our long-term goal is
- to transliterate their examples into applicative Racket,
- structure-oriented imperative Racket, and Racket's class system. 
+Mitchell 和 McKim 使用 Eiffel 作为底层编程语言，采用传统的 imperative 编程风格。我们的长期目标是将它们的示例移植为应用式的 Racket、面向结构的 imperative Racket，以及 Racket 的 class 系统。
 
-Note: To mimic Mitchell and McKim's informal notion of parametericity
- (parametric polymorphism), we use first-class contracts. At several
- places, this use of first-class contracts improves on Mitchell and McKim's
- design (see comments in interfaces).
+注意：为了模仿 Mitchell 和 McKim 对 parametericity（参数多态）的非正式概念，我们使用 first-class contract。在多个地方，使用 first-class contract 改进了 Mitchell 和 McKim 的设计（参见接口中的注释）。
 
-@section{A Customer-Manager Component}
+@section{客户-管理器组件}
 
-This first module contains some struct definitions in a
-separate module in order to better track bugs.
+第一个 module 包含一些 struct 定义，位于单独的 module 中，以便更好地追踪错误。
 
 @external-file[1]
 
-This module contains the program that uses the above.
+此 module 包含使用上述内容的程序。
 
 @external-file[1b]
 
-The tests:
+测试：
 
 @external-file[1-test]
 
-@section{A Parameteric (Simple) Stack}
+@section{参数化（简单）堆栈}
 @external-file[2]
 
-The tests:
+测试：
 
 @external-file[2-test]
 
-@section{A Dictionary}
+@section{字典}
 @external-file[3]
 
-The tests:
+测试：
 
 @external-file[3-test]
 
-@section{A Queue}
+@section{队列}
 @external-file[5]
 
-The tests:
+测试：
 
 @external-file[5-test]
