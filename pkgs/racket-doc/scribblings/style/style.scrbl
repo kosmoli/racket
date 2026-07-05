@@ -2,58 +2,26 @@
 
 @(require "shared.rkt")
 
-@title{How to Program Racket: a Style Guide}
+@title{如何进行 Racket 编程：一份风格指南}
 @author{Matthias Felleisen, Matthew Flatt, Robby Findler, Jay McCarthy}
 
-@section-index{Style Guide}
+@section-index{风格指南}
 
 @; -----------------------------------------------------------------------------
 
-Since 1995 the number of ``repository contributors'' has grown from a small handful to
- three dozen and more. This growth implies a lot of learning 
- and the introduction of inconsistencies of programming styles. This document
- is an attempt leverage the former and to start reducing the latter. Doing so will
- help us, the developers, and our users, who use the open source code in
- our repository as an implicit guide to Racket programming.
+自1995年以来，"仓库贡献者"的数量已从少数人增长到三十人以上。这一增长意味着大量学习，也引入了编程风格的不一致性。本文档试图利用前者并开始减少后者。这样做将帮助我们这些开发者，以及使用我们开源代码作为 Racket 编程隐性指南的用户。
 
-To help manage the growth of our code and showcase good Racket style, we need
- guidelines that shape the contributions to the code base. These guidelines should
- achieve some level of consistency across the different portions of the
- code base so that everyone who opens files can easily find their way
- around.
+为了管理代码的增长并展示良好的 Racket 风格，我们需要塑造代码库贡献的指导方针。这些指导方针应在代码库的不同部分之间达成某种程度的一致性，以便每个打开文件的人都能轻松找到方向。
 
-This document spells out the guidelines and best practices. They cover a range
- of topics, from basic work (commit) habits to small syntactic ideas like
- indentation and naming.
+本文档详细说明了指导方针和最佳实践。它们涵盖了从基本工作（提交）习惯到缩进和命名等小型语法思想的广泛主题。
 
-Many pieces of the code base don't live up to the guidelines yet.  Here is how
- we get started. When you start a new file, stick to the guidelines. If you need
- to edit a file, you will need to spend some time understanding its
- workings. If doing so takes quite a while due to inconsistencies with the
- guidelines, please take the time to fix (portions of) the file. After all, if
- the inconsistencies throw you off for that much time, others are likely to
- have the same problems. If you help fix it, you reduce future
- maintenance time. Whoever touches the file next will be grateful to you.
- @emph{Do} run the test suites, and do @emph{not} change the behavior of
- the file.
+代码库的许多部分尚未达到指导方针的要求。以下是我们的入门方法。当你创建一个新文件时，请遵循指导方针。如果你需要编辑一个文件，你将需要一些时间来了解其工作原理。如果由于与指导方针的不一致而花费了相当长的时间，请花时间修复（部分）文件。毕竟，如果这些不一致让你困扰那么长时间，其他人可能会遇到同样的问题。如果你帮助修复它，你就减少了未来的维护时间。无论谁接下来接触这个文件都会感激你。@emph{请}运行测试套件，并且请@emph{不要}更改文件的行为。
 
-Also, look over the commit messages. If you see problems with the code
- deltas, let the contributor know. If you see a bug fix without docs and
- tests, let the contributor know. Code should be viewed by more than one
- person because a second person is likely to catch logical mistakes,
- performance problems, and unintended effects.
+另外，请检查提交消息。如果你发现代码增量有问题，请让贡献者知道。如果你发现没有文档和测试的 bug 修复，请让贡献者知道。代码应该由不止一个人审查，因为第二个人很可能抓住逻辑错误、性能问题和意外效果。
 
-@bold{Request} This document isn't complete and it isn't perfect. Consider
- it a call for improvements and suggestions.  If you have ideas, contact
- the first author via email. If your request gets ignored, appeal to all
- four authors.
+@bold{请求} 本文档并不完整也不完美。请将此视为对改进和建议的呼吁。如果你有任何想法，请联系第一作者通过电子邮件。如果你的请求被忽略，请向所有四位作者上诉。
 
-@bold{Note} The recommendations in this style guide may not jibe with what
- you grew up with. (They conflict with some of the ideas that the primary
- author had about style.) But if you do write code that ends up in the
- Racket code base, please follow the recommendations here. If/when someone
- else works on your code, this person may ``fix'' your code if it isn't in
- compliance with the style guide.
+@bold{注意} 本风格指南中的建议可能与你从小习惯的方式不一致。（它们与主要作者关于风格的一些想法冲突。）但如果你写的代码最终进入 Racket 代码库，请遵循这里的建议。如果其他人处理你的代码，如果不符合风格指南，此人可能会"修复"你的代码。
 
 @; -----------------------------------------------------------------------------
 

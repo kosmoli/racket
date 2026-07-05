@@ -2,73 +2,42 @@
 
 @(require "shared.rkt" scribble/core)
 
-@title[#:tag "branch-and-commit"]{Retiquette: Branch and Commit}
+@title[#:tag "branch-and-commit"]{礼仪：分支与提交}
 
- This section is specifically for Racketeers who commit to the Racket code
- base.
+本节专门面向向 Racket 代码库提交的 Racketeers。
 
- Working with the bug database requires one critical work flow rule.
+使用 bug 数据库需要一条关键的工作流规则。
 
- Working with the code base requires style rules for actions on the
- repository. Currently we are using Git and below are a few rules on how to
- act in this context.
+使用代码库需要对仓库操作的行为规则。目前我们使用 Git，以下是在此背景下如何行动的一些规则。
 
 @;-----------------------------------------------------------------------------
-@section{Bugfix Workflow}
+@section{Bug 修复工作流}
 
-Re-assign bug reports only after you can eliminate your own code as the source
- of a bug. The best way to accomplish this goal is to create a new example that
- re-creates the problem without involvement of your code. When you have such a
- code snippet, re-assign the code to the person responsible for the apparently
- buggy component and submit the code snippet as part of the justification.
+仅当你能够排除自己的代码作为 bug 的源头后，才重新分配 bug 报告。实现此目标的最佳方法是创建一个不涉及你自己代码的新示例来重现问题。当你有这样一段代码片段时，将代码重新分配给看似有问题的组件的负责人，并将该代码片段作为理由的一部分提交。
 
-@; -----------------------------------------------------------------------------
-@section{Commit}
+@; ----------------------------------------------------------------------------
+@section{提交}
 
-@bold{New feature commit:} Commit the new feature, its tests, and its
- documentations as you wish, but please push them together. However, do not
- commit states that don't run. (In Git, this means 'commit' and not just
- 'push'.)
+@bold{新特性提交：}按你的意愿提交新特性、其测试和文档，但请一起推送。但是，不要提交无法运行的代码状态。（在 Git 中，这意味着'commit'而不仅仅是'push'。）
 
-@bold{Bug fix commit:} When you fix a bug, make sure to commit (1) the
- code delta, (2) the new test case, and (3) the revised docs (if
- applicable) in one batch. If the creation of a single commit is too
- complex of if you wish to factor out one of the commits, please push all
- pieces at once. That way the code base is always in a state where code,
- tests, and documentation are in sync, and readers of commit messages can
- evaluate changes completely.
+@bold{Bug 修复提交：}当你修复一个 bug 时，请确保在一次批量中提交 (1) 代码增量、(2) 新的测试用例和 (3) 修订的文档（如果适用）。如果单个提交的创建太复杂，或者你希望分解其中一个提交，请一次推送所有部分。这样代码库始终处于代码、测试和文档同步的状态，提交消息的读者可以完整地评估更改。
 
-@bold{Style change commit:} Submit changes to the style of a file
- separately from changes to its behavior (new features, bugs).
+@bold{样式更改提交：}将文件样式的更改与对其行为（新特性、bug）的更改分开提交。
 
-Write meaningful commit messages. The first line (say 72 chars) should
- provide a concise summary of the commit. If the message must be longer,
- edit the rest of the message in your text editor and leave a blank line
- between the summary line and the rest of the message, like this:
+编写有意义的提交消息。第一行（约72个字符）应提供提交的简明摘要。如果消息必须更长，请在文本编辑器中编辑消息的其余部分，并在摘要行和消息其余部分之间留一个空行，如下所示：
 @verbatim[#:indent 2]{
  some quick description
 
  more blah blah blah, with more
  details about the actual change
 }
- The advantage of a blank line is that @tt{git log} and other tools display
- the commit messages properly. If you prefer the @tt{-m} command line flag
- over an editor, you can use several of them in a row.
+空行的优势是 @tt{git log} 和其他工具能正确显示提交消息。如果你更喜欢 @tt{-m} 命令行标志而不是编辑器，你可以连续使用多个。
 
-The message for bug report fixes should contain ``Close PR NNNNN'' so that
- bug reports are automatically closed.
+修复 bug 报告的消息应包含``Close PR NNNNN''，以便 bug 报告被自动关闭。
 
-To avoid merge commits, update your repository with
-@element['tt @list{git pull --rebase}].
+为避免合并提交，使用 @element['tt @list{git pull --rebase}] 更新你的仓库。
 
-@; -----------------------------------------------------------------------------
-@section{No Commit ``Bombs,'' Please}
+@; ----------------------------------------------------------------------------
+@section{请不要提交``炸弹''}
 
-On occasion, you will find that you are spending a significant amount of
- time working with someone else's code. To avoid potentially painful
- merges, please (1) inform the author when you create the branch and (2)
- set the mail hook so that Git sends a commit message to both you and the
- original author. Furthermore, you should test your changes on the actual
- code base. In some cases it is acceptable to delay such tests, e.g., when
- you will not know for a long time whether the performance implications
- allow a commit to the PLT repository.
+偶尔，你会发现自己花费大量时间处理他人的代码。为避免可能痛苦的合并，请 (1) 在创建分支时通知作者，(2) 设置邮件钩子，以便 Git 向你和原始作者发送提交消息。此外，你应该在实际代码库上测试你的更改。在某些情况下，可以延迟此类测试，例如，当你长时间不知道性能影响是否允许提交到 PLT 仓库时。

@@ -1,40 +1,24 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "strings"]{Strings (Unicode)}
+@title[#:tag "strings"]{字符串（Unicode）}
 
-A @deftech{string} is a fixed-length array of
-@seclink["characters"]{characters}. It prints using double quotes,
-where double quote and backslash characters within the string are
-escaped with backslashes. Other common string escapes are supported,
-including @litchar{\n} for a linefeed, @litchar{\r} for a
-carriage return, octal escapes using @litchar{\} followed by up
-to three octal digits, and hexadecimal escapes with @litchar{\u}
-(up to four digits).  Unprintable characters in a string are normally
-shown with @litchar{\u} when the string is printed.
+@deftech{字符串}是 @seclink["characters"]{字符}的固定长度数组。它使用双引号打印，其中字符串内部的双引号和反斜杠字符使用反斜杠转义。支持其他常见的字符串转义，包括用于换行的 @litchar{\n}、用于回车的 @litchar{\r}、使用 @litchar{\} 后跟最多三位八进制数字的八进制转义，以及使用 @litchar{\u}（最多四位数字）的十六进制转义。字符串中的不可打印字符在字符串被打印时通常以 @litchar{\u} 显示。
 
-@refdetails/gory["parse-string"]{the syntax of strings}
+@refdetails/gory["parse-string"]{字符串的语法}
 
-The @racket[display] procedure directly writes the characters of a
-string to the current output port (see @secref["i/o"]), in contrast
-to the string-constant syntax used to print a string result.
+@racket[display] 过程直接将字符串的字符写入当前输出端口（见 @secref["i/o"]），与用于打印字符串结果的字符串常量语法不同。
 
 @examples[
 "Apple"
-(eval:alts @#,racketvalfont{"\u03BB"} "\u03BB")
+(eval:alts @#,racketvalfont{"\\u03BB"} "\\u03BB")
 (display "Apple")
 (display "a \"quoted\" thing")
-(display "two\nlines")
-(eval:alts (display @#,racketvalfont{"\u03BB"}) (display "\u03BB"))
+(display "two\\nlines")
+(eval:alts (display @#,racketvalfont{"\\u03BB"}) (display "\\u03BB"))
 ]
 
-A string can be mutable or immutable; strings written directly as
-expressions are immutable, but most other strings are mutable. The
-@racket[make-string] procedure creates a mutable string given a length
-and optional fill character. The @racket[string-ref] procedure
-accesses a character from a string (with 0-based indexing); the
-@racket[string-set!]  procedure changes a character in a mutable
-string.
+字符串可以是可变的或不可变的；直接作为表达式编写的字符串是不可变的，但大多数其他字符串是可变的。@racket[make-string] 过程在给定长度和可选填充字符时可创建一个可变字符串。@racket[string-ref] 过程从字符串中访问一个字符（基于0的索引）；@racket[string-set!] 过程改变可变字符串中的一个字符。
 
 @examples[
 (string-ref "Apple" 0)
@@ -44,26 +28,16 @@ s
 s
 ]
 
-String ordering and case operations are generally
-@defterm{locale-independent}; that is, they work the same for all
-users. A few @defterm{locale-dependent} operations are provided that
-allow the way that strings are case-folded and sorted to depend on the
-end-user's locale. If you're sorting strings, for example, use
-@racket[string<?] or @racket[string-ci<?] if the sort result should be
-consistent across machines and users, but use @racket[string-locale<?]
-or @racket[string-locale-ci<?] if the sort is purely to order strings
-for an end user.
+字符串排序和大小写操作通常是 @defterm{区域设置无关的}；也就是说，它们对所有用户都相同工作。提供了少数 @defterm{区域设置相关}的操作，允许字符串的大小写折叠和排序方式依赖于最终用户的区域设置。例如，如果要排序字符串，当排序结果应在机器和用户之间保持一致时，请使用 @racket[string<?] 或 @racket[string-ci<?]，但如果排序纯粹是为最终用户排序字符串，则请使用 @racket[string-locale<?] 或 @racket[string-locale-ci<?]。
 
 @examples[
 (string<? "apple" "Banana")
 (string-ci<? "apple" "Banana")
-(string-upcase "Stra\xDFe")
+(string-upcase "Stra\\xDFe")
 (parameterize ([current-locale "C"])
-  (string-locale-upcase "Stra\xDFe"))
+  (string-locale-upcase "Stra\\xDFe"))
 ]
 
-For working with plain ASCII, working with raw bytes, or
-encoding/decoding Unicode strings as bytes, use
-@seclink["bytestrings"]{byte strings}.
+对于处理纯 ASCII、处理原始字节，或将 Unicode 字符串编码为字节，请使用 @seclink["bytestrings"]{字节串}。
 
-@refdetails["strings"]{strings and string procedures}
+@refdetails["strings"]{字符串和字符串过程}

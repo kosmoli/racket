@@ -1,40 +1,22 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@cs-title[#:tag "cs-procs"]{Calling Procedures}
+@cs-title[#:tag "cs-procs"]{调用过程}
 
-As an entry point into Racket, C programs should normally call Racket
-procedures by using @cppi{racket_apply}, which calls the procedure in
-the initial Racket thread of the main Racket place. Chez Scheme entry
-points such as @cppi{Scall0} and @cppi{Scall} directly call a
-procedure outside of any Racket thread, which will not work correctly
-with Racket facilities such as threads, parameters, continuations, or
-continuation marks.
+作为 Racket 的入口点，C 程序通常应使用 @cppi{racket_apply} 来调用 Racket 过程，该函数在主 Racket 场所的初始 Racket 线程中调用该过程。Chez Scheme 入口点（如 @cppi{Scall0} 和 @cppi{Scall}）直接在任何 Racket 线程之外调用过程，这在使用 Racket 设施（如线程、参数、continuation 或 continuation mark）时无法正确工作。
 
-The functions in this section are meant to be used as an entry point
-to Racket, but not as a @emph{re-entry} point. When Racket calls a C
-function that in turn calls back into Racket, the best approach is to
-use the FFI (see @other-doc['(lib
-"scribblings/foreign/foreign.scrbl")]) so that the C call recieves a
-Racket callback that is wrapped as a plain C callback. That way, the
-FFI can handle the details of boundary crossings between Racket and C.
+本节中的函数旨在用作 Racket 的入口点，但不用作 @emph{重新入口}点。当 Racket 调用一个 C 函数，而该 C 函数又回调到 Racket 时，最佳方法是使用 FFI（见 @other-doc['(lib
+"scribblings/foreign/foreign.scrbl")]），以便 C 调用接收一个被包装为普通 C 回调的 Racket 回调。这样，FFI 可以处理 Racket 和 C 之间边界交叉的细节。
 
 @; ----------------------------------------------------------------------
 
 @function[(ptr racket_apply [ptr proc] [ptr arg_list])]{
 
-Applies the Racket procedure @var{proc} to the list of arguments
-@var{arg_list}. The procedure is called in the original Racket thread
-of the main Racket place. Applying @var{proc} must not raise an
-exception or otherwise escape from the call to @var{proc}.
+将 Racket 过程 @var{proc} 应用于参数列表 @var{arg_list}。该过程在主 Racket 场所的原始 Racket 线程中调用。应用 @var{proc} 不得引发异常或以其他方式从对 @var{proc} 的调用中逃逸。
 
-The result is a list of result values, where a single result from
-@var{proc} causes @cpp{racket_apply} to return a list of length one.
+结果是一个结果值列表，其中来自 @var{proc} 的单个结果使 @cpp{racket_apply} 返回长度为 1 的列表。
 
-Other Racket threads can run during the call to @var{proc}. At the
-point that @var{proc} results, all Racket thread scheduling in the
-main Racket place is suspended. No garbage collections will occur, so
-other Racket places can block waiting for garbage collection.}
+其他 Racket 线程可以在对 @var{proc} 的调用期间运行。在 @var{proc} 产生结果时，主 Racket 场所中的所有 Racket 线程调度都被挂起。不会发生垃圾回收，因此其他 Racket 场所可以阻塞等待垃圾回收。}
 
 @together[(
 @function[(ptr Scall0 [ptr proc])]
@@ -43,14 +25,9 @@ other Racket places can block waiting for garbage collection.}
 @function[(ptr Scall3 [ptr proc] [ptr arg1] [ptr arg2] [ptr arg3])]
 )]{
 
-Applies the Chez Scheme procedure @var{proc} to zero, one, two, or
-three arguments. Beware that not all Racket procedures are Chez Scheme
-procedures. (For example, an instance of a structure type that has
-@racket[prop:procedure] is not a Chez Scheme procedure.)
+将 Chez Scheme 过程 @var{proc} 应用于零个、一个、两个或三个参数。请注意，并非所有 Racket 过程都是 Chez Scheme 过程。（例如，具有 @racket[prop:procedure] 的结构类型实例不是 Chez Scheme 过程。）
 
-The procedure is called outside of any Racket thread, and other Racket
-threads are not scheduled during the call to @var{proc}. A garbage
-collection may occur.}
+该过程在任何 Racket 线程之外调用，并且在对 @var{proc} 的调用期间不会调度其他 Racket 线程。可能会发生垃圾回收。}
 
 @together[(
 @function[(void Sinitframe [iptr num_args])]
@@ -58,11 +35,4 @@ collection may occur.}
 @function[(ptr Scall [ptr proc] [iptr num_args])]
 )]{
 
-Similar to @cppi{Scall0}, but these functions are used in sequence to
-apply a Chez Scheme procedure to an arbitrary number of arguments.
-First, @cppi{Sinitframe} is called with the number of arguments. Then,
-each argument is installed with @cppi{Sput_arg}, where the @var{i}
-argument indicates the argument position and @var{arg} is the
-argument value. Finally, @cppi{Scall} is called with the procedure and
-the number of arguments (which must match the number provided to
-@cppi{Sinitframe}).}
+类似于 @cppi{Scall0}，但这些函数按顺序使用，以将 Chez Scheme 过程应用于任意数量的参数。首先，使用参数数量调用 @cppi{Sinitframe}。然后，使用 @cppi{Sput_arg} 安装每个参数，其中 @var{i} 参数指示参数位置，@var{arg} 是参数值。最后，使用过程和参数数量调用 @cppi{Scall}（该数量必须与提供给 @cppi{Sinitframe} 的数量匹配）。}

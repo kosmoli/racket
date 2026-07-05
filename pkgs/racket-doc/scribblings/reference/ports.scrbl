@@ -1,59 +1,19 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "ports" #:style 'toc]{Ports}
+@title[#:tag "ports" #:style 'toc]{端口}
 
-@deftech{Ports} produce and/or consume bytes. An @deftech{input port}
-produces bytes, while an @deftech{output port} consumes bytes (and
-some ports are both input ports and output ports). When an input port
-is provided to a character-based operation, the bytes are decoded to a
-character, and character-based output operations similarly encode the
-character to bytes; see @secref["encodings"]. In addition to bytes and
-characters encoded as bytes, some ports can produce and/or consume
-arbitrary values as @deftech{special} results.
+@deftech{端口}产生和/或消费字节。@deftech{输入端口}产生字节，而@deftech{输出端口}消费字节（有些端口同时是输入端口和输出端口）。当向一个基于字符的操作提供输入端口时，字节被解码为字符，且基于字符的输出操作类似地将字符编码为字节；参见 @secref["encodings"]。除了字节和编码为字节的字符之外，一些端口还可以产生和/或消费任意值作为 @deftech{特殊} 结果。
 
-When a port corresponds to a file, network connection, or some other
-system resource, it must be explicitly closed via
-@racket[close-input-port] or @racket[close-output-port] (or indirectly
-via @racket[custodian-shutdown-all]) to release low-level resources
-associated with the port. For any kind of port, after it is closed,
-attempting to read from or write to the port raises @racket[exn:fail].
+当端口对应于文件、网络连接或某些其他系统资源时，必须通过 @racket[close-input-port] 或 @racket[close-output-port]（或通过 @racket[custodian-shutdown-all] 间接）显式关闭，以释放与端口相关的底层资源。对于任何类型的端口，在关闭后，尝试从端口读取或写入端口将引发 @racket[exn:fail]。
 
-Data produced by a @tech{input port} can be read or @deftech[#:key
-"peek"]{peeked}. When data is read, it is considered consumed and
-removed from the port's stream. When data is @tech{peek}ed, it remains
-in the port's stream to be returned again by the next read or
-@tech{peek}. Previously peeked data can be @deftech[#:key
-"commit"]{committed}, which causes the data to be removed from the
-port as for a read in a way that can be synchronized with other
-attempts to @tech{peek} or read through a @tech{synchronizable
-event}. Both read and @tech{peek} operations are normally blocking, in
-the sense that the read or @tech{peek} operation does not complete
-until data is available from the port; non-blocking variants of read
-and @tech{peek} operations are also available.
+由 @tech{输入端口} 产生的数据可以被读取或 @deftech[#:key "窥视"]{窥视}。当数据被读取时，它被视为已消费并从端口的流中移除。当数据被 @tech{窥视} 时，它保留在端口的流中，以便在下一次读取或 @tech{窥视} 时再次返回。先前窥视的数据可以被 @deftech[#:key "提交"]{提交}，这会使数据从端口中移除，类似于读取，但与 @tech{可同步事件} 同步其他 @tech{窥视} 或读取尝试的方式不同。读取和 @tech{窥视} 操作通常都是阻塞的，即读取或 @tech{窥视} 操作要到端口有数据可用时才完成；读取和 @tech{窥视} 操作的非阻塞变体也可用。
 
-The global variable @racket[eof] is bound to the end-of-file value,
-and @racket[eof-object?] returns @racket[#t] only when applied to this
-value. Reading from a port produces an end-of-file result when the
-port has no more data, but some ports may also return end-of-file
-mid-stream. For example, a port connected to a Unix terminal returns
-an end-of-file when the user types control-D; if the user provides
-more input, the port returns additional bytes after the end-of-file.
+全局变量 @racket[eof] 被绑定到文件末尾值，且 @racket[eof-object?] 仅在应用于此值时返回 @racket[#t]。当端口不再有数据时，从端口读取会产生文件末尾结果，但某些端口也可能在流中间返回文件末尾。例如，连接到 Unix 终端的端口在用户键入 control-D 时返回文件末尾；如果用户提供更多输入，端口在文件末尾之后返回附加字节。
 
-Every port has a name, as reported by @racket[object-name]. The name
-can be any value, and it is used mostly for error-reporting
-purposes. The @racket[read-syntax] procedure uses the name of an input
-port as the default source location for the @tech{syntax objects} that
-it produces.
+每个端口都有一个名称，由 @racket[object-name] 报告。名称可以是任意值，主要用于错误报告目的。@racket[read-syntax] 过程使用输入端口的名称作为其生成的 @tech{syntax object} 的默认源位置。
 
-A port can be used as a @tech{synchronizable event}. An input port is
-@tech{ready for synchronization} when @racket[read-byte] would not
-block, and an output port is @tech{ready for synchronization} when
-@racket[write-bytes-avail] would not block or when the port contains
-buffered characters and @racket[write-bytes-avail*] can flush part of
-the buffer (although @racket[write-bytes-avail] might block). A value
-that can act as both an input port and an output port acts as an input
-port for a @tech{synchronizable event}. @ResultItself{port}.
+端口可以用作 @tech{可同步事件}。当 @racket[read-byte] 不会被阻塞时，输入端口 @tech{准备好进行同步}，当 @racket[write-bytes-avail] 不会被阻塞或当端口包含缓冲字符且 @racket[write-bytes-avail*] 可以刷新部分缓冲区时，输出端口 @tech{准备好进行同步}（尽管 @racket[write-bytes-avail] 可能会阻塞）。可以同时作为输入端口和输出端口的值，对于 @tech{可同步事件} 用作输入端口。@ResultItself{port}。
 
 @;------------------------------------------------------------------------
 

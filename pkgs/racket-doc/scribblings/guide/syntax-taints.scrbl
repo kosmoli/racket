@@ -1,18 +1,11 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "stx-certs" #:style 'quiet]{Tainted Syntax}
+@title[#:tag "stx-certs" #:style 'quiet]{带污染的语法}
 
-Modules often contain definitions that are meant only for use within
-the same module and not exported with @racket[provide]. Still, a use
-of a macro defined in the module can expand into a reference of an
-unexported identifier. In general, such an identifier must not be
-extracted from the expanded expression and used in a different
-context, because using the identifier in a different context may break
-invariants of the macro's module.
+模块通常包含仅用于同一模块内而不通过 @racket[provide] 导出的定义。然而，模块中定义的宏的使用可能展开为对未导出标识符的引用。通常，这样的标识符绝不能从展开后的表达式中提取出来并在不同的上下文中使用，因为在不同的上下文中使用该标识符可能会破坏该宏模块的不变量。
 
-For example, the following module exports a macro @racket[go] that
-expands to a use of @racket[unchecked-go]:
+例如，以下模块导出一个宏 @racket[go]，其展开为对 @racket[unchecked-go] 的使用：
 
 @racketmod[
 #:file "m.rkt"
@@ -20,44 +13,19 @@ racket
 (provide go)
 
 (define (unchecked-go n x) 
-  (code:comment @#,t{to avoid disaster, @racket[n] must be a number})
+  (code:comment @#,t{为了避免灾难，@racket[n] 必须是一个数})
   (+ n 17))
 
 (define-syntax (go stx)
   (syntax-case stx ()
     [(_ x)
-     #'(unchecked-go 8 x)]))
+     #'(unchecked-go 8 x)])
 ]
 
-If the reference to @racket[unchecked-go] is extracted from the
-expansion of @racket[(go 'a)], then it might be inserted into a new
-expression, @racket[(unchecked-go #f 'a)], leading to disaster. The
-@racket[datum->syntax] procedure can be used similarly to construct
-references to an unexported identifier, even when no macro expansion
-includes a reference to the identifier.
+如果从 @racket[(go 'a)] 的展开中引用 @racket[unchecked-go]，则它可能被插入到一个新的表达式 @racket[(unchecked-go #f 'a)] 中，从而导致灾难。类似地，@racket[datum->syntax] 过程可用于构造对未导出标识符的引用，即使没有任何宏展开包含对该标识符的引用时也如此。
 
-Ultimately, protection of a module's private bindings depends on
-changing the current @tech{code inspector} by setting the
-@racket[current-code-inspector] parameter. @margin-note*{See also
-@secref["code-inspectors+protect"].} That's because a code inspector
-controls access to a module's internal state through functions like
-@racket[module->namespace]. The current code inspector also gates
-access to the @tech{protected} exports of unsafe modules like
-@racketmodname[racket/unsafe/ops].
+最终，模块私有绑定的保护依赖于通过设置 @racket[current-code-inspector] 参数来更改当前的 @tech{code inspector}。@margin-note*{请参见 @secref["code-inspectors+protect"]。}这是因为 code inspector 控制着通过 @racket[module->namespace] 等函数对模块内部状态的访问。当前的 code inspector 也控制对如 @racketmodname[racket/unsafe/ops] 等不安全模块的 @tech{protected} 导出的访问。
 
-Since the result of macro expansion can be abused to gain access to
-protected bindings, macro functions like @racket[local-expand] are
-also @tech{protected}: references to @racket[local-expand] and similar
-are allowed only within modules that are declared while the original
-code inspector is the current code inspector. Functions like
-@racket[expand], which are not used to implement macros but are used
-to inspect the result of macro expansion, are protected in a different
-way: the expansion result is @deftech{tainted} so that it cannot be
-compiled or expanded again. More precisely, functions like
-@racket[expand] accept an optional inspector argument that determines
-whether the result is tainted, but the default value of the argument
-is @racket[(current-code-inspector)].
+由于宏展开的结果可能被滥用来获取对受保护的绑定的访问权限，@racket[local-expand] 等宏函数也是 @tech{protected}：只有在原始 code inspector 是当前 code inspector 时声明的模块内，@racket[local-expand] 等的引用才被允许。@racket[expand] 等函数，不是用于实现宏而是用于检查宏展开的结果，它们以不同的方式受到保护：展开结果是 @deftech{带污染的}，因此无法被编译或再次展开。更准确地说，@racket[expand] 等函数接受一个可选的 inspector 参数来确定结果是否被污染，但参数的默认值是 @racket[(current-code-inspector)]。
 
-@margin-note{In previous versions of Racket, a macro was responsible
-for protecting expansion using @racket[syntax-protect]. The use of
-@racket[syntax-protect] is no longer required or recommended.}
+@margin-note{在 Racket 的早期版本中，宏负责使用 @racket[syntax-protect] 保护展开。@racket[syntax-protect] 的使用不再被要求也不推荐。}
