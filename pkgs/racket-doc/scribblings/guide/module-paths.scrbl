@@ -1,18 +1,16 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "module-paths"]{Module Paths}
+@title[#:tag "module-paths"]{模块路径}
 
-A @deftech{module path} is a reference to a module, as used with
-@racket[require] or as the @racket[_initial-module-path] in a
-@racket[module] form. It can be any of several forms:
+@deftech{模块路径} 是用于引用模块的表达式，可用于 @racket[require] 或
+@racket[module] 形式中的 @racket[_initial-module-path]。可以是以下任意形式：
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @specsubform[#:literals (quote) (#,(racket quote) id)]{
 
-A @tech{module path} that is a quoted identifier refers to a non-file
-@racket[module] declaration using the identifier. This form of module
-reference makes the most sense in a @tech{REPL}.
+quoted identifier 形式的 @tech{module path} 使用标识符引用非文件 @racket[module]。
+这种模块引用形式在 @tech{REPL} 中最常用。
 
 @examples[
 (module m racket
@@ -27,18 +25,16 @@ reference makes the most sense in a @tech{REPL}.
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @specsubform[rel-string]{
 
-A string @tech{module path} is a relative path using Unix-style
-conventions: @litchar{/} is the path separator, @litchar{..} refers to
-the parent directory, and @litchar{.} refers to the same
-directory. The @racket[rel-string] must not start or end with a path
-separator.
+string 形式的 @tech{module path} 是使用 Unix 风格惯例的相对路径：
+@litchar{/} 是路径分隔符，@litchar{..} 指父目录，@litchar{.} 指当前目录。
+@racket[rel-string] 不能以路径分隔符开头或结尾。
 
 The path is relative to the enclosing file, if any, or it is relative
 to the current directory. (More precisely, the path is relative to the
 value of @racket[(current-load-relative-directory)], which is set
 while loading a file.)
 
-@secref["module-basics"] shows examples using relative paths.
+@secref["module-basics"] 展示使用相对路径的示例。
 
 If a relative path ends with a @filepath{.ss} suffix, it is converted
 to @filepath{.rkt}. If the file that implements the referenced module
@@ -50,25 +46,20 @@ versions of Racket.}
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @specsubform[id]{
 
-A @tech{module path} that is an unquoted identifier refers to an
-installed library. The @racket[id] is constrained to contain only
-ASCII letters, ASCII numbers, @litchar{+}, @litchar{-}, @litchar{_},
-and @litchar{/}, where @litchar{/} separates path elements within the
-identifier. The elements refer to @tech{collection}s and
-sub-@tech{collections}, instead of directories and sub-directories.
+unquoted identifier 形式的 @tech{module path} 引用已安装的库。
+@racket[id] 只能包含 ASCII 字母、数字、@litchar{+}, @litchar{-}, @litchar{_},
+和 @litchar{/}, 其中 @litchar{/} 分隔标识符内的路径元素。
+这些元素引用 @tech{collection}s 和 sub-@tech{collections}，而非目录和子目录。
 
-An example of this form is @racket[racket/date]. It refers to the
-module whose source is the @filepath{date.rkt} file in the
-@filepath{racket} collection, which is installed as part of
-Racket. The @filepath{.rkt} suffix is added automatically.
+这种形式的例子是 @racket[racket/date]。它引用 @filepath{racket} collection 中
+@filepath{date.rkt} 文件的模块，该 collection 作为 Racket 的一部分安装。
+@filepath{.rkt} 后缀会自动添加。
 
-Another example of this form is @racketmodname[racket], which is commonly
-used at the initial import. The path @racketmodname[racket] is shorthand for
-@racket[racket/main]; when an @racket[id] has no @litchar{/}, then
-@racket[/main] is automatically added to the end. Thus,
-@racketmodname[racket] or @racket[racket/main] refers to the module whose
-source is the @as-index{@filepath{main.rkt}} file in the @filepath{racket}
-collection.
+另一种常见形式是 @racketmodname[racket]，常用于初始导入。
+路径 @racketmodname[racket] 是 @racket[racket/main] 的缩写；
+当 @racket[id] 中没有 @litchar{/} 时，@racket[/main] 会自动添加到末尾。
+因此，@racketmodname[racket] 或 @racket[racket/main] 引用 @filepath{racket}
+collection 中 @as-index{@filepath{main.rkt}} 文件的模块。
 
 @examples[
 (module m racket
@@ -88,15 +79,13 @@ transformation provides compatibility with older versions of Racket.}
 @specsubform[#:literals (lib)
              (lib rel-string)]{
 
-Like an unquoted-identifier path, but expressed as a string instead of
-an identifier. Also, the @racket[rel-string] can end with a file
-suffix, in which case @filepath{.rkt} is not automatically added.
+类似 unquoted identifier 路径，但使用 string 而非 identifier 表示。
+此外，@racket[rel-string] 可以以文件后缀结尾，此情况下不自动添加 @filepath{.rkt}。
 
-Example of this form include @racket[(lib "racket/date.rkt")] and
-@racket[(lib "racket/date")], which are equivalent to
-@racket[racket/date]. Other examples include @racket[(lib "racket")],
-@racket[(lib "racket/main")], and @racket[(lib "racket/main.rkt")],
-which are all equivalent to @racketmodname[racket].
+这种形式的例子包括 @racket[(lib "racket/date.rkt")] 和 @racket[(lib "racket/date")]，
+等价于 @racket[racket/date]。其他例子如 @racket[(lib "racket")],
+@racket[(lib "racket/main")], @racket[(lib "racket/main.rkt")],
+均等价于 @racketmodname[racket]。
 
 @examples[
 (module m (lib "racket")
@@ -111,16 +100,11 @@ which are all equivalent to @racketmodname[racket].
 @specsubform[#:literals (planet)
              (planet id)]{
 
-Accesses a third-party library that is distributed through the
-@|PLaneT| server. The library is downloaded the first time that it is
-needed, and then the local copy is used afterward.
+访问通过 @|PLaneT| 服务器分发的第三方库。首次需要时下载该库，之后使用本地副本。
 
-The @racket[id] encodes several pieces of information separated by a
-@litchar{/}: the package owner, then package name with optional
-version information, and an optional path to a specific library with
-the package. Like @racket[id] as shorthand for a @racket[lib] path, a
-@filepath{.rkt} suffix is added automatically, and @racketidfont{/main}
-is used as the path if no sub-path element is supplied.
+@racket[id] 编码多个由 @litchar{/} 分隔的信息：包所有者、包名及可选的版本信息，
+以及包内可选的特定库路径。类似于缩写 @racket[lib] 路径的 @racket[id]，
+@filepath{.rkt} 后缀会自动添加，若未提供子路径元素，则使用 @racketidfont{/main} 作为路径。
 
 @examples[
 (eval:alts
@@ -134,22 +118,17 @@ is used as the path if no sub-path element is supplied.
  (display 0.9050686838895684))
 ]
 
-As with other forms, an implementation file ending with @filepath{.ss}
-can be substituted automatically if no implementation file ending with
-@filepath{.rkt} exists.}
+与其他形式类似，若不存在以 @filepath{.rkt} 结尾的实现文件，可自动替换为以 @filepath{.ss} 结尾的文件。}
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @specsubform[#:literals (planet)
              (planet package-string)]{
 
-Like the symbol form of a @racket[planet], but using a string instead
-of an identifier. Also, the @racket[package-string] can end with a
-file suffix, in which case @filepath{.rkt} is not added.
+@racket[planet] 的 symbol 形式，但使用 string 而非 identifier。
+此外，@racket[package-string] 可以以文件后缀结尾，此情况下不添加 @filepath{.rkt}。
 
-As with other forms, an @filepath{.ss} extension is converted to
-@filepath{.rkt}, while an implementation file ending with
-@filepath{.ss} can be substituted automatically if no implementation
-file ending with @filepath{.rkt} exists.}
+与其他形式类似，@filepath{.ss} 扩展会被转换为 @filepath{.rkt}，
+而若不存在以 @filepath{.rkt} 结尾的实现文件，可自动替换为以 @filepath{.ss} 结尾的文件。}
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @specsubform/subs[#:literals (planet = + -)
@@ -160,19 +139,14 @@ file ending with @filepath{.rkt} exists.}
                          (+ nat)
                          (- nat)])]{
 
-A more general form to access a library from the @|PLaneT| server. In
-this general form, a @|PLaneT| reference starts like a @racket[lib]
-reference with a relative path, but the path is followed by
-information about the producer, package, and version of the
-library. The specified package is downloaded and installed on demand.
+从 @|PLaneT| 服务器访问库的更通用形式。
+在这种通用形式中，@|PLaneT| 引用以相对路径开始，如同 @racket[lib] 引用，
+但路径之后是库的生产者、包和版本信息。指定的包按需下载并安装。
 
-The @racket[vers]es specify a constraint on the acceptable version of
-the package, where a version number is a sequence of non-negative
-integers, and the constraints determine the allowable values for each
-element in the sequence. If no constraint is provided for a particular
-element, then any version is allowed; in particular, omitting all
-@racket[vers]es means that any version is acceptable. Specifying at
-least one @racket[vers] is strongly recommended.
+@racket[vers] 指定对包可接受版本的约束。版本号是非负整数序列，
+约束决定序列中每个元素允许的值。如果特定元素没有约束，则任意版本都允许；
+特别是，省略所有 @racket[vers] 意味着任何版本都可接受。
+强烈建议至少指定一个 @racket[vers]。
 
 For a version constraint, a plain @racket[nat] is the same as
 @racket[(+ nat)], which matches @racket[nat] or higher for the
@@ -192,8 +166,7 @@ _end-nat)] matches any number in the range @racket[_start-nat] to
  (display 0.9050686838895684))
 ]
 
-The automatic @filepath{.ss} and @filepath{.rkt} conversions apply as
-with other forms.}
+@filepath{.ss} 和 @filepath{.rkt} 的自动转换与其他形式相同。}
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 @specsubform[#:literals (file)
@@ -216,9 +189,8 @@ with other forms.}
                    [element id
                             ".."])]{
 
-Refers to a submodule of @racket[base]. The sequence of
-@racket[element]s within @racket[submod] specify a path of submodule
-names to reach the final submodule. 
+引用 @racket[base] 的 submodule。@racket[submod] 中 @racket[element]s 的序列
+指定到达最终 submodule 的 submodule 名称路径。 
 
 @examples[
   (module zoo racket
@@ -235,10 +207,8 @@ equivalent to using @racket["."] followed by an extra
 @racket[".."]. When a path of the form @racket[(#,(racket quote) id)]
 refers to a submodule, it is equivalent to @racket[(submod "."  id)].
 
-Using @racket[".."] as an @racket[element] cancels one submodule step, effectively
-referring to the enclosing module. For example, @racket[(submod "..")]
-refers to the enclosing module of the submodule in which the path
-appears.
+使用 @racket[".."] 作为 @racket[element] 会回退一级 submodule，
+实际上引用其封闭模块。例如，@racket[(submod "..")] 引用该路径所在 submodule 的封闭模块。
 
 @examples[
   (module zoo racket
