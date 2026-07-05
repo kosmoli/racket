@@ -19,108 +19,49 @@
 
 @itemlist[
 
- @item{@cpp{const char *} @cppdef{boot1_path} --- a path to a file
-       containing a Chez Scheme image file with base functionality.
-       Normally, the file is called @filepath{petite.boot}. The path
-       should contain a directory separator, otherwise Chez Scheme
-       will consult its own search path. The
-       @cpp{racket_get_self_exe_path} and/or
-       @cpp{racket_path_replace_filename} functions may be helpful to
-       construct the path.}
+ @item{@cpp{const char *} @cppdef{boot1_path} --- 包含具有基础功能的 Chez Scheme 镜像文件的文件路径。通常，该文件名为 @filepath{petite.boot}。路径应包含目录分隔符，否则 Chez Scheme 将查询其自身的搜索路径。@cpp{racket_get_self_exe_path} 和/或 @cpp{racket_path_replace_filename} 函数可能有助于构建路径。}
 
- @item{@cpp{void *} @cppdef{boot1_data} --- an alternative to
-       @cpp{boot1_path}, a pointer to the boot file's content in
-       memory. When using this field, the @cpp{boot1_len} field
-       must be supplied as non-zero. Only one of @cpp{boot1_path} and
-       @cpp{boot1_data} can be non-@cpp{NULL}.
+ @item{@cpp{void *} @cppdef{boot1_data} --- @cpp{boot1_path} 的替代项，指向内存中 boot 文件内容的指针。使用此字段时，@cpp{boot1_len} 字段必须提供非零值。@cpp{boot1_path} 和 @cpp{boot1_data} 中只能有一个为非 @cpp{NULL}。
 
        @history[#:added "8.13.0.4"]}
 
- @item{@cpp{long} @cppdef{boot1_offset} --- an offset into
-       @cpp{boot1_path} or @cpp{boot1_data} to read for the first boot
-       image, which allows boot images to be combined with other data
-       in a single file. The image as distributed is self-terminating,
-       so no size or ending offset is needed (except that
-       @cpp{boot1_len} must be at least as large as the image when
-       supplied via @cpp{boot1_data}).}
+ @item{@cpp{long} @cppdef{boot1_offset} --- 进入 @cpp{boot1_path} 或 @cpp{boot1_data} 读取第一个 boot image 的偏移量，允许将 boot image 与其他数据组合在单个文件中。按原样分发的 image 是自终止的，因此不需要大小或结束偏移量（除非通过 @cpp{boot1_data} 提供时，@cpp{boot1_len} 必须至少与 image 一样大）。}
 
- @item{@cpp{long} @cppdef{boot1_len} --- an length in bytes for the
-       first boot image, which is optional and used as a hint if
-       non-zero when the boot image is supplied via @cpp{boot1_path}.
-       If this length is provided, it must be at least as large as the
-       boot image in bytes, and it must be no larger than the file
-       size or readable memory after the boot image offset.}
+ @item{@cpp{long} @cppdef{boot1_len} --- 第一个 boot image 的字节长度，可选；当通过 @cpp{boot1_path} 提供 boot image 时用作提示（如果非零）。如果提供了此长度，则必须至少为 boot image 的字节数，且不得大于文件大小或 boot image 偏移量后的可读内存。}
 
- @item{@cpp{const char *} @cppdef{boot2_path} --- like
-       @cpp{boot1_path}, but for the image that contains compiler
-       functionality, normally called @filepath{scheme.boot}.}
+ @item{@cpp{const char *} @cppdef{boot2_path} --- 类似于 @cpp{boot1_path}，但用于包含编译器功能的 image，通常称为 @filepath{scheme.boot}。}
 
- @item{@cpp{void *} @cppdef{boot2_data} --- like @cpp{boot1_data}, but
-       an alternative to @cpp{boot2_path}. When using this field, the
-       @cpp{boot2_len} field must be supplied as non-zero.
+ @item{@cpp{void *} @cppdef{boot2_data} --- 类似于 @cpp{boot1_data}，但作为 @cpp{boot2_path} 的替代项。使用此字段时，必须提供非零的 @cpp{boot2_len} 字段。
 
        @history[#:added "8.13.0.4"]}
 
- @item{@cpp{long} @cppdef{boot2_offset} --- like @cpp{boot1_offset},
-       an offset into @cpp{boot2_path} or @cpp{boot2_data} to read for
-       the second boot image.}
+ @item{@cpp{long} @cppdef{boot2_offset} --- 类似于 @cpp{boot1_offset}，进入 @cpp{boot2_path} 或 @cpp{boot2_data} 读取第二个 boot image 的偏移量。}
 
- @item{@cpp{long} @cppdef{boot2_len} --- like @cpp{boot1_len}, a
-       length in bytes for the second boot image, optional when
-       the boot image is supplied via @cpp{boot2_path}.}
+ @item{@cpp{long} @cppdef{boot2_len} --- 类似于 @cpp{boot1_len}，第二个 boot image 的字节长度，当通过 @cpp{boot2_path} 提供时为可选。}
 
- @item{@cpp{const char *} @cppdef{boot3_path} --- like
-       @cpp{boot1_path}, but for the image that contains Racket
-       functionality, normally called @filepath{racket.boot}.}
+ @item{@cpp{const char *} @cppdef{boot3_path} --- 类似于 @cpp{boot1_path}，但用于包含 Racket 功能的 image，通常称为 @filepath{racket.boot}。}
 
- @item{@cpp{void *} @cppdef{boot3_data} --- like @cpp{boot1_data}, but
-       an alternative to @cpp{boot3_path}. When using this field, the
-       @cpp{boot3_len} field must be supplied as non-zero.
+ @item{@cpp{void *} @cppdef{boot3_data} --- 类似于 @cpp{boot1_data}，但作为 @cpp{boot3_path} 的替代项。使用此字段时，必须提供非零的 @cpp{boot3_len} 字段。
 
        @history[#:added "8.13.0.4"]}
 
- @item{@cpp{long} @cppdef{boot3_offset} --- like @cpp{boot1_offset},
-       an offset into @cpp{boot2_path} or @cpp{boot3_path} to read for
-       the third boot image.}
+ @item{@cpp{long} @cppdef{boot3_offset} --- 类似于 @cpp{boot1_offset}，进入 @cpp{boot2_path} 或 @cpp{boot3_path} 读取第三个 boot image 的偏移量。}
 
- @item{@cpp{long} @cppdef{boot3_len} --- like @cpp{boot1_len}, a
-       length in bytes for the third boot image, optional when
-       the boot image is supplied via @cpp{boot3_path}.}
+ @item{@cpp{long} @cppdef{boot3_len} --- 类似于 @cpp{boot1_len}，第三个 boot image 的字节长度，当通过 @cpp{boot3_path} 提供时为可选。}
 
- @item{@cpp{int} @cpp{argc} and @cpp{char **} @cpp{argv} ---
-       command-line arguments to be processed the same as for a
-       stand-alone @exec{racket} invocation. If @var{argv} is
-       @cpp{NULL}, the command line @exec{-n} is used, which loads
-       boot files without taking any further action.}
+ @item{@cpp{int} @cpp{argc} 和 @cpp{char **} @cpp{argv} --- 以与独立 @exec{racket} 调用相同方式处理的 command-line 参数。如果 @cpp{argv} 为 @cpp{NULL}，则使用命令行 @exec{-n}，这将加载 boot 文件而不执行任何进一步操作。}
 
-  @item{@cpp{const char *} @cppdef{exec_file} --- a path to use for
-       @racket[(system-type 'exec-file)], usually @cpp{argv[0]} using
-       the @cpp{argv} delivered to a program's @cpp{main}. This
-       field must not be @cpp{NULL}.}
+  @item{@cpp{const char *} @cppdef{exec_file} --- 用于 @racket[(system-type 'exec-file)] 的路径，通常使用传递给程序 @cpp{main} 的 @cpp{argv[0]}。此字段不得为 @cpp{NULL}。}
 
-  @item{@cpp{const char *} @cppdef{run_file} --- a path to use for
-       @racket[(system-type 'run-file)]. If the field is @cpp{NULL},
-       the value of @cppi{exec_file} is used.}
+  @item{@cpp{const char *} @cppdef{run_file} --- 用于 @racket[(system-type 'run-file)] 的路径。如果此字段为 @cpp{NULL}，则使用 @cppi{exec_file} 的值。}
 
-  @item{@cpp{const char *} @cppdef{collects_dir} --- a path to use as
-       the main @filepath{collects} directory for locating library
-       collections. If this field holds @cpp{NULL} or @cpp{""}, then
-       the library-collection search path is initialized as empty.}
+  @item{@cpp{const char *} @cppdef{collects_dir} --- 用作主 @filepath{collects} 目录以定位 library collection 的路径。如果此字段保持 @cpp{NULL} 或 @cpp{""}，则 library-collection 搜索路径初始化为空。}
 
-  @item{@cpp{const char *} @cppdef{config_dir} --- a path to used as an
-       @filepath{etc} directory that holds configuration information,
-       including information about installed packages. If the value if
-       @cpp{NULL}, @cpp{"etc"} is used.}
+  @item{@cpp{const char *} @cppdef{config_dir} --- 用作 @filepath{etc} 目录的路径，包含配置信息，包括已安装的 package 信息。如果值为 @cpp{NULL}，则使用 @cpp{"etc"}。}
 
-  @item{@cpp{wchar_t *} @cppdef{dll_dir} --- a path used to find DLLs,
-       such as @exec{iconv} support. Note that this path uses wide
-       characters, not a UTF-8 byte encoding.}
+  @item{@cpp{wchar_t *} @cppdef{dll_dir} --- 用于查找 DLL（例如 @exec{iconv} 支持）的路径。注意，此路径使用宽字符，不是 UTF-8 字节编码。}
 
-  @item{@cpp{int} @cppdef{cs_compiled_subdir} --- A true value indicates
-       that the @racket[use-compiled-file-paths] parameter should be
-       initialized to have a platform-specific subdirectory of
-       @filepath{compiled}, which is used for a Racket CS installation
-       that overlays a Racket BC installation.}
+  @item{@cpp{int} @cppdef{cs_compiled_subdir} --- true 值表示应将 @racket[use-compiled-file-paths] 参数初始化为 @filepath{compiled} 的平台特定子目录，用于覆盖 Racket BC 安装的 Racket CS 安装。}
 
 ]}
 
