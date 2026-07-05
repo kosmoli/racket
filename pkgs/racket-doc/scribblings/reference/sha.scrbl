@@ -4,7 +4,7 @@
 @(define sha-eval (make-base-eval))
 @examples[#:hidden #:eval sha-eval (require file/sha1)]
 
-@title[#:tag "sha"]{Cryptographic Hashing}
+@title[#:tag "sha"]{加密哈希}
 
 @deftogether[(
 @defproc[(sha1-bytes [in (or/c bytes? input-port?)]
@@ -21,31 +21,24 @@
          bytes?]
 )]{
 
-Computes the SHA-1, SHA-224, or SHA-256 hash of a byte sequence and
-returns the hash as a byte string with 20 bytes, 28 bytes, or 32
-bytes, respectively.
+计算字节序列的 SHA-1、SHA-224 或 SHA-256 哈希，
+并返回哈希字节串，分别为 20 字节、28 字节或 32 字节。
 
-The @racket[start] and @racket[end] arguments determine the range of
-bytes of the input that are used to compute the hash. An @racket[end]
-value of @racket[#f] corresponds to the end of the byte string or an
-end-of-file position for an input port. When @racket[in] is a byte
-string, the @racket[start] and @racket[end] values (when non
-@racket[#f]) must be no greater than the length of the byte string,
-and @racket[start] must be no greater than @racket[end]. When
-@racket[in] is an input port, @racket[start] must be no greater than
-@racket[end]; if @racket[in] supplies less than @racket[start] or
-@racket[end] bytes before an end-of-file, then @racket[start] and/or
-@racket[end] is effectively changed to the number of supplied bytes
-(so that an empty or truncated byte sequence is hashed). When
-@racket[in] is an input port and @racket[end] is a number, then at
-most @racket[end] bytes are read from the input port.
+@racket[start] 和 @racket[end] 参数决定用于计算哈希的输入字节范围。
+@racket[end] 值为 @racket[#f] 表示字节串末尾或输入端口的文件末尾位置。
+当 @racket[in] 为字节串时，@racket[start] 和 @racket[end] 值（当非
+@racket[#f] 时）不得超过字节串长度，且 @racket[start] 不得大于 @racket[end]。
+当 @racket[in] 为输入端口时，@racket[start] 不得大于 @racket[end]；
+如果 @racket[in] 在文件末尾前提供的字节少于 @racket[start] 或 @racket[end]，
+则 @racket[start] 和/或 @racket[end] 将实际更改为已提供的字节数量
+（因此空或截断的字节序列也进行哈希计算）。当 @racket[in] 为输入端口
+且 @racket[end] 为数字时，从输入端口最多读取 @racket[end] 字节。
 
-For security purposes, favor @racket[sha224-bytes] and
-@racket[sha256-bytes] (which are part of the SHA-2 family) over
-@racket[sha1-bytes].
+出于安全目的，建议在 @racket[sha1-bytes] 之上使用
+@racket[sha224-bytes] 和 @racket[sha256-bytes]（属于 SHA-2 系列）。
 
-Use @racket[bytes->hex-string] from @racketmodname[file/sha1] to
-convert a byte string hash to a human-readable string.
+使用 @racketmodname[file/sha1] 中的 @racket[bytes->hex-string]
+将字节串哈希转换为可读的字符串。
 
 @mz-examples[
 #:eval sha-eval

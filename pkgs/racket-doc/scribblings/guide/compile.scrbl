@@ -1,51 +1,43 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt")
 
-@title[#:tag "compile"]{Compilation and Configuration: @exec{raco}}
+@title[#:tag "compile"]{编译与配置：@exec{raco}}
 
-The @exec{raco} (short for ``@bold{Ra}cket @bold{co}mmand'') program
-provides a command-line interface to many additional tools for
-compiling Racket programs and maintaining a Racket installation.
+@exec{raco}（「@bold{Ra}cket @bold{co}mmand」的缩写）程序为编译 Racket 程序和维护 Racket 安装提供了命令行接口，支持多种附加工具。
 
 @itemize[
 
- @item{@exec{raco make} compiles Racket source to bytecode.
+ @item{@exec{raco make} 将 Racket 源代码编译为字节码。
 
- For example, if you have a program @filepath{take-over-world.rkt} and
- you'd like to compile it to bytecode, along with all of its
- dependencies, so that it loads more quickly, then run
+ 例如，如果你有一个名为 @filepath{take-over-world.rkt} 的程序，
+ 并希望将其及其所有依赖项编译为字节码，以便更快加载，则运行
 
    @commandline{raco make take-over-the-world.rkt}
 
- The bytecode file is written as @filepath{take-over-the-world_rkt.zo}
- in a @filepath{compiled} subdirectory; @index[".zo"]{@filepath{.zo}}
- is the file suffix for a bytecode file.}
+ 字节码文件写入 @filepath{compiled} 子目录下的
+ @filepath{take-over-the-world_rkt.zo}；@filepath{.zo} 是字节码文件的后缀。}
 
 
- @item{@exec{raco setup} manages a Racket installation, including
- manually installed packages.
+ @item{@exec{raco setup} 管理 Racket 安装，包括手动安装的包。
 
- For example, if you create your own library @techlink{collection}
- called @filepath{take-over}, and you'd like to build all bytecode and
- documentation for the collection, then run
+ 例如，如果你创建了自己的名为 @filepath{take-over} 的 @techlink{collection}，
+ 并希望为该 collection 构建所有字节码和文档，则运行
 
    @commandline{raco setup take-over}}
 
 
- @item{@exec{raco pkg} manages @tech{package}s that can be installed
- through the Racket package manager.
+ @item{@exec{raco pkg} 管理可通过 Racket 包管理器安装的 @tech{package}。
 
- For example, to see the list of installed packages run:
+ 例如，查看已安装包的列表运行：
 
     @commandline{raco pkg show}
 
- To install a new package named @tt{<package-name>} run:
+ 安装名为 @tt{<package-name>} 的新包运行：
 
     @commandline{raco pkg install <package-name>}
 
- See @other-doc['(lib "pkg/scribblings/pkg.scrbl")] for more details
- about package management.}
+ 有关包管理的更多详情见 @other-doc['(lib "pkg/scribblings/pkg.scrbl")]。}
 ]
 
-For more information on @exec{raco}, see @other-manual['(lib
-"scribblings/raco/raco.scrbl")].
+有关 @exec{raco} 的更多信息，见 @other-manual['(lib
+"scribblings/raco/raco.scrbl")]。

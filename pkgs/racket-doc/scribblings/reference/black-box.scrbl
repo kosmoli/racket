@@ -1,60 +1,48 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "black-box"]{Black-Box Procedure}
+@title[#:tag "black-box"]{黑盒过程}
 
-As Racket programs are compiled (see @secref["compiler"]), the
-compiler may reorder or even remove @defterm{pure} computations that
-have no visible effect. For compilation purposes, the time needed to
-perform a computation is not considered a visible effect. The compiler
-takes into account memory used by a computation, including values that
-the computation keeps reachable, only to the degree that it will not
-increase the asymptotic memory use of a program, but it may remove or
-reorder computations in a way that reduces memory use. The
-@racket[black-box] function inhibits many of these optimizations
-without adding additional overhead.
+当 Racket 程序编译时（见 @secref["compiler"]），编译器可能重新排序甚至移除没有可见效果的 @defterm{pure} 计算。从编译的角度来看，计算所需时间不被视为可见效果。编译器确实考虑了计算使用的内存（包括计算保持可达的值），但其程度仅是为了不增加程序的渐近内存使用量，可能通过其他方式移除或重新排序计算以减少内存使用。
+@racket[black-box] 函数在几乎没有额外开销的情况下抑制了其中许多优化。
 
 @defproc[(black-box [v any/c]) any/c]{
 
-Returns @racket[v].
+返回 @racket[v]。
 
-As far as the Racket compiler is concerned, @racket[black-box] returns
-an unknown value, and it has a side effect involving @racket[v], which
-means that a call to @racket[black-box] or its argument cannot be
-eliminated at compile time, and its evaluation cannot be reordered
-with respect to other side effects.
+就 Racket 编译器而言，@racket[black-box] 返回一个未知值，并且它对 @racket[v] 有副作用，这意味着对 @racket[black-box] 或其参数的调用无法在编译时被消除，也无法在其他副作用之间重新排序其求值。
 
 @mz-examples[     
 (let ([to-power 100])
   (let loop ([i 1000])
     (unless (zero? i)
-      (code:comment "call to `expt` is optimized away entirely, since")
-      (code:comment "there's no effect and the result is unused:")
+      (code:comment "调用 `expt` 被完全优化消除，因为")
+      (code:comment "没有效果且结果未使用：")
       (expt 2 to-power)
       (loop (sub1 i)))))
 
 (let ([to-power 100])
   (let loop ([i 1000])
     (unless (zero? i)
-      (code:comment "call to `expt` is optimized to just returning a folded")
-      (code:comment "constant, instead of calling `expt` each iteration:")
+      (code:comment "调用 `expt` 被优化为仅返回折叠的")
+      (code:comment "常量，而不是每次迭代都调用 `expt`：")
       (black-box (expt 2 to-power))
       (loop (sub1 i)))))
 
 (let ([to-power (black-box 100)])
   (let loop ([i 1000])
     (unless (zero? i)
-      (code:comment "in safe mode, calls `expt`, because `to-power` is not")
-      (code:comment "known to be a number; optimized away in unsafe mode:")
+      (code:comment "在安全模式下，会调用 `expt`，因为 `to-power`")
+      (code:comment "未知是否为数值；在非安全模式下优化消除：")
       (expt 2 to-power)
       (loop (sub1 i)))))
 
 (let ([to-power (black-box 100)])
   (let loop ([i 1000])
     (unless (zero? i)
-      (code:comment "arithmetic really performed every iteration, since the")
-      (code:comment "`to-power` value is assumed unknown, and the `expt`")
-      (code:comment "result is assumed to be used, even in unsafe mode:")
+      (code:comment "每次迭代都真正执行算术运算，因为 `to-power`")
+      (code:comment "值被假设为未知，且 `expt` 结果被假设")
+      (code:comment "会被使用，即使在非安全模式下：")
       (black-box (expt 2 to-power))
       (loop (sub1 i)))))
 ]

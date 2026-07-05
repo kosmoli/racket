@@ -6,48 +6,38 @@
 
 @title[#:tag "ns"]{Cocoa Foundation}
 
-The @racketmodname[ffi/unsafe/nsalloc] and
-@racketmodname[ffi/unsafe/nsstring] libraries provide basic
-facilities for working with Cocoa and/or Mac OS Foundation
-libraries (usually along with @racket[ffi/objc]).
+@racketmodname[ffi/unsafe/nsalloc] 和
+@racketmodname[ffi/unsafe/nsstring] 库提供了用于与 Cocoa 和/或 Mac OS Foundation 库交互的基本设施
+（通常与 @racket[ffi/objc] 配合使用）。
 
 @; ----------------------------------------
 
-@section{Strings}
+@section{字符串}
 
 @defmodule[ffi/unsafe/nsstring]
 
 @defthing[_NSString ctype?]{
 
-A type that converts between Racket strings and
-@as-index{@tt{NSString*}} (a.k.a. @as-index{@tt{CFStringRef}})
-values. That is, use @tt{_NSString} as a type for a foreign-function
-@tt{NSString*} argument or result.
+一种在 Racket 字符串和 @tt{NSString*}（亦称 @tt{CFStringRef}）值之间转换的类型。
+也就是说，可将 @tt{_NSString} 用作 foreign-function 的 @tt{NSString*} 参数或结果的类型。
 
-The @racket[_NSString] conversion keeps a weak mapping from Racket
-strings to converted strings, so that converting the same string (in
-the @racket[equal?] sense) multiple times may avoid allocating
-multiple @tt{NSString} objects.}
+@racket[_NSString] 转换维护一个从 Racket 字符串到已转换字符串的弱映射，
+因此在多次转换同一字符串（在 @racket[equal?] 意义下）时，
+可以避免分配多个 @tt{NSString} 对象。}
 
 
 @; ----------------------------------------
+@section{分配池}
 
-@section{Allocation Pools}
-
-@defmodule[ffi/unsafe/nsalloc]{Calling any Foundation API that
-allocates requires an @tt{NSAutoreleasePool} installed. The
-@racketmodname[ffi/unsafe/nsalloc] library provides a function and
-shorthand syntactic form for setting up such a context. (The
-@racket[_NSString] type creates an autorelease pool implicitly while
-converting from/to a Racket string, however.)}
+@defmodule[ffi/unsafe/nsalloc]{任何分配内存的 Foundation API 调用都需要安装一个 @tt{NSAutoreleasePool}。
+@racketmodname[ffi/unsafe/nsalloc] 库提供了一个函数和一个缩写语法形式，用于设置这样的上下文。
+（不过，@racket[_NSString] 类型在 Racket 字符串转换时会隐式创建一个 autorelease pool。）}
 
 @defproc[(call-with-autorelease [thunk (-> any)]) any]{
 
-Calls @racket[thunk] in atomic mode and with a fresh
-@tt{NSAutoreleasePool} that is @tt{releas}ed after @racket[thunk]
-returns.}
+以 @tech{atomic mode} 调用 @racket[thunk]，并使用一个在 @racket[thunk] 返回后被 @tt{release} 的新 @tt{NSAutoreleasePool}。}
 
 
 @defform[(with-autorelease expr)]{
 
-A shorthand for @racket[(call-with-autorelease (lambda () expr))].}
+@racket[(call-with-autorelease (lambda () expr))] 的缩写形式。}

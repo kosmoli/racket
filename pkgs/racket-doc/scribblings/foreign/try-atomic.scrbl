@@ -2,21 +2,17 @@
 @(require "utils.rkt"
           (for-label ffi/unsafe/try-atomic ffi/unsafe/atomic))
 
-@title{Speculatively Atomic Execution}
+@title{推测性原子执行}
 
-@defmodule[ffi/unsafe/try-atomic]{The
-@racketmodname[ffi/unsafe/try-atomic] library supports atomic execution that
-can be suspended and resumed in non-atomic mode if it takes too long
-or if some external event causes the attempt to be abandoned.}
+@defmodule[ffi/unsafe/try-atomic]{@racketmodname[ffi/unsafe/try-atomic] 库支持原子执行，
+可在运行时间过长或某些外部事件导致尝试被放弃时挂起并在非原子模式下继续执行。}
 
 @defproc[(call-as-nonatomic-retry-point [thunk (-> any)]) any]{
 
-Calls @racket[thunk] in @tech{atomic mode} (see @racket[start-atomic] and
-@racket[end-atomic]) while allowing @racket[thunk] to use
-@racket[try-atomic]. Any incomplete computations started with
-@racket[try-atomic] are run non-atomically after @racket[thunk]
-returns. The result of @racket[thunk] is used as the result of
-@racket[call-as-nonatomic-retry-point].}
+以 @tech{atomic mode}（见 @racket[start-atomic] 和 @racket[end-atomic]）
+调用 @racket[thunk]，同时允许 @racket[thunk] 使用 @racket[try-atomic]。
+任何以 @racket[try-atomic] 开始但未完成的计算在 @racket[thunk] 返回后，
+以非原子方式运行。@racket[thunk] 的结果作为 @racket[call-as-nonatomic-retry-point] 的结果。}
 
 
 @defproc[(try-atomic
@@ -26,31 +22,25 @@ returns. The result of @racket[thunk] is used as the result of
           [#:keep-in-order? keep-in-order? any/c #t])
          any]{
 
-Within the dynamic extent of a @racket[call-as-nonatomic-retry-point]
-call, attempts to run @racket[thunk] in the existing @tech{atomic mode}. The
-@racket[give-up-proc] procedure is called periodically to determine
-whether atomic mode should be abandoned; the default
-@racket[give-up-proc] returns true after 200 milliseconds. If atomic
-mode is abandoned, the computation is suspended, and
-@racket[default-val] is returned, instead. The computation is resumed
-later by the enclosing @racket[call-as-nonatomic-retry-point] call.
+在 @racket[call-as-nonatomic-retry-point] 调用的动态范围内，
+试图在现有的 @tech{atomic mode} 中运行 @racket[thunk]。
+@racket[give-up-proc] 过程被定期调用，以确定是否应放弃原子模式；
+默认的 @racket[give-up-proc] 在 200 毫秒后返回 true。
+如果放弃原子模式，计算会被挂起，并改为返回 @racket[default-val]。
+计算后由外层 @racket[call-as-nonatomic-retry-point] 调用恢复。
 
-If @racket[keep-in-order?] is true, then if @racket[try-atomic] is
-called after an earlier computation was suspended for the same
-@racket[call-as-nonatomic-retry-point] call, then
-@racket[thunk] is immediately enqueued for completion by
-@racket[call-as-nonatomic-retry-point] and @racket[default-val] is
-returned.
+如果 @racket[keep-in-order?] 为 true，那么在同一个
+@racket[call-as-nonatomic-retry-point] 调用中，
+若先前计算已被挂起，随后调用 @racket[try-atomic] 时，
+@racket[thunk] 会立即被入队等待完成（由 @racket[call-as-nonatomic-retry-point]），
+并返回 @racket[default-val]。
 
-The @racket[give-up-proc] callback is polled only at points where the
-level of atomic-mode nesting (see @racket[start-atomic],
-@racket[start-breakable-atomic], and @racket[call-as-atomic]) is the
-same as at the point of calling @racket[try-atomic].
+@racket[give-up-proc] 回调仅在原子模式嵌套层级（见 @racket[start-atomic]、
+@racket[start-breakable-atomic] 和 @racket[call-as-atomic]）
+与调用 @racket[try-atomic] 时相同的位置被轮询。
 
-If @racket[thunk] aborts the current continuation using
-@racket[(default-continuation-prompt-tag)], the abort is suspended the
-resumed by the enclosing
-@racket[call-as-nonatomic-retry-point]. Escapes to the context of the
-call to @racket[thunk] using any other prompt tag or continuation are
-blocked (using @racket[dynamic-wind]) and simply return
-@racket[(void)] from @racket[thunk].}
+如果 @racket[thunk] 使用 @racket[(default-continuation-prompt-tag)]
+中止当前 continuation，该中止会被挂起，由外层
+@racket[call-as-nonatomic-retry-point] 恢复。使用任何其他
+prompt tag 或 continuation 逃逸到 @racket[thunk] 的上下文
+会被阻止（通过 @racket[dynamic-wind]），并从 @racket[thunk] 简单返回 @racket[(void)]。}

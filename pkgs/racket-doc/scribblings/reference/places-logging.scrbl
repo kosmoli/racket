@@ -1,52 +1,44 @@
 #lang scribble/doc 
 @(require "mz.rkt" (for-label racket/place))
 
-@title[#:tag "place-logging"]{Places Logging}
+@title[#:tag "place-logging"]{Places 日志}
 
-Place events are reported to a logger named @racket['place].
-In addition to its string message, each event logged for a place has
-a data value that is an instance of a @racket[place-event]
-@tech{prefab} structure:
+Place 事件被报告给名为 @racket['place] 的日志记录器。
+除了字符串消息外，每个为 place 记录的事件都有一个数据值，它是 @racket[place-event] @tech{prefab} 结构的实例：
 
 @racketblock[
 (struct place-event (place-id action value time)
   #:prefab)
 ]
 
-The @racket[place-id] field is an exact integer that identifies a
-place.
+@racket[place-id] 字段是一个标识 place 的精确整数。
 
-The @racket[time] field is an inexact number that represents time in
-the same way as @racket[current-inexact-milliseconds].
+@racket[time] 字段是一个不精确数字，表示时间，表示方式与 @racket[current-inexact-milliseconds] 相同。
 
-The @racket[action] field is a symbol:
+@racket[action] 字段是一个 symbol：
 
 @itemlist[
 
- @item{@racket['create]: a place was created. This event is logged in the
-       creating place, and the event's @racket[value] field has the
-       ID for the created place.}
+ @item{@racket['create]: 已创建一个 place。此事件在创建者 place 中记录，
+       事件的 @racket[value] 字段包含已创建 place 的 ID。}
 
- @item{@racket['reap]: a place that was previously created in the
-       current place has exited (and that fact has been detected,
-       possibly via @racket[place-wait]). The event's @racket[value]
-       field has the ID for the exited place.}
+ @item{@racket['reap]: 先前在当前 place 中创建的 place 已退出
+       （并且该事实已被检测到，可能通过 @racket[place-wait]）。事件的
+       @racket[value] 字段包含已退出 place 的 ID。}
 
- @item{@racket['enter]: a place has started, logged within the started
-       place. The event's @racket[value] field has @racket[#f].}
+ @item{@racket['enter]: 一个 place 已启动，在已启动的 place 内记录。事件的
+       @racket[value] 字段为 @racket[#f]。}
 
- @item{@racket['exit]: a place is exiting, logged within the exiting
-       place. The event's @racket[value] field has @racket[#f].}
+ @item{@racket['exit]: 一个 place 正在退出，在正在退出的 place 内记录。事件的
+       @racket[value] 字段为 @racket[#f]。}
 
- @item{@racket['put]: a place-channel message has been sent. The
-       event's @racket[value] field is a positive exact integer that
-       approximates the message's size.}
+ @item{@racket['put]: 已发送一个 place-channel 消息。事件的 @racket[value]
+       字段是一个近似消息大小的正精确整数。}
 
- @item{@racket['get]: a place-channel message has been received. The
-       event's @racket[value] field is a positive exact integer that
-       approximates the message's size.}
+ @item{@racket['get]: 已接收一个 place-channel 消息。事件的 @racket[value]
+       字段是一个近似消息大小的正精确整数。}
 
 ]
 
-@history[#:changed "6.0.0.2" @elem{Added logging via @racket['place]
-         and @racket[place-event].}]
+@history[#:changed "6.0.0.2" @elem{通过 @racket['place] 和
+         @racket[place-event] 添加了日志记录。}]

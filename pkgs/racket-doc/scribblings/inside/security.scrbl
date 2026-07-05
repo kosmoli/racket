@@ -3,19 +3,14 @@
 
 @bc-title[#:tag "security"]{Security Guards}
 
-Before a primitive procedure accesses the filesystem or creates a
-network connection, it should first consult the current security guard
-to determine whether such access is allowed for the current thread.
+在原始过程访问文件系统或创建网络连接之前，
+它应首先咨询当前 security guard，以确定此类访问是否被允许用于当前线程。
 
-File access is normally preceded by a call to
-@cppi{scheme_expand_filename}, which accepts flags to indicate the
-kind of filesystem access needed, so that the security guard is
-consulted automatically.
+文件访问之前通常调用 @cppi{scheme_expand_filename}，
+它接受标志以指示所需的文件系统访问类型，从而自动咨询 security guard。
 
-An explicit filesystem-access check can be made by calling
-@cpp{scheme_security_check_file}. Similarly, an explicit
-network-access check is performed by calling
-@cpp{scheme_security_check_network}.
+可以通过调用 @cpp{scheme_security_check_file} 进行显式的文件系统访问检查。
+类似地，通过调用 @cpp{scheme_security_check_network} 进行显式的网络访问检查。
 
 @; ----------------------------------------------------------------------
 
@@ -25,9 +20,7 @@ network-access check is performed by calling
            [char* filename]
            [int guards])]{
 
-Consults the current security manager to determine whether access is
-allowed to @var{filename}. The @var{guards} argument should be a
-bitwise combination of the following:
+咨询当前安全管理器以确定是否允许访问 @var{filename}。@var{guards} 参数应为以下各项的按位组合：
 
 @itemize[
 
@@ -35,15 +28,14 @@ bitwise combination of the following:
  @item{@cppi{SCHEME_GUARD_FILE_WRITE}}
  @item{@cppi{SCHEME_GUARD_FILE_EXECUTE}}
  @item{@cppi{SCHEME_GUARD_FILE_DELETE}}
- @item{@cppi{SCHEME_GUARD_FILE_EXISTS} (do not combine with other values)}
+ @item{@cppi{SCHEME_GUARD_FILE_EXISTS}（请勿与其他值组合）}
 
 ]
 
-The @var{filename} argument can be @cpp{NULL} (in which case
-@racket[#f] is sent to the security manager's procedure), and
-@var{guards} should be @cppi{SCHEME_GUARD_FILE_EXISTS} in that case.
+@var{filename} 参数可以是 @cpp{NULL}（此时 @racket[#f] 被发送给安全管理器的过程），
+在这种情况下 @var{guards} 应为 @cppi{SCHEME_GUARD_FILE_EXISTS}。
 
-If access is denied, an exception is raised.}
+如果访问被拒绝，将引发异常。}
 
 
 @function[(void scheme_security_check_network
@@ -51,10 +43,8 @@ If access is denied, an exception is raised.}
            [char* host]
            [int portno])]{
 
-Consults the current security manager to determine whether access is
- allowed for creating a client connection to @var{host} on port number
- @var{portno}. If @var{host} is @cpp{NULL}, the security manager is
- consulted for creating a server at port number @var{portno}.
+咨询当前安全管理器以确定是否允许创建到 @var{host} 端口号
+ @var{portno} 的客户端连接。如果 @var{host} 是 @cpp{NULL}，
+ 则咨询安全管理器是否允许在端口号 @var{portno} 上创建服务器。
 
-If access is denied, an exception is raised.}
-
+如果访问被拒绝，将引发异常。}

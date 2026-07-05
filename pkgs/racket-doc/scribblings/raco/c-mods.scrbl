@@ -3,54 +3,41 @@
           "common.rkt"
           scribble/bnf)
 
-@title[#:tag "c-mods"]{Embedding Modules via C}
+@title[#:tag "c-mods"]{通过 C 嵌入模块}
 
-@margin-note{@exec{raco ctool} is provided by the @filepath{cext-lib}
-                package.}
+@margin-note{@exec{raco ctool} 由 @filepath{cext-lib} 包提供。}
 
-The @DFlag{c-mods} mode for @exec{raco ctool} takes a set of Racket
-modules and generates a C source file that can be used as part of
-program that embeds the Racket runtime system. See @secref[#:doc
-inside-doc "embedding"] in @other-manual[inside-doc] for an
-explanation of embedding programs. The @DFlag{mods} mode is similar, but
-it generates the raw bytes for the compiled module without encoding
-the bytes in C declarations.
+@DFlag{c-mods} 模式用于 @exec{raco ctool}，接受一组 Racket
+模块并生成一个 C 源文件，可作为嵌入 Racket 运行时的程序的一部分。
+参见 @secref[#:doc inside-doc "embedding"]（位于 @other-manual[inside-doc] 中）了解嵌入程序的说明。
+@DFlag{mods} 模式类似，但它生成已编译模块的原始字节，而不将字节编码在 C 声明中。
 
-The generated source or compiled file embeds the specified modules.
-Generated C source defines a @tt{declare_modules} function that puts
-the module declarations into a namespace. Thus, using the output of
-@exec{raco ctool --c-mods}, a program can embed Racket with a set of
-modules so that it does not need a @filepath{collects} directory to
-load modules at run time.
+生成的源文件或编译文件嵌入指定的模块。生成的 C 源文件定义了一个 @tt{declare_modules} 函数，
+将模块声明放入命名空间。因此，使用 @exec{raco ctool --c-mods} 的输出，
+程序可以通过一组模块嵌入 Racket，从而不需要 @filepath{collects}
+目录在运行时加载模块。
 
-If the embedded modules refer to runtime files, the files can be
-gathered by supplying the @DFlag{runtime} argument to @exec{raco ctool
---c-mods}, specifying a directory @nonterm{dir} to hold the files.
-Normally, @nonterm{dir} is a relative path, and files are found at run
-time in @nonterm{dir} relative to the executable, but a separate path
-(usually relative) for run time can be specified with
-@DFlag{runtime-access}.
+如果嵌入的模块引用运行时文件，可以通过向 @exec{raco ctool --c-mods} 提供 @DFlag{runtime}
+参数来收集这些文件。指定一个目录 @nonterm{dir} 来存放文件。
+通常，@nonterm{dir} 是一个相对路径，文件在运行时在可执行文件的相对位置 @nonterm{dir} 中找到，
+但可以使用 @DFlag{runtime-access} 指定单独的运行时路径（通常是相对路径）。
 
-
-Typically, @exec{raco ctool --c-mods} is used with @DPFlag{lib} to
-specify a collection-based module path. For example,
+通常，@exec{raco ctool --c-mods} 常与 @DPFlag{lib} 配合使用，以指定基于 collection 的模块路径。例如：
 
 @commandline{raco ctool --c-mods base.c ++lib racket/base}
 
-generates a @filepath{base.c} whose @tt{declare_modules} function
-makes @racketmodname[racket/base] available for use via the
-@tt{scheme_namespace_require} or @tt{scheme_dynamic_require} functions
-within the embedding application.
+生成一个 @filepath{base.c}，其 @tt{declare_modules} 函数使得
+@racketmodname[racket/base] 可通过嵌入应用程序内的
+@tt{scheme_namespace_require} 或 @tt{scheme_dynamic_require} 函数使用。
 
-When a module file is provided to @exec{raco ctool --c-mods}, then
-@tt{declare_modules} declares a module with the symbolic name of the
-module file. For example, 
+当提供给 @exec{raco ctool --c-mods} 一个模块文件时，
+@tt{declare_modules} 使用模块文件的符号名称声明一个模块。例如：
 
 @commandline{raco ctool --c-mods base.c hello.rkt}
 
-creates a @tt{declare_modules} that defines the module
-@racket['hello], which could be required into the current namespace
-with @racket[(namespace-require ''hello)] or similarly at the C level:
+创建一个定义模块 @racket['hello] 的 @tt{declare_modules}，
+可通过 @racket[(namespace-require ''hello)] 将其 require 到当前命名空间，
+同样可在 C 层：
 
 @verbatim[#:indent 2]{
   p = scheme_make_pair(scheme_intern_symbol("quote"),

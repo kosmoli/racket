@@ -2,56 +2,45 @@
 @(require "mz.rkt"
           (for-label racket/pretty racket/gui/base setup/dirs))
 
-@title{Init Libraries}
+@title{初始化库}
 
-@defmodule*/no-declare[(racket/init)]{The 
- @racketmodname[racket/init] library is the default start-up
- library for Racket. It re-exports the 
- @racketmodname[racket], @racketmodname[racket/enter] and 
- @racketmodname[racket/help] libraries, and it sets 
- @racket[current-print] to use @racket[pretty-print].}
+@defmodule*/no-declare[(racket/init)]{@racketmodname[racket/init] 库是
+ Racket 的默认启动库。它重新导出 @racketmodname[racket]、
+ @racketmodname[racket/enter] 和 @racketmodname[racket/help] 库，
+ 并将 @racket[current-print] 设置为使用 @racket[pretty-print]。}
 
 @defmodule*/no-declare[(racket/interactive)]{
- The @racketmodname[racket/interactive] is the default start
- up library when the REPL begins. It is not run if the 
- @Flag{q}/@DFlag{no-init-file} is specified. The interactive
- file can be changed by modifying @racket['interactive-file] in the 
- @filepath{config.rktd} file found in 
- @racket[(find-config-dir)]. Alternative, if the file
- @filepath{interactive.rkt} exists in 
- @racket[(find-system-path 'addon-dir)] it is run rather
- than the installation wide interactive module.
+ @racketmodname[racket/interactive] 是 REPL 开始时的默认启动
+ 库。如果指定了 @Flag{q}/@DFlag{no-init-file} 则不会运行。交互
+ 文件可通过修改 @filepath{config.rktd} 文件中的 @racket['interactive-file] 来更改，
+ 该文件位于 @racket[(find-config-dir)] 中。或者，如果文件
+ @filepath{interactive.rkt} 存在于 @racket[(find-system-path 'addon-dir)]
+ 中，则运行它而不是安装范围的全局交互模块。
 
- The default interactive module starts @racketmodname[xrepl] and
- runs the @racket[(find-system-path 'init-file)] file in the users home directory. A
- different interactive file can keep this behavior by
- requiring @racketmodname[racket/interactive].
+ 默认交互模块启动 @racketmodname[xrepl]，并运行用户主目录中的
+ @racket[(find-system-path 'init-file)] 文件。不同的交互文件
+ 可通过 require @racketmodname[racket/interactive] 来保留此行为。
  
  @history[#:added "6.7"]}
 
 
-@defmodule*/no-declare[(racket/language-info)]{The
-@racketmodname[racket/language-info] library provides a
-@racketidfont{get-info} function that takes any value and returns
-another function; the returned function takes a key value and a
-default value, and it returns @racket['(#(racket/runtime-config
-configure #f))] if the key is @racket['configure-runtime] or the
-default value otherwise.}
+@defmodule*/no-declare[(racket/language-info)]{@racketmodname[racket/language-info] 库
+提供一个 @racketidfont{get-info} 函数，该函数接受任意值并返回
+另一个函数；返回的函数接受一个键值和一个默认值，并在键为
+ @racket['configure-runtime] 时返回 @racket['#(racket/runtime-config
+ configure #f)]，否则返回默认值。}
 
 @guidealso["module-runtime-config"]
 
-The vector @racket['#(racket/language-info get-info #f)] is suitable
-for attaching to a module as its language info to get the same
-language information as the @racket[racket/base] language.
+矢量 @racket['#(racket/language-info get-info #f)] 适合
+附加到模块作为其 language info，以获取与 @racket[racket/base]
+语言相同的语言信息。
 
-@defmodule*/no-declare[(racket/runtime-config)]{The
-@racketmodname[racket/runtime-config] library provides a
-@racketidfont{configure} function that takes any value
-and sets @racket[print-as-expression]
-to @racket[#t].}
+@defmodule*/no-declare[(racket/runtime-config)]{@racketmodname[racket/runtime-config] 库
+提供一个 @racketidfont{configure} 函数，该函数接受任意值
+并将 @racket[print-as-expression] 设置为 @racket[#t]。}
 
-The vector @racket[#(racket/runtime-config configure #f)] is suitable
-as a member of a list of runtime-configuration specification (as
-returned by a module's language-information function for the key
-@racket['configure-runtime]) to obtain the same runtime configuration as
-for the @racketmodname[racket/base] language.
+矢量 @racket[#(racket/runtime-config configure #f)] 适合
+作为运行时配置规范列表中的一个成员（由模块的 language-information
+函数为键 @racket['configure-runtime] 返回），以获得与
+@racketmodname[racket/base] 语言相同的运行时配置。

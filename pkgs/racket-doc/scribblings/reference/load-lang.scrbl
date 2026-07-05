@@ -1,28 +1,22 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "load-lang"]{The @racketmodname[racket/load] Language}
+@title[#:tag "load-lang"]{@racketmodname[racket/load] 语言}
 
 @defmodulelang[racket/load]
 
-The @racketmodname[racket/load] language supports evaluation where
-each top-level form in the module body is separately passed to
-@racket[eval] in the same way as for @racket[load].
+@racketmodname[racket/load] 语言支持按如下方式求值：
+模块体中每个顶层形式单独传递给 @racket[eval]，如同 @racket[load] 一般。
 
-The namespace for evaluation shares the @tech{module registry} with
-the @racketmodname[racket/load] module instance, but it has a separate
-top-level environment, and it is initialized with the bindings of
-@racketmodname[racket]. A single namespace is created for each
-instance of the @racketmodname[racket/load] module (i.e., multiple
-modules using the @racketmodname[racket/load] language share a
-namespace). The @racket[racket/load] library exports only
-@racketidfont{#%module-begin} and @racketidfont{#%top-interaction}
-forms that effectively swap in the evaluation namespace and call
-@racket[eval].
+求值使用的命名空间与 @racketmodname[racket/load] 模块实例共享 @tech{module registry}，
+但它有独立顶层环境，并以 @racketmodname[racket] 的绑定初始化。每个
+@racketmodname[racket/load] 模块实例创建一个单独的命名空间
+（即多个使用 @racketmodname[racket/load] 语言的模块共享一个命名空间）。
+@racket[racket/load] 库仅导出 @racketidfont{#%module-begin} 和 @racketidfont{#%top-interaction}
+形式，有效交换求值命名空间并调用 @racket[eval]。
 
-For example, the body of a module using @racket[racket/load] can
-include @racket[module] forms, so that running the following module
-prints @racketresultfont{5}:
+例如，使用 @racket[racket/load] 的模块体可以包含 @racket[module] 形式，
+使得运行以下模块打印 @racketresultfont{5}：
 
 @racketmod[
 racket/load
@@ -38,10 +32,9 @@ racket/load
 (require 'n)
 ]
 
-Definitions in a module using @racket[racket/load] are evaluated in
-the current namespace, which means that @racket[load] and
-@racket[eval] can see the definitions. For example, running the
-following module prints @racketresultfont{6}:
+在 @racket[racket/load] 模块中的定义在当前命名空间中求值，
+这意味着 @racket[load] 和 @racket[eval] 可以看到这些定义。例如，
+运行以下模块打印 @racketresultfont{6}：
 
 @racketmod[
 racket/load
@@ -50,10 +43,8 @@ racket/load
 (display (eval 'x))
 ]
 
-Since all forms within a @racketmodname[racket/load] module are
-evaluated in the top level, bindings cannot be exported from the
-module using @racket[provide]. Similarly, since evaluation of the
-module-body forms is inherently dynamic, compilation of the module
-provides essentially no benefit. For these reasons, use
-@racketmodname[racket/load] for interactive exploration of top-level
-forms only, and not for constructing larger programs.
+由于 @racketmodname[racket/load] 模块内的所有形式都在顶层求值，
+因此绑定无法通过 @racket[provide] 从模块中导出。同样，由于
+模块体形式的求值本质上是动态的，编译模块基本没有收益。
+因此，@racketmodname[racket/load] 应仅用于交互式探索顶层形式，
+而不应用于构建更大的程序。
