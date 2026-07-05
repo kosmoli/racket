@@ -13,12 +13,11 @@
        (define id @racket[_fun])))
     (define-dynamic_fun dynamic_fun))
 
-@title[#:tag "static-fun"]{Static Callout and Callback Cores}
+@title[#:tag "static-fun"]{静态 Callout 和 Callback 核心}
 
-@defmodule[ffi/unsafe/static]{The
-@racketmodname[ffi/unsafe/static] library provides the same bindings
-as @racketmodname[ffi/unsafe], but with a replacement @racket[_fun]
-form.}
+@defmodule[ffi/unsafe/static]{@racketmodname[ffi/unsafe/static] 库
+提供与 @racketmodname[ffi/unsafe] 相同的 binding，但替换 @racket[_fun]
+形式。}
 
 @history[#:added "8.11.0.2"]
 
@@ -26,25 +25,16 @@ form.}
          (_fun fun-option ... maybe-args type-spec ... ->> type-spec
                maybe-wrapper)]{
 
-Like @dynamic_fun from @racketmodname[ffi/unsafe], but triggers an
-error at compile time in the @CS[] implementation of Racket if the
-compiler is unable to infer enough information about the resulting C
-type to statically generate code for @tech{callouts} and
-@tech{callbacks} using the type.
+与 @racketmodname[ffi/unsafe] 中的 @dynamic_fun 类似，但在无法为结果 C 类型推断
+足够信息以静态生成 @tech{callout} 和 @tech{callback} 使用类型的代码时，
+会在编译时触发 @CS[] 实现中的错误。
 
-The @racket[type-spec] forms and some @racket[fun-option] forms within
-@racket[_fun] are arbitrary expressions that can compute C types and
-options at run time. If the optimizer can statically infer underlying
-representations, then it can generate the necessary code for a
-@tech{callout} or @tech{callback} statically, instead of deferring
-code generation to run time. This optimization applies even when using
-@dynamic_fun from @racketmodname[ffi/unsafe], but @racket[_fun] from
-@racketmodname[ffi/unsafe/static] insists that the optimization must
-apply.
+@racket[_fun] 内的 @racket[type-spec] 形式和某些 @racket[fun-option] 形式是任意表达式，
+可以在运行时计算 C 类型和选项。如果优化器可以静态推断底层表示，则可以
+静态生成 @tech{callout} 或 @tech{callback} 所需的代码，
+而不是将代码生成延迟到运行时优化。即使用 @racketmodname[ffi/unsafe] 
+中的 @dynamic_fun 也应用此优化，但 @racketmodname[ffi/unsafe/static] 中的
+@racket[_fun] 坚持优化必须应用。
 
-Currently, the benefit of static generation for @tech{callout} and
-@tech{callback} code is limited, because run-time code generation is
-fast and cached. In the long run, static generation may provide more
-benefit.
-
-}
+目前，@tech{callout} 和 @tech{callback} 代码的静态生成的益处有限，
+因为运行时代码生成速度快且具有缓存。长远来看，静态生成可能会带来更多益处。}

@@ -6,12 +6,12 @@
                      compiler/distribute
                      launcher/launcher))
 
-@title{API for Distributing Executables}
+@title{用于分发可执行文件的 API}
 
 @defmodule[compiler/distribute]{
 
-The @racketmodname[compiler/distribute] library provides a function to
-perform the same work as @exec{raco distribute}.}
+@racketmodname[compiler/distribute] 库提供了一个函数，
+执行与 @exec{raco distribute} 相同的工作。}
 
 
 @defproc[(assemble-distribution [dest-dir path-string?]
@@ -22,29 +22,23 @@ perform the same work as @exec{raco distribute}.}
                                 [#:copy-collects dirs (listof path-string?) null])
          void?]{
 
-Copies the executables in @racket[exec-files] to the directory
-@racket[dest-dir], along with DLLs, frameworks, shared libraries,
-and/or runtime files that the executables need to run a different
-machine. If @racket[executables?] is @racket[#f], then the
-@racket[exec-files] are treated as plain data files, instead of
-executables, and they are modified in-place.
+将 @racket[exec-files] 中的可执行文件复制到目录 @racket[dest-dir]，
+以及可执行文件运行在不同机器上所需的 DLL、framework、共享库和/或运行时文件。
+如果 @racket[executables?] 为 @racket[#f]，则 @racket[exec-files] 被视为普通数据文件，
+而不是可执行文件，并且它们会被就地修改。
 
-The arrangement of the executables and support files in
-@racket[dest-dir] depends on the platform. In general,
-@racket[assemble-distribution] tries to do the Right Thing, but a
-non-@racket[#f] value for @racket[relative-base] specifies a
-path for reaching the assembled content relative to the executable at
-run time. When @racket[executables?] is @racket[#f], then the default
-access path is @racket[dest-dir], with its relativeness preserved.
+@racket[dest-dir] 中可执行文件和支持文件的排列取决于平台。通常，
+@racket[assemble-distribution] 会尝试做正确的事，但非 @racket[#f] 的
+@racket[relative-base] 值指定了运行时相对于可执行文件到达组装内容的路径。
+当 @racket[executables?] 为 @racket[#f] 时，默认访问路径是 @racket[dest-dir]，
+保留其相对性。
 
-If a @racket[#:collects-path] argument is given, it overrides the
-default location of the main @filepath{collects} directory for the
-packaged executables. It should be relative to the @racket[dest-dir]
-directory (typically inside it).
+如果提供了 @racket[#:collects-path] 参数，它会覆盖打包可执行文件的主
+@filepath{collects} 目录的默认位置。它应该相对于 @racket[dest-dir] 目录
+（通常在内部）。
 
-The content of each directory in the @racket[#:copy-collects] argument
-is copied into the main @filepath{collects} directory for the packaged
-executables.
+@racket[#:copy-collects] 参数中每个目录的内容被复制到打包可执行文件的主
+@filepath{collects} 目录中。
 
-@history[#:changed "6.3" @elem{Added the @racket[#:executables?]
-                                      and @racket[#:relative-base] arguments.}]}
+@history[#:changed "6.3" @elem{添加了 @racket[#:executables?]
+                                      和 @racket[#:relative-base] 参数。}]}

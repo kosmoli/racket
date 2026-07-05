@@ -2,23 +2,20 @@
 @(require scribble/manual scribble/eval "guide-utils.rkt"
           (for-label racket/match))
 
-@title[#:tag "case"]{Simple Dispatch: @racket[case]}
+@title[#:tag "case"]{简单分发：@racket[case]}
 
-The @racket[case] form dispatches to a clause by matching the result
-of an expression to the values for the clause:
+@racket[case] 形式通过将表达式的结果与子句的值匹配来分发到子句：
 
 @specform[(case expr
             [(datum ...+) body ...+]
             ...)]
 
-Each @racket[_datum] will be compared to the result of @racket[_expr]
-using @racket[equal?], and then the corresponding @racket[body]s are
-evaluated. The @racket[case] form can dispatch to the correct clause
-in @math{O(log N)} time for @math{N} @racket[datum]s.
+每个 @racket[_datum] 将使用 @racket[equal?] 与 @racket[_expr] 的结果进行比较，
+然后评估对应的 @racket[body]。@racket[case] 形式可以在 @math{O(log N)} 时间内
+分配到正确的子句，其中 N 为 @racket[_datum] 的数量。
 
-Multiple @racket[_datum]s can be supplied for each clause, and the
-corresponding @racket[_body]s are evaluated if any of the
-@racket[_datum]s match.
+每个子句可以提供多个 @racket[_datum]，如果任何 @racket[_datum] 匹配，
+则评估对应的 @racket[_body]。
 
 @examples[
 (let ([v (random 6)])
@@ -30,8 +27,7 @@ corresponding @racket[_body]s are evaluated if any of the
     [(3 4 5) 'many]))
 ]
 
-The last clause of a @racket[case] form can use @racket[else], just
-like @racket[cond]:
+@racket[case] 形式的最后一个子句可以使用 @racket[else]，就像 @racket[cond] 一样：
 
 @examples[
 (case (random 6)
@@ -41,6 +37,5 @@ like @racket[cond]:
   [else 'many])
 ]
 
-For more general pattern matching (but without the dispatch-time
-guarantee), use @racket[match], which is introduced in
-@secref["match"].
+对于更通用的模式匹配（但没有分发时间保证），使用 @racket[match]，在
+@secref["match"] 中介绍。

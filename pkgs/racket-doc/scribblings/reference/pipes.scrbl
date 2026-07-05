@@ -3,18 +3,16 @@
 
 @title[#:tag "pipeports"]{Pipes}
 
-A Racket @deftech{pipe} is internal to Racket, and not related to
-OS-level pipes for communicating between different
-processes.@margin-note*{OS-level pipes may be created by
-@racket[subprocess], opening an existing named file on a Unix
-filesystem, or starting Racket with pipes for its original input,
-output, or error port. Such pipes are @tech{file-stream ports},
-unlike the pipes produced by @racket[make-pipe].}
+Racket @deftech{pipe} 是 Racket 内部的，与 OS 级 pipe 无关，后者用于不同进程
+之间的通信。@margin-note*{OS 级 pipe 可以通过 @racket[subprocess] 创建，
+在 Unix 文件系统上打开现有命名文件，或者使用 pipe 作为其原始输入、输出或错误端口
+来启动 Racket。这样的 pipe 是 @tech{file-stream ports}，与 @racket[make-pipe] 产生的
+pipe 不同。}
 
 @defproc[(pipe-port? [p port?]) boolean?]{
 
-Returns @racket[#t] if @racket[p] is either end of a pipe created by
-@racket[make-pipe], @racket[#f] otherwise.
+如果 @racket[p] 是由 @racket[make-pipe] 创建的 pipe 的任一端，返回 @racket[#t]，
+否则返回 @racket[#f]。
 
 @history[#:added "8.15.0.9"]}
 
@@ -23,27 +21,20 @@ Returns @racket[#t] if @racket[p] is either end of a pipe created by
                     [output-name any/c 'pipe])
          (values (and/c input-port? pipe-port?) (and/c output-port? pipe-port?))]{
 
-Returns two port values: the first port is an input port and the
-second is an output port. Data written to the output port is read from
-the input port, with no intermediate buffering. Unlike some other
-kinds of ports, pipe ports do not need to be explicitly closed to be
-reclaimed by @seclink["gc-model"]{garbage collection}.
+返回两个端口值：第一个是 input port，第二个是 output port。写入 output port 的数据
+从 input port 读出，没有中间缓冲。与其他类型的端口不同，pipe port 不需要显式关闭
+就可以被 @seclink["gc-model"]{garbage collection} 回收。
 
-If @racket[limit] is @racket[#f], the new pipe holds an unlimited
-number of unread bytes (i.e., limited only by the available
-memory). If @racket[limit] is a positive number, then the pipe will
-hold at most @racket[limit] unread/unpeeked bytes; writing to the
-pipe's output port thereafter will block until a read or peek from the
-input port makes more space available. (Peeks effectively extend the
-port's capacity until the peeked bytes are read.)
+如果 @racket[limit] 为 @racket[#f]，则新 pipe 持有无限数量的未读字节
+（即，仅受限于可用内存）。如果 @racket[limit] 是正数，则 pipe 将最多持有
+@racket[limit] 个未读/未 peek 字节；之后写入 pipe 的 output port 将阻塞，
+直到从 input port 读取或 peek 以释放更多空间。（Peek 等效地扩展端口的容量，
+直到被 peek 的字节被读取。）
 
-The optional @racket[input-name] and @racket[output-name] are used
-as the names for the returned input and output ports, respectively.}
+可选的 @racket[input-name] 和 @racket[output-name] 分别用作
+返回的 input port 和 output port 的名称。}
 
 @defproc[(pipe-content-length [pipe-port pipe-port?]) exact-nonnegative-integer?]{
 
-Returns the number of bytes contained in a pipe, where
-@racket[pipe-port] is either of the pipe's ports produced by
-@racket[make-pipe]. The pipe's content length counts all bytes that
-have been written to the pipe and not yet read (though possibly
-peeked).}
+返回 pipe 中包含的字节数，其中 @racket[pipe-port] 是 @racket[make-pipe] 
+产生的 pipe 的两个端口中的任意一个。Pipe 的内容长度统计已写入 pipe 但尚未读取（可能已 peek）的所有字节。}
