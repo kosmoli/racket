@@ -1,130 +1,117 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt" (for-syntax racket/pretty))
 
-@title[#:tag "running" #:style 'toc]{Running and Creating Executables}
+@title[#:tag "running" #:style 'toc]{运行和创建可执行文件}
 
-While developing programs, many Racket programmers use the
+在开发程序时，许多 Racket 程序员使用
 @seclink["top" #:doc '(lib "scribblings/drracket/drracket.scrbl")
-#:indirect? #t]{DrRacket} programming environment. To run a program without the
-development environment, use @exec{racket} (for console-based
-programs) or @exec{gracket} (for GUI programs). This chapter mainly
-explains how to run @exec{racket} and @exec{gracket}.
+#:indirect? #t]{DrRacket} 编程环境。要在没有开发环境的情况下运行程序，
+请使用 @exec{racket}（用于控制台程序）或 @exec{gracket}（用于 GUI 程序）。本章主要
+解释如何运行 @exec{racket} 和 @exec{gracket}。
 
 @local-table-of-contents[]
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "racket"]{Running @exec{racket} and @exec{gracket}}
+@section[#:tag "racket"]{运行 @exec{racket} 和 @exec{gracket}}
 
-The @exec{gracket} executable is the same as @exec{racket}, but with
-small adjustments to behave as a GUI application rather than a console
-application. For example, @exec{gracket} by default runs in
-interactive mode with a GUI window instead of a console prompt. GUI
-applications can be run with plain @exec{racket}, however.
+@exec{gracket} 可执行文件与 @exec{racket} 相同，但进行了
+使其作为 GUI 应用程序而不是控制台应用程序运行的小型调整。
+例如，@exec{gracket} 默认在 GUI 窗口中以 interactive mode 运行，
+而不是控制台提示符。不过，GUI 应用程序也可以使用普通的 @exec{racket} 运行。
 
-Depending on command-line arguments, @exec{racket} or @exec{gracket}
-runs in @seclink["start-interactive-mode"]{interactive mode},
-@seclink["start-module-mode"]{module mode}, or
-@seclink["start-load-mode"]{load mode}.
+根据命令行参数的不同，@exec{racket} 或 @exec{gracket}
+可在 @seclink["start-interactive-mode"]{interactive mode}、
+@seclink["start-module-mode"]{module mode} 或
+@seclink["start-load-mode"]{load mode} 下运行。
 
 @subsection[#:tag "start-interactive-mode"]{Interactive Mode}
 
-When @exec{racket} is run with no command-line arguments (other than
-configuration options, like @Flag{j}), then it starts a @tech{REPL}
-with a @litchar{> } prompt:
+当 @exec{racket} 在没有命令行参数的情况下运行时（除了
+配置选项，如 @Flag{j}），它会启动一个带有 @litchar{> } 提示符的 @tech{REPL}：
 
 @verbatim[#:indent 2]{
-  @(regexp-replace #rx"\n+$" (banner) "")
+  @(regexp-replace #rx"\\n+" (banner) "")
   > 
 }
 
-@margin-note{For enhancing your @tech{REPL} experience, see
-  @racketmodname[xrepl]; for information on GNU Readline support, see
-  @racketmodname[readline].}
+@margin-note{要增强您的 @tech{REPL} 体验，请参见
+  @racketmodname[xrepl]；有关 GNU Readline 支持的信息，请参见
+  @racketmodname[readline]。}
 
-To initialize the @tech{REPL}'s environment, @exec{racket} first
-requires the @racketmodname[racket/init] module, which provides all of
-@racket[racket], and also installs @racket[pretty-print] for display
-results. Finally, @exec{racket} loads the file reported by
-@racket[(find-system-path 'init-file)], if it exists, before starting
-the @tech{REPL}.
+为了初始化 @tech{REPL} 的环境，@exec{racket} 首先
+requires @racketmodname[racket/init] module，它提供了
+@racket[racket] 的所有 binding，并且还安装了 @racket[pretty-print] 用于显示
+结果。最后，@exec{racket} 在启动 @tech{REPL} 之前加载由
+@racket[(find-system-path 'init-file)] 报告的文件（如果存在）。
 
-If any command-line arguments are provided (other than configuration
-options), add @Flag{i} or @DFlag{repl} to re-enable the
-@tech{REPL}. For example,
+如果提供了任何命令行参数（除了配置
+选项），添加 @Flag{i} 或 @DFlag{repl} 以重新启用
+@tech{REPL}。例如，
 
-@commandline{racket -e '(display "hi\n")' -i}
+@commandline{racket -e '(display "hi\\n")' -i}
 
-displays ``hi'' on start-up, but still presents a @tech{REPL}.
+在启动时显示 "hi"，但仍呈现 @tech{REPL}。
 
-If module-requiring flags appear before @Flag{i}/@DFlag{repl}, they
-cancel the automatic requiring of @racketmodname[racket/init]. This
-behavior can be used to initialize the @tech{REPL}'s environment with
-a different language. For example,
+如果 module-requiring flags 出现在 @Flag{i}/@DFlag{repl} 之前，
+它们会取消自动 require @racketmodname[racket/init]。此
+行为可用于以不同的语言初始化 @tech{REPL} 的环境。例如，
 
 @commandline{racket -l racket/base -i}
 
-starts a @tech{REPL} using a much smaller initial language (that loads
-much faster). Beware that most modules do not provide the basic syntax
-of Racket, including function-call syntax and @racket[require]. For
-example,
+使用一个更小的初始语言来启动 @tech{REPL}（加载
+速度更快）。请注意，大多数 module 不提供 Racket 的基本语法，
+包括 function-call 语法和 @racket[require]。例如，
 
 @commandline{racket -l racket/date -i}
 
-produces a @tech{REPL} that fails for every expression, because
-@racketmodname[racket/date] provides only a few functions, and not the
-@racket[#%top-interaction] and @racket[#%app] bindings that are needed
-to evaluate top-level function calls in the @tech{REPL}.
+会产生一个对所有表达式都会失败的 @tech{REPL}，
+因为 @racketmodname[racket/date] 仅提供少量函数，不提供
+需要在 @tech{REPL} 中求值顶层函数调用所必需的
+@racket[#%top-interaction] 和 @racket[#%app] bindings。
 
-If a module-requiring flag appears after @Flag{i}/@DFlag{repl} instead
-of before it, then the module is required after
-@racketmodname[racket/init] to augment the initial environment. For
-example,
+如果 module-requiring flag 出现在 @Flag{i}/@DFlag{repl} 之后
+而不是之前，则会在 @racketmodname[racket/init] 之后 require 该 module 以增强初始环境。例如，
 
 @commandline{racket -i -l racket/date}
 
-starts a useful @tech{REPL} with @racketmodname[racket/date] available
-in addition to the exports of @racketmodname[racket].
+启动一个有用的 @tech{REPL}，除了 @racketmodname[racket] 的 exports 之外还可用 @racketmodname[racket/date]。
 
 @; ----------------------------------------
 
 @subsection[#:tag "start-module-mode"]{Module Mode}
 
-If a file argument is supplied to @exec{racket} before any
-command-line switch (other than configuration options), then the file
-is required as a module, and (unless @Flag{i}/@DFlag{repl} is
-specified), no @tech{REPL} is started. For example,
+如果在任何命令行 switch 之前向 @exec{racket} 提供了文件参数
+（除了配置选项），则该文件会被作为 module 被 require，
+并且（除非指定了 @Flag{i}/@DFlag{repl}），不会启动 @tech{REPL}。例如，
 
 @commandline{racket hello.rkt}
 
-requires the @filepath{hello.rkt} module and then exits. Any argument
-after the file name, flag or otherwise, is preserved as a command-line
-argument for use by the required module via
-@racket[current-command-line-arguments].
+require @filepath{hello.rkt} module 然后退出。文件名之后的任何参数
+（无论是 flag 还是其他）都会作为命令行参数被保留，
+供被 require 的 module 通过 @racket[current-command-line-arguments] 使用。
 
-If command-line flags are used, then the @Flag{u} or
-@DFlag{require-script} flag can be used to explicitly require a file
-as a module.  The @Flag{t} or @DFlag{require} flag is similar, except
-that additional command-line flags are processed by @exec{racket},
-instead of preserved for the required module. For example,
+如果使用命令行 flags，则 @Flag{u} 或 @DFlag{require-script} flag 可用于显式地 require 文件
+作为 module。@Flag{t} 或 @DFlag{require} flag 类似，区别在于
+额外的命令行 flags 是由 @exec{racket} 处理的，
+而不是保留给被 require 的 module。例如，
 
 @commandline{racket -t hello.rkt -t goodbye.rkt}
 
-requires the @filepath{hello.rkt} module, then requires the
-@filepath{goodbye.rkt} module, and then exits.
+require @filepath{hello.rkt} module，然后 require
+@filepath{goodbye.rkt} module，然后退出。
 
-The @Flag{l} or @DFlag{lib} flag is similar to
-@Flag{t}/@DFlag{require}, but it requires a module using a
-@racket[lib] module path instead of a file path. For example,
+@Flag{l} 或 @DFlag{lib} flag 类似于 @Flag{t}/@DFlag{require}，
+但它使用 @racket[lib] module path 而不是文件路径来 require module。例如，
 
 @commandline{racket -l raco}
 
-is the same as running the @exec{raco} executable with no arguments,
-since the @racket[raco] module is the executable's main module.
+与在没有参数的情况下运行 @exec{raco} 可执行文件相同，
+因为 @racket[raco] module 是该可执行文件的主 module。
 
-Note that if you wanted to pass command-line flags to
-@racket[raco] above, you would need to protect the flags with a
-@Flag{-}, so that @exec{racket} doesn't try to parse them itself:
+注意，如果您想要将命令行 flags 传递给
+上面的 @racket[raco]，您需要使用 @Flag{-} 来保护 flags，
+这样 @exec{racket} 就不会尝试自行解析它们：
 
 @commandline{racket -l raco -- --help}
 
@@ -132,37 +119,33 @@ Note that if you wanted to pass command-line flags to
 
 @subsection[#:tag "start-load-mode"]{Load Mode}
 
-The @Flag{f} or @DFlag{load} flag supports @racket[load]ing top-level
-expressions in a file directly, as opposed to expressions within a
-module file. This evaluation is like starting a @tech{REPL} and typing
-the expressions directly, except that the results are not printed.
-For example,
+@Flag{f} 或 @DFlag{load} flag 支持直接对文件中的顶层 expressions
+进行 @racket[load]，与 module 文件中的 expressions 相对。
+这种求值类似于启动一个 @tech{REPL} 并直接输入 expressions，
+除了结果不会被打印。例如，
 
 @commandline{racket -f hi.rkts}
 
-@racket[load]s @filepath{hi.rkts} and exits. Note that load mode is
-generally a bad idea, for the reasons explained in
-@secref["use-module"]; using module mode is typically better.
+@racket[load] @filepath{hi.rkts} 并退出。注意，load mode
+通常是一个糟糕的选择，原因在 @secref["use-module"] 中有解释；
+使用 module mode 通常更好。
 
-The @Flag{e} or @DFlag{eval} flag accepts an expression to evaluate
-directly. Unlike file loading, the result of the expression is
-printed, as in a @tech{REPL}. For example,
+@Flag{e} 或 @DFlag{eval} flag 接受要直接求值的 expression。
+与文件加载不同，expression 的结果会被打印，
+就像在 @tech{REPL} 中一样。例如，
 
 @commandline{racket -e '(current-seconds)'}
 
-prints the number of seconds since January 1, 1970.
+打印自 1970 年 1 月 1 日以来的秒数。
 
-For file loading and expression evaluation, the top-level environment
-is created in the same way for
-@seclink["start-interactive-mode"]{interactive mode}:
-@racketmodname[racket/init] is required unless another module is
-specified first. For example,
+对于文件加载和 expression 求值，顶层环境的创建方式与
+@seclink["start-interactive-mode"]{interactive mode} 中的相同：
+除非先指定了其他 module，否则 require @racketmodname[racket/init]。例如，
 
 @commandline{racket -l racket/base -e '(current-seconds)'}
 
-likely runs faster, because it initializes the environment for
-evaluation using the smaller @racketmodname[racket/base] language,
-instead of @racketmodname[racket/init].
+可能运行更快，因为它使用更小的 @racketmodname[racket/base] 语言来初始化用于求值的环境，
+而不是 @racketmodname[racket/init]。
 
 @; ----------------------------------------------------------------------
 
@@ -170,10 +153,9 @@ instead of @racketmodname[racket/init].
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "exe"]{Creating Stand-Alone Executables}
+@section[#:tag "exe"]{创建独立可执行文件}
 
 @(define raco-doc '(lib "scribblings/raco/raco.scrbl"))
 
-For information on creating and distributing executables, see
-@secref[#:doc raco-doc "exe"] and @secref[#:doc raco-doc "exe-dist"] in
-@other-manual[raco-doc].
+有关创建和分发可执行文件的信息，请参见 @other-manual[raco-doc] 中的
+@secref[#:doc raco-doc "exe"] 和 @secref[#:doc raco-doc "exe-dist"]。

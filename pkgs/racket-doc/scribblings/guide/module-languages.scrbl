@@ -2,25 +2,13 @@
 @(require scribble/manual scribble/eval "guide-utils.rkt" "modfile.rkt"
           (for-label racket/date))
 
-@title[#:tag "module-languages"]{Module Languages}
+@title[#:tag "module-languages"]{Module 语言}
 
-When using the longhand @racket[module] form for writing modules, the
-module path that is specified after the new module's name provides the
-initial imports for the module. Since the initial-import module
-determines even the most basic bindings that are available in a
-module's body, such as @racket[require], the initial import can be
-called a @deftech{module language}.
+当使用长格式 @racket[module] 形式编写模块时，在新模块名称之后指定的模块路径为该模块提供初始导入。由于初始导入模块甚至决定了模块主体中最基本的绑定（如 @racket[require]），因此初始导入可以称为 @deftech{module language}。
 
-The most common @tech{module languages} are @racketmodname[racket] or
-@racketmodname[racket/base], but you can define your own
-@tech{module language} by defining a suitable module. For example,
-using @racket[provide] subforms like @racket[all-from-out],
-@racket[except-out], and @racket[rename-out], you can add, remove, or
-rename bindings from @racketmodname[racket] to produce a @tech{module
-language} that is a variant of @racketmodname[racket]:
+最常见的 @tech{module language} 是 @racketmodname[racket] 或 @racketmodname[racket/base]，但你可以通过定义合适的模块来定义自己的 @tech{module language}。例如，使用 @racket[provide] 子形式如 @racket[all-from-out]、@racket[except-out] 和 @racket[rename-out]，你可以从 @racketmodname[racket] 添加、删除或重命名绑定，以产生一个 @racketmodname[racket] 的变体 @tech{module language}：
 
-@guideother{@secref["module-syntax"] introduces the longhand
-@racket[module] form.}
+@guideother{@secref["module-syntax"] 介绍了长格式 @racket[module] 形式。}
 
 @interaction[
 (module raquet racket
@@ -35,11 +23,9 @@ language} that is a variant of @racketmodname[racket]:
 ]
 
 @; ----------------------------------------
-@section[#:tag "implicit-forms"]{Implicit Form Bindings}
+@section[#:tag "implicit-forms"]{隐式形式绑定}
 
-If you try to remove too much from @racketmodname[racket] in defining
-your own @tech{module language}, then the resulting module
-will no longer work right as a @tech{module language}:
+如果在定义自己的 @tech{module language} 时从 @racketmodname[racket] 删除了太多内容，则生成的模块将不再作为 @tech{module language} 正确工作：
 
 @interaction[
 (module just-lambda racket
@@ -48,9 +34,7 @@ will no longer work right as a @tech{module language}:
   (lambda (x) x))
 ]
 
-The @racket[#%module-begin] form is an implicit form that wraps the
-body of a module. It must be provided by a module that is to be used
-as @tech{module language}:
+@racket[#%module-begin] 形式是一种隐式形式，用于包装模块的主体。要用作 @tech{module language} 的模块必须提供它：
 
 @interaction[
 (module just-lambda racket
@@ -60,27 +44,19 @@ as @tech{module language}:
 (require 'identity)
 ]
 
-The other implicit forms provided by @racket[racket/base] are
-@racket[#%app] for function calls, @racket[#%datum] for literals, and
-@racket[#%top] for identifiers that have no binding:
+@racket[racket/base] 提供的其他隐式形式是：用于函数调用的 @racket[#%app]、用于字面量的 @racket[#%datum] 和用于无绑定的标识符的 @racket[#%top]：
 
 @interaction[
 (module just-lambda racket
   (provide lambda #%module-begin
-           (code:comment @#,t{@racketidfont{ten} needs these, too:})
+           (code:comment @#,t{@racketidfont{ten} 也需要这些：})
            #%app #%datum))
 (module ten 'just-lambda
   ((lambda (x) x) 10))
 (require 'ten)
 ]
 
-Implicit forms such as @racket[#%app] can be used explicitly in a module,
-but they exist mainly to allow a module language to restrict or change
-the meaning of implicit uses. For example, a @racket[lambda-calculus]
-@tech{module language} might restrict functions to a single argument,
-restrict function calls to supply a single argument, restrict the
-module body to a single expression, disallow literals, and treat
-unbound identifiers as uninterpreted symbols:
+隐式形式如 @racket[#%app] 可以在模块中显式使用，但它们的存在主要是允许模块语言限制或更改隐式使用的含义。例如，@racket[lambda-calculus] @tech{module language} 可能限制函数为单参数、限制函数调用提供单个参数、限制模块主体为单个表达式、禁止字面量，并将未绑定标识符视为未解释的符号：
 
 @interaction[
 (module lambda-calculus racket
@@ -114,20 +90,11 @@ unbound identifiers as uninterpreted symbols:
   10)
 ]
 
-Module languages rarely redefine @racket[#%app], @racket[#%datum], and
-@racket[#%top], but redefining @racket[#%module-begin] is more
-frequently useful. For example, when using modules to construct
-descriptions of HTML pages where a description is exported from the
-module as @racketidfont{page}, an alternate @racket[#%module-begin]
-can help eliminate @racket[provide] and quasiquoting
-boilerplate, as in @filepath{html.rkt}:
+模块语言很少重新定义 @racket[#%app]、@racket[#%datum] 和 @racket[#%top]，但重新定义 @racket[#%module-begin] 更常用。例如，当使用模块构建 HTML 页面描述时，其中描述作为 @racketidfont{page} 从模块导出，替代的 @racket[#%module-begin] 可以帮助消除 @racket[provide] 和准引用的样板，如 @filepath{html.rkt} 中所示：
 
 @racketmodfile["html.rkt"]
 
-Using the @filepath{html.rkt} @tech{module language}, a simple web page
-can be described without having to explicitly define or export
-@racketidfont{page} and starting in @racket[quasiquote]d mode instead
-of expression mode:
+使用 @filepath{html.rkt} @tech{module language}，可以描述一个简单的网页，而无需显式定义或导出 @racketidfont{page}，并且以 @racket[quasiquote] 模式而非表达式模式开始：
 
 @interaction[
 (module lady-with-the-spinning-head "html.rkt"
@@ -138,36 +105,23 @@ page
 ]
 
 @; ----------------------------------------
-@section[#:tag "s-exp"]{Using @racket[@#,hash-lang[] @#,racketmodname[s-exp]]}
+@section[#:tag "s-exp"]{使用 @racket[@#,hash-lang[] @#,racketmodname[s-exp]]}
 
-Implementing a language at the level of @hash-lang[] is more complex
-than declaring a single module, because @hash-lang[] lets programmers
-control several different facets of a language. The
-@racketmodname[s-exp] language, however, acts as a kind of
-meta-language for using a @tech{module language} with the
-@hash-lang[] shorthand:
+在 @hash-lang[] 级别实现语言比声明单个模块更复杂，因为 @hash-lang[] 让程序员控制语言的多个不同方面。然而，@racketmodname[s-exp] 语言充当一种元语言，用于将 @tech{module language} 与 @hash-lang[] 简写一起使用：
 
 @racketmod[
 s-exp _module-name
 _form ...]
 
-is the same as
+等同于
 
 @racketblock[
 (module _name _module-name
-  _form ...)
-]
+  _form ...)]
 
-where @racket[_name] is derived from the source file containing the
-@hash-lang[] program. The name @racketmodname[s-exp] is short for
-``@as-index{S-expression},'' which is a traditional name for
-Racket's @tech{reader}-level lexical conventions: parentheses,
-identifiers, numbers, double-quoted strings with certain backslash
-escapes, and so on.
+其中 @racket[_name] 从包含 @hash-lang[] 程序的源文件派生。名称 @racketmodname[s-exp] 是 "@as-index{S-expression}" 的缩写，这是 Racket @tech{reader} 级词法约定的传统名称：括号、标识符、数字、带某些反斜杠转义的双引号字符串等。
 
-Using @racket[@#,hash-lang[] @#,racketmodname[s-exp]], the
-@racket[lady-with-the-spinning-head] example from before can be
-written more compactly as:
+使用 @racket[@#,hash-lang[] @#,racketmodname[s-exp]]，之前的 @racket[lady-with-the-spinning-head] 示例可以更紧凑地写为：
 
 @racketmod[
 s-exp "html.rkt"
@@ -176,6 +130,4 @@ s-exp "html.rkt"
 (p "Updated: " ,(now))
 ]
 
-Later in this guide, @secref["hash-languages"] explains how to define
-your own @hash-lang[] language, but first we explain how you can write
-@tech{reader}-level extensions to Racket.
+在本指南的后面，@secref["hash-languages"] 解释了如何定义自己的 @hash-lang[] 语言，但首先我们解释如何编写 Racket 的 @tech{reader} 级扩展。

@@ -1,23 +1,17 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "conditionals"]{Conditionals}
+@title[#:tag "conditionals"]{条件表达式}
 
-Most functions used for branching, such as @racket[<] and
-@racket[string?], produce either @racket[#t] or @racket[#f]. Racket's
-branching forms, however, treat any value other than @racket[#f] as
-true. We say a @defterm{true value} to mean any value other than
-@racket[#f].
+大多数用于分支的 function（例如 @racket[<] 和 @racket[string?]）产生
+@racket[#t] 或 @racket[#f]。然而，Racket 的分支形式将除 @racket[#f] 以外的
+任何值都视为 true。我们用 @defterm{true value} 来表示除 @racket[#f] 以外的任何值。
 
-This convention for ``true value'' meshes well with protocols where
-@racket[#f] can serve as failure or to indicate that an optional value
-is not supplied. (Beware of overusing this trick, and remember that an
-exception is usually a better mechanism to report failure.)
+这种 "true value" 的约定与 @racket[#f] 用于表示 failure 或指示可选值未被提供的
+协议很好地配合使用。（请注意不要过度使用此技巧，并记住 exception 通常是报告 failure 的更好机制。）
 
-For example, the @racket[member] function serves double duty; it can
-be used to find the tail of a list that starts with a particular item,
-or it can be used to simply check whether an item is present in a
-list:
+例如，@racket[member] function 有双重用途；它可用于查找以特定项开头的 list 尾部，
+或者简单地检查项是否存在于 list 中：
 
 @interaction[
 (member "Groucho" '("Harpo" "Zeppo"))
@@ -31,91 +25,79 @@ list:
 ]
 
 @;------------------------------------------------------------------------
-@section{Simple Branching: @racket[if]}
+@section{简单分支：@racket[if]}
 
 @refalso["if"]{@racket[if]}
 
-In an @racket[if] form,
+在 @racket[if] 形式中，
 
 @specform[(if test-expr then-expr else-expr)]
 
-the @racket[_test-expr] is always evaluated. If it produces any value
-other than @racket[#f], then @racket[_then-expr] is
-evaluated. Otherwise, @racket[_else-expr] is evaluated.
+@racket[_test-expr] 始终被求值。如果它产生除 @racket[#f] 以外的任何值，
+则 @racket[_then-expr] 被求值。否则，@racket[_else-expr] 被求值。
 
-An @racket[if] form must have both a @racket[_then-expr] and an
-@racket[_else-expr]; the latter is not optional. To perform (or skip)
-side-effects based on a @racket[_test-expr], use @racket[when] or
-@racket[unless], which we describe later in @secref["begin"].
+@racket[if] 形式必须同时具有 @racket[_then-expr] 和 @racket[_else-expr]；
+后者不是可选的。要根据 @racket[_test-expr] 执行（或跳过）side effect，
+请使用 @racket[when] 或 @racket[unless]，我们稍后会在 @secref["begin"] 中描述。
 
 @;------------------------------------------------------------------------
-@section[#:tag "and+or"]{Combining Tests: @racket[and] and @racket[or]}
+@section[#:tag "and+or"]{组合测试：@racket[and] 和 @racket[or]}
 
-@refalso["if"]{@racket[and] and @racket[or]}
+@refalso["if"]{@racket[and] 和 @racket[or]}
 
-Racket's @racket[and] and @racket[or] are syntactic forms, rather than
-functions. Unlike a function, the @racket[and] and @racket[or] forms
-can skip evaluation of later expressions if an earlier one determines
-the answer.
+Racket 的 @racket[and] 和 @racket[or] 是语法形式，而不是 function。
+与 function 不同，如果早期表达式就能确定结果，
+@racket[and] 和 @racket[or] 形式可以跳过对后续表达式的求值。
 
 @specform[(and expr ...)]
 
-An @racket[and] form produces @racket[#f] if any of its @racket[_expr]s
-produces @racket[#f]. Otherwise, it produces the value of its last
-@racket[_expr]. As a special case, @racket[(and)] produces
-@racket[#t].
+如果 @racket[and] 形式的任一 @racket[_expr] 产生 @racket[#f]，
+则产生 @racket[#f]。否则，它产生最后一个 @racket[_expr] 的值。
+作为特殊情况，@racket[(and)] 产生 @racket[#t]。
 
 @specform[(or expr ...)]
 
-The @racket[or] form produces @racket[#f] if all of its
-@racket[_expr]s produce @racket[#f]. Otherwise, it produces the first
-non-@racket[#f] value from its @racket[expr]s.  As a special case,
-@racket[(or)] produces @racket[#f].
+如果 @racket[or] 形式的所有 @racket[_expr] 都产生 @racket[#f]，
+则产生 @racket[#f]。否则，它产生第一个非 @racket[#f] 的值。
+作为特殊情况，@racket[(or)] 产生 @racket[#f]。
 
 @examples[
 (code:line
  (define (got-milk? lst)
    (and (not (null? lst))
         (or (eq? 'milk (car lst))
-            (got-milk? (cdr lst))))) (code:comment @#,t{recurs only if needed}))
+            (got-milk? (cdr lst))))) (code:comment @#,t{仅在需要时递归}))
 (got-milk? '(apple banana))
 (got-milk? '(apple milk banana))
 ]
 
-If evaluation reaches the last @racket[_expr] of an @racket[and] or
-@racket[or] form, then the @racket[_expr]'s value directly determines
-the @racket[and] or @racket[or] result. Therefore, the last
-@racket[_expr] is in tail position, which means that the above
-@racket[got-milk?] function runs in constant space.
+如果求值到达 @racket[and] 或 @racket[or] 形式的最后一个 @racket[_expr]，
+则 @racket[_expr] 的值直接决定 @racket[and] 或 @racket[or] 的结果。
+因此，最后一个 @racket[_expr] 处于 tail position，
+这意味着上述 @racket[got-milk?] function 以常量空间运行。
 
-@guideother{@secref["tail-recursion"] introduces tail calls and tail positions.}
+@guideother{@secref["tail-recursion"] 介绍了 tail call 和 tail position。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "cond"]{Chaining Tests: @racket[cond]}
+@section[#:tag "cond"]{链式测试：@racket[cond]}
 
-The @racket[cond] form chains a series of tests to select a result
-expression. To a first approximation, the syntax of @racket[cond] is
-as follows:
+@racket[cond] 形式将一系列测试链接起来以选择结果表达式。
+@racket[cond] 的语法如下：
 
 @refalso["if"]{@racket[cond]}
 
 @specform[(cond [test-expr body ...+]
                 ...)]
 
-Each @racket[_test-expr] is evaluated in order. If it produces
-@racket[#f], the corresponding @racket[_body]s are ignored, and
-evaluation proceeds to the next @racket[_test-expr]. As soon as a
-@racket[_test-expr] produces a true value, the associated @racket[_body]s
-are evaluated to produce the result for the @racket[cond] form, and no
-further @racket[_test-expr]s are evaluated.
+每个 @racket[_test-expr] 按顺序被求值。如果产生 @racket[#f]，
+对应的 @racket[_body] 被忽略，继续求值下一个 @racket[_test-expr]。
+一旦某个 @racket[_test-expr] 产生 true value，关联的 @racket[_body]
+被求值以产生 @racket[cond] 形式的结果，不再进一步求值 @racket[_test-expr]。
 
-The last @racket[_test-expr] in a @racket[cond] can be replaced by
-@racket[else]. In terms of evaluation, @racket[else] serves as a
-synonym for @racket[#t], but it clarifies that the last clause is
-meant to catch all remaining cases. If @racket[else] is not used, then
-it is possible that no @racket[_test-expr]s produce a true value; in
-that case, the result of the @racket[cond] expression is
-@|void-const|.
+@racket[cond] 中的最后一个 @racket[_test-expr] 可以用 @racket[else] 替换。
+就求值而言，@racket[else] 是 @racket[#t] 的同义词，但它明确了最后一个子句
+旨在捕获所有剩余情况。如果未使用 @racket[else]，则可能没有 @racket[_test-expr]
+产生 true value；在这种情况下，@racket[cond] 表达式的结果是 @|void-const|。
 
 @examples[
 (cond
@@ -138,7 +120,7 @@ that case, the result of the @racket[cond] expression is
 (got-milk? '(apple milk banana))
 ]
 
-The full syntax of @racket[cond] includes two more kinds of clauses:
+@racket[cond] 的完整语法还包括两种额外的子句：
 
 @specform/subs[#:literals (else =>)
                (cond cond-clause ...)
@@ -147,9 +129,8 @@ The full syntax of @racket[cond] includes two more kinds of clauses:
                              [test-expr => proc-expr]
                              [test-expr]])]
 
-The @racket[=>] variant captures the true result of its
-@racket[_test-expr] and passes it to the result of the
-@racket[_proc-expr], which must be a function of one argument.
+@racket[=>] 变体捕获其 @racket[_test-expr] 的 true 结果，
+并将其传递给 @racket[_proc-expr] 的结果，该结果必须是一个单参数 function。
 
 @examples[
 (define (after-groucho lst)
@@ -161,6 +142,5 @@ The @racket[=>] variant captures the true result of its
 (after-groucho '("Harpo" "Zeppo"))
 ]
 
-A clause that includes only a @racket[_test-expr] is rarely used. It
-captures the true result of the @racket[_test-expr], and simply
-returns the result for the whole @racket[cond] expression.
+仅包含 @racket[_test-expr] 的子句很少使用。它捕获 @racket[_test-expr] 的 true 结果，
+并简单地返回整个 @racket[cond] 表达式的结果。

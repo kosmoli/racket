@@ -1,24 +1,23 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title{Byte and String Output}
+@title{字节与字符串输出}
 
 @defproc[(write-char [char char?] [out output-port? (current-output-port)])
          void?]{
 
-Writes a single character to @racket[out]; more precisely, the bytes
-that are the UTF-8 encoding of @racket[char] are written to
-@racket[out].}
+向 @racket[out] 写入单个字符；更准确地说，是将 @racket[char] 的 UTF-8 编码字节写入
+@racket[out]。}
 
 @defproc[(write-byte [byte byte?] [out output-port? (current-output-port)])
          void?]{
 
-Writes a single byte to @racket[out].}
+向 @racket[out] 写入单个字节。}
 
 @defproc[(newline [out output-port? (current-output-port)])
          void?]{
 
-The same as @racket[(write-char #\newline out)].}
+与 @racket[(write-char #\newline out)] 相同。}
 
 @defproc[(write-string [str string?]
                        [out output-port? (current-output-port)]
@@ -26,20 +25,15 @@ The same as @racket[(write-char #\newline out)].}
                        [end-pos exact-nonnegative-integer? (string-length str)])
          exact-nonnegative-integer?]{
 
-Writes characters to @racket[out] from @racket[str] starting from
-index @racket[start-pos] (inclusive) up to @racket[end-pos]
-(exclusive). Like @racket[substring], the @exnraise[exn:fail:contract]
-if @racket[start-pos] or @racket[end-pos] is out-of-range for
-@racket[str].
+将 @racket[str] 中的字符写入 @racket[out]，从索引 @racket[start-pos]（包含）开始，
+到 @racket[end-pos]（不包含）结束。与 @racket[substring] 类似，如果 @racket[start-pos]
+或 @racket[end-pos] 超出 @racket[str] 的范围，则 @exnraise[exn:fail:contract]。
 
-The result is the number of characters written to @racket[out], which
-is always @racket[(- end-pos start-pos)].
+结果是写入 @racket[out] 的字符数，始终为 @racket[(- end-pos start-pos)]。
 
-If @racket[str] is mutable, mutations after @racket[write-string]
-returns do not affect the characters written to @racket[out]. (This
-independence from mutation is not a special property of
-@racket[write-string], but instead generally true of output
-functions.)}
+如果 @racket[str] 是可变的，在 @racket[write-string] 返回后发生的突变不会影响已写入
+@racket[out] 的字符。（这种对突变的独立性不是 @racket[write-string] 的特殊属性，
+而是 output function 普遍具备的特性。）}
 
 
 @defproc[(write-bytes [bstr bytes?]
@@ -48,7 +42,7 @@ functions.)}
                       [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          exact-nonnegative-integer?]{
 
-Like @racket[write-string], but writes bytes instead of characters.}
+类似于 @racket[write-string]，但写入的是字节而不是字符。}
 
 @defproc[(write-bytes-avail [bstr bytes?]
                             [out output-port? (current-output-port)]
@@ -56,21 +50,14 @@ Like @racket[write-string], but writes bytes instead of characters.}
                             [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          exact-nonnegative-integer?]{
 
-Like @racket[write-bytes], but returns without blocking after writing
-as many bytes as it can immediately flush. It blocks only if no bytes
-can be flushed immediately. The result is the number of bytes written
-and flushed to @racket[out]; if @racket[start-pos] is the same as
-@racket[end-pos], then the result can be @racket[0] (indicating a
-successful flush of any buffered data), otherwise the result is between
-@racket[1] and @racket[(- end-pos
-start-pos)], inclusive.
+类似于 @racket[write-bytes]，但在能够立即刷新的字节写入完成后即返回，而不阻塞。
+仅在没有字节可以立即刷新时才会阻塞。结果是写入并刷新到 @racket[out] 的字节数；
+如果 @racket[start-pos] 与 @racket[end-pos] 相同，则结果可能为 @racket[0]（表示
+成功刷新了任何缓冲数据），否则结果在 @racket[1] 到 @racket[(- end-pos
+start-pos)] 之间（包含两端）。
 
-The @racket[write-bytes-avail] procedure never drops bytes; if
-@racket[write-bytes-avail] successfully writes some bytes and then
-encounters an error, it suppresses the error and returns the number of
-written bytes.  (The error will be triggered by future writes.) If an
-error is encountered before any bytes have been written, an exception
-is raised.}
+@racket[write-bytes-avail] procedure 永远不会丢弃字节；如果 @racket[write-bytes-avail]
+成功写入了一些字节然后遇到错误，它会抑制错误并返回已写入的字节数。（错误将在未来的写入中被触发。）如果在写入任何字节之前遇到错误，则会引发异常。}
 
 @defproc[(write-bytes-avail* [bstr bytes?]
                              [out output-port? (current-output-port)]
@@ -78,10 +65,9 @@ is raised.}
                              [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? #f)]{
 
-Like @racket[write-bytes-avail], but never blocks, returns @racket[#f]
-if the port contains buffered data that cannot be written immediately,
-and returns @racket[0] if the port's internal buffer (if any) is
-flushed but no additional bytes can be written immediately.}
+类似于 @racket[write-bytes-avail]，但从不阻塞。如果 port 包含无法立即写入的缓冲数据，
+则返回 @racket[#f]；如果 port 的内部缓冲区（如有）已刷新但没有额外的字节可以立即写入，
+则返回 @racket[0]。}
 
 @defproc[(write-bytes-avail/enable-break [bstr bytes?]
                                          [out output-port? (current-output-port)]
@@ -89,27 +75,20 @@ flushed but no additional bytes can be written immediately.}
                                          [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          exact-nonnegative-integer?]{
 
-Like @racket[write-bytes-avail], except that breaks are enabled during
-the write. The procedure provides a guarantee about the interaction of
-writing and breaks: if breaking is disabled when
-@racket[write-bytes-avail/enable-break] is called, and if the
-@racket[exn:break] exception is raised as a result of the call, then
-no bytes will have been written to @racket[out].  See also
-@secref["breakhandler"].}
+类似于 @racket[write-bytes-avail]，但在写入期间启用了 break。此 procedure
+提供了关于写入与 break 交互的保证：如果在调用 @racket[write-bytes-avail/enable-break]
+时 break 是禁用的，并且如果由于调用而引发了 @racket[exn:break] 异常，那么不会有
+任何字节被写入 @racket[out]。另见 @secref["breakhandler"]。}
 
 @defproc[(write-special [v any/c] [out output-port? (current-output-port)]) boolean?]{
 
-Writes @racket[v] directly to @racket[out] if the port supports
-special writes, or raises @racket[exn:fail:contract] if the port does
-not support special write. The result is always @racket[#t],
-indicating that the write succeeded.}
+如果 port 支持特殊写入，则直接将 @racket[v] 写入 @racket[out]；如果 port 不支持
+特殊写入，则引发 @racket[exn:fail:contract]。结果始终为 @racket[#t]，表示写入成功。}
 
 @defproc[(write-special-avail* [v any/c] [out output-port? (current-output-port)]) boolean?]{
 
-Like @racket[write-special], but without blocking. If @racket[v]
-cannot be written immediately, the result is @racket[#f] without
-writing @racket[v], otherwise the result is @racket[#t] and @racket[v]
-is written.}
+类似于 @racket[write-special]，但不会阻塞。如果 @racket[v] 无法立即写入，
+则返回 @racket[#f] 且不写入 @racket[v]；否则返回 @racket[#t] 并写入 @racket[v]。}
 
 @defproc[(write-bytes-avail-evt [bstr bytes?]
                                 [out output-port? (current-output-port)]
@@ -117,45 +96,34 @@ is written.}
                                 [end-pos exact-nonnegative-integer? (bytes-length bstr)]) 
          evt?]{
 
-Similar to @racket[write-bytes-avail], but instead of writing bytes
-immediately, it returns a synchronizable event (see
-@secref["sync"]).  The @racket[out] must support atomic writes, as
-indicated by @racket[port-writes-atomic?].
+类似于 @racket[write-bytes-avail]，但不是立即写入字节，而是返回一个 synchronizable
+event（见 @racket{secref["sync"]}）。@racket[out] 必须支持原子写入，由
+@racket[port-writes-atomic?] 指示。
 
-Synchronizing on the object starts a write from @racket[bstr], and the
-event becomes ready when bytes are written (unbuffered) to the
-port. If @racket[start-pos] and @racket[end-pos] are the same, then
-the synchronization result is @racket[0] when the port's internal
-buffer (if any) is flushed, otherwise the result is a positive exact
-integer. If the event is not selected in a synchronization, then no
-bytes will have been written to @racket[out].}
+对该对象的同步操作会启动从 @racket[bstr] 的写入，当字节被（无缓冲地）写入 port 时，
+event 变为就绪状态。如果 @racket[start-pos] 和 @racket[end-pos] 相同，则当 port
+的内部缓冲区（如有）被刷新时，同步结果为 @racket[0]；否则结果为正 exact integer。
+如果在同步中未选择该 event，则不会有字节被写入 @racket[out]。}
 
 @defproc[(write-special-evt [v any/c] [out output-port? (current-output-port)]) evt?]{
 
-Similar to @racket[write-special], but instead of writing the special
-value immediately, it returns a synchronizable event (see
-@secref["sync"]).  The @racket[out] must support atomic writes, as
-indicated by @racket[port-writes-atomic?].
+类似于 @racket[write-special]，但不是立即写入特殊值，而是返回一个 synchronizable
+event（见 @secref["sync"]）。@racket[out] 必须支持原子写入，由
+@racket[port-writes-atomic?] 指示。
 
-Synchronizing on the object starts a write of the special value, and
-the event becomes ready when the value is written (unbuffered) to the
-port. If the event is not selected in a synchronization, then no value
-will have been written to @racket[out].}
+对该对象的同步操作会启动特殊值的写入，当值被（无缓冲地）写入 port 时，event
+变为就绪状态。如果在同步中未选择该 event，则不会有值被写入 @racket[out]。}
 
 @defproc[(port-writes-atomic? [out output-port?]) boolean?]{
 
-Returns @racket[#t] if @racket[write-bytes-avail/enable-break] can
-provide an exclusive-or guarantee (break or write, but not both) for
-@racket[out], and if the port can be used with procedures like
-@racket[write-bytes-avail-evt]. Racket's file-stream ports, pipes,
-string ports, and TCP ports all support atomic writes; ports created
-with @racket[make-output-port] (see @secref["customport"]) may
-support atomic writes.}
+如果 @racket[write-bytes-avail/enable-break] 可以为 @racket[out] 提供异或保证
+（写入或 break，但不会同时发生），并且该 port 可以与 @racket[write-bytes-avail-evt]
+等 procedure 一起使用，则返回 @racket[#t]。Racket 的 file-stream port、pipe、
+string port 和 TCP port 都支持原子写入；使用 @racket[make-output-port] 创建的 port
+（见 @secref["customport"]）可能支持原子写入。}
 
 @defproc[(port-writes-special? [out output-port?]) boolean?]{
 
-Returns @racket[#t] if procedures like @racket[write-special] can
-write arbitrary values to the port. Racket's file-stream ports,
-pipes, string ports, and TCP ports all reject special values, but
-ports created with @racket[make-output-port] (see
-@secref["customport"]) may support them.}
+如果 @racket[write-special] 等 procedure 可以将任意值写入 port，则返回 @racket[#t]。
+Racket 的 file-stream port、pipe、string port 和 TCP port 都会拒绝特殊值，但使用
+@racket[make-output-port] 创建的 port（见 @secref["customport"]）可能支持它们。}

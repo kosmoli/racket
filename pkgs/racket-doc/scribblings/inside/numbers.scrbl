@@ -1,162 +1,128 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "Bignums, Rationals, and Complex Numbers"]{Bignums, Rationals, and Complex Numbers}
+@bc-title[#:tag "Bignums, Rationals, and Complex Numbers"]{大整数、有理数和复数}
 
-Racket supports integers of an arbitrary magnitude; when an integer
-cannot be represented as a fixnum (i.e., 30 or 62 bits plus a sign
-bit), then it is represented by the Racket type
-@cppi{scheme_bignum_type}. There is no overlap in integer values
-represented by fixnums and bignums.
+Racket 支持任意大小的整数；当整数无法表示为 fixnum（即 30 或 62 位加符号位）时，则由 Racket 类型 @cppi{scheme_bignum_type} 表示。由 fixnum 和 bignum 表示的整数值没有重叠。
 
-Rationals are implemented by the type @cppi{scheme_rational_type},
-composed of a numerator and a denominator.
-The numerator and denominator will be fixnums or bignums (possibly mixed).
+有理数由类型 @cppi{scheme_rational_type} 实现，由分子和分母组成。分子和分母将是 fixnum 或 bignum（可能混合）。
 
-Complex numbers are implemented by the type @cppi{scheme_complex_type},
-composed of a real and imaginary part. The real and imaginary parts
-will either be both flonums, both exact numbers (fixnums, bignums, and
-rationals can be mixed in any way), or the real part will be exact 0 and
-the imaginary part will be a single-precision (when enabled) or
-double-pecision flonum.
+复数由类型 @cppi{scheme_complex_type} 实现，由实部和虚部组成。实部和虚部要么都是 flonum、要么都是精确数字（fixnum、bignum 和有理数可以任意混合），要么实部为精确 0 且虚部为单精度（如果启用）或双精度 flonum。
 
 
 @function[(int scheme_is_exact
            [Scheme_Object* n])]{
 
-Returns @cpp{1} if @var{n} is an exact number, @racket[0] otherwise
-(@var{n} need not be a number).}
+如果 @var{n} 是精确数字，则返回 @cpp{1}，否则返回 @racket[0]（@var{n} 不必是数字）。}
 
 @function[(int scheme_is_inexact
            [Scheme_Object* n])]{
 
-Returns @cpp{1} if @var{n} is an inexact number, @racket[0] otherwise
-(@var{n} need not be a number).}
+如果 @var{n} 是不精确数字，则返回 @cpp{1}，否则返回 @racket[0]（@var{n} 不必是数字）。}
 
 @function[(Scheme_Object* scheme_make_bignum
            [intptr_t v])]{
 
-Creates a bignum representing the integer @var{v}. This can create a
-bignum that otherwise fits into a fixnum.  This must only be used to
-create temporary values for use with the @cpp{bignum} functions. Final
-results can be normalized with @cpp{scheme_bignum_normalize}.  Only
-normalized numbers can be used with procedures that are not specific
-to bignums.}
+创建一个表示整数 @var{v} 的 bignum。这可以创建一个本可放入 fixnum 的 bignum。这只能用于创建与 @cpp{bignum} 函数一起使用的临时值。最终结果可以用 @cpp{scheme_bignum_normalize} 规范化。只有规范化的数字才能用于不特定于 bignum 的过程。}
 
 @function[(Scheme_Object* scheme_make_bignum_from_unsigned
            [uintptr_t v])]{
 
-Like @cpp{scheme_make_bignum}, but works on unsigned integers.}
+类似于 @cpp{scheme_make_bignum}，但作用于无符号整数。}
 
 @function[(double scheme_bignum_to_double
            [Scheme_Object* n])]{
 
-Converts a bignum to a floating-point number, with reasonable but
-unspecified accuracy.}
+将 bignum 转换为浮点数，精度合理但未明确指定。}
 
 @function[(float scheme_bignum_to_float
            [Scheme_Object* n])]{
 
-If Racket is not compiled with single-precision floats, this procedure
-is actually a macro alias for @cpp{scheme_bignum_to_double}.}
+如果 Racket 未使用单精度浮点数编译，则此过程实际上是 @cpp{scheme_bignum_to_double} 的宏别名。}
 
 @function[(Scheme_Object* scheme_bignum_from_double
            [double d])]{
 
-Creates a bignum that is close in magnitude to the floating-point
-number @var{d}. The conversion accuracy is reasonable but unspecified.}
+创建一个大小接近浮点数 @var{d} 的 bignum。转换精度合理但未明确指定。}
 
 @function[(Scheme_Object* scheme_bignum_from_float
            [float f])]{
 
-If Racket is not compiled with single-precision floats, this procedure
-is actually a macro alias for @cpp{scheme_bignum_from_double}.}
+如果 Racket 未使用单精度浮点数编译，则此过程实际上是 @cpp{scheme_bignum_from_double} 的宏别名。}
 
 @function[(char* scheme_bignum_to_string
            [Scheme_Object* n]
            [int radix])]{
 
-Writes a bignum into a newly allocated byte string.}
+将 bignum 写入新分配的字节字符串。}
 
 @function[(Scheme_Object* scheme_read_bignum
            [mzchar* str]
            [int offset]
            [int radix])]{
 
-Reads a bignum from a @cpp{mzchar} string, starting from position
- @var{offset} in @var{str}. If the string does not represent an
- integer, then @cpp{NULL} will be returned. If the string represents a
- number that fits in a fixnum, then a @cpp{scheme_integer_type}
- object will be returned.}
+从 @cpp{mzchar} 字符串读取 bignum，从 @var{str} 中的位置 @var{offset} 开始。如果字符串不表示整数，则将返回 @cpp{NULL}。如果字符串表示适合 fixnum 的数字，则将返回 @cpp{scheme_integer_type} 对象。}
 
 @function[(Scheme_Object* scheme_read_bignum_bytes
            [char* str]
            [int offset]
            [int radix])]{
 
-Like @cpp{scheme_read_bignum}, but from a UTF-8-encoding byte string.}
+类似于 @cpp{scheme_read_bignum}，但从 UTF-8 编码字节字符串读取。}
 
 @function[(Scheme_Object* scheme_bignum_normalize
            [Scheme_Object* n])]{
 
-If @var{n} fits in a fixnum, then a @cpp{scheme_integer_type} object
- will be returned. Otherwise, @var{n} is returned.}
+如果 @var{n} 适合 fixnum，则将返回 @cpp{scheme_integer_type} 对象。否则返回 @var{n}。}
 
 @function[(Scheme_Object* scheme_make_rational
            [Scheme_Object* n]
            [Scheme_Object* d])]{
 
-Creates a rational from a numerator and denominator. The @var{n} and
-@var{d} parameters must be fixnums or bignums (possibly mixed). The
-resulting will be normalized (thus, a bignum or fixnum might be returned).}
+从分子和分母创建有理数。@var{n} 和 @var{d} 参数必须是 fixnum 或 bignum（可能混合）。结果将被规范（因此可能返回 bignum 或 fixnum）。}
 
 @function[(double scheme_rational_to_double
            [Scheme_Object* n])]{
 
-Converts the rational @var{n} to a @cpp{double}.}
+将有理数 @var{n} 转换为 @cpp{double}。}
 
 @function[(float scheme_rational_to_float
            [Scheme_Object* n])]{
 
-If Racket is not compiled with single-precision floats, this procedure
-is actually a macro alias for @cpp{scheme_rational_to_double}.}
+如果 Racket 未使用单精度浮点数编译，则此过程实际上是 @cpp{scheme_rational_to_double} 的宏别名。}
 
 @function[(Scheme_Object* scheme_rational_numerator
            [Scheme_Object* n])]{
 
-Returns the numerator of the rational @var{n}.}
+返回有理数 @var{n} 的分子。}
 
 @function[(Scheme_Object* scheme_rational_denominator
            [Scheme_Object* n])]{
 
-Returns the denominator of the rational @var{n}.}
+返回有理数 @var{n} 的分母。}
 
 @function[(Scheme_Object* scheme_rational_from_double
            [double d])]{
 
-Converts the given @cpp{double} into a maximally-precise rational.}
+将给定的 @cpp{double} 转换为最高精度的有理数。}
 
 @function[(Scheme_Object* scheme_rational_from_float
            [float d])]{
 
-If Racket is not compiled with single-precision floats, this procedure
-is actually a macro alias for @cpp{scheme_rational_from_double}.}
+如果 Racket 未使用单精度浮点数编译，则此过程实际上是 @cpp{scheme_rational_from_double} 的宏别名。}
 
 @function[(Scheme_Object* scheme_make_complex
            [Scheme_Object* r]
            [Scheme_Object* i])]{
 
-Creates a complex number from real and imaginary parts. The @var{r}
-and @var{i} arguments must be fixnums, bignums, flonums, or rationals
-(possibly mixed). The resulting number will be normalized (thus, a real
-number might be returned).}
+从实部和虚部创建复数。@var{r} 和 @var{i} 参数必须是 fixnum、bignum、flonum 或有理数（可能混合）。结果将被规范化（因此可能返回实数）。}
 
 @function[(Scheme_Object* scheme_complex_real_part
            [Scheme_Object* n])]{
 
-Returns the real part of the complex number @var{n}.}
+返回复数 @var{n} 的实部。}
 
 @function[(Scheme_Object* scheme_complex_imaginary_part
            [Scheme_Object* n])]{
 
-Returns the imaginary part of the complex number @var{n}.}
+返回复数 @var{n} 的虚部。}
