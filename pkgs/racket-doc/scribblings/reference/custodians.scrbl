@@ -77,20 +77,11 @@
 
 注册检查后，若 Racket 在 garbage collection 后（参见 @secref["gc-model"]）达到一种状态——@racket[limit-cust] 拥有超过 @racket[limit-amt] 字节——则 @racket[stop-cust] 被关闭。
 
-@margin-note{A custodian's limit is checked only after a garbage
-             collection, except that it may also be checked during
-             certain large allocations that are individually larger
-             than the custodian's limit. A single garbage collection
-             may shut down multiple custodians, even if shutting down
-             only one of the custodians would have reduced memory use
-             for other custodians.}
+@margin-note{@racket[custodian] limit 检查仅在 garbage collection 后执行，除非在某些大于该 custodian limit 的大分配期间也可能被检查。即使只关闭其中一个 custodian 就能减少其他 custodian 的内存使用，单次 garbage collection 也可能同时关闭多个 custodian。}
 
 对于可靠的关闭，@racket[custodian-limit-memory] 的 @racket[limit-amt] 必须远低于可用内存总量（减去可能已使用但未计入 @racket[limit-cust] 的内存大小）。此外，如果初始分配给 @racket[limit-cust] 的单独分配可以任意大，则 @racket[stop-cust] 必须与@racket[limit-cust] 相同，这样过大的即时分配会被 @racket[exn:fail:out-of-memory] exception 拒绝。
 
-@margin-note{New memory allocation will be accounted to the running
- @seclink["threads"]{thread}'s managing custodian. In other words, a custodian's limit applies
- only to the allocation made by the threads that it manages.
- See also @racket[call-in-nested-thread] for a simpler setup.}
+@margin-note{新的内存 allocation 将被记入当前运行 @seclink["threads"]{thread} 的管理 custodian。换句话说，custodian 的 limit 仅适用于它管理的 thread 所进行的分配。另请参见 @racket[call-in-nested-thread] 以获取更简单的设置方式。}
 
 @examples[
  (require racket/async-channel)
