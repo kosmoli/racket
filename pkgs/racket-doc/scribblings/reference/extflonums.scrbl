@@ -7,42 +7,15 @@
 
 @defmodule[racket/extflonum]
 
-An @deftech{extflonum} is an extended-precision (80-bit)
-floating-point number. Extflonum arithmetic is supported on
-platforms with extended-precision hardware and where the
-extflonum implementation does not conflict with normal
-double-precision arithmetic (i.e., on x86 and x86_64 platforms when
-Racket is compiled to use SSE instructions for floating-point
-operations, and on Windows when @as-index{@filepath{longdouble.dll}}
-is available).
+一个 @deftech{extflonum} 是扩展精度（80-bit）浮点数。Extflonum 算术在具有扩展精度的硬件平台上受支持，前提是 extflonum 实现不与普通的双精度算术冲突（即，在 x86 和 x86_64 平台上，当 Racket 编译为使用 SSE 指令进行浮点操作时，以及在 Windows 上 @as-index{@filepath{longdouble.dll}} 可用时）。
 
-A extflonum is @bold{not} a @tech{number} in the sense of
-@racket[number?]. Only extflonum-specific operations such as
-@racket[extfl+] perform extflonum arithmetic.
+Extflonum 不是 @racket[number?] 意义上的 @tech{number}。只有 extflonum 特定的操作（如 @racket[extfl+]）执行 extflonum 算术。
 
-A literal extflonum is written like an @tech{inexact number},
-but using an explicit @litchar{t} or @litchar{T} exponent marker (see
-@secref["parse-extflonum"]). For example, @racket[3.5t0] is an
-extflonum. The extflonum values for infinity are
-@as-index{@racket[+inf.t]} and @as-index{@racket[-inf.t]}. The
-extflonum value for not-a-number is @as-index{@racket[+nan.t]} or
-@as-index{@racket[-nan.t]}.
+字面 extflonum 的书写方式类似于 @tech{inexact number}，但使用显式的 @litchar{t} 或 @litchar{T} 指数标记（参见 @secref["parse-extflonum"]）。例如，@racket[3.5t0] 是一个 extflonum。无穷大的 extflonum 值是 @as-index{@racket[+inf.t]} 和 @as-index{@racket[-inf.t]}。非数值的 extflonum 值是 @as-index{@racket[+nan.t]} 或 @as-index{@racket[-nan.t]}。
 
-If @racket[(extflonum-available?)] produces @racket[#f], then all
-operations exported by @racketmodname[racket/extflonum] raise
-@racket[exn:fail:unsupported], except for @racket[extflonum?],
-@racket[extflonum-available?], and @racket[extflvector?] (which always
-work). The reader (see @secref["reader"]) always accepts extflonum
-input; when extflonum operations are not supported, printing an
-extflonum from the reader uses its source notation (as opposed to
-normalizing the format).
+如果 @racket[(extflonum-available?)] 产生 @racket[#f]，则 @racketmodname[racket/extflonum] 导出的所有操作都会引发 @racket[exn:fail:unsupported]，除了 @racket[extflonum?]、@racket[extflonum-available?] 和 @racket[extflvector?]（它们始终可用）。Reader（见 @secref["reader"]）始终接受 extflonum 输入；当 extflonum 操作不受支持时，从 reader 打印 extflonum 使用其源表示法（而非规范化格式）。
 
-Two extflonums are @racket[equal?] along the same lines as
-@tech{flonums}: when they are @racket[extfl=] and have the same sign
-(which matters for @racket[-0.0t0] and @racket[+0.0t0]), or when they
-are both @racket[+nan.t]. If extflonums are not supported on a
-platform, extflonums are @racket[equal?] only if they are
-@racket[eq?].
+两个 extflonum 的 @racket[equal?] 行为与 @tech{flonum} 相同：当它们 @racket[extfl=] 且具有相同的符号（对 @racket[-0.0t0] 和 @racket[+0.0t0] 有影响），或当它们都是 @racket[+nan.t]。如果 extflonum 在平台上不受支持，则仅当它们 @racket[eq?] 时被视为相等。
 
 @defproc[(extflonum? [v any/c]) boolean?]{
 
@@ -56,7 +29,7 @@ current platform, @racket[#f] otherwise.}
 
 @; ------------------------------------------------------------------------
 
-@section{Extflonum Arithmetic}
+@section{Extflonum 算术}
 
 @deftogether[(
 @defproc[(extfl+ [a extflonum?] [b extflonum?]) extflonum?]
@@ -122,28 +95,24 @@ Like @racket[flsin], @racket[flcos], @racket[fltan], @racket[flasin],
 The first six are like @racket[->fl], @racket[fl->exact-integer],
 @racket[real->double-flonum], @racket[inexact->exact], @racket[fl->fx],
 and @racket[fx->fl], but for @tech{extflonums}.
-The @racket[extfl->inexact] function converts a @tech{extflonum} to
-its closest @tech{flonum} approximation.
+@racket[extfl->inexact] function 将 @tech{extflonum} 转换为其最接近的 @tech{flonum} 近似值。
 
 @history[#:changed "7.7.0.8" @elem{Changed @racket[extfl->fx] to truncate.}]}
 
 @; ------------------------------------------------------------------------
 
-@section{Extflonum Constants}
+@section{Extflonum 常量}
 
 @defthing[pi.t extflonum?]{
 Like @racket[pi], but with 80 bits precision.}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "extflvectors"]{Extflonum Vectors}
+@section[#:tag "extflvectors"]{Extflonum Vector}
 
-An @deftech{extflvector} is like an @tech{flvector}, but it holds only
-@tech{extflonums}. See also @secref["unsafeextfl"].
+一个 @deftech{extflvector} 类似于 @tech{flvector}，但仅存储 @tech{extflonum}。另见 @secref["unsafeextfl"]。
 
-Two @tech{extflvectors} are @racket[equal?] if they have the same length,
-and if the values in corresponding slots of the @tech{extflvectors} are
-@racket[equal?].
+两个 @tech{extflvector} 如果长度相同，且对应槽位的 @tech{extflonum} 值 @racket[equal?]，则视为相等。
 
 @deftogether[(
 @defproc[(extflvector? [v any/c]) boolean?]
@@ -197,7 +166,7 @@ but for @tech{extflvectors}.}
 
 @; ------------------------------------------------------------
 
-@section[#:tag "extflutils"]{Extflonum Byte Strings}
+@section[#:tag "extflutils"]{Extflonum 字节串}
 
 @defproc[(floating-point-bytes->extfl [bstr bytes?]
                                       [big-endian? any/c (system-big-endian?)]
@@ -205,11 +174,8 @@ but for @tech{extflvectors}.}
                                       [end exact-nonnegative-integer? (bytes-length bstr)])
          extflonum?]{
 
-Like @racket[floating-point-bytes->real], but  for @tech{extflonums}:
-Converts the extended-precision floating-point number encoded in
-@racket[bstr] from position @racket[start] (inclusive) to @racket[end]
-(exclusive) to an @tech{extflonum}. The difference between
-@racket[start] an @racket[end] must be 10 bytes.}
+Like @racket[floating-point-bytes->real], but for @tech{extflonums}:
+将 @racket[bstr] 中从 @racket[start]（包含）到 @racket[end]（不包含）位置的扩展精度浮点数编码转换为 @tech{extflonum}。@racket[start] 与 @racket[end] 的差必须为 10 字节。}
 
 
 @defproc[(extfl->floating-point-bytes [x extflonum?]
@@ -219,6 +185,5 @@ Converts the extended-precision floating-point number encoded in
                                       [start exact-nonnegative-integer? 0])
           bytes?]{
 
-Like @racket[real->floating-point-bytes], but  for @tech{extflonums}:
-Converts @racket[x] to its representation in a byte
-string of length 10.}
+Like @racket[real->floating-point-bytes], but for @tech{extflonums}:
+将 @racket[x] 转换为长度为 10 的字节串表示。}

@@ -3,26 +3,15 @@
           "utils.rkt"
           (for-label racket/base racket/contract))
 
-@title[#:tag "contracts-gotchas"]{Gotchas}
+@title[#:tag "contracts-gotchas"]{陷阱与注意事项}
 
-@ctc-section{Contracts and @racket[eq?]}
+@ctc-section{Contracts 与 @racket[eq?]}
 
-As a general rule, adding a contract to a program should
-either leave the behavior of the program unchanged, or
-should signal a contract violation. And this is almost true
-for Racket contracts, with one exception: @racket[eq?].
+通常来说，给一个程序添加 contract 应该要么不改变程序的行为，要么引发 contract violation。Racket 的 contract 几乎满足这一原则，但有一个例外：@racket[eq?]。
 
-The @racket[eq?] procedure is designed to be fast and does
-not provide much in the way of guarantees, except that if it
-returns true, it means that the two values behave
-identically in all respects. Internally, this is implemented
-as pointer equality at a low-level so it exposes information
-about how Racket is implemented (and how contracts are
-implemented). 
+@racket[eq?] 过程被设计为速度快，除了保证返回 true 意味着两个值在所有方面行为完全一致之外，没有提供太多保证。在内部，它在低层实现为指针相等，因此会暴露 Racket 实现方式（以及 contract 实现方式）的信息。
 
-Contracts interact poorly with @racket[eq?] because function
-contract checking is implemented internally as wrapper
-functions. For example, consider this module:
+Contract 与 @racket[eq?] 交互不佳，因为 function contract 的检查在内部是通过 wrapper function 实现的。例如，考虑以下模块：
 @racketmod[
 racket
 
@@ -34,28 +23,21 @@ racket
           [make-adder (-> number? (-> number? number?))]))
 ]
 
-It exports the @racket[make-adder] function that is the usual curried
-addition function, except that it returns Racket's @racket[add1] when
-its input is @racket[1].
+该模块导出了 @racket[make-adder] function，这是常规的柯里化加法 function，但当输入为 @racket[1] 时返回 Racket 的 @racket[add1]。
 
-You might expect that
+你可能会以为
 @racketblock[
 (eq? (make-adder 1)
      (make-adder 1))
 ]
 
-would return @racket[#t], but it does not. If the contract were
-changed to @racket[any/c] (or even @racket[(-> number? any/c)]), then
-the @racket[eq?] call would return @racket[#t].
+会返回 @racket[#t]，但不会。如果 contract 改为 @racket[any/c]（甚至是 @racket[(-> number? any/c)]），那么 @racket[eq?] 调用就会返回 @racket[#t]。
 
-Moral: Do not use @racket[eq?] on values that have contracts.
+总结：不要对带有 contract 的值使用 @racket[eq?]。
 
-@ctc-section[#:tag "gotcha-nested"]{Contract boundaries and @racket[define/contract]}
+@ctc-section[#:tag "gotcha-nested"]{Contract 边界与 @racket[define/contract]}
 
-The contract boundaries established by @racket[define/contract], which
-creates a nested contract boundary, are sometimes unintuitive. This is
-especially true when multiple functions or other values with contracts
-interact. For example, consider these two interacting functions:
+@racket[define/contract] 建立的 contract 边界（创建嵌套的 contract 边界）有时不符合直觉。当多个 function 或其他带有 contract 的值交互时尤其如此。例如，考虑下面这两个交互的 function：
 
 @(define e2 (make-base-eval))
 @(interaction-eval #:eval e2 (require racket/contract))
@@ -69,28 +51,11 @@ interact. For example, consider these two interacting functions:
 (g)
 ]
 
-One might expect that the function @racket[g] will be blamed
-for breaking the terms of its contract with @racket[f]. 
-Blaming @racket[g] would be right if @racket[f] and @racket[g]
-were directly establishing contracts with each other.
-They aren't, however. Instead, the access between @racket[f]
-and @racket[g] is mediated through the top-level of the enclosing
-module.
+你可能会以为 @racket[g] function 会因为违反与 @racket[f] 的 contract 而被 blame。如果 @racket[f] 和 @racket[g] 直接建立 contract，blame @racket[g] 是正确的。但它们并没有。相反，@racket[f] 和 @racket[g] 之间的访问是通过外层模块的顶层来调解的。
 
-More precisely, @racket[f] and the top-level of the module have
-the @racket[(-> integer? integer?)] contract mediating their
-interaction; @racket[g] and the top-level have @racket[(-> string?)]
-mediating their interaction, but there is no contract directly
-between @racket[f] and @racket[g]. This means that the reference to
-@racket[f] in the body of @racket[g] is really the top-level
-of the module's responsibility, not @racket[g]'s. In other words,
-the function @racket[f] has been given to @racket[g] with
-no contract between @racket[g] and the top-level and thus
-the top-level is blamed.
+更准确地说，@racket[f] 和模块顶层有 @racket[(-> integer? integer?)] contract 调解它们的交互；@racket[g] 和顶层有 @racket[(-> string?)] 调解，但 @racket[f] 和 @racket[g] 之间没有直接的 contract。这意味着 @racket[g] 的 body 中对 @racket[f] 的引用实际上是模块顶层的责任，而不是 @racket[g] 的。换句话说，function @racket[f] 是在 @racket[g] 与顶层之间没有 contract 的情况下被交给 @racket[g] 的，因此 blame 会被归于顶层。
 
-If we wanted to add a contract between @racket[g] and the
-top-level, we can use @racket[define/contract]'s
-@racket[#:freevar] declaration and see the expected blame:
+如果我们想在 @racket[g] 和顶层之间添加 contract，可以使用 @racket[define/contract] 的 @racket[#:freevar] 声明，就能看到预期的 blame：
 
 @interaction[#:eval e2
 (define/contract (f x)
@@ -104,29 +69,19 @@ top-level, we can use @racket[define/contract]'s
 ]
 @(close-eval e2)
 
-Moral: if two values with contracts should interact,
-       put them in separate modules with contracts at
-       the module boundary or use @racket[#:freevar].
+总结：如果带有 contract 的两个值应当交互，将它们放在单独的模块中并在模块边界处设置 contract，或者使用 @racket[#:freevar]。
 
-@ctc-section[#:tag "exists-gotcha"]{Exists Contracts and Predicates}
+@ctc-section[#:tag "exists-gotcha"]{Exists Contract 与谓词}
 
-Much like the @racket[eq?] example above, @racket[#:∃] contracts
-can change the behavior of a program.
+与上面 @racket[eq?] 的例子类似，@racket[#:∃] contract 可以改变程序的行为。
 
-Specifically,
-the @racket[null?] predicate (and many other predicates) return @racket[#f]
-for @racket[#:∃] contracts, and changing one of those contracts to @racket[any/c]
-means that @racket[null?] might now return @racket[#t] instead, resulting in
-arbitrarily different behavior depending on how this boolean might flow around
-in the program.
+具体来说，@racket[null?] 谓词（以及许多其他谓词）对于 @racket[#:∃] contract 返回 @racket[#f]，而如果将这些 contract 之一改为 @racket[any/c]，则 @racket[null?] 可能改为返回 @racket[#t]，根据这个布尔值在程序中的流向，可能导致任意不同的行为。
 
-Moral: Do not use predicates on @racket[#:∃] contracts.
+总结：不要在 @racket[#:∃] contract 上使用谓词。
 
-@ctc-section{Defining Recursive Contracts}
+@ctc-section{定义递归 Contract}
 
-When defining a self-referential contract, it is natural to use
-@racket[define]. For example, one might try to write a contract on
-streams like this:
+当定义自引用的 contract 时，自然会想到使用 @racket[define]。例如，有人可能会尝试这样写一个 stream 上的 contract：
 
 @(define e (make-base-eval))
 @(interaction-eval #:eval e (require racket/contract))
@@ -139,12 +94,9 @@ streams like this:
 ]
 @close-eval[e]
 
-Unfortunately, this does not work because the value of
-@racket[stream/c] is needed before it is defined. Put another way, all
-of the combinators evaluate their arguments eagerly, even though the
-values that they accept do not.
+不幸的是，这样做不行，因为 @racket[stream/c] 的值在它定义之前就被需要了。换句话说，所有的 combinator 都会急切求值它们的参数，尽管它们接受的值不会这样做。
 
-Instead, use
+改为使用
 @racketblock[
 (define stream/c
   (promise/c
@@ -153,18 +105,13 @@ Instead, use
     (cons/c number? (recursive-contract stream/c)))))
 ]
 
-The use of @racket[recursive-contract] delays the evaluation of the
-identifier @racket[stream/c] until after the contract is first
-checked, long enough to ensure that @racket[stream/c] is defined.
+使用 @racket[recursive-contract] 会延迟对 @racket[stream/c] identifier 的求值，直到 contract 被首次检查之后，这已足够确保 @racket[stream/c] 已被定义。
 
-See also @ctc-link["lazy-contracts"].
+另见 @ctc-link["lazy-contracts"]。
 
-@ctc-section{Mixing @racket[set!] and @racket[contract-out]}
+@ctc-section{混合使用 @racket[set!] 与 @racket[contract-out]}
 
-The contract library assumes that variables exported via
-@racket[contract-out] are not assigned to, but does not enforce
-it. Accordingly, if you try to @racket[set!] those variables, you 
-may be surprised. Consider the following example:
+contract 库假设通过 @racket[contract-out] 导出的变量不会被赋值，但并未强制保证这一点。因此，如果你试图对这些变量使用 @racket[set!]，可能会感到意外。例如，考虑以下示例：
 
 @interaction[
 (module server racket
@@ -185,12 +132,9 @@ may be surprised. Consider the following example:
 (require 'client)
 ]
 
-Both calls to @racket[print-latest] print @racket[0], even though the
-value of @racket[x] has been incremented (and the change is visible
-inside the module @racket[x]).
+两次对 @racket[print-latest] 的调用都打印 @racket[0]，尽管 @racket[x] 的值已增加（且变化在模块 @racket[x] 内部可见）。
 
-To work around this, export accessor functions, rather than
-exporting the variable directly, like this:
+作为变通方法，导出 accessor function，而不是直接导出变量，像这样：
 
 @racketmod[
 racket
@@ -202,4 +146,4 @@ racket
                        [get-x (-> integer?)]))
 ]
 
-Moral: This is a bug that we will address in a future release.
+总结：这是一个 bug，我们将在未来版本中修复。

@@ -1,29 +1,18 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "config"]{Parameterizations}
+@bc-title[#:tag "config"]{Parameterization}
 
-A @defterm{parameterization} is a set of parameter values. Each thread
-has its own initial parameterization, which is extended functionally
-and superseded by parameterizations that are attached to a particular
-continuation mark.
+一个 @defterm{parameterization} 是一组 parameter 值。每个 thread 有自己的初始 parameterization，它被附加在特定 continuation mark 上的 parameterization 功能性地扩展和替代。
 
-Parameterization information is stored in a @cppi{Scheme_Config}
-record. For the currently executing thread,
-@cppi{scheme_current_config} returns the current parameterization.
+Parameterization 信息存储在 @cppi{Scheme_Config} 记录中。对于当前执行的 thread，@cppi{scheme_current_config} 返回当前的 parameterization。
 
-To obtain parameter values, a @cpp{Scheme_Config} is combined with the
-current threads @cpp{Scheme_Thread_Cell_Table}, as stored in the
-thread record's @cpp{cell_values} field.
+为了获取 parameter 值，@cpp{Scheme_Config} 会与当前 thread 的 @cpp{Scheme_Thread_Cell_Table} 结合，该表存储在 thread 记录的 @cpp{cell_values} 字段中。
 
-Parameter values for built-in parameters are obtained and modified
-(for the current thread) using @cppi{scheme_get_param} and
-@cppi{scheme_set_param}. Each parameter is stored as a
-@cpp{Scheme_Object *} value, and the built-in parameters are accessed
-through the following indices:
+内置 parameter 值的获取和修改（对当前 thread）使用 @cppi{scheme_get_param} 和 @cppi{scheme_set_param}。每个 parameter 存储为 @cpp{Scheme_Object *} 值，内置 parameter 通过以下索引访问：
 
 @itemize[
-@item{@cppdef{MZCONFIG_ENV} --- @racket[current-namespace] (use @cpp{scheme_get_env})}
+@item{@cppdef{MZCONFIG_ENV} --- @racket[current-namespace]（使用 @cpp{scheme_get_env}）}
 @item{@cppdef{MZCONFIG_INPUT_PORT} --- @racket[current-input-port]}
 @item{@cppdef{MZCONFIG_OUTPUT_PORT} ---  @racket[current-output-port]}
 @item{@cppdef{MZCONFIG_ERROR_PORT} ---  @racket[current-error-port]}
@@ -71,21 +60,11 @@ through the following indices:
 
 ]
 
-To get or set a parameter value for a thread other than the current
-one, use @cppi{scheme_get_thread_param} and
-@cppi{scheme_set_thread_param}, each of which takes a
-@cpp{Scheme_Thread_Cell_Table} to use in resolving or setting a
-parameter value.
+要获取或设置当前 thread 以外的 parameter 值，使用 @cppi{scheme_get_thread_param} 和 @cppi{scheme_set_thread_param}，它们各自接受一个 @cpp{Scheme_Thread_Cell_Table} 用于解析或设置 parameter 值。
 
-When installing a new parameter with @cpp{scheme_set_param}, no check
-is performed on the supplied value to ensure that it is a legal value
-for the parameter; this is the responsibility of the caller of
-@cpp{scheme_set_param}. Note that Boolean parameters should only be
-set to the values @racket[#t] and @racket[#f].
+当使用 @cpp{scheme_set_param} 安装新 parameter 时，不会检查所提供的值是否为该 parameter 的合法值；这是 @cpp{scheme_set_param} 调用者的责任。注意，Boolean parameter 只能设置为 @racket[#t] 和 @racket[#f] 值。
 
-New primitive parameter indices are created with
-@cppi{scheme_new_param} and implemented with
-@cppi{scheme_make_parameter} and @cppi{scheme_param_config}.
+新的 primitive parameter 索引使用 @cppi{scheme_new_param} 创建，并使用 @cppi{scheme_make_parameter} 和 @cppi{scheme_param_config} 实现。
 
 @; ----------------------------------------------------------------------
 
@@ -93,24 +72,21 @@ New primitive parameter indices are created with
            [Scheme_Config* config]
            [int param_id])]{
 
-Gets the current value (for the current thread) of the parameter
- specified by @var{param_id}.}
+获取由 @var{param_id} 指定的 parameter 的当前值（对当前 thread）。}
 
 @function[(Scheme_Object* scheme_set_param
            [Scheme_Config* config]
            [int param_id]
            [Scheme_Object* v])]{
 
-Sets the current value (for the current thread) of the parameter
- specified by @var{param_id}.}
+设置由 @var{param_id} 指定的 parameter 的当前值（对当前 thread）。}
 
 @function[(Scheme_Object* scheme_get_thread_param
            [Scheme_Config* config]
            [Scheme_Thread_Cell_Table* cells]
            [int param_id])]{
 
-Like @cpp{scheme_get_param}, but using an arbitrary thread's
-cell-value table.}
+类似 @cpp{scheme_get_param}，但使用任意 thread 的 cell-value 表。}
 
 @function[(Scheme_Object* scheme_set_thread_param
            [Scheme_Config* config]
@@ -118,50 +94,35 @@ cell-value table.}
            [int param_id]
            [Scheme_Object* v])]{
 
-Like @cpp{scheme_set_param}, but using an arbitrary thread's
- cell-value table.}
+类似 @cpp{scheme_set_param}，但使用任意 thread 的 cell-value 表。}
 
 @function[(Scheme_Object* scheme_extend_config
            [Scheme_Config* base]
            [int param_id]
            [Scheme_Object* v])]{
 
-Creates and returns a parameterization that extends @var{base} with a
- new value @var{v} (in all threads) for the parameter
- @var{param_id}. Use @cpp{scheme_install_config} to make this
- configuration active in the current thread.}
+创建并返回一个 parameterization，为 @var{base} 添加新值 @var[v]（在所有 thread 中）用于 parameter @var[param_id]。使用 @cpp{scheme_install_config} 使此配置在当前 thread 中生效。}
 
 @function[(void scheme_install_config
            [Scheme_Config* config])]{
 
-Adjusts the current thread's continuation marks to make @var{config}
- the current parameterization. Typically, this function is called
- after @cpp{scheme_push_continuation_frame} to establish a new
- continuation frame, and then @cpp{scheme_pop_continuation_frame}
- is called later to remove the frame (and thus the parameterization).}
+调整当前 thread 的 continuation marks 以使 @var{config} 成为当前 parameterization。通常在 @cpp{scheme_push_continuation_frame} 之后调用此 function 以建立新的 continuation frame，之后调用 @cpp{scheme_pop_continuation_frame} 来移除 frame（以及 parameterization）。}
 
 @function[(Scheme_Thread_Cell_Table* scheme_inherit_cells
            [Scheme_Thread_Cell_Table* cells])]{
 
-Creates a new thread-cell-value table, copying values for preserved
- thread cells from @var{cells}.}
+创建一个新的 thread-cell-value 表，从 @var{cells} 复制保留的 thread cell 的值。}
 
 @function[(int scheme_new_param)]{
 
-Allocates a new primitive parameter index. This function must be
- called @italic{before} @cppi{scheme_basic_env}, so it is only
- available to embedding applications (i.e., not extensions).}
+分配一个新的 primitive parameter 索引。此 function 必须在 @cppi{scheme_basic_env} 之前调用，因此仅可用于 embedding 应用（即不用于 extension）。}
 
 @function[(Scheme_Object* scheme_register_parameter
            [Scheme_Prim* function]
            [char* name]
            [int exnid])]{
 
-Use this function instead of the other primitive-constructing
- functions, like @cpp{scheme_make_prim}, to create a primitive
- parameter procedure. See also @cpp{scheme_param_config}, below.
- This function is only available to embedding applications (i.e., not
- extensions).}
+使用此 function 而非其他 primitive-constructing function（如 @cpp{scheme_make_prim}）来创建 primitive parameter 过程。另见下面的 @cpp{scheme_param_config}。此 function 仅可用于 embedding 应用（即不用于 extension）。}
 
 @function[(Scheme_Object* scheme_param_config
            [char* name]
@@ -173,39 +134,19 @@ Use this function instead of the other primitive-constructing
            [char* expected]
            [int isbool])]{
 
-Call this procedure in a primitive parameter procedure to implement
- the work of getting or setting the parameter. The @var{name} argument
- should be the parameter procedure name; it is used to report
- errors. The @var{param} argument is a fixnum corresponding to the
- primitive parameter index returned by @cpp{scheme_new_param}.  The
- @var{argc} and @var{argv} arguments should be the un-touched and
- un-tested arguments that were passed to the primitive parameter.
- Argument-checking is performed within @cpp{scheme_param_config}
- using @var{arity}, @var{check}, @var{expected}, and @var{isbool}:
+在 primitive parameter 过程中调用此过程来实现获取或设置 parameter 的工作。@var{name} 参数应为 parameter 过程名称；用于报告错误。@param 参数是一个对应于 @cpp{scheme_new_param} 返回的 primitive parameter 索引的 fixnum。@var{argc} 和 @var{argv} 参数应为传递给 primitive parameter 的未经处理和未经测试的参数。使用 @var{arity}、@var{check}、@var{expected} 和 @var{isbool} 在 @cpp{scheme_param_config} 内部执行参数检查：
 
 @itemize[
 
- @item{If @var{arity} is non-negative, potential parameter values must
- be able to accept the specified number of arguments. The @var{check}
- and @var{expected} arguments should be @cpp{NULL}.}
+ @item{如果 @var{arity} 非负，则潜在 parameter 值必须能接受指定数量的参数。@var{check} 和 @var{expected} 参数应为 @cpp{NULL}。}
 
- @item{If @var{check} is not @cpp{NULL}, it is called to check a
- potential parameter value. The arguments passed to @var{check} are
- always @cpp{1} and an array that contains the potential parameter
- value. If @var{isbool} is @cpp{0} and @var{check} returns
- @cpp{scheme_false}, then a type error is reported using @var{name}
- and @var{expected} as a type description. If @var{isbool} is @cpp{1}, then a type error is
- reported only when @var{check} returns @cpp{NULL} and any
- non-@cpp{NULL} return value is used as the actual value to be stored
- for the parameter.}
+ @item{如果 @var{check} 不是 @cpp{NULL}，则调用它来检查潜在 parameter 值。传递给 @var{check} 的参数始终是 @cpp{1} 和包含潜在 parameter 值的数组。如果 @var{isbool} 为 @cpp{0} 且 @var{check} 返回 @cpp{scheme_false}，则使用 @var{name} 和 @var{expected} 作为类型描述报告类型错误。如果 @var{isbool} 为 @cpp{1}，则仅在 @var{check} 返回 @cpp{NULL} 时报告类型错误，并且返回的任何非 @cpp{NULL} 值被用做实际存储的值。}
 
- @item{Otherwise, @var{isbool} should be 1. A potential procedure
- argument is then treated as a Boolean value.}
+ @item{否则，@var{isbool} 应为 1。潜在过程参数被当做 Boolean 值对待。}
 
 ]
 
- This function is only available to embedding applications (i.e., not
- extensions).}
+此 function 仅可用于 embedding 应用（即不用于 extension）。}
 
 @function[(Scheme_Object* scheme_param_config2
            [char* name]
@@ -217,5 +158,4 @@ Call this procedure in a primitive parameter procedure to implement
            [char* expected_contract]
            [int isbool])]{
 
-The same as @cpp{scheme_param_config}, but with
-@var{expected_contract} as a contract instead of type description.}
+与 @cpp{scheme_param_config} 相同，但使用 @var{expected_contract} 作为 contract 而非类型描述。}

@@ -4,10 +4,9 @@
 
 @(define eventspaces @tech[#:doc '(lib "scribblings/gui/gui.scrbl")]{eventspaces})
 
-@title[#:tag "custodians"]{Custodians}
+@title[#:tag "custodians"]{Custodian}
 
-See @secref["custodian-model"] for basic information on the Racket
-custodian model.
+参见 @secref["custodian-model"] 了解 Racket custodian 模型的基本信息。
 
 @defproc[(custodian? [v any/c]) boolean?]{
 
@@ -153,7 +152,7 @@ immediate allocations can be rejected with an
                          (λ (e) (async-channel-put ch e))])
           (custodian-limit-memory (current-custodian) (* 1024 1024))
           (make-bytes (* 4 1024 1024))
-          (async-channel-put ch "Not OK")))))
+          (async-channel-put ch "Not OK"))))
     (async-channel-get ch))
    (exn:fail:out-of-memory "out of memory" (current-continuation-marks)))
  (define cust (make-custodian))
@@ -175,8 +174,8 @@ immediate allocations can be rejected with an
  (eval:alts
   (parameterize ([current-custodian (make-custodian)])
     (custodian-limit-memory (current-custodian) (* 1024 1024))
-    (code:comment @#,elem{Allocation of @racket[make-bytes] is charged to the current thread's})
-    (code:comment @#,elem{managing custodian, not the new custodian.})
+    (code:comment @#,elem{@racket[make-bytes] 的分配被记入当前 thread 的})
+    (code:comment @#,elem{管理 custodian，而不是新建 custodian。})
     (make-bytes (* 4 1024 1024))
     "Not OK")
    "Not OK")
