@@ -26,7 +26,7 @@ Pointer tag 通过 @racket[cpointer-has-tag?] 检查并通过 @racket[cpointer-p
 
 要用作 @racket[__tag] 值的 Racket 值首先传递给 @racket[racket-to-c]，结果必须是带有 @racket[tag] tag 的指针。类似地，要作为 @racket[__tag] 返回的 C 值最初表示为带 @racket[tag] tag 的指针，然后传递给 @racket[c-to-racket] 以获得 Racket 表示。因此，@racket[__tag] 值在 C 层面由 pointer 表示（但与给定的 @racket[ptr-type] 不同），它在 Racket 层面可以有任何表示，由 @racket[racket-to-c] 和 @racket[c-to-racket] 实现。
 
-@racket[_cpointer/null] 函数类似于 @racket[_cpointer]，除了传入 C 和返回时都容忍 @cpp{NULL} pointer。注意 @cpp{NULL] pointer 在 Racket 中表示为 @racket[#f]，因此不被 tag。
+@racket[_cpointer/null] 函数类似于 @racket[_cpointer]，除了传入 C 和返回时都容忍 @cpp{NULL} pointer。注意 @cpp{NULL} pointer 在 Racket 中表示为 @racket[#f]，因此不被 tag。
 
 @defform*[[(define-cpointer-type _id)
            (define-cpointer-type _id #:tag tag-expr)
@@ -46,7 +46,7 @@ Pointer tag 通过 @racket[cpointer-has-tag?] 检查并通过 @racket[cpointer-p
 
 @defproc[(cpointer-predicate-procedure? [v any/c]) boolean?]{如果 @racket[v] 是由 @racket[define-cpointer-type] 或 @racket[define-cstruct] 生成的 predicate procedure 则返回 @racket[#t]，否则返回 @racket[#f]。
 
-@history[#:added "6.6.0.1"]}
+@history[#:added "6.6.0.1"]
 
 @defproc*[([(cpointer-has-tag? [cptr cpointer?] [tag any/c]) boolean?]
            [(cpointer-push-tag! [cptr cpointer?] [tag any/c]) void?])]{
