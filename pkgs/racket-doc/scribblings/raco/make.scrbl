@@ -20,73 +20,67 @@
 
 @(define cm-eval (make-base-eval))
 @(interaction-eval #:eval cm-eval (require compiler/cm))
-@title[#:tag "make" #:style 'toc]{@exec{raco make}: Compiling Source to Bytecode}
+@title[#:tag "make" #:style 'toc]{@exec{raco make}：将源代码编译为字节码}
 
-The @exec{raco make} command accept filenames for Racket modules to be
-compiled to bytecode format. Modules are re-compiled only if the
-source Racket file is newer than the bytecode file and has a different
-SHA-1 hash, or if any imported module is recompiled or has a different
-SHA-1 hash for its compiled form plus dependencies.
+@exec{raco make} 命令接受要编译为字节码格式的 Racket 模块文件名。
+仅当源 Racket 文件比字节码文件新且具有不同的 SHA-1 哈希，
+或者任何导入的模块被重新编译或其编译形式加依赖项具有不同的 SHA-1 哈希时，
+模块才会被重新编译。
 
 @local-table-of-contents[]
 
 @; ------------------------------------------------------------------------
-@section{Running @exec{raco make}}
+@section{运行 @exec{raco make}}
 
-The @exec{raco make} command accepts a few flags:
+@exec{raco make} 命令接受几个标志：
 
 @itemlist[
 
- @item{@Flag{l} @nonterm{path} --- Compiles @nonterm{path} interpreted
-       as a collection-based module path, as for @racket[require].}
+ @item{@Flag{l} @nonterm{path} --- 将 @nonterm{path} 作为基于集合的模块路径编译，
+       类似于 @racket[require]。}
 
-@item{@Flag{j} @nonterm{n} --- Compiles argument modules in parallel,
-       using up to @nonterm{n} parallel tasks.}
+@item{@Flag{j} @nonterm{n} --- 并行编译参数模块，
+       使用最多 @nonterm{n} 个并行任务。}
 
- @item{@DFlag{disable-inline} --- Disables function inlining while
-      compiling (but does not re-compile files that are already
-      up-to-date). This flag is often useful to simplify generated
-      code before decompiling, and it corresponds to setting
-      @racket[compile-context-preservation-enabled] to @racket[#t].}
+ @item{@DFlag{disable-inline} --- 编译时禁用函数内联
+      （但不重新编译已是最新的文件）。此标志通常用于在反编译之前
+      简化生成的代码，它对应于将
+      @racket[compile-context-preservation-enabled] 设置为 @racket[#t]。}
 
- @item{@DFlag{disable-constant} --- Disables inference of definitions
-      within a module as constant (but does not re-compile files that
-      are already up-to-date). The value associated with a
-      non-constant definition is never inlined or constant-propagated,
-      either within its own module or an importing module. This flag
-      corresponds to setting @racket[compile-enforce-module-constants]
-      to @racket[#f].}
+ @item{@DFlag{disable-constant} --- 禁用将模块内定义推断为常量
+      （但不重新编译已是最新的文件）。非常量定义关联的值
+      永远不会被内联或常量传播，无论是在其自己的模块内
+      还是在导入模块中。此标志对应于将
+      @racket[compile-enforce-module-constants] 设置为 @racket[#f]。}
 
- @item{@DFlag{no-deps} --- Compiles a non-module file (i.e., one that
-       is run via @racket[load] instead of @racket[require]). See
-       @secref["zo"] for more information.}
+ @item{@DFlag{no-deps} --- 编译非模块文件（即通过 @racket[load]
+       而非 @racket[require] 运行的文件）。参见
+       @secref["zo"] 了解更多信息。}
 
- @item{@Flag{p} @nonterm{file} or @DFlag{prefix} @nonterm{file} ---
-       For use with @DFlag{no-deps}; see @secref["zo"].}
+ @item{@Flag{p} @nonterm{file} 或 @DFlag{prefix} @nonterm{file} ---
+       与 @DFlag{no-deps} 一起使用；参见 @secref["zo"]。}
 
- @item{@Flag{no-prim} --- For use with @DFlag{no-deps}; see
-       @secref["zo"].}
+ @item{@Flag{no-prim} --- 与 @DFlag{no-deps} 一起使用；参见 @secref["zo"]。}
 
- @item{@Flag{v} --- Verbose mode, which shows which files are
-      compiled.}
+ @item{@Flag{v} --- 详细模式，显示哪些文件被编译。}
 
- @item{@DFlag{vv} --- Very verbose mode, which implies @Flag{v} and
-       also shows every dependency that is checked.}
+ @item{@DFlag{vv} --- 非常详细模式，隐含 @Flag{v} 并
+       显示每个被检查的依赖项。}
 
 ]
 
 @; ----------------------------------------------------------------------
 
-@section{Bytecode Files}
+@section{字节码文件}
 
-A file @filepath{@nonterm{name}.@nonterm{ext}} is compiled to bytecode
-that is saved as @filepath{compiled/@nonterm{name}_@nonterm{ext}.zo}
-relative to the file. As a result, the bytecode file is normally used
-automatically when @filepath{@nonterm{name}.@nonterm{ext}} is required
-as a module, since the underlying @racket[load/use-compiled] operation
-detects such a bytecode file.
+文件 @filepath{@nonterm{name}.@nonterm{ext}} 被编译为字节码，
+保存为相对于该文件的
+@filepath{compiled/@nonterm{name}_@nonterm{ext}.zo}。因此，
+当 @filepath{@nonterm{name}.@nonterm{ext}} 作为模块被 require 时，
+字节码文件通常会自动使用，因为底层的
+@racket[load/use-compiled] 操作会检测到这样的字节码文件。
 
-For example, in a directory that contains the following files:
+例如，在包含以下文件的目录中：
 
 @itemize[
 
@@ -118,89 +112,82 @@ then
 
 @commandline{raco make a.rkt}
 
-triggers the creation of @filepath{compiled/a_rkt.zo},
-@filepath{compiled/b_rkt.zo}, and @filepath{compiled/c_rkt.zo}.
-A subsequent
+触发创建 @filepath{compiled/a_rkt.zo}、
+@filepath{compiled/b_rkt.zo} 和 @filepath{compiled/c_rkt.zo}。
+随后的
 
 @commandline{racket a.rkt}
 
-loads bytecode from the generated @filepath{.zo} files, paying
-attention to the @filepath{.rkt} sources only to confirm that each
-@filepath{.zo} file has a later timestamp (unless the
-@envvar{PLT_COMPILED_FILE_CHECK} environment variable is set to
-@litchar{exists}, in which case the compiled file is used without
-a timestamp check).
+从生成的 @filepath{.zo} 文件加载字节码，仅关注
+@filepath{.rkt} 源文件以确认每个 @filepath{.zo} 文件
+具有较晚的时间戳（除非 @envvar{PLT_COMPILED_FILE_CHECK}
+环境变量设置为 @litchar{exists}，在这种情况下
+使用编译文件而不进行时间戳检查）。
 
-In contrast,
+相比之下，
 
 @commandline{raco make b.rkt c.rkt}
 
-would create only @filepath{compiled/b_rkt.zo} and
-@filepath{compiled/c_rkt.zo}, since neither @filepath{b.rkt} nor
-@filepath{c.rkt} imports @filepath{a.rkt}.
+只会创建 @filepath{compiled/b_rkt.zo} 和
+@filepath{compiled/c_rkt.zo}，因为 @filepath{b.rkt} 和
+@filepath{c.rkt} 都没有导入 @filepath{a.rkt}。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "Dependency Files"]{Dependency Files}
+@section[#:tag "依赖文件"]{依赖文件}
 
-In addition to a bytecode file, @exec{raco make} creates a file
-@filepath{compiled/@nonterm{name}_@nonterm{ext}.dep} that records
-dependencies of the compiled module on other module files and the
-source file's SHA-1 hash.  Using this dependency information, a
-re-compilation request via @exec{raco make} can consult both the
-source file's timestamp/hash and the timestamps/hashes for the
-bytecode of imported modules.  Furthermore, imported modules are
-themselves compiled as necessary, including updating the bytecode and
-dependency files for the imported modules, transitively.
+除了字节码文件之外，@exec{raco make} 还创建一个文件
+@filepath{compiled/@nonterm{name}_@nonterm{ext}.dep}，记录
+已编译模块对其他模块文件的依赖关系以及源文件的 SHA-1 哈希。
+使用此依赖信息，通过 @exec{raco make} 的重新编译请求可以同时
+查询源文件的时间戳/哈希以及导入模块字节码的
+时间戳/哈希。此外，导入的模块也会根据需要自行编译，
+包括更新导入模块的字节码和依赖文件，传递性地。
 
-Continuing the @exec{raco make a.rkt} example from the previous
-section, the @exec{raco make} command creates
-@filepath{compiled/a_rkt.dep}, @filepath{compiled/b_rkt.dep}, and
-@filepath{compiled/c_rkt.dep} at the same time as the @filepath{.zo}
-files. The @filepath{compiled/a_rkt.dep} file records the dependency
-of @filepath{a.rkt} on @filepath{b.rkt}, @filepath{c.rkt} and the
-@racketmodname[racket] library. If the @filepath{b.rkt} file is
-modified (so that its SHA-1 hash changes), then running
+继续上一节的 @exec{raco make a.rkt} 示例，
+@exec{raco make} 命令在创建 @filepath{.zo} 文件的同时
+创建 @filepath{compiled/a_rkt.dep}、
+@filepath{compiled/b_rkt.dep} 和 @filepath{compiled/c_rkt.dep}。
+@filepath{compiled/a_rkt.dep} 文件记录了 @filepath{a.rkt}
+对 @filepath{b.rkt}、@filepath{c.rkt} 和
+@racketmodname[racket] 库的依赖。如果 @filepath{b.rkt} 文件
+被修改（其 SHA-1 哈希发生变化），则运行
 
 @commandline{raco make a.rkt}
 
-again rebuilds @filepath{compiled/a_rkt.zo} and
-@filepath{compiled/b_rkt.zo}.
+将重新构建 @filepath{compiled/a_rkt.zo} 和
+@filepath{compiled/b_rkt.zo}。
 
-For module files that are within library collections, @exec{raco
-setup} uses the same @filepath{.zo} and @filepath{.dep} conventions
-and files as @exec{raco make}, so the two tools can be used together.
+对于库集合中的模块文件，@exec{raco setup}
+使用与 @exec{raco make} 相同的 @filepath{.zo} 和 @filepath{.dep}
+约定和文件，因此这两个工具可以一起使用。
 
-As long as the @envvar{PLT_COMPILED_FILE_CHECK} environment variable
-is not set or is set to @litchar{modify}, then @exec{raco make}
-updates the timestamp on a compiled bytecode file if it is older than
-the source, even if the file does not need to be recompiled.
+只要 @envvar{PLT_COMPILED_FILE_CHECK} 环境变量
+未设置或设置为 @litchar{modify}，@exec{raco make}
+就会更新已编译字节码文件的时间戳（如果它比源文件旧），
+即使文件不需要重新编译。
 
 @; ----------------------------------------------------------------------
 
-@section{API for Making Bytecode}
+@section{制作字节码的 API}
 
-@defmodule[compiler/cm]{The @racketmodname[compiler/cm] module
-implements the compilation and dependency management used by
-@exec{raco make} and @exec{raco setup}.}
+@defmodule[compiler/cm]{@racketmodname[compiler/cm] 模块实现了
+@exec{raco make} 和 @exec{raco setup} 使用的编译和依赖管理。}
 
 @defproc[(make-compilation-manager-load/use-compiled-handler 
           [delete-zos-when-rkt-file-does-not-exist? any/c #f]
           [#:security-guard security-guard (or/c security-guard? #f) #f])
          (path? (or/c symbol? #f) . -> . any)]{
 
-Returns a procedure suitable as a value for the
-@racket[current-load/use-compiled] parameter. The returned procedure
-passes its arguments on to the @racket[current-load/use-compiled]
-procedure that is installed when
-@racket[make-compilation-manager-load/use-compiled-handler] is called,
-but first it automatically compiles a source file to a @filepath{.zo}
-file if
+返回一个适合作为 @racket[current-load/use-compiled] 参数值的过程。
+返回的过程将其参数传递给调用
+@racket[make-compilation-manager-load/use-compiled-handler] 时安装的
+@racket[current-load/use-compiled] 过程，
+但首先它会自动将源文件编译为 @filepath{.zo} 文件，如果满足以下条件：
 
 @itemize[
 
- @item{the file is expected to contain a module (i.e., the second
- argument to the handler is a symbol);}
+ @item{文件预期包含一个模块（即处理程序的第二个参数是符号）；}
 
  @item{the value of each of @racket[(current-eval)],
  @racket[(current-load)], and @racket[(namespace-module-registry
@@ -253,81 +240,69 @@ file if
 
 ]
 
-If SHA-1 hashes override a timestamp-based decision to recompile the
-file, then the target @filepath{.zo} file's timestamp is updated to
-the current time, unless the @racket[use-compiled-file-check]
-parameter is not set to @racket['modify-seconds].
+如果 SHA-1 哈希覆盖了基于时间戳的重新编译决定，
+则目标 @filepath{.zo} 文件的时间戳会更新为当前时间，
+除非 @racket[use-compiled-file-check] 参数未设置为
+@racket['modify-seconds]。
 
-After the handler procedure compiles a @filepath{.zo} file, it creates
-a corresponding @filepath{.dep} file that lists the current version
-and the identification of every file that is directly
-@racket[require]d by the module in the compiled file. Additional
-dependencies can be installed during compilation via
-@racketmodname[compiler/cm-accomplice]. The @filepath{.dep} file also
-records the SHA-1 hash of the module's source, and it records a
-combined SHA-1 hash of all of the dependencies that includes their
-recursive dependencies. If a bytecode file is generated by recompiling
-a bytecode file that was formerly compiled as machine-independent, then
-the @filepath{.dep} file also records the SHA-1 hash of the
-machine-independent form, since the recompiled module's behavior should
-be exactly the same.
+处理程序过程编译 @filepath{.zo} 文件后，会创建
+相应的 @filepath{.dep} 文件，列出当前版本
+以及编译文件中模块直接 @racket[require] 的每个文件的标识。
+编译期间可以通过 @racketmodname[compiler/cm-accomplice] 安装额外的依赖项。 @filepath{.dep} 文件还记录模块源的 SHA-1 哈希，
+并记录所有依赖项（包括递归依赖项）的组合 SHA-1 哈希。
+如果字节码文件是通过重新编译以前作为机器无关编译的字节码文件生成的，
+则 @filepath{.dep} 文件还记录机器无关形式的 SHA-1 哈希，
+因为重新编译的模块行为应该完全相同。
 
-The special combination of @racket[(cross-installation?)] or
-@racket[(current-multi-compile-any)] as
-@racket[#t], @racket[(current-compile-target-machine)] as @racket[#f],
-and @racket[(current-compiled-file-roots)] having two or more elements
-triggers a special compilation mode. Bytecode specific to the running
-Racket is written to the directory determined by the first element of
-@racket[(current-compiled-file-roots)]. Bytecode specific to either the
-cross-compilation target for @racket[(cross-installation?)] or
-machine-independent format if @racket[(current-multi-compile-any)]
-is written to the directory determined by the
-second element of @racket[(current-compiled-file-roots)]. By
-configuring @racket[(current-compiled-file-roots)] so that the first
-element is outside a build tree and the second element is inside the
-build tree, cross-compilation can create a build tree suitable for the
-target machine while building and loading bytecode (for macro
-expansion, etc.) that is usable on the current machine. This mode
-works correctly for a build directory that starts with only source
-code and machine-independent bytecode.
+@racket[(cross-installation?)] 或
+@racket[(current-multi-compile-any)] 为 @racket[#t]、
+@racket[(current-compile-target-machine)] 为 @racket[#f]
+以及 @racket[(current-compiled-file-roots)] 有两个或更多元素的
+特殊组合会触发特殊编译模式。特定于运行中 Racket 的字节码
+写入由 @racket[(current-compiled-file-roots)] 第一个元素确定的目录。
+特定于 @racket[(cross-installation?)] 的交叉编译目标
+或（如果 @racket[(current-multi-compile-any)]）机器无关格式的字节码
+写入由 @racket[(current-compiled-file-roots)] 第二个元素确定的目录。 通过配置 @racket[(current-compiled-file-roots)]，使第一个元素
+在构建树之外而第二个元素在构建树之内，交叉编译可以
+创建一个适合目标机器的构建树，同时构建和加载
+当前机器上可用的字节码（用于宏展开等）。
+此模式对于仅从源代码和机器无关字节码开始的构建目录
+可以正常工作。
 
-The handler caches timestamps when it checks @filepath{.dep} files,
-and the cache is maintained across calls to the same handler. The
-cache is not consulted to compare the immediate source file to its
-@filepath{.zo} file, which means that the caching behavior is
-consistent with the caching of the default module name resolver (see
-@racket[current-module-name-resolver]).
+处理程序在检查 @filepath{.dep} 文件时缓存时间戳，
+并且缓存在对同一处理程序的调用之间保持。
+缓存不用于比较直接源文件与其 @filepath{.zo} 文件，
+这意味着缓存行为与默认模块名称解析器的缓存一致
+（参见 @racket[current-module-name-resolver]）。
 
-If @racket[use-compiled-file-paths] contains an empty list when
-@racket[make-compilation-manager-load/use-compiled-handler] is called,
-then an @racket[exn:fail:contract] exception is raised.
+如果在调用
+@racket[make-compilation-manager-load/use-compiled-handler] 时
+@racket[use-compiled-file-paths] 包含空列表，
+则会引发 @racket[exn:fail:contract] 异常。
 
-If the @racket[delete-zos-when-rkt-file-does-not-exist?] argument is a true
-value, then the returned handler will delete @filepath{.zo} files
-when there is no corresponding original source file.
+如果 @racket[delete-zos-when-rkt-file-does-not-exist?] 参数为真值，
+则返回的处理程序将在没有相应的原始源文件时删除 @filepath{.zo} 文件。
 
-If the @racket[security-guard] argument is supplied, it is used when
-creating @filepath{.zo} files, @filepath{.dep} files, and @filepath{compiled/}
-directories, and when it adjusts the timestamps for existing files.
-If it is @racket[#f], then
-the security guard in the @racket[current-security-guard] when 
-the files are created is used (not the security guard at the point 
-@racket[make-compilation-manager-load/use-compiled-handler] is called).
+如果提供了 @racket[security-guard] 参数，则在创建
+@filepath{.zo} 文件、@filepath{.dep} 文件和 @filepath{compiled/}
+目录时使用它，在调整现有文件的时间戳时也使用它。
+如果为 @racket[#f]，则使用文件创建时
+@racket[current-security-guard] 中的安全守卫
+（而非调用 @racket[make-compilation-manager-load/use-compiled-handler]
+时的安全守卫）。
 
-The continuation of the compilation of a module is marked with a
-@racket[managed-compiled-context-key] and the module's source path.
+模块编译的续延用 @racket[managed-compiled-context-key]
+和模块的源路径标记。
 
-@emph{Do not} install the result of
-@racket[make-compilation-manager-load/use-compiled-handler] when the
-current namespace contains already-loaded versions of modules that may
-need to be recompiled---unless the already-loaded modules are never
-referenced by not-yet-loaded modules. References to already-loaded
-modules may produce compiled files with inconsistent timestamps and/or
-@filepath{.dep} files with incorrect information.
+@emph{不要} 在当前命名空间包含可能需要重新编译的
+已加载模块版本时安装
+@racket[make-compilation-manager-load/use-compiled-handler] 的结果---
+除非已加载模块永远不会被尚未加载的模块引用。
+对已加载模块的引用可能产生具有不一致时间戳的编译文件和/或
+具有不正确信息的 @filepath{.dep} 文件。
 
-The handler logs messages to the topic @racket['compiler/cm] at the level
-@racket['info]. These messages are instances of a @racket[compile-event] prefab
-structure:
+处理程序以 @racket['info] 级别向主题 @racket['compiler/cm] 记录消息。
+这些消息是 @racket[compile-event] 预构结构的实例：
 
 @racketblock[
   (struct compile-event (timestamp path type) #:prefab)
@@ -351,38 +326,33 @@ are @racket['locking], @racket['start-compile], @racket['finish-compile], and
                              [#:security-guard security-guard (or/c security-guard? #f) #f]) 
          void?]{
 
-Compiles the given module source file to a @filepath{.zo}, installing
-a compilation-manager handler while the file is compiled (so that
-required modules are also compiled), and creating a @filepath{.dep}
-file to record the timestamps of immediate files used to compile the
-source (i.e., files @racket[require]d in the source).
+将给定的模块源文件编译为 @filepath{.zo}，在文件编译期间安装
+一个 compilation-manager 处理程序（以便所需的模块也被编译），
+并创建一个 @filepath{.dep} 文件来记录用于编译源的直接文件的时间戳
+（即在源中 @racket[require] 的文件）。
 
-Compilation is triggered by loading a module into the current
-namespace, so if a module that is a dependency of @racket[file] has
-already been loaded into the current namespace, then that module will
-not necessarily be (re-)compiled. The handler used to trigger
-compilation is created with
-@racket[make-compilation-manager-load/use-compiled-handler], so all the
-rules and constraints there apply.
+编译通过将模块加载到当前命名空间来触发，
+因此如果 @racket[file] 的依赖模块已经加载到当前命名空间中，
+则该模块不一定会被（重新）编译。用于触发编译的处理程序
+由 @racket[make-compilation-manager-load/use-compiled-handler] 创建，
+因此那里的所有规则和约束都适用。
 
-If @racket[file] is compiled from source, then
-@racket[read-src-syntax] is used in the same way as
-@racket[read-syntax] to read the source module. The normal
-@racket[read-syntax] is used for any required files, however.
+如果 @racket[file] 从源代码编译，则
+@racket[read-src-syntax] 以与 @racket[read-syntax] 相同的方式
+用于读取源模块。然而，正常的 @racket[read-syntax]
+用于任何依赖文件。
 
-If @racket[security-guard] is not @racket[#f], then the provided security
-guard is used when creating the @filepath{compiled/} directories, 
-@filepath{.dep} and @filepath{.zo} files, and when it adjusts the timestamps 
-of existing files. If it is @racket[#f], then
-the security guard in the @racket[current-security-guard] when 
-the files are created is used (not the security guard at the point 
-@racket[managed-compile-zo] is called).
+如果 @racket[security-guard] 不是 @racket[#f]，
+则在创建 @filepath{compiled/} 目录、
+@filepath{.dep} 和 @filepath{.zo} 文件时使用提供的安全守卫，
+在调整现有文件的时间戳时也使用它。如果为 @racket[#f]，
+则使用文件创建时 @racket[current-security-guard] 中的安全守卫
+（而非调用 @racket[managed-compile-zo] 时的安全守卫）。
 
-While compiling @racket[file], the @racket[error-display-handler]
-parameter is set to
+编译 @racket[file] 时，@racket[error-display-handler] 参数设置为
 @racket[(make-compilation-context-error-display-handler
-(error-display-handler))], so that errors from uncaught exceptions
-will report the compilation context.
+(error-display-handler))]，以便未捕获异常的错误
+将报告编译上下文。
 
 @history[#:changed "6.1.1.8" @elem{Added @racket[error-display-handler]
                                    configuration.}]}
@@ -390,10 +360,8 @@ will report the compilation context.
 
 @defthing[managed-compiled-context-key any/c]{
 
-A key used as a continuation mark key by
-@racket[make-compilation-manager-load/use-compiled-handler] for the
-continuation of a module compilation. The associated value is a path
-to the module's source.
+由 @racket[make-compilation-manager-load/use-compiled-handler]
+用作模块编译续延的续延标记键。相关联的值是模块源的路径。
 
 @history[#:added "6.1.1.8"]}
 
@@ -402,11 +370,11 @@ to the module's source.
           [orig-handlers (string? any/c . -> . void?)])
          (string? any/c . -> . void?)]{
 
-Produces a handler suitable for use as an
-@racket[error-display-handler] value, given an existing such value.
-The generated handler shows information about the compilation context
-when the handler's second argument is an exception whose continuation
-marks include @racket[managed-compiled-context-key] keys.
+给定一个现有的 @racket[error-display-handler] 值，
+产生一个适合用作 @racket[error-display-handler] 值的处理程序。
+当处理程序的第二个参数是一个异常，且其续延标记包含
+@racket[managed-compiled-context-key] 键时，
+生成的处理器显示有关编译上下文的信息。
 
 @history[#:added "6.1.1.8"]}
 
@@ -424,44 +392,41 @@ out-of-date @filepath{.zo} files instead of re-compiling from source.}
           [#:security-guard security-guard (or/c security-guard? #f) #f])
          (path-string? . -> . void?)]{
 
-Returns a procedure that behaves like @racket[managed-compile-zo]
-(providing the same @racket[read-src-syntax] each time), but a cache
-of timestamp information is preserved across calls to the procedure.
+返回一个行为类似于 @racket[managed-compile-zo] 的过程
+（每次都提供相同的 @racket[read-src-syntax]），
+但对过程的调用之间保持时间戳信息的缓存。
 
-A handler to support compilation is created with
-@racket[make-compilation-manager-load/use-compiled-handler] each time
-the result of @racket[make-caching-managed-compile-zo] is called, so
-the current namespace and other parameter values are relevant at that
-time, not when @racket[make-caching-managed-compile-zo] is called.}
+每次调用 @racket[make-caching-managed-compile-zo] 的结果时，
+都会使用 @racket[make-compilation-manager-load/use-compiled-handler]
+创建支持编译的处理程序，因此当前命名空间和其他参数值在
+那时是相关的，而不是在调用
+@racket[make-caching-managed-compile-zo] 时。}
 
 
 @defparam[manager-compile-notify-handler notify (path? . -> . any)]{
 
-A parameter for a procedure of one argument that is called whenever a
-compilation starts. The argument to the procedure is the file's path.}
+一个参数，是一个接受一个参数的过程，每次编译开始时调用。
+过程的参数是文件路径。}
 
 
 @defparam[manager-trace-handler notify (string? . -> . any)]{
 
-A parameter for a procedure of one argument that is called to report
- compilation-manager actions, such as checking a file. The argument to
- the procedure is a string.
+一个参数，是一个接受一个参数的过程，被调用来报告
+ compilation-manager 操作，例如检查文件。过程的参数是一个字符串。
  
- The default value of the parameter logs the argument, along with 
- @racket[current-inexact-milliseconds], to a logger named @racket['compiler/cm]
- at the @racket['debug] level.
+ 参数的默认值将参数连同
+ @racket[current-inexact-milliseconds] 一起以 @racket['debug] 级别
+ 记录到名为 @racket['compiler/cm] 的记录器。
  }
 
 @defparam[manager-skip-file-handler proc (-> path? (or/c (cons/c number? promise?) #f))]{
 
-A parameter whose value is called for each file that is loaded and
- needs recompilation. If the procedure returns a pair, then the file
- is skipped (i.e., not compiled); the number in the pair is used as
- the timestamp for the file's bytecode, and the promise may be
- @racket[force]d to obtain a string that is used as hash of the
- compiled file plus its dependencies. If the procedure returns
- @racket[#f], then the file is compiled as usual. The default is
- @racket[(lambda (x) #f)].}
+一个参数，其值对每个加载且需要重新编译的文件调用。
+ 如果过程返回一个对，则跳过该文件（即不编译）；
+ 对中的数字用作文件字节码的时间戳，promise 可以被
+ @racket[force]d 以获取用作编译文件及其依赖项哈希的字符串。
+ 如果过程返回 @racket[#f]，则文件照常编译。默认值为
+ @racket[(lambda (x) #f)]。}
 
 
 @defparam[current-path->mode path->mode
@@ -475,12 +440,12 @@ A parameter whose value is called for each file that is loaded and
  result is treated the same as if it had been the first element of
  @racket[use-compiled-file-paths].
 
- Note that this parameter is not used by @racket[current-load/use-compiled]. So if
- the parameter causes @filepath{.zo} files to be placed in different directories, then
- the correct @filepath{.zo} file must still be communicated via @racket[use-compiled-file-paths],
- and one way to do that is to override @racket[current-load/use-compiled] to delete
- @filepath{.zo} files that would cause the wrong one to be chosen right before they are
- loaded.
+ 请注意，此参数不被 @racket[current-load/use-compiled] 使用。
+ 因此，如果该参数导致 @filepath{.zo} 文件放在不同的目录中，
+ 则正确的 @filepath{.zo} 文件仍必须通过
+ @racket[use-compiled-file-paths] 传达，一种方法是在加载前
+ 覆盖 @racket[current-load/use-compiled] 以删除
+ 会导致选中错误文件的 @filepath{.zo} 文件。
 
  @history[#:added "6.4.0.14"]
 }
@@ -633,23 +598,23 @@ and machine-independent bytecode by a handler created with
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "api:parallel-build"]{API for Parallel Builds}
+@section[#:tag "api:parallel-build"]{并行构建的 API}
 
 @defmodule[setup/parallel-build]{
 
-The @racketmodname[setup/parallel-build] library provides the parallel-compilation
-functionality of @exec{raco setup} and @exec{raco make}.}
+@racketmodname[setup/parallel-build] 库提供
+@exec{raco setup} 和 @exec{raco make} 的并行编译功能。}
 
-Both @racket[parallel-compile-files] and @racket[parallel-compile] log messages
-to the topic @racket['setup/parallel-build] at the level @racket['info]. These
-messages are instances of a @racket[parallel-compile-event] prefab structure:
+@racket[parallel-compile-files] 和 @racket[parallel-compile] 都以
+@racket['info] 级别向主题 @racket['setup/parallel-build] 记录消息。
+这些消息是 @racket[parallel-compile-event] 预构结构的实例：
 
 @racketblock[
   (struct parallel-compile-event (worker event) #:prefab)
 ]
-The worker field is the index of the worker that the created the event. The event
-field is a @racket[compile-event] as documented in
-@racket[make-compilation-manager-load/use-compiled-handler].
+worker 字段是创建事件的 worker 的索引。event 字段是
+@racket[make-compilation-manager-load/use-compiled-handler] 中记录的
+@racket[compile-event]。
 
 
 @defproc[(parallel-compile-files [list-of-files (listof path-string?)]
@@ -665,18 +630,17 @@ field is a @racket[compile-event] as documented in
                                             void])
          (or/c void? #f)]{
 
-The @racket[parallel-compile-files] utility function is used by @exec{raco make} to
-compile a list of paths in parallel.  The optional
-@racket[#:worker-count] argument specifies the number of compile workers to spawn during
-parallel compilation.  The compile workers are implemented as Racket places if @racket[use-places?]
-is true, otherwise the compile workers are implemented as separate
-Racket processes. The callback, @racket[handler], is called with the symbol
-@racket['done] as the @racket[_handler-type] argument for each successfully compiled file, 
-@racket['output] when a
-successful compilation produces stdout/stderr output, @racket['error] when a
-compilation error has occurred, or @racket['fatal-error] when an unrecoverable
-error occurs. The other arguments give more information for each status update.
-The return value is @racket[(void)] if it was successful, or @racket[#f] if there was an error.
+@racket[parallel-compile-files] 工具函数被 @exec{raco make} 用于
+并行编译路径列表。可选的 @racket[#:worker-count] 参数
+指定并行编译期间生成的编译 worker 数量。
+如果 @racket[use-places?] 为真，编译 worker 实现为 Racket places，
+否则编译 worker 实现为单独的 Racket 进程。 回调 @racket[handler] 对每个成功编译的文件以符号 @racket['done]
+作为 @racket[_handler-type] 参数调用，当成功编译产生
+stdout/stderr 输出时以 @racket['output] 调用，
+发生编译错误时以 @racket['error] 调用，
+发生不可恢复错误时以 @racket['fatal-error] 调用。
+其他参数为每个状态更新提供更多信息。
+如果成功，返回值为 @racket[(void)]，如果有错误则返回 @racket[#f]。
  
   @racketblock[
     (parallel-compile-files 
@@ -711,20 +675,18 @@ The return value is @racket[(void)] if it was successful, or @racket[#f] if ther
   [#:use-places? use-places? any/c #t])
  (void)]{
 
-The @racket[parallel-compile] function is used by @exec{raco setup} to
-compile collections in parallel. The @racket[worker-count] argument
-specifies the number of compilation workers to spawn during parallel
-compilation. The @racket[use-places?] argument specified whether
-to use places, otherwise separate processes
-are used. The @racket[setup-fprintf] and @racket[append-error]
-functions communicate intermediate compilation results and errors. The
-@racket[collects-tree] argument is a compound data structure containing
-an in-memory tree representation of the collects directory.
+@racket[parallel-compile] 函数被 @exec{raco setup} 用于并行编译集合。
+@racket[worker-count] 参数指定并行编译期间生成的编译 worker 数量。
+@racket[use-places?] 参数指定是否使用 places，
+否则使用单独的进程。
+@racket[setup-fprintf] 和 @racket[append-error] 函数
+传达中间编译结果和错误。
+@racket[collects-tree] 参数是一个复合数据结构，
+包含 collects 目录的内存树表示。
 
-When the @racket[_exn] argument to @racket[append-error] is a pair of
-strings, the first string is a long form of the error message, and the
-second string is a short form (omitting evaluation context
-information, for example).
+当 @racket[append-error] 的 @racket[_exn] 参数是一对字符串时，
+第一个字符串是错误消息的长形式，第二个字符串是短形式
+（例如省略求值上下文信息）。
 
 @history[#:changed "6.1.1.8" @elem{Changed @racket[append-error] to allow
                                    a pair of error strings.}
@@ -732,7 +694,7 @@ information, for example).
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cm-accomplice"]{Compilation Manager Hook for Syntax Transformers}
+@section[#:tag "cm-accomplice"]{语法变换器的编译管理器钩子}
 
 @defmodule[compiler/cm-accomplice]
 
@@ -740,46 +702,43 @@ information, for example).
                                  [#:indirect? indirect? any/c #f])
          void?]{
 
-Logs a message (see @racket[log-message]) to the current logger
-at level @racket['info] with the
-topic @racket['cm-accomplice]. The message data is a
-@racketidfont{file-dependency} prefab structure type with two fields;
-the first field's value is @racket[file] and the second field's value
-is @racket[#f] (to indicate a non-module dependency). If the
-@racket[indirect?] argument is true, the data is more specifically an
-instance of a @racketidfont{file-dependency/options} prefab structure
-type that is a subtype of @racketidfont{file-dependency} with one extra
-field: a hash table mapping @racket['indirect] to @racket[#t].
+以 @racket['info] 级别向当前记录器记录一条消息
+（参见 @racket[log-message]），主题为 @racket['cm-accomplice]。
+消息数据是一个 @racketidfont{file-dependency} 预构结构类型，
+有两个字段；第一个字段的值是 @racket[file]，
+第二个字段的值是 @racket[#f]（表示非模块依赖）。
+如果 @racket[indirect?] 参数为真，数据更具体地是
+@racketidfont{file-dependency/options} 预构结构类型的实例，
+该类型是 @racketidfont{file-dependency} 的子类型，
+有一个额外字段：将 @racket['indirect] 映射到 @racket[#t] 的哈希表。
 
-A compilation manager implemented by @racketmodname[compiler/cm] looks
-for such messages to register an external dependency. In response, the
-compilation manager records (in a @filepath{.dep} file) the path as
-contributing to the implementation of the module currently being
-compiled. Afterward, if the registered file is modified, the
-compilation manager will know to recompile the module. An indirect
-dependency has no effect on recompilation, but it can signal to other
-tools, such as a package-dependency checker, that the dependency is
-indirect (and should not imply a direct package dependency).
+由 @racketmodname[compiler/cm] 实现的编译管理器
+查找此类消息以注册外部依赖。作为响应，
+编译管理器（在 @filepath{.dep} 文件中）将路径记录为
+对当前正在编译的模块的实现有贡献。之后，
+如果注册的文件被修改，编译管理器将知道重新编译该模块。
+间接依赖对重新编译没有影响，但它可以向其他工具
+（如包依赖检查器）发出信号，表明依赖是间接的
+（不应暗示直接的包依赖）。
 
-The @racket[include] macro, for example, calls this procedure with the
-path of an included file as it expands an @racket[include] form.}
+例如，@racket[include] 宏在展开 @racket[include] 形式时，
+以包含文件的路径调用此过程。}
 
 @defproc[(register-external-module [file (and path? complete-path?)]
                                    [#:indirect? indirect? any/c #f])
          void?]{
 
-Like @racket[register-external-file], but logs a message with a
-@racketidfont{file-dependency} prefab structure type whose second
-field is @racket[#t].
+类似于 @racket[register-external-file]，但记录一条消息，
+使用 @racketidfont{file-dependency} 预构结构类型，
+其第二个字段为 @racket[#t]。
 
-A compilation manager implemented by @racketmodname[compiler/cm]
-recognizes the message to register a dependency on a
-module (which implies a dependency on all of that module's
-dependencies, etc.).}
+由 @racketmodname[compiler/cm] 实现的编译管理器
+识别该消息以注册对模块的依赖
+（这意味着对该模块的所有依赖项的依赖等）。}
 
 @; ----------------------------------------
 
-@section{API for Simple Bytecode Creation}
+@section{简单字节码创建的 API}
 
 @defmodule[compiler/compile-file]
 
@@ -790,34 +749,32 @@ dependencies, etc.).}
                        [filter (any/c . -> . any/c) values])
          path?]{
 
-Compiles the Racket file @racket[src] and saves the compiled code to
-@racket[dest].  If @racket[dest] is not provided and the
-@filepath{compiled} subdirectory does not already exist, the
-subdirectory is created. The result of @racket[compile-file] is the
-destination file's path.
+编译 Racket 文件 @racket[src] 并将编译后的代码保存到
+@racket[dest]。如果未提供 @racket[dest] 且
+@filepath{compiled} 子目录尚不存在，则创建
+该子目录。@racket[compile-file] 的结果是目标文件的路径。
 
-If the @racket[filter] procedure is provided, it is applied to each
-source expression, and the result is compiled. 
+如果提供了 @racket[filter] 过程，则将其应用于每个
+源表达式，并编译结果。 
 
-Beware that @racket[compile-file] uses the current reader
-parameterization to read @racket[src]. Typically,
-@racket[compile-file] should be called from a thunk passed to
-@racket[with-module-reading-parameterization] so that the source
-program is parsed in a consistent way and allowing @hash-lang[].
+请注意，@racket[compile-file] 使用当前的 reader
+参数化来读取 @racket[src]。通常，
+@racket[compile-file] 应该从传递给
+@racket[with-module-reading-parameterization] 的 thunk 中调用，
+以便以一致的方式解析源程序并允许 @hash-lang[]。
 
-Each expression in @racket[src] is compiled
-independently. If @racket[src] does not contain a single
-@racket[module] expression, then earlier expressions can affect the
-compilation of later expressions when @racket[src] is loaded
-directly. An appropriate @racket[filter] can make compilation behave
-like evaluation, but the problem is also solved (as much as possible)
-by the @racket[compile-zos] procedure.
+@racket[src] 中的每个表达式都独立编译。
+如果 @racket[src] 不包含单个 @racket[module] 表达式，
+则当直接加载 @racket[src] 时，较早的表达式可能影响
+较晚表达式的编译。适当的 @racket[filter] 可以使编译
+表现得像求值，但 @racket[compile-zos] 过程也（尽可能）
+解决了这个问题。
 
-See also @racket[managed-compile-zo].}
+另请参见 @racket[managed-compile-zo]。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "api:compile-path"]{API for Bytecode Paths}
+@section[#:tag "api:compile-path"]{字节码路径的 API}
 
 @defmodule[compiler/compilation-path]
 
@@ -829,16 +786,15 @@ See also @racket[managed-compile-zo].}
                                    [#:default-root default-root (or/c path-string? 'same) (car roots)])
          (values path? path?)]{
 
-Determines the directory that holds the bytecode form of @racket[path]
-plus the base name of @racket[path].
+确定保存 @racket[path] 的字节码形式的目录
+以及 @racket[path] 的基本名称。
 
-The directory is determined by checking @racket[roots] in order, and
-for each element of @racket[roots] checking @racket[modes] in order.
-The first such directory that contains a file whose name matches
-@racket[path] with @filepath{.zo} added (in the sense of
-@racket[path-add-suffix]) is reported as the return directory path.
-If no such file is found, the result corresponds to the first element
-of @racket[modes] combined with @racket[default-root].
+通过按顺序检查 @racket[roots]，并
+对 @racket[roots] 的每个元素按顺序检查 @racket[modes] 来确定目录。
+第一个包含名称与 @racket[path] 加上 @filepath{.zo} 匹配的文件的目录
+（在 @racket[path-add-suffix] 的意义上）被报告为返回目录路径。
+如果未找到此类文件，则结果对应于 @racket[modes] 的第一个元素
+与 @racket[default-root] 的组合。
 
 @history[#:changed "7.1.0.9" @elem{Added the @racket[#:default-root] argument.}]}
 
@@ -848,7 +804,7 @@ of @racket[modes] combined with @racket[default-root].
                               [#:default-root default-root (or/c path-string? 'same) (car roots)])
          path?]{
 
-The same as @racket[get-compilation-dir+name], but returning only the first result.
+与 @racket[get-compilation-dir+name] 相同，但只返回第一个结果。
 
 @history[#:changed "7.1.0.9" @elem{Added the @racket[#:default-root] argument.}]}
 
@@ -858,48 +814,45 @@ The same as @racket[get-compilation-dir+name], but returning only the first resu
                                         [#:default-root default-root (or/c path-string? 'same) (car roots)])
          path?]{
 
-The same as @racket[get-compilation-dir+name], but combines the
-results and adds a @filepath{.zo} suffix to arrive at a bytecode file
-path.
+与 @racket[get-compilation-dir+name] 相同，但组合结果
+并添加 @filepath{.zo} 后缀以得到字节码文件路径。
 
 @history[#:changed "7.1.0.9" @elem{Added the @racket[#:default-root] argument.}]}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "zo"]{Compiling to Raw Bytecode}
+@section[#:tag "zo"]{编译为原始字节码}
 
-The @DFlag{no-deps} mode for @exec{raco make} is an improverished
-form of the compilation, because it does not track import
-dependencies. It does, however, support compilation of non-module
-source in a namespace that initially imports @racketmodname[scheme #:indirect].
+@exec{raco make} 的 @DFlag{no-deps} 模式是一种简化的
+编译形式，因为它不跟踪导入依赖。但它确实支持
+在最初导入 @racketmodname[scheme #:indirect] 的命名空间中编译非模块源。
 
-Outside of a module, top-level @racket[define-syntaxes],
-@racket[module], @racket[#%require],
-@racket[define-values-for-syntax], and @racket[begin] expressions
-are handled specially by @exec{raco make --no-deps}: the compile-time
-portion of the expression is evaluated, because it might affect later
-expressions.
+在模块外部，顶层的 @racket[define-syntaxes]、
+@racket[module]、@racket[#%require]、
+@racket[define-values-for-syntax] 和 @racket[begin] 表达式
+由 @exec{raco make --no-deps} 特殊处理：表达式的编译时
+部分会被求值，因为它可能影响后面的表达式。
 
-For example, when compiling the file containing
+例如，当编译包含以下内容的文件时
 
 @racketblock[
 (require racket/class)
 (define f (class object% (super-new)))
 ]
 
-the @racket[class] form from the @racketmodname[racket/class] library
-must be bound in the compilation namespace at compile time. Thus, the
-@racket[require] expression is both compiled (to appear in the output
-code) and evaluated (for further computation).
+来自 @racketmodname[racket/class] 库的 @racket[class] 形式
+必须在编译时在编译命名空间中绑定。因此，
+@racket[require] 表达式既被编译（出现在输出代码中）
+又被求值（用于进一步计算）。
 
-Many definition forms expand to @racket[define-syntaxes]. For example,
-@racket[define-signature] expands to @racket[define-syntaxes]. In
-@DFlag{no-deps} mode, @exec{raco make --no-deps} detects
-@racket[define-syntaxes] and other expressions after expansion, so
-top-level @racket[define-signature] expressions affect the compilation
-of later expressions, as a programmer would expect.
+许多定义形式展开为 @racket[define-syntaxes]。例如，
+@racket[define-signature] 展开为 @racket[define-syntaxes]。
+在 @DFlag{no-deps} 模式下，@exec{raco make --no-deps}
+在展开后检测 @racket[define-syntaxes] 和其他表达式，
+因此顶层的 @racket[define-signature] 表达式会影响后续表达式的编译，
+正如程序员所期望的那样。
 
-In contrast, a @racket[load] or @racket[eval] expression in a source
+相比之下， a @racket[load] or @racket[eval] expression in a source
 file is compiled---but @emph{not evaluated!}---as the source file is
 compiled.  Even if the @racket[load] expression loads syntax or
 signature definitions, these will not be loaded as the file is
@@ -908,15 +861,15 @@ reader, such as @racket[(read-case-sensitive #t)]. The @Flag{p} or
 @DFlag{prefix} flag for @exec{raco make} takes a file and loads it before
 compiling the source files specified on the command line.
 
-By default, the namespace for compilation is initialized by a
-@racket[require] of @racketmodname[scheme #:indirect]. If the @DFlag{no-prim}
-flag is specified, the namespace is instead initialized with
-@racket[namespace-require/copy], which allows mutation and
-redefinition of all initial bindings (other than syntactic forms, in
-the case of mutation).
+默认情况下，编译的命名空间通过 require
+@racketmodname[scheme #:indirect] 初始化。
+如果指定了 @DFlag{no-prim} 标志，命名空间改用
+@racket[namespace-require/copy] 初始化，这允许对所有
+初始绑定进行修改和重定义
+（在修改的情况下，除语法形式外）。
 
-In general, a better solution is to put all code to compile into a
-module and use @exec{raco make} in its default mode.
+一般来说，更好的解决方案是将所有要编译的代码放入一个模块中，
+并使用 @exec{raco make} 的默认模式。
 
 @(close-eval cm-eval)
 
@@ -926,18 +879,18 @@ module and use @exec{raco make} in its default mode.
 
 @; ----------------------------------------------------------------------
 
-@section{API for Reading Compilation Dependencies}
+@section{读取编译依赖的 API}
 
-@defmodule[compiler/depend]{The @racketmodname[compiler/depend] module
-provides a function to inspect and traverse the dependency information
-generated by @exec{raco make}, @exec{raco setup}, or @racketmodname[compiler/cm].}
+@defmodule[compiler/depend]{@racketmodname[compiler/depend] 模块提供了一个函数，
+用于检查和遍历由 @exec{raco make}、@exec{raco setup}
+或 @racketmodname[compiler/cm] 生成的依赖信息。}
 
 @history[#:added "6.90.0.13"]
 
 @defproc[(module-recorded-dependencies [module-file path?])
          (listof (and path? (complete-path? path?)))]{
 
-Given a @racket[module-file] for a file that has been compiled with
-@exec{raco make}, @exec{raco setup}, or @racketmodname[compiler/cm],
-returns a list of dependencies for @racket[module-file] by reading and
-traversing dependency-information files left behind by compilation.}
+给定一个已使用 @exec{raco make}、@exec{raco setup}
+或 @racketmodname[compiler/cm] 编译的文件的 @racket[module-file]，
+通过读取和遍历编译留下的依赖信息文件，
+返回 @racket[module-file] 的依赖项列表。}
