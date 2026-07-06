@@ -8,33 +8,70 @@
 @(define-syntax (sv-example stx)
    (syntax-case stx ()
      [(_ . strs)
-      (with-syntax ([(form ...) (for/list ([str (in-list (syntax->datum #'strs))])
+      (with-syntax ([(form ...) (for/list ([str (in-list (syntax->datum #'strs))]
                                            #:unless (equal? "\n" str))
                                   (with-syntax ([str str]
                                                 [e (read (open-input-string str))])
                                     #'(eval:alts #,(code str) e)))])
-         (syntax-local-introduce #'@mz-examples[form ...]))]))
+         #'@mz-examples[form ...])]))
 
-@title[#:tag "stencil vectors"]{模板向量}
+@title[#:tag "stencil vectors"]{Stencil Vectors}
 
-@deftech{模板向量}类似于 @tech{vector}，但它有一个关联的掩码 @tech{fixnum}，其中掩码中设置的位数决定了向量的长度。模板向量对于实现某些数据结构很有用 @cite["Torosyan21"]，例如哈希数组映射 trie（HAMT）。
+A @deftech{stencil vector} is like a @tech{vector}, but it has an
+associated mask @tech{fixnum} where the number of bits set in the mask
+determines the length of the vector. A stencil vector is useful for
+implementing some data structures @cite["Torosyan21"], such as a hash
+array mapped trie (HAMT).
 
-从概念上讲，模板向量的掩码指示完整大小的模板向量中哪些虚拟元素存在，但掩码位对通过 @racket[stencil-vector-ref] 和 @racket[stencil-vector-set!] 的访问或突变没有影响。例如，这样的模板向量有一个掩码 @racket[25]，也可以写作 @racketvalfont{#b11001}；从低位到高位读取，该掩码表示虚拟槽位 0、3 和 4 处存在值。如果该模板向量的元素是 @racket['a]、@racket['b] 和 @racket['c]，则 @racket['a] 在虚拟槽位 0 并通过索引 @racket[0] 访问，@racket['b] 在虚拟槽位 3 并通过索引 @racket[1] 访问，@racket['c] 在虚拟槽位 4 并通过索引 @racket[2] 访问。
+Conceptually, a stencil vector's mask indicates which virtual elements
+of a full-sized stencil vector are present, but mask bits have no
+effect on access or mutation via @racket[stencil-vector-ref] and
+@racket[stencil-vector-set!]. For example, such a stencil vector has a
+mask @racket[25], which could also be written @racketvalfont{#b11001};
+reading from low bit to high, that mask represents values present at
+the first, fourth, and fifth virtual slots. If that stencil vector's
+elements are @racket['a], @racket['b], and @racket['c], then
+@racket['a] is at virtual slot 0 and accessed with index @racket[0],
+@racket['b] is at virtual slot 3 and accessed with index @racket[1],
+and @racket['c] is at virtual slot 4 and accessed with index
+@racket[2].
 
-掩码中位的相对顺序对于使用 @racket[stencil-vector-update] 的函数式更新操作 @emph{是} 相关的。要删除的元素通过删除掩码指定，要添加的元素通过添加掩码相对于剩余元素排序。例如，从掩码为 @racketvalfont{#b11001}、元素为 @racket['a]、@racket['b] 和 @racket['c] 的模板向量开始，使用添加掩码 @racketvalfont{#b100100} 添加新元素 @racket['d] 和 @racket['e] 会产生一个掩码为 @racketvalfont{#b111101} 的模板向量，其元素依次为 @racket['a]、@racket['d]、@racket['b]、@racket['c] 和 @racket['e]。
+The relative order of bits in a mask @emph{is} relevant for a
+functional-update operation with @racket[stencil-vector-update].
+Elements to remove are specified with a removal mask, and elements to
+add are ordered relative to remaining elements through an addition
+mask. For example, starting with the stencil vector whose mask is
+@racketvalfont{#b11001} with elements @racket['a], @racket['b], and
+@racket['c], adding new elements @racket['d] and @racket['e] using the
+addition mask @racketvalfont{#b100100} produces a stencil vector whose
+mask is @racketvalfont{#b111101} and whose elements in order are
+@racket['a], @racket['b], @racket['d], @racket['c], and @racket['e].
 
-模板向量在 64 位平台上的最大大小为 58 个元素，在 32 位平台上为 26 个元素。此有限大小支持紧凑的内部表示，并确保更新操作相对简单。模板向量是可变的，尽管它们主要用于无突变以实现持久化数据结构。
+The maximum size of a stencil vector is 58 elements on a 64-bit
+platform and 26 elements on a 32-bit platform. This limited size
+enables a compact internal representation and ensures that update
+operations are relatively simple. Stencil vectors are mutable,
+although they are intended primarily for use without mutation to
+implement a persistent data structure.
 
-如果两个模板向量具有相同的掩码，并且对应槽位的值是 @racket[equal?] 的，则它们是 @racket[equal?] 的。
+Two stencil vectors are @racket[equal?] if they have the same mask,
+and if the values in corresponding slots of the stencil vectors are
+@racket[equal?].
 
-打印的向量以 @litchar{#<stencil ...>} 开头，这种打印形式不能被 @racket[read] 解析。@racket[s-exp->fasl] 和 @racket[serialize] 函数不支持模板向量，部分原因是 64 位平台上的模板向量可能无法在 32 位平台上表示。模板向量的目的是用作数据类型实现的内存表示。
+A printed vector starts with @litchar{#<stencil ...>}, and this
+printed form cannot be parsed by @racket[read]. The
+@racket[s-exp->fasl] and @racket[serialize] functions do not support
+stencil vectors, in part because a stencil vector on a 64-bit platform
+might not be representable on a 32-bit platform. The intent is that
+stencil vectors are used as an in-memory representation for a datatype
+implementation.
 
 @history[#:added "8.5.0.7"]
 
 
 @defproc[(stencil-vector? [v any/c]) boolean?]{
 
-如果 @racket[v] 是 @tech{模板向量}，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] is a @tech{stencil vector}, @racket[#f] otherwise.
 
 @sv-example{
 (stencil-vector #b10010 'a 'b)
@@ -43,10 +80,11 @@
 
 @history[#:added "8.5.0.7"]}
 
-
 @defproc[(stencil-vector-mask-width) exact-nonnegative-integer?]{
 
-返回当前平台上模板向量中允许的最大元素数。在 64 位平台上结果为 @racket[58]，在 32 位平台上为 @racket[26]。}
+Returns the maximum number of elements allowed in a stencil vector on
+the current platform. The result is @racket[58] on a 64-bit platform
+or @racket[26] on a 32-bit platform.}
 
 
 @defproc[(stencil-vector [mask (integer-in 0 (sub1 (expt 2 (stencil-vector-mask-width))))]
@@ -54,7 +92,9 @@
                          ...)
          stencil-vector?]{
 
-返回一个将 @racket[mask] 与元素 @racket[v] 组合的模板向量。提供的 @racket[v] 的数量必须与 @racket[mask] 的二进制补码表示中设置的位数匹配。
+Returns a stencil vector combining @racket[mask] with elements
+@racket[v]. The number of supplied @racket[v]s must match the number
+of bits set in @racket[mask]'s two's complement representation.
 
 @history[#:added "8.5.0.7"]}
 
@@ -62,7 +102,8 @@
 @defproc[(stencil-vector-mask [vec stencil-vector?])
          (integer-in 0 (sub1 (expt 2 (stencil-vector-mask-width))))]{
 
-返回 @racket[vec] 的掩码。请注意，模板向量的掩码在创建时间确定，之后无法更改。
+Returns the mask of @racket[vec]. Note that the mask of a stencil
+vector is determined at creation time and cannot be changed later.
 
 @sv-example{
 (stencil-vector-mask (stencil-vector #b10010 'a 'b))
@@ -72,9 +113,10 @@
 
 
 @defproc[(stencil-vector-length [vec stencil-vector?])
-         (integer-in 0 (sub1 (expt 2 (stencil-vector-mask-width))))]{
+         (integer-in 0 (sub1 (stencil-vector-mask-width)))]{
 
-返回 @racket[vec] 的长度（即向量中的槽位数）。结果与 @racket[(fxpopcount (stencil-vector-mask vec))] 相同。
+Returns the length of @racket[vec] (i.e., the number of slots in the
+vector). The result is the same as @racket[(fxpopcount (stencil-vector-mask vec))].
 
 @sv-example{
 (stencil-vector-length (stencil-vector #b10010 'a 'b))
@@ -87,7 +129,9 @@
                              [pos exact-nonnegative-integer?])
          any/c]{
 
-返回 @racket[vec] 中槽位 @racket[pos] 处的元素。第一个槽位是位置 @racket[0]，最后一个槽位比 @racket[(stencil-vector-length vec)] 少一。
+Returns the element in slot @racket[pos] of @racket[vec]. The first
+slot is position @racket[0], and the last slot is one less than
+@racket[(stencil-vector-length vec)].
 
 @sv-example{
 (stencil-vector-ref (stencil-vector #b10010 'a 'b) 1)
@@ -100,9 +144,9 @@
 @defproc[(stencil-vector-set! [vec stencil-vector?]
                               [pos exact-nonnegative-integer?]
                               [v any/c])
-         void?]{
+         avoid?]{
 
-更新 @racket[vec] 的槽位 @racket[pos] 以包含 @racket[v]。
+Updates the slot @racket[pos] of @racket[vec] to contain @racket[v].
 
 @sv-example{
 (define st-vec (stencil-vector #b101 'a 'b))
@@ -120,13 +164,16 @@ st-vec}
                                 ...)
          stencil-vector?]{
 
-返回一个类似于 @racket[vec] 的模板向量，但移除了与 @racket[remove-mask] 对应的元素，并根据 @racket[add-mask] 添加给定的 @racket[v]s，位置相对于现有（未移除的）元素。
+Returns a stencil vector that is like @racket[vec], but with elements
+corresponding to @racket[remove-mask] removed, and with the given
+@racket[v]s added at positions relative to existing (unremoved)
+elements determined by @racket[add-mask].
 
 @sv-example{
 (define st-vec (stencil-vector #b101 'a 'b))
 (stencil-vector-update st-vec #b0 #b10 'c)
 (stencil-vector-update st-vec #b0 #b1000 'c)
-st-vec ; 更新不变
+st-vec ; unchanged by updates
 (stencil-vector-update st-vec #b1 #b1 'c)
 (stencil-vector-update st-vec #b100 #b100 'c)
 (stencil-vector-update st-vec #b100 #b0)
