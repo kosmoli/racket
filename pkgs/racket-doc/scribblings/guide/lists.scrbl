@@ -8,32 +8,18 @@
 @(define list-eval (make-base-eval))
 @(interaction-eval #:eval list-eval (require racket/list))
 
-@title{Lists, Iteration, and Recursion}
+@title{列表、迭代与递归}
 
-Racket is a dialect of the language Lisp, whose name originally stood
-for ``LISt Processor.'' The built-in list datatype remains a prominent
-feature of the language.
+Racket 是 Lisp 语言的一种方言，Lisp 最初代表"LISt Processor"。内建的 list 数据类型仍然是该语言的突出特性。
 
-The @racket[list] function takes any number of values and returns
-a list containing the values:
+@racket[list] 函数接受任意数量的值并返回一个包含这些值的列表：
 
 @interaction[(list "red" "green" "blue")
              (list 1 2 3 4 5)]
 
-@margin-note{A list usually prints with @litchar{'}, but the printed
-             form of a list depends on its content. See
-             @secref["pairs"] for more information.}
+如你所见，list 结果在 @tech{REPL} 中以 quote @litchar{'} 加上一对括号包裹元素打印形式的方式显示。这里有一个容易混淆的地方，因为 parentheses 既用于表达式，如 @racket[(list "red" "green" "blue")]，也用于打印结果，如 @racketresult['("red" "green" "blue")]。除了 quote 之外，结果中的 parentheses 在文档和 DrRacket 中显示为蓝色，而表达式中的 parentheses 为棕色。
 
-As you can see, a list result prints in the @tech{REPL} as a quote
-@litchar{'} and then a pair of parentheses wrapped around the printed
-form of the list elements. There's an opportunity for confusion here,
-because parentheses are used for both expressions, such as
-@racket[(list "red" "green" "blue")], and printed results, such as
-@racketresult['("red" "green" "blue")]. In addition to the quote,
-parentheses for results are printed in blue in the documentation and
-in DrRacket, whereas parentheses for expressions are brown.
-
-Many predefined functions operate on lists. Here are a few examples:
+许多预定义的函数操作于 lists。以下是一些示例：
 
 @interaction[
 (code:line (length (list "hop" "skip" "jump"))        (code:comment @#,t{count the elements}))
@@ -45,18 +31,11 @@ Many predefined functions operate on lists. Here are a few examples:
 ]
 
 @;------------------------------------------------------------------------
-@section{Predefined List Loops}
+@section{预定义 List 循环}
 
-In addition to simple operations like @racket[append], Racket includes
-functions that iterate over the elements of a list. These iteration
-functions play a role similar to @racket[for] in Java, Racket, and other
-languages. The body of a Racket iteration is packaged into a function
-to be applied to each element, so the @racket[lambda] form becomes
-particularly handy in combination with iteration functions.
+除了 @racket[append] 等简单操作外，Racket 还包括遍历 list 元素的函数。这些迭代函数起着与 Java、Racket 及其他语言中 @racket[for] 相似的作用。Racket 迭代的 body 被打包成一个应用于每个元素的函数，因此 @racket[lambda] 形式与迭代函数结合使用时尤为方便。
 
-Different list-iteration functions combine iteration results in
-different ways. The @racket[map] function uses the per-element
-results to create a new list:
+不同 list 迭代函数以不同方式组合迭代结果。@racket[map] 函数使用各元素结果创建一个新列表：
 
 @interaction[
 (map sqrt (list 1 4 9 16))
@@ -65,8 +44,7 @@ results to create a new list:
      (list "peanuts" "popcorn" "crackerjack"))
 ]
 
-The @racket[andmap] and @racket[ormap] functions combine the results
-by @racket[and]ing or @racket[or]ing:
+@racket[andmap] 和 @racket[ormap] 函数通过 @racket[and] 或 @racket[or] 组合结果：
 
 @interaction[
 (andmap string? (list "a" "b" "c"))
@@ -74,10 +52,7 @@ by @racket[and]ing or @racket[or]ing:
 (ormap number? (list "a" "b" 6))
 ]
 
-The @racket[map], @racket[andmap], and @racket[ormap]
-functions can all handle multiple lists, instead of just a single
-list. The lists must all have the same length, and the given function
-must accept one argument for each list:
+@racket[map]、@racket[andmap] 和 @racket[ormap] 函数都能处理多个 list，而不仅限于单个 list。所有 list 必须长度相同，且给定的函数必须为每个 list 接受一个参数：
 
 @interaction[
 (map (lambda (s n) (substring s 0 n))
@@ -85,19 +60,14 @@ must accept one argument for each list:
      (list 6 3 7))
 ]
 
-The @racket[filter] function keeps elements for which the body result
-is true, and discards elements for which it is @racket[#f]:
+@racket[filter] 函数保留 body 结果为 true 的元素，丢弃 @racket[#f]：
 
 @interaction[
 (filter string? (list "a" "b" 6))
 (filter positive? (list 1 -2 6 7 0))
 ]
 
-The @racket[foldl] function generalizes some iteration functions. It
-uses the per-element function to both process an element and combine
-it with the ``current'' value, so the per-element function takes an
-extra first argument. Also, a starting ``current'' value must be
-provided before the lists:
+@racket[foldl] 函数泛化了一些迭代函数。它既处理单个元素又将其与"当前"值组合，因此 per-element 函数多接受第一个参数。此外，必须在 lists 之前提供起始的"当前"值：
 
 @interaction[
 (foldl (lambda (elem v)
@@ -106,25 +76,18 @@ provided before the lists:
        '(1 2 3))
 ]
 
-Despite its generality, @racket[foldl] is not as popular as the other
-functions. One reason is that @racket[map], @racket[ormap],
-@racket[andmap], and @racket[filter] cover the most common kinds of
-list loops.
+尽管具有通用性，@racket[foldl] 不如其他函数流行。一个原因是 @racket[map]、@racket[ormap]、@racket[andmap] 和 @racket[filter] 已涵盖大多数常见的 list 循环。
 
-Racket provides a general @defterm{list comprehension} form
-@racket[for/list], which builds a list by iterating through
-@defterm{sequences}. List comprehensions and related iteration forms
-are described in @secref["for"].
+Racket 提供了一个通用的 @defterm{list comprehension} 形式
+@racket[for/list]，它通过遍历 @defterm{sequences} 构建列表。
+List comprehensions 和相关迭代形式在 @secref["for"] 中描述。
 
 @;------------------------------------------------------------------------
-@section{List Iteration from Scratch}
+@section{从零开始的 List 迭代}
 
-Although @racket[map] and other iteration functions are predefined, they
-are not primitive in any interesting sense. You can write equivalent
-iterations using a handful of list primitives.
+尽管 @racket[map] 和其他迭代函数是预定义的，它们在任何有趣意义上都不是原语。你可以使用少量 list 原语编写等价的迭代。
 
-Since a Racket list is a linked list, the two core operations on a
-non-empty list are
+由于 Racket list 是 linked list，对非空 list 的两个核心操作是
 
 @itemize[
  @item{@racket[first]: get the first thing in the list; and}

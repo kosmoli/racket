@@ -1,42 +1,23 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "Evaluation"]{Evaluation}
+@bc-title[#:tag "Evaluation"]{求值过程}
 
-A Racket S-expression is evaluated by calling @cppi{scheme_eval}.
-This function takes an S-expression (as a @cpp{Scheme_Object*}) and a
-namespace and returns the value of the expression in that namespace.
+Racket S-expression 通过调用 @cppi{scheme_eval} 进行求值。该函数接受一个 S-expression（作为 @cpp{Scheme_Object*}）和一个 namespace，并返回该表达式在此 namespace 中的值。
 
-The function @cppi{scheme_apply} takes a @cpp{Scheme_Object*} that is
-a procedure, the number of arguments to pass to the procedure, and an
-array of @cpp{Scheme_Object *} arguments. The return value is the
-result of the application. There is also a function
-@cppi{scheme_apply_to_list}, which takes a procedure and a list
-(constructed with @cppi{scheme_make_pair}) and performs the Racket
-@racket[apply] operation.
+函数 @cppi{scheme_apply} 接受一个 @cpp{Scheme_Object*} 类型的过程、要传递给过程的参数数量，以及一个 @cpp{Scheme_Object*} 参数数组。返回值是应用的结果。还有一个函数 @cppi{scheme_apply_to_list}，它接受一个过程和一个列表（使用 @cppi{scheme_make_pair} 构造），并执行 Racket 的 @racket[apply] 操作。
 
-The @cppi{scheme_eval} function actually calls @cppi{scheme_compile}
-followed by @cppi{scheme_eval_compiled}.
+函数 @cppi{scheme_eval} 实际上调用 @cppi{scheme_compile} 然后调用 @cppi{scheme_eval_compiled}。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "topleveleval"]{Top-level Evaluation Functions}
+@section[#:tag "topleveleval"]{顶层求值函数}
 
-The functions @cpp{scheme_eval}, @cpp{scheme_apply}, etc., are
-@defterm{top-level evaluation functions}. Continuation invocations are
-confined to jumps within a top-level evaluation (i.e., a continuation
-barrier is installed by these functions).
+函数 @cpp{scheme_eval}、@cpp{scheme_apply} 等是 @defterm{顶层求值函数}。Continuation 调用被限制在顶层求值内部跳转（即这些函数安装了 continuation barrier）。
 
-The functions @cppi{_scheme_eval_compiled}, @cppi{_scheme_apply},
-etc. (with a leading underscore) provide the same functionality
-without starting a new top-level evaluation; these functions should
-only be used within new primitive procedures. Since these functions
-allow full continuation hops, calls to non-top-level evaluation
-functions can return zero or multiple times.
+函数 @cppi{_scheme_eval_compiled}、@cppi{_scheme_apply} 等（带有前导下划线）提供相同功能但不启动新的顶层求值；这些函数应仅在新 primitive procedure 内部使用。由于这些函数允许完整的 continuation 跳转，对非顶层求值函数的调用可能返回零次或多次。
 
-Currently, escape continuations and primitive error escapes can jump
-out of all evaluation and application functions. For more information,
-see @secref["exceptions"].
+目前，escape continuation 和 primitive error escape 可以跳出所有求值和应用函数。更多信息请参见 @secref["exceptions"]。
 
 @; ----------------------------------------------------------------------
 
