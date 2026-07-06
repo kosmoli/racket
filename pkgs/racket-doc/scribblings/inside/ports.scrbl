@@ -1,31 +1,26 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "Ports and the Filesystem"]{Ports and the Filesystem}
+@bc-title[#:tag "端口与文件系统"]{端口与文件系统}
 
-Ports are represented as Racket values with the types
+端口表示为具有以下类型的 Racket 值
 @cppi{scheme_input_port_type} and @cppi{scheme_output_port_type}.  The
-function @cppi{scheme_read} takes an input port value and returns the
-next S-expression from the port.  The function @cppi{scheme_write}
-takes an output port and a value and writes the value to the
-port. Other standard low-level port functions are also provided, such
+function @cppi{scheme_read} 接受一个输入端口值并返回端口中的下一个 S-expression。  The function @cppi{scheme_write}
+接受一个输出端口和一个值，并将该值写入端口。 还提供了其他标准低级端口函数，例如
 as @cppi{scheme_getc}.
 
-File ports are created with @cppi{scheme_make_file_input_port} and
+文件端口通过以下函数创建 @cppi{scheme_make_file_input_port} and
 @cppi{scheme_make_file_output_port}; these functions take a @cpp{FILE
-*} file pointer and return a Scheme port. Strings are read or written
-with @cppi{scheme_make_byte_string_input_port}, which takes a
-nul-terminated byte string, and
-@cppi{scheme_make_byte_string_output_port}, which takes no arguments.
-The contents of a string output port are obtained with
+*} 文件指针并返回一个 Scheme 端口. 字符串的读取或写入使用
+with @cppi{scheme_make_byte_string_input_port}, 该函数接受一个以 nul 结尾的字节字符串，而
+@cppi{scheme_make_byte_string_output_port}, 该函数不接受任何参数.
+字符串输出端口的内容通过以下方式获取
 @cppi{scheme_get_byte_string_output}.
 
-Custom ports, with arbitrary read/write handlers, are created with
+通过以下函数创建具有任意读/写处理程序的自定义端口
 @cppi{scheme_make_input_port} and @cppi{scheme_make_output_port}.
 
-When opening a file for any reason using a name provided from Racket,
-use @cppi{scheme_expand_filename} to normalize the filename and
-resolve relative paths.
+当出于任何原因使用 Racket 提供的名称打开文件时，使用 @cppi{scheme_expand_filename} 来规范化文件名并解析相对路径。
 
 @function[(Scheme_Object* scheme_read
            [Scheme_Object* port])]{
@@ -43,8 +38,8 @@ resolve relative paths.
            [Scheme_Object* port]
            [int n])]{
 
-Like @cpp{scheme_write}, but the printing is truncated to @var{n} bytes.
-(If printing is truncated, the last bytes are printed as ``.''.)}
+类似于 @cpp{scheme_write}，但打印被截断为 @var{n} bytes.
+(如果打印被截断，最后几个字节打印为 ``.''.)}
 
 @function[(void scheme_display
            [Scheme_Object* obj]
@@ -58,7 +53,7 @@ port.}
            [Scheme_Object* port]
            [int n])]{
 
-Like @cpp{scheme_display}, but the printing is truncated to @var{n} bytes.
+类似于 @cpp{scheme_display}，但打印被截断为 @var{n} bytes.
 (If printing is truncated, the last three bytes are printed as ``.''.)}
 
 
@@ -67,14 +62,14 @@ Like @cpp{scheme_display}, but the printing is truncated to @var{n} bytes.
            [intptr_t len]
            [Scheme_Object* port])]{
 
-Writes @var{len} bytes of @var{str} to the given output port.}
+将 @var{str} 的 @var{len} 个字节写入给定的输出端口。}
 
 @function[(void scheme_write_char_string
            [mzchar* str]
            [intptr_t len]
            [Scheme_Object* port])]{
 
-Writes @var{len} characters of @var{str} to the given output port.}
+将 @var{str} 的 @var{len} 个字符写入给定的输出端口。}
 
 
 @function[(intptr_t scheme_put_byte_string
@@ -85,25 +80,13 @@ Writes @var{len} characters of @var{str} to the given output port.}
            [intptr_t len]
            [int rarely_block])]{
 
-Writes @var{len} bytes of @var{str}, starting with the @var{d}th
-character. Bytes are written to the given output port, and errors are
-reported as from @var{who}.
+从第 @var{d} 个字符开始，写入 @var{str} 的 @var{len} 个字节。字节被写入给定的输出端口，错误以 @var{who} 的名义报告。
 
-If @var{rarely_block} is @cpp{0}, the write blocks until all @var{len}
-bytes are written, possibly to an internal buffer. If
-@var{rarely_block} is @cpp{2}, the write never blocks, and written
-bytes are not buffered. If @var{rarely_block} is @cpp{1}, the write
-blocks only until at least one byte is written (without buffering) or
-until part of an internal buffer is flushed.
+如果 @var{rarely_block} 为 @cpp{0}，则写入会阻塞直到所有 @var{len} 个字节被写入（可能写入内部缓冲区）。如果 @var{rarely_block} 为 @cpp{2}，则写入永不阻塞，且写入的字节不会被缓冲。如果 @var{rarely_block} 为 @cpp{1}，则写入仅阻塞到至少写入一个字节（无缓冲）或直到内部缓冲区的部分内容被刷新。
 
-Supplying @cpp{0} for @var{len} corresponds to a buffer-flush
-request. If @var{rarely_block} is @cpp{2}, the flush request is
-non-blocking, and if @var{rarely_block} is @cpp{0}, it is blocking.
-(A @var{rarely_block} of @cpp{1} is the same as @cpp{0} in this case.)
+为 @var{len} 提供 @cpp{0} 对应于缓冲区刷新请求。如果 @var{rarely_block} 为 @cpp{2}，则刷新请求是非阻塞的；如果 @var{rarely_block} 为 @cpp{0}，则是阻塞的。（在这种情况下，@var{rarely_block} 为 @cpp{1} 等同于 @cpp{0}。）
 
-The result is @cpp{-1} if no bytes are written from @var{str} and
-unflushed bytes remain in the internal buffer. Otherwise, the return
-value is the number of written characters.}
+如果没有从 @var{str} 写入任何字节且内部缓冲区中仍有未刷新的字节，则结果为 @cpp{-1}。否则，返回值是已写入的字符数。}
 
 @function[(intptr_t scheme_put_char_string
            [const-char* who]
@@ -112,33 +95,28 @@ value is the number of written characters.}
            [intptr_t d]
            [intptr_t len])]{
 
-Like @cpp{scheme_put_byte_string}, but for a @cpp{mzchar} string, and
-without the non-blocking option.}
+类似于 @cpp{scheme_put_byte_string}，但用于 @cpp{mzchar} 字符串，且没有非阻塞选项。}
 
 @function[(char* scheme_write_to_string
            [Scheme_Object* obj]
            [intptr_t* len])]{
 
-Prints the Racket value @var{obj} using @racket[write] to a newly
-allocated string. If @var{len} is not @cpp{NULL}, @cpp{*@var{len}} is
-set to the length of the bytes string.}
+使用 @racket[write] 将 Racket 值 @var{obj} 打印到新分配的字符串中。如果 @var{len} 不为 @cpp{NULL}，则 @cpp{*@var{len}} 被设置为字节字符串的长度。}
 
 @function[(void scheme_write_to_string_w_max
            [Scheme_Object* obj]
            [intptr_t* len]
            [int n])]{
 
-Like @cpp{scheme_write_to_string}, but the string is truncated to
-@var{n} bytes.  (If the string is truncated, the last three bytes are
+类似于 @cpp{scheme_write_to_string}，但字符串被截断为
+@var{n} bytes.  (如果字符串被截断，最后三个字节是
 ``.''.)}
 
 @function[(char* scheme_display_to_string
            [Scheme_Object* obj]
            [intptr_t* len])]{
 
-Prints the Racket value @var{obj} using @racket[display] to a newly
-allocated string. If @var{len} is not @cpp{NULL}, @cpp{*@var{len}} is
-set to the length of the string.}
+使用 @racket[display] 将 Racket 值 @var{obj} 打印到新分配的字符串中。如果 @var{len} 不为 @cpp{NULL}，则 @cpp{*@var{len}} 被设置为字符串的长度。}
 
 
 @function[(void scheme_display_to_string_w_max
@@ -146,56 +124,52 @@ set to the length of the string.}
            [intptr_t* len]
            [int n])]{
 
-Like @cpp{scheme_display_to_string}, but the string is truncated to
-@var{n} bytes.  (If the string is truncated, the last three bytes are
+类似于 @cpp{scheme_display_to_string}，但字符串被截断为
+@var{n} bytes.  (如果字符串被截断，最后三个字节是
 ``.''.)}
 
 
 @function[(void scheme_debug_print
            [Scheme_Object* obj])]{
 
-Prints the Racket value @var{obj} using @racket[write] to the main
-thread's output port.}
+使用 @racket[write] 将 Racket 值 @var{obj} 打印到主线程的输出端口。}
 
 @function[(void scheme_flush_output
            [Scheme_Object* port])]{
 
-If @var{port} is a file port, a buffered data is written to the file.
-Otherwise, there is no effect. @var{port} must be an output port.}
+如果 @var{port} 是文件端口，则缓冲的数据被写入文件。否则，无任何效果。@var{port} 必须是输出端口。}
 
 @function[(int scheme_get_byte
            [Scheme_Object* port])]{
 
-Get the next byte from the given input port. The result can be @cpp{EOF}.}
+从给定的输入端口获取下一个字节。结果可以是 @cpp{EOF}。}
 
 @function[(int scheme_getc
            [Scheme_Object* port])]{
 
-Get the next character from the given input port (by decoding bytes as UTF-8).
-  The result can be @cpp{EOF}.}
+从给定的输入端口获取下一个字符（通过将字节解码为 UTF-8）。结果可以是 @cpp{EOF}。}
 
 @function[(int scheme_peek_byte
            [Scheme_Object* port])]{
 
-Peeks the next byte from the given input port.  The result can be @cpp{EOF}.}
+窥视给定输入端口的下一个字节。结果可以是 @cpp{EOF}。}
 
 @function[(int scheme_peekc
            [Scheme_Object* port])]{
 
-Peeks the next character from the given input port (by decoding bytes as UTF-8).
-  The result can be @cpp{EOF}.}
+窥视给定输入端口的下一个字符（通过将字节解码为 UTF-8）。结果可以是 @cpp{EOF}。}
 
 @function[(int scheme_peek_byte_skip
            [Scheme_Object* port]
            [Scheme_Object* skip])]{
 
-Like @cpp{scheme_peek_byte}, but with a skip count.  The result can be @cpp{EOF}.}
+类似于 @cpp{scheme_peek_byte}，但带有跳过计数。结果可以是 @cpp{EOF}。}
 
 @function[(int scheme_peekc_skip
            [Scheme_Object* port]
            [Scheme_Object* skip])]{
 
-Like @cpp{scheme_peekc}, but with a skip count.  The result can be @cpp{EOF}.}
+类似于 @cpp{scheme_peekc}，但带有跳过计数。结果可以是 @cpp{EOF}。}
 
 
 @function[(intptr_t scheme_get_byte_string
@@ -208,23 +182,15 @@ Like @cpp{scheme_peekc}, but with a skip count.  The result can be @cpp{EOF}.}
            [int peek]
            [Scheme_Object* peek_skip])]{
 
-Gets multiple bytes at once from a port, reporting errors with the
-name @var{who}. The @var{size} argument indicates the number of
+一次性从端口获取多个字节，以 @var{who} 的名义报告错误。 The @var{size} argument indicates the number of
 requested bytes, to be put into the @var{buffer} array starting at
 @var{offset}.  The return value is the number of bytes actually read,
 or @cpp{EOF} if an end-of-file is encountered without reading any
 bytes.
 
-If @var{only_avail} is @cpp{0}, then the function blocks until
-@var{size} bytes are read or an end-of-file is reached. If
-@var{only_avail} is @cpp{1}, the function blocks only until at least
-one byte is read. If @var{only_avail} is @cpp{2}, the function never
-blocks. If @var{only_avail} is @cpp{-1}, the function blocks only
-until at least one byte is read but also allows breaks (with the
-guarantee that bytes are read or a break is raised, but not both).
+如果 @var{only_avail} 为 @cpp{0}，则函数阻塞直到读取 @var{size} 个字节或到达文件结尾。如果 @var{only_avail} 为 @cpp{1}，则函数仅阻塞到至少读取一个字节。如果 @var{only_avail} 为 @cpp{2}，则函数永不阻塞。如果 @var{only_avail} 为 @cpp{-1}，则函数仅阻塞到至少读取一个字节，但同时也允许中断（保证要么读取字节要么引发中断，但不会两者都发生）。
 
-If @var{peek} is non-zero, then the port is peeked instead of
-read. The @var{peek_skip} argument indicates a portion of the input
+如果 @var{peek} 非零，则对端口执行窥视而非读取。 The @var{peek_skip} argument indicates a portion of the input
 stream to skip as a non-negative, exact integer (fixnum or bignum). In
 this case, an @var{only_avail} value of @cpp{1} means to continue the
 skip until at least one byte can be returned, even if it means
@@ -242,8 +208,7 @@ If @var{peek} is zero, then @var{peek_skip} should be either
            [int peek]
            [Scheme_Object* peek_skip])]{
 
-Like @cpp{scheme_get_byte_string}, but for characters (by decoding
-bytes as UTF-8), and without the non-blocking option.}
+类似于 @cpp{scheme_get_byte_string}，但用于字符（通过将字节解码为 UTF-8），且没有非阻塞选项。}
 
 
 @function[(intptr_t scheme_get_bytes
@@ -252,7 +217,7 @@ bytes as UTF-8), and without the non-blocking option.}
            [char* buffer]
            [int offset])]{
 
-For backward compatibility: calls @cpp{scheme_get_byte_string} in
+用于向后兼容：调用 @cpp{scheme_get_byte_string} in
 essentially the obvious way with @var{only_avail} as @cpp{0}; if
 @var{size} is negative, then it reads @var{-size} bytes with
 @var{only_avail} as @cpp{1}.}
@@ -261,8 +226,7 @@ essentially the obvious way with @var{only_avail} as @cpp{0}; if
            [int ch]
            [Scheme_Object* port])]{
 
-Puts the byte @var{ch} back as the next character to be read from the
-given input port. The character need not have been read from
+将字节 @var{ch} 放回作为下一个要从给定输入端口读取的字符。 The character need not have been read from
 @var{port}, and @cpp{scheme_ungetc} can be called to insert up to five
 characters at the start of @var{port}.
 
@@ -274,59 +238,51 @@ a port may implement peeking and getting differently.}
 @function[(int scheme_byte_ready
            [Scheme_Object* port])]{
 
-Returns 1 if a call to @cpp{scheme_get_byte} is guaranteed not to
-block for the given input port.}
+如果对 @cpp{scheme_get_byte} 的调用保证不会在给定输入端口上阻塞，则返回 1。}
 
 @function[(int scheme_char_ready
            [Scheme_Object* port])]{
 
-Returns 1 if a call to @cpp{scheme_getc} is guaranteed not to block
-for the given input port.}
+如果对 @cpp{scheme_getc} 的调用保证不会在给定输入端口上阻塞，则返回 1。}
 
 @function[(void scheme_need_wakeup
            [Scheme_Object* port]
            [void* fds])]{
 
-Requests that appropriate bits are set in @var{fds} to specify which
-file descriptors(s) the given input port reads from. (@var{fds} is
+请求在 @var{fds} 中设置适当的位，以指定给定输入端口从哪些文件描述符读取。 (@var{fds} is
 sortof a pointer to an @cppi{fd_set} struct; see
 @secref["blockednonmainel"].)}
 
 @function[(intptr_t scheme_tell
            [Scheme_Object* port])]{
 
-Returns the current read position of the given input port, or the
- current file position of the given output port.}
+返回给定输入端口的当前读取位置，或给定输出端口的当前文件位置。}
 
 @function[(intptr_t scheme_tell_line
            [Scheme_Object* port])]{
 
-Returns the current read line of the given input port. If lines are
-not counted, -1 is returned.}
+返回给定输入端口的当前读取行。如果未计数行数，则返回 -1。}
 
 @function[(void scheme_count_lines
            [Scheme_Object* port])]{
 
-Turns on line-counting for the given input port. To get accurate line
-counts, call this function immediately after creating a port.}
+为给定输入端口启用行计数。要获得准确的行计数，请在创建端口后立即调用此函数。}
 
 @function[(intptr_t scheme_set_file_position
            [Scheme_Object* port]
            [intptr_t pos])]{
 
-Sets the file position of the given input or output port (from the
-start of the file). If the port does not support position setting, an
-exception is raised.}
+设置给定输入或输出端口的文件位置（从文件开头算起）。如果端口不支持位置设置，则引发异常。}
 
 @function[(void scheme_close_input_port
            [Scheme_Object* port])]{
 
-Closes the given input port.}
+关闭给定的输入端口。}
 
 @function[(void scheme_close_output_port
            [Scheme_Object* port])]{
 
-Closes the given output port.}
+关闭给定的输出端口。}
 
 @function[(int scheme_get_port_file_descriptor
            [Scheme_Object* port]
@@ -341,9 +297,7 @@ file @cpp{HANDLE}.}
 @function[(intptr_t scheme_get_port_fd
            [Scheme_Object* port])]{
 
-Like @cpp{scheme_get_port_file_descriptor}, but a file
- descriptor or @cpp{HANDLE} is returned directly, and the result is
- @cpp{-1} if no file descriptor or @cpp{HANDLE} is available.}
+类似于 @cpp{scheme_get_port_file_descriptor}，但直接返回文件描述符或 @cpp{HANDLE}，如果没有可用的文件描述符或 @cpp{HANDLE} 则结果为 @cpp{-1}。}
 
 @function[(intptr_t scheme_get_port_socket
            [Scheme_Object* port]
@@ -357,7 +311,7 @@ otherwise. On Windows, a socket value has type @cpp{SOCKET}.}
 @function[(Scheme_Object* scheme_make_port_type
            [char* name])]{
 
-Creates a new port subtype.}
+创建一个新的端口子类型。}
 
 @function[(Scheme_Input_Port* scheme_make_input_port
            [Scheme_Object* subtype]
@@ -372,20 +326,14 @@ Creates a new port subtype.}
            [Scheme_Need_Wakeup_Input_Fun need_wakeup_fun]
            [int must_close])]{
 
-Creates a new input port with arbitrary control functions. The
+使用任意控制函数创建一个新的输入端口。 The
 @var{subtype} is an arbitrary value to distinguish the port's class.
-The pointer @var{data} will be installed as the port's user data,
-which can be extracted/set with the @cppi{SCHEME_INPORT_VAL} macro.
-The @var{name} object is used as the port's name (for
-@racket[object-name] and as the default source name for
-@racket[read-syntax]).
+指针 @var{data} 将被安装为端口的用户数据，可以通过 @cppi{SCHEME_INPORT_VAL} 宏提取/设置。
+@var{name} 对象用作端口的名称（用于 @racket[object-name] 和作为 @racket[read-syntax] 的默认源名称）。
 
-If @var{must_close} is non-zero, the new port will be registered with
-the current custodian, and @var{close_fun} is guaranteed to be called
-before the port is garbage-collected.
+如果 @var{must_close} 非零，则新端口将注册到当前 custodian，并且保证在端口被垃圾回收之前调用 @var{close_fun}。
 
-Although the return type of @cpp{scheme_make_input_port} is
-@cppi{Scheme_Input_Port*}, it can be cast into a @cpp{Scheme_Object*}.
+虽然 @cpp{scheme_make_input_port} 的返回类型是 @cppi{Scheme_Input_Port*}，但可以转换为 @cpp{Scheme_Object*}。
 
 The functions are as follows.
 
@@ -530,19 +478,15 @@ The functions are as follows.
            [Scheme_Write_Special_Fun write_special_fun]
            [int must_close])]{
 
-Creates a new output port with arbitrary control functions.  The
+使用任意控制函数创建一个新的输出端口。  The
 @var{subtype} is an arbitrary value to distinguish the port's class.
 The pointer @var{data} will be installed as the port's user data,
 which can be extracted/set with the @cppi{SCHEME_OUTPORT_VAL}
 macro. The @var{name} object is used as the port's name.
 
-If @var{must_close} is non-zero, the new port will be registered with
-the current custodian, and @var{close_fun} is guaranteed to be called
-before the port is garbage-collected.
+如果 @var{must_close} 非零，则新端口将注册到当前 custodian，并且保证在端口被垃圾回收之前调用 @var{close_fun}。
 
-Although the return type of @cpp{scheme_make_output_port} is
-@cppi{Scheme_Output_Port*}, it can be cast into a
-@cpp{Scheme_Object*}.
+虽然 @cpp{scheme_make_output_port} 的返回类型是 @cppi{Scheme_Output_Port*}，但可以转换为 @cpp{Scheme_Object*}。
 
 The functions are as follows.
 
@@ -644,8 +588,7 @@ The functions are as follows.
 @function[(void scheme_set_port_location_fun [Scheme_Port* port]
 					     [Scheme_Location_Fun location_fun])]{
 
-Sets the implementation of @racket[port-next-location] for @var{port},
-which is used when line counting is enabled for @var{port}.
+设置 @var{port} 的 @racket[port-next-location] 的实现，当为 @var{port} 启用行计数时使用。
 
  @subfunction[(Scheme_Object* location_fun
                [Scheme_Port* port])]{
@@ -659,8 +602,7 @@ which is used when line counting is enabled for @var{port}.
 @function[(void scheme_set_port_count_lines_fun [Scheme_Port* port]
 					        [Scheme_Count_Lines_Fun count_lines_fun])]{
 
-Installs a notification callback that is invoked if line counting is subsequently
-enabled for @var{port}.
+安装一个通知回调，如果随后为 @var{port} 启用了行计数，则调用该回调。
 
  @subfunction[(void count_lines_fun
                [Scheme_Port* port])]
@@ -671,11 +613,7 @@ enabled for @var{port}.
                                         [intptr_t offset]
                                         [intptr_t got])]{
 
-Updates the position of @var{port} as reported by
-@racket[file-position] as well as the locations reported by
-@racket[port-next-location] when the default implement of character
-and line counting is used. This function is intended for use by a
-peek-commit implementation in an input port.
+更新 @var{port} 的位置（由 @racket[file-position] 报告）以及位置（由 @racket[port-next-location] 报告），当使用默认的字符和行计数实现时。此函数旨在供输入端口中的 peek-commit 实现使用。
 
 The @var{got} argument indicates the number of bytes read from or
 written to @var{port}. The @var{buffer} argument is used only when
@@ -690,38 +628,30 @@ be at least @var{offset} plus @var{got} bytes long.}
 @function[(Scheme_Object* scheme_make_file_input_port
            [FILE* fp])]{
 
-Creates a Scheme input file port from an ANSI C file pointer. The file
- must never block on reads.}
+从 ANSI C 文件指针创建一个 Scheme 输入文件端口。该文件在读取时绝不能阻塞。}
 
 @function[(Scheme_Object* scheme_open_input_file
            [const-char* filename]
            [const-char* who])]{
 
-Opens @var{filename} for reading. If an exception is raised, the
- exception message uses @var{who} as the name of procedure that raised
- the exception.}
+打开 @var{filename} 进行读取。如果引发异常，异常消息使用 @var{who} 作为引发异常的过程名称。}
 
 @function[(Scheme_Object* scheme_make_named_file_input_port
            [FILE* fp]
            [Scheme_Object* name])]{
 
-Creates a Racket input file port from an ANSI C file pointer. The file
- must never block on reads. The @var{name} argument is used as the
- port's name.}
+从 ANSI C 文件指针创建一个 Racket 输入文件端口。该文件在读取时绝不能阻塞。@var{name} 参数用作端口的名称。}
 
 @function[(Scheme_Object* scheme_open_output_file
            [const-char* filename]
            [const-char* who])]{
 
-Opens @var{filename} for writing in @racket['truncate/replace] mode. If
- an exception is raised, the exception message uses @var{who} as the
- name of procedure that raised the exception.}
+以 @racket['truncate/replace] 模式打开 @var{filename} 进行写入。如果引发异常，异常消息使用 @var{who} 作为引发异常的过程名称。}
 
 @function[(Scheme_Object* scheme_make_file_output_port
            [FILE* fp])]{
 
-Creates a Racket output file port from an ANSI C file pointer. The
- file must never block on writes.}
+从 ANSI C 文件指针创建一个 Racket 输出文件端口。该文件在写入时绝不能阻塞。}
 
 @function[(Scheme_Object* scheme_make_fd_input_port
            [int fd]
@@ -729,7 +659,7 @@ Creates a Racket output file port from an ANSI C file pointer. The
            [int regfile]
            [int win_textmode])]{
 
-Creates a Racket input port for a file descriptor @var{fd}. On
+为文件描述符创建 Racket 输入端口 @var{fd}. On
  Windows, @var{fd} can be a @cpp{HANDLE} for a stream, and it should
  never be a file descriptor from the C library or a WinSock socket.
 
@@ -755,7 +685,7 @@ Instead of calling both @cpp{scheme_make_fd_input_port} and
            [int win_textmode]
            [int read_too])]{
 
-Creates a Racket output port for a file descriptor @var{fd}. On
+为文件描述符创建 Racket 输出端口 @var{fd}. On
  Windows, @var{fd} can be a @cpp{HANDLE} for a stream, and it should
  never be a file descriptor from the C library or a WinSock socket.
 
@@ -782,7 +712,7 @@ If @var{read_too} is non-zero, the function produces multiple values
            [Scheme_Object** inp]
            [Scheme_Object** outp])]{
 
-Creates Racket input and output ports for a TCP socket @var{s}. The
+为 TCP socket 创建 Racket 输入和输出端口 @var{s}. The
  @var{name} argument supplies the name for the ports. If @var{close}
  is non-zero, then the ports assume responsibility for closing the
  socket. The resulting ports are written to @var{inp} and @var{outp}.
@@ -803,8 +733,7 @@ Whether @var{close} is zero or not, closing the resulting ports
            [int mode]
            [int is_socket])]{
 
-Creates or finds a Racket semaphore that becomes ready when @var{fd}
-is ready. The semaphore reflects a registration with the operating
+创建或查找一个 Racket 信号量，当 @var{fd} 就绪时该信号量变为就绪状态。 The semaphore reflects a registration with the operating
 system's underlying mechanisms for efficient polling. When a semaphore
 is created, it remains findable via @cpp{scheme_fd_to_semaphore} for a
 particular read/write mode as long as @var{fd} has not become ready in
@@ -856,21 +785,16 @@ The @var{mode} argument is one of the following:
 @function[(Scheme_Object* scheme_make_byte_string_input_port
            [char* str])]{
 
-Creates a Racket input port from a byte string; successive
- @racket[read-char]s on the port return successive bytes in the
- string.}
+从字节字符串创建一个 Racket 输入端口；端口上连续的 @racket[read-char] 返回字符串中的连续字节。}
 
 @function[(Scheme_Object* scheme_make_byte_string_output_port)]{
 
-Creates a Racket output port; all writes to the port are kept in a byte string,
- which can be obtained with @cpp{scheme_get_byte_string_output}.}
+创建一个 Racket 输出端口；所有对端口的写入都保存在一个字节字符串中，该字符串可以通过 @cpp{scheme_get_byte_string_output} 获取。}
 
 @function[(char* scheme_get_byte_string_output
            [Scheme_Object* port])]{
 
-Returns (in a newly allocated byte string) all data that has been
- written to the given string output port so far. (The returned string
- is nul-terminated.)}
+返回（在新分配的字节字符串中）迄今为止写入给定字符串输出端口的所有数据。（返回的字符串以 nul 结尾。）}
 
 @function[(char* scheme_get_sized_byte_string_output
            [Scheme_Object* port]
@@ -885,19 +809,14 @@ Returns (in a newly allocated byte string) all data that has been
            [Scheme_Object** read]
            [Scheme_Object** write])]{
 
-Creates a pair of ports, setting @cpp{*@var{read}} and
- @cpp{*@var{write}}; data written to @cpp{*@var{write}} can be read
- back out of @cpp{*@var{read}}.  The pipe can store arbitrarily many
- unread characters,}
+创建一对端口，设置 @cpp{*@var{read}} 和 @cpp{*@var{write}}；写入 @cpp{*@var{write}} 的数据可以从 @cpp{*@var{read}} 读回。管道可以存储任意数量的未读字符，}
 
 @function[(void scheme_pipe_with_limit
            [Scheme_Object** read]
            [Scheme_Object** write]
            [int limit])]{
 
-Like @cpp{scheme_pipe} if @var{limit} is @cpp{0}. If @var{limit} is
- positive, creates a pipe that stores at most @var{limit} unread
- characters, blocking writes when the pipe is full.}
+如果 @var{limit} 为 @cpp{0}，则类似于 @cpp{scheme_pipe}。如果 @var{limit} 为正，则创建一个最多存储 @var{limit} 个未读字符的管道，当管道满时阻塞写入。}
 
 @function[(Scheme_Input_Port* scheme_input_port_record
            [Scheme_Object* port])]{
@@ -916,15 +835,12 @@ with the @racket[prop:output-port] property.}
 @function[(int scheme_file_exists
            [char* name])]{
 
-Returns 1 if a file by the given name exists, 0 otherwise. If
-@var{name} specifies a directory, FALSE is returned.
-The @var{name} should be already expanded.}
+如果具有给定名称的文件存在则返回 1，否则返回 0。如果 @var{name} 指定一个目录，则返回 FALSE。@var{name} 应该已经展开。}
 
 @function[(int scheme_directory_exists
            [char* name])]{
 
-Returns 1 if a directory by the given name exists, 0 otherwise.  The
-@var{name} should be already expanded.}
+如果具有给定名称的目录存在则返回 1，否则返回 0。@var{name} 应该已经展开。}
 
 @function[(char* scheme_expand_filename
            [const-char* name]
@@ -933,9 +849,8 @@ Returns 1 if a directory by the given name exists, 0 otherwise.  The
            [int* expanded]
            [int checks])]{
 
-Cleanses the pathname @var{name} (see @racket[cleanse-path]) and
-resolves relative paths with respect to the current directory
-parameter. The @var{len} argument is the length of the input string;
+清理路径名 @var{name} (see @racket[cleanse-path]) and
+相对于当前目录 parameter 解析相对路径。 The @var{len} argument is the length of the input string;
 if it is -1, the string is assumed to be null-terminated.  The
 @var{where} argument is used to raise an exception if there is an
 error in the filename; if this is @cpp{NULL}, an error is not reported
@@ -956,28 +871,27 @@ failed access check will result in an exception.}
            [int* expanded]
            [int checks])]{
 
-Like @cpp{scheme_expand_string}, but given a @var{name} that can be a
-character string or a path value.}
+类似于 @cpp{scheme_expand_string}，但给定一个可以是字符串或路径值的 @var{name}。}
 
 @function[(Scheme_Object* scheme_char_string_to_path
            [Scheme_Object* s])]{
 
-Converts a Racket character string into a Racket path value.}
+将 Racket 字符串转换为 Racket 路径值。}
 
 @function[(Scheme_Object* scheme_path_to_char_string
            [Scheme_Object* s])]{
 
-Converts a Racket path value into a Racket character string.}
+将 Racket 路径值转换为 Racket 字符串。}
 
 @function[(Scheme_Object* scheme_make_path
            [char* bytes])]{
 
-Makes a path value given a byte string. The @var{bytes} string is copied.}
+给定一个字节字符串，创建一个路径值。@var{bytes} 字符串被复制。}
 
 @function[(Scheme_Object* scheme_make_path_without_copying
            [char* bytes])]{
 
-Like @cpp{scheme_make_path}, but the string is not copied.}
+类似于 @cpp{scheme_make_path}，但字符串不被复制。}
 
 @function[(Scheme_Object* scheme_make_sized_path
            [char* bytes]
@@ -1004,7 +918,7 @@ from position @var{d} in @var{bytes}. If @var{d} is non-zero, then
            [FSSpec* spec]
            [int isdir])]{
 
-Mac OS only: Converts an @cppi{FSSpec} record (defined by Mac OS)
+仅 Mac OS：将 an @cppi{FSSpec} record (defined by Mac OS)
 into a pathname string. If @var{spec} contains only directory
 information (via the @cpp{vRefNum} and @cpp{parID} fields),
 @var{isdir} should be @cpp{1}, otherwise it should be @cpp{0}.}
@@ -1014,7 +928,7 @@ information (via the @cpp{vRefNum} and @cpp{parID} fields),
            [FSSpec* spec]
            [intptr_t* type])]{
 
-Mac OS only: Converts a pathname into an @cppi{FSSpec} record
+仅 Mac OS：将 a pathname into an @cppi{FSSpec} record
 (defined by Mac OS), returning @cpp{1} if successful and @cpp{0}
 otherwise. If @var{type} is not @cpp{NULL} and @var{filename} is a
 file that exists, @var{type} is filled with the file's four-character
@@ -1027,9 +941,7 @@ not a file that exists, @var{type} is filled with @cpp{0}.}
            [int* actlen]
            [int noexn])]{
 
-Gets the @as-index{current working directory} according to the
-operating system. This is separate from Racket's current directory
-parameter.
+根据操作系统获取当前工作目录。这与 Racket 的当前目录 parameter 是分开的。
 
 The directory path is written into @var{buf}, of length @var{buflen},
 if it fits. Otherwise, a new (collectable) string is allocated for the
@@ -1041,8 +953,7 @@ no 0, then an exception is raised if the operation fails.}
            [char* buf]
            [int noexn])]{
 
-Sets the current working directory according to the operating system. This
-is separate from Racket's current directory parameter.
+根据操作系统设置当前工作目录。这与 Racket 的当前目录 parameter 是分开的。
 
 If @var{noexn} is not 0, then an exception is raised if the operation
 fails.}
@@ -1054,9 +965,7 @@ fails.}
            [Scheme_Object** argv]
            [intptr_t* rlen])]{
 
-Creates a string like Racket's @racket[format] procedure, using the
-format string @var{format} (of length @var{flen}) and the extra
-arguments specified in @var{argc} and @var{argv}. If @var{rlen} is not
+类似于 Racket 的 @racket[format] 过程创建一个字符串，使用格式字符串 @var{format}（长度为 @var{flen}）以及 @var{argc} 和 @var{argv} 中指定的额外参数。 If @var{rlen} is not
 @cpp{NULL}, @cpp{*@var{rlen}} is filled with the length of the
 resulting string.}
 
@@ -1066,9 +975,7 @@ resulting string.}
            [int argc]
            [Scheme_Object** argv])]{
 
-Writes to the current output port like Racket's @racket[printf]
-procedure, using the format string @var{format} (of length @var{flen})
-and the extra arguments specified in @var{argc} and @var{argv}.}
+类似于 Racket 的 @racket[printf] 过程写入当前输出端口，使用格式字符串 @var{format}（长度为 @var{flen}）以及 @var{argc} 和 @var{argv} 中指定的额外参数。}
 
 @function[(char* scheme_format_utf8
            [char* format]
@@ -1077,7 +984,7 @@ and the extra arguments specified in @var{argc} and @var{argv}.}
            [Scheme_Object** argv]
            [intptr_t* rlen])]{
 
-Like @cpp{scheme_format}, but takes a UTF-8-encoding byte string.}
+类似于 @cpp{scheme_format}，但接受一个 UTF-8 编码的字节字符串。}
 
 @function[(void scheme_printf_utf8
            [char* format]
@@ -1085,9 +992,8 @@ Like @cpp{scheme_format}, but takes a UTF-8-encoding byte string.}
            [int argc]
            [Scheme_Object** argv])]{
 
-Like @cpp{scheme_printf}, but takes a UTF-8-encoding byte string.}
+类似于 @cpp{scheme_printf}，但接受一个 UTF-8 编码的字节字符串。}
 
 @function[(int scheme_close_should_force_port_closed)]{
 
-This function must be called by the close function for a port created
- with @cpp{scheme_make_output_port}.}
+此函数必须由通过 @cpp{scheme_make_output_port} 创建的端口的关闭函数调用。}
