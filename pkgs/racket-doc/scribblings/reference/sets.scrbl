@@ -1,15 +1,17 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/set))
 
-@title[#:tag "sets"]{集合}
+@title[#:tag "sets"]{Sets}
 @(define set-eval (make-base-eval))
 @examples[#:hidden #:eval set-eval (require racket/set)]
 
 @(define (hash-set-caveats)
-   @elem{对于 @tech{hash sets}，另请参见 @concurrency-caveat[] 中适用于 hash sets 的
-         hash table 说明。})
+   @elem{For @tech{hash sets}, see also the @concurrency-caveat[]
+         for hash tables, which applies to
+         hash sets.})
 
-一个 @deftech{set} 表示一组不同元素的集合。以下数据类型都是集合：
+A @deftech{set} represents a collection of distinct elements.  The following
+datatypes are all sets:
 
 @itemize[
 
@@ -26,30 +28,49 @@
 
 @section{Hash Sets}
 
-一个 @deftech{hash set} 是一个集合，其元素通过 @racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?] 进行比较，并通过 @racket[equal-hash-code]、@racket[equal-always-hash-code]、@racket[eqv-hash-code] 或 @racket[eq-hash-code] 进行分区。hash set 可以是不可变或可变的；可变 hash set 要么强保留要么弱保留其元素。
+A @deftech{hash set} is a set whose elements are compared via @racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?] and partitioned
+via @racket[equal-hash-code], @racket[equal-always-hash-code],
+@racket[eqv-hash-code], or @racket[eq-hash-code].  A hash set is either
+immutable or mutable; mutable hash sets retain their elements either strongly
+or weakly.
 
 @margin-note{Like operations on immutable hash tables, ``constant time'' hash
-集合操作实际上对于大小为
+set operations actually require @math{O(log N)} time for a set of size
 @math{N}.}
 
-hash set 可以用作 @tech{stream}（参见 @secref["streams"]），因此也可以用作单值的 @tech{sequence}（参见 @secref["sequences"]）。集合的元素作为 stream 或 sequence 的元素。如果在迭代过程中向 hash set 添加或删除元素，则迭代步骤可能因 @racket[exn:fail:contract] 失败，或者迭代可能跳过或重复元素。另请参见 @racket[in-set]。
+A hash set can be used as a @tech{stream} (see @secref["streams"]) and thus as
+a single-valued @tech{sequence} (see @secref["sequences"]). The elements of the
+set serve as elements of the stream or sequence. If an element is added to or
+removed from the hash set during iteration, then an iteration step may fail
+with @racket[exn:fail:contract], or the iteration may skip or duplicate
+elements. See also @racket[in-set].
 
-当两个 hash set 使用相同的元素比较过程（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）、都以强或弱方式持有元素、具有相同的可变性且具有等价元素时，它们是 @racket[equal?] 的。不可变 hash set 支持有效的常数时间访问和更新，与可变 hash set 一样；不可变操作的常数通常更大，但不可变 hash set 的函数性质在某些算法中可以获得优势。
+Two hash sets are @racket[equal?] when they use the same element-comparison
+procedure (@racket[equal?], @racket[equal-always?], @racket[eqv?], or
+@racket[eq?]), both hold elements strongly or weakly, have the same
+mutability, and have equivalent elements.
+Immutable hash sets support effectively constant-time access and
+update, just like mutable hash sets; the constant on immutable operations is
+usually larger, but the functional nature of immutable hash sets can pay off in
+certain algorithms.
 
-所有 hash set 都 @impl{实现} @racket[set->stream]、
+All hash sets @impl{implement} @racket[set->stream],
 @racket[set-empty?], @racket[set-member?], @racket[set-count],
 @racket[subset?], @racket[proper-subset?], @racket[set-map],
 @racket[set-for-each], @racket[set-copy], @racket[set-copy-clear],
 @racket[set->list], and @racket[set-first].  Immutable hash sets in
-额外 @impl{实现} @racket[set-add]、@racket[set-remove]、
+addition @impl{implement} @racket[set-add], @racket[set-remove],
 @racket[set-clear], @racket[set-union], @racket[set-intersect],
 @racket[set-subtract], and @racket[set-symmetric-difference].  Mutable
-hash set 额外 @impl{实现} @racket[set-add!]、
+hash sets in addition @impl{implement} @racket[set-add!],
 @racket[set-remove!], @racket[set-clear!], @racket[set-union!],
 @racket[set-intersect!], @racket[set-subtract!], and
 @racket[set-symmetric-difference!].
 
-对包含被修改元素的集合的操作是不可预测的，与 @tech{hash table} 操作在键被修改时不可预测的方式非常相似。
+Operations on sets that contain elements that are mutated are
+unpredictable in much the same way that @tech{hash table} operations are
+unpredictable when keys are mutated.
 
 @deftogether[(
 @defproc[(set-equal? [x any/c]) boolean?]
@@ -58,7 +79,9 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 @defproc[(set-eq? [x any/c]) boolean?]
 )]{
 
-如果 @racket[x] 是分别使用 @racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?] 比较元素的 @tech{hash set}，则返回 @racket[#t]；否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[x] is a @tech{hash set} that compares
+elements with @racket[equal?], @racket[equal-always?], @racket[eqv?],
+or @racket[eq?], respectively; returns @racket[#f] otherwise.
 
 @history[#:changed "8.5.0.3" @elem{Added @racket[set-equal-always?].}]}
 
@@ -68,7 +91,9 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 @defproc[(set-weak? [x any/c]) boolean?]
 )]{
 
-如果 @racket[x] 是分别是不可变的、强保留键的可变、或弱保留键的可变 @tech{hash set}，则返回 @racket[#t]；否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[x] is a @tech{hash set} that is respectively
+immutable, mutable with strongly-held keys, or mutable with weakly-held keys;
+returns @racket[#f] otherwise.
 
 }
 
@@ -90,7 +115,12 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 @defproc[(weak-seteq [v any/c] ...) (and/c generic-set? set-eq? set-weak?)]
 )]{
 
-创建一个以给定 @racket[v] 为元素的 @tech{hash set}。元素按参数出现的顺序添加，因此对于使用 @racket[equal?]、@racket[equal-always?] 或 @racket[eqv?] 的集合，较早的元素可能被 @racket[equal?]、@racket[equal-always?] 或 @racket[eqv?]（但不是 @racket[eq?]）的较晚元素替换。
+Creates a @tech{hash set} with the given @racket[v]s as elements.  The
+elements are added in the order that they appear as arguments, so in the case
+of sets that use @racket[equal?], @racket[equal-always?], or @racket[eqv?],
+an earlier element may be replaced by a later element that is
+@racket[equal?], @racket[equal-always?], or @racket[eqv?], but not
+@racket[eq?].
 
 @history[#:changed "8.5.0.3" @elem{Added @racket[setalw],
                                    @racket[mutable-setalw], and @racket[weak-setalw].}]}
@@ -113,7 +143,10 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 @defproc[(list->weak-seteq [lst list?]) (and/c generic-set? set-eq? set-weak?)]
 )]{
 
-创建一个以给定 @racket[lst] 的元素为集合元素的 @tech{hash set}。分别等价于 @racket[(apply set lst)]、@racket[(apply setalw lst)]、@racket[(apply seteqv lst)]、@racket[(apply seteq lst)] 等。
+Creates a @tech{hash set} with the elements of the given @racket[lst] as
+the elements of the set.  Equivalent to @racket[(apply set lst)],
+@racket[(apply setalw lst)], @racket[(apply seteqv lst)],
+@racket[(apply seteq lst)], and so on, respectively.
 
 @history[#:changed "8.5.0.3" @elem{Added @racket[list->setalw],
                                    @racket[list->mutable-setalw], and @racket[list->weak-setalw].}]}
@@ -145,7 +178,8 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 @defform[(for*/weak-setalw (for-clause ...) body ...+)]
 )]{
 
-类似于 @racket[for/list] 和 @racket[for*/list]，但用于构造 @tech{hash set} 而不是 list。
+Analogous to @racket[for/list] and @racket[for*/list], but to
+construct a @tech{hash set} instead of a list.
 
 @history[#:changed "8.5.0.3" @elem{Added @racket[for/setalw],
                                    @racket[for/mutable-setalw], and @racket[for/weak-setalw].}]}
@@ -157,11 +191,15 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 @defproc[(in-weak-set [st set-weak?]) sequence?]
 )]{
 
-显式将特定类型的 @tech{hash set} 转换为 sequence 以用于 @racket[for] 形式。
+Explicitly converts a specific kind of @tech{hash set} to a sequence for 
+use with @racket[for] forms.
 
-与 @racket[in-list] 和其他一些 sequence 构造函数一样，@racket[in-immutable-set] 直接出现在 @racket[for] 子句中时表现更好。
+As with @racket[in-list] and some other sequence constructors,
+@racket[in-immutable-set] performs better when it appears directly in a
+@racket[for] clause.
 
-这些 sequence 构造函数与 @secref["Custom_Hash_Sets" #:doc '(lib "scribblings/reference/reference.scrbl")] 兼容。
+These sequence constructors are compatible with
+@secref["Custom_Hash_Sets" #:doc '(lib "scribblings/reference/reference.scrbl")].
 
 @history[#:added "6.4.0.7"]
 }
@@ -170,7 +208,8 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 
 @defproc[(generic-set? [v any/c]) boolean?]{
 
-如果 @racket[v] 是一个 @tech{set}，则返回 @racket[#t]；否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] is a @tech{set}; returns @racket[#f]
+otherwise.
 
 @examples[
 #:eval set-eval
@@ -184,7 +223,10 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 
 @defproc[(set-implements? [st generic-set?] [sym symbol?] ...) boolean?]{
 
-如果 @racket[st] 实现了所有由 @racket[sym] 命名的 @racket[gen:set] 方法，则返回 @racket[#t]；否则返回 @racket[#f]。fallback 实现不影响结果；@racket[st] 可能通过 fallback 实现支持给定方法但仍然产生 @racket[#f]。
+Returns @racket[#t] if @racket[st] implements all of the methods from
+@racket[gen:set] named by the @racket[sym]s; returns @racket[#f] otherwise.
+Fallback implementations do not affect the result; @racket[st] may support the
+given methods via fallback implementations yet produce @racket[#f].
 
 @examples[
 #:eval set-eval
@@ -201,7 +243,8 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 
 @defproc[(set-implements/c [sym symbol?] ...) flat-contract?]{
 
-识别支持由 @racket[sym] 命名的所有 @racket[gen:set] 方法的集合。
+Recognizes sets that support all of the methods from @racket[gen:set]
+named by the @racket[sym]s.
 
 }
 
@@ -218,23 +261,50 @@ hash set 额外 @impl{实现} @racket[set-add!]、
                 [#:equal-key/c equal-key/c contract? any/c])
          contract?]{
 
-  构造一个 contract，其识别的集合的元素匹配 @racket[elem/c]。
+  Constructs a contract that recognizes sets whose elements match
+  @racket[elem/c].
 
-  如果 @racket[kind] 是 @racket['immutable]、@racket['mutable] 或 @racket['weak]，则生成的 contract 仅接受分别是不可变的、强保留键的可变、或弱保留键的可变 @tech{hash sets}。如果 @racket[kind] 是 @racket['mutable-or-weak]，则生成的 contract 接受任何可变 @tech{hash sets}，无论键保留强度如何。
+  If @racket[kind] is @racket['immutable], @racket['mutable], or
+  @racket['weak], the resulting contract accepts only @tech{hash sets} that
+  are respectively immutable, mutable with strongly-held keys, or mutable with
+  weakly-held keys.  If @racket[kind] is @racket['mutable-or-weak], the
+  resulting contract accepts any mutable @tech{hash sets}, regardless of
+  key-holding strength.
 
-  如果 @racket[cmp] 是 @racket['equal]、@racket['equal-always]、@racket['eqv] 或 @racket['eq]，则生成的 contract 仅接受分别使用 @racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?] 比较元素的 @tech{hash sets}。
+  If @racket[cmp] is @racket['equal], @racket['equal-always], @racket['eqv],
+  or @racket['eq], the resulting contract accepts only @tech{hash sets} that
+  compare elements using @racket[equal?], @racket[equal-always?],
+  @racket[eqv?], or @racket[eq?], respectively.
 
-  如果 @racket[cmp] 是 @racket['eqv] 或 @racket['eq]，则 @racket[elem/c] 必须是 @tech{flat contract}。
+  If @racket[cmp] is @racket['eqv] or @racket['eq], then @racket[elem/c] must
+  be a @tech{flat contract}.
 
-  如果 @racket[cmp] 和 @racket[kind] 都是 @racket['dont-care]，则生成的 contract 将接受任何类型的集合，而不仅仅是 @tech{hash sets}。
+  If @racket[cmp] and @racket[kind] are both @racket['dont-care], then the
+  resulting contract will accept any kind of set, not just @tech{hash
+  sets}.
 
- 如果 @racket[lazy?] 不是 @racket[#f]，则集合的元素不会立即被 contract 检查，只检查集合本身（根据 @racket[cmp] 和 @racket[kind] 参数）。如果 @racket[lazy?] 是 @racket[#f]，则元素立即被 contract 检查。当集合 contract 接受泛型集合（即 @racket[cmp] 和 @racket[kind] 都是 @racket['dont-care]）时，@racket[lazy?] 参数被忽略；在这种情况下，如果被检查的值是 @racket[list?]，则 contract 不是惰性的，否则 contract 是惰性的。
+ If @racket[lazy?] is not @racket[#f], then the elements of the set are not checked
+ immediately by the contract and only the set itself is checked (according to the
+ @racket[cmp] and @racket[kind] arguments). If @racket[lazy?] is
+ @racket[#f], then the elements are checked immediately by the contract.
+ The @racket[lazy?] argument is ignored when the set contract accepts generic sets
+ (i.e., when @racket[cmp] and @racket[kind] are both @racket['dont-care]); in that
+ case, the value being checked in that case is a @racket[list?], then the contract
+ is not lazy otherwise the contract is lazy.
  
- 如果 @racket[kind] 允许可变集合（即 @racket['dont-care]、@racket['mutable]、@racket['weak] 或 @racket['mutable-or-weak]）且 @racket[lazy?] 是 @racket[#f]，则元素在立即检查的同时，在从集合访问时也会被检查。
+ If @racket[kind] allows mutable sets (i.e., is @racket['dont-care],
+ @racket['mutable], @racket['weak], or
+ @racket['mutable-or-weak]) and @racket[lazy?] is @racket[#f], then the elements
+ are checked both immediately and when they are accessed from the set.
 
- @racket[equal-key/c] contract 在值传递给内部使用的比较和 hash 函数时使用。
+ The @racket[equal-key/c] contract is used when values are passed to the comparison
+ and hashing functions used internally.
  
- 当 @racket[elem/c] 和 @racket[equal-key/c] 都是 @tech{flat contracts}、@racket[lazy?] 是 @racket[#f] 且 @racket[kind] 是 @racket['immutable] 时，结果 contract 将是 @tech{flat contract}。当 @racket[elem/c] 是 @tech{chaperone contract} 时，结果将是 @tech{chaperone contract}。
+ The result contract will be a @tech{flat contract} when @racket[elem/c]
+ and @racket[equal-key/c] are both @tech{flat contracts},
+ @racket[lazy?] is @racket[#f], and @racket[kind] is @racket['immutable].
+ The result will be a @tech{chaperone contract} when @racket[elem/c] is a
+ @tech{chaperone contract}.
 
  @history[#:changed "8.3.0.9" @elem{Added support for random generation.}
           #:changed "8.5.0.3" @elem{Added @racket['equal-always] support for @racket[cmp].}]
@@ -245,9 +315,11 @@ hash set 额外 @impl{实现} @racket[set-add!]、
 
 @defidform[gen:set]{
 
-一个 @tech{generic interface}（参见 @secref["struct-generics"]），通过 @racket[struct] 定义的 @racket[#:methods] 选项为 structure type 提供集合方法实现。此接口可用于实现任何记录在 @secref["set-methods"] 中的方法。
-
-集合也应当是一个 @tech{sequence}，但 @racket[gen:set] 本身并不隐含 @racket[prop:sequence]。使用 @racket[gen:set] 通常应当结合 @racket[prop:sequence] 与 @racket[in-set] 或更具体的 sequence 构造函数一起使用。注意 @racket[in-set] 需要 @supp{支持} @racket[set->stream]（例如通过实现 @racket[set->stream] 或其他支持组合，如 @racket[set-first]、@racket[set-remove] 和 @racket[set-empty?]）。
+A @tech{generic interface} (see @secref["struct-generics"]) that
+supplies set method implementations for a structure type via the
+@racket[#:methods] option of @racket[struct] definitions.  This interface can
+be used to implement any of the methods documented as
+@secref["set-methods"].
 
 @examples[
 #:eval set-eval
@@ -261,12 +333,7 @@ hash set 额外 @impl{实现} @racket[set-add!]、
                               (arithmetic-shift 1 i))))
    (define (set-remove st i)
      (binary-set (bitwise-and (binary-set-integer st)
-                              (bitwise-not (arithmetic-shift 1 i)))))
-   (define (set-first st)
-     (sub1 (integer-length (binary-set-integer st))))
-   (define (set-empty? st)
-     (= (binary-set-integer st) 0))]
-  #:property prop:sequence in-set)
+                              (bitwise-not (arithmetic-shift 1 i)))))])
 (define bset (binary-set 5))
 bset
 (generic-set? bset)
@@ -275,9 +342,6 @@ bset
 (set-member? bset 2)
 (set-add bset 4)
 (set-remove bset 2)
-(set-first bset)
-(require racket/sequence)
-(sequence->list bset)
 ]
 
 }
@@ -287,14 +351,14 @@ bset
 @(define (supp . args) (apply tech #:key "supported generic method" args))
 @(define (impl . args) (apply tech #:key "implemented generic method" args))
 
-@racket[gen:set] 的方法可以分为三类，由其 fallback 实现决定：
+The methods of @racket[gen:set] can be classified into three categories, as determined by their fallback implementations:
 
 @itemlist[#:style 'ordered
-          @item{没有 fallback 的方法，}
-          @item{其 fallback 依赖于其他非 fallback 方法的方法，}
-          @item{以及其 fallback 可以依赖于 fallback 或非 fallback 方法的方法。}]
+          @item{methods with no fallbacks,}
+          @item{methods whose fallbacks depend on other, non-fallback methods,}
+          @item{and methods whose fallbacks can depend on either fallback or non-fallback methods.}]
 
-例如，实现以下方法将保证 @racket[gen:set] 中的所有方法至少有一个 fallback 方法：
+As an example, implementing the following methods would guarantee that all the methods in @racket[gen:set] would at least have a fallback method:
 
 @itemlist[@item{@racket[set-member?]}
           @item{@racket[set-add]}
@@ -305,131 +369,162 @@ bset
           @item{@racket[set-empty?]}
           @item{@racket[set-copy-clear]}]
 
-可能还有其他这样的方法子集，可以保证每个方法至少有一个 fallback。
+There may be other such subsets of methods that would guarantee at least a fallback for every method.
 
 @defproc[(set-member? [st generic-set?] [v any/c]) boolean?]{
 
-如果 @racket[v] 在 @racket[st] 中则返回 @racket[#t]，否则返回 @racket[#f]。没有 fallback。
+Returns @racket[#t] if @racket[v] is in @racket[st], @racket[#f]
+otherwise. Has no fallback.
 
 }
 
 @defproc[(set-add [st generic-set?] [v any/c]) generic-set?]{
 
-生成一个包含 @racket[v] 及 @racket[st] 所有元素的集合。此操作对于 @tech{hash sets} 以常数时间运行。没有 fallback。
+Produces a set that includes @racket[v] plus all elements of
+@racket[st]. This operation runs in constant time for @tech{hash sets}. Has no fallback.
 
 }
 
 @defproc[(set-add! [st generic-set?] [v any/c]) void?]{
 
-将元素 @racket[v] 添加到 @racket[st] 中。此操作对于 @tech{hash sets} 以常数时间运行。没有 fallback。
+Adds the element @racket[v] to @racket[st].  This operation runs in constant
+time for @tech{hash sets}. Has no fallback.
 
 @hash-set-caveats[]}
 
 
 @defproc[(set-remove [st generic-set?] [v any/c]) generic-set?]{
 
-生成一个包含 @racket[st] 所有元素但不含 @racket[v] 的集合。此操作对于 @tech{hash sets} 以常数时间运行。没有 fallback。
+Produces a set that includes all elements of @racket[st] except
+@racket[v]. This operation runs in constant time for @tech{hash sets}. Has no fallback.
 
 }
 
 @defproc[(set-remove! [st generic-set?] [v any/c]) void?]{
 
-从 @racket[st] 中移除元素 @racket[v]。此操作对于 @tech{hash sets} 以常数时间运行。没有 fallback。
+Removes the element @racket[v] from @racket[st].  This operation runs in constant
+time for @tech{hash sets}. Has no fallback.
 
 @hash-set-caveats[]}
 
 
 @defproc[(set-empty? [st generic-set?]) boolean?]{
 
-如果 @racket[st] 没有成员则返回 @racket[#t]；否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[st] has no members; returns @racket[#f]
+otherwise.
 
-对于任何 @impl{实现} @racket[set->stream] 或 @racket[set-count] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set->stream] or
+@racket[set-count].
 
 }
 
 @defproc[(set-count [st generic-set?]) exact-nonnegative-integer?]{
 
-返回 @racket[st] 中的元素数量。
+Returns the number of elements in @racket[st].
 
-对于任何 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream].
 
 }
 
 @defproc[(set-first [st (and/c generic-set? (not/c set-empty?))]) any/c]{
 
-生成 @racket[st] 的一个未指定元素。在 @racket[st] 上多次使用 @racket[set-first] 会生成相同的结果。
+Produces an unspecified element of @racket[st]. Multiple uses of
+@racket[set-first] on @racket[st] produce the same result.
 
-对于任何 @impl{实现} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set->stream].
 
 }
 
 
 @defproc[(set-rest [st (and/c generic-set? (not/c set-empty?))]) generic-set?]{
 
-生成一个包含 @racket[st] 所有元素但不含 @racket[(set-first st)] 的集合。
+Produces a set that includes all elements of @racket[st] except
+@racket[(set-first st)].
 
-对于任何 @impl{实现} @racket[set-remove] 以及 @racket[set-first] 或 @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-remove] and either
+@racket[set-first] or @racket[set->stream].
 
 }
 
 @defproc[(set->stream [st generic-set?]) stream?]{
 
-生成包含 @racket[st] 元素的 stream。
+Produces a stream containing the elements of @racket[st].
 
-对于任何 @impl{实现} 以下内容的 @racket[st] 提供支持：
+Supported for any @racket[st] that @impl{implements}:
 @itemlist[@item{@racket[set->list]}
           @item{@racket[in-set]}
-          @item{@racket[set-empty?]、@racket[set-first]、@racket[set-rest]}
-          @item{@racket[set-empty?]、@racket[set-first]、@racket[set-remove]}
-          @item{@racket[set-count]、@racket[set-first]、@racket[set-rest]}
-          @item{@racket[set-count]、@racket[set-first]、@racket[set-remove]}]
+          @item{@racket[set-empty?], @racket[set-first], @racket[set-rest]}
+          @item{@racket[set-empty?], @racket[set-first], @racket[set-remove]}
+          @item{@racket[set-count], @racket[set-first], @racket[set-rest]}
+          @item{@racket[set-count], @racket[set-first], @racket[set-remove]}]
 }
 
 @defproc[(set-copy [st generic-set?]) generic-set?]{
 
-生成一个与 @racket[st] 同类型且具有相同元素的新可变集合。
+Produces a new, mutable set of the same type and with the same elements as
+@racket[st].
 
-对于任何 @supp{支持} @racket[set->stream] 且 @impl{实现} @racket[set-copy-clear] 和 @racket[set-add!] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream] and 
+@impl{implements} @racket[set-copy-clear] and @racket[set-add!].
 
 }
 
 @defproc[(set-copy-clear [st generic-set?]) (and/c generic-set? set-empty?)]{
 
-生成一个与 @racket[st] 同类型、相同可变性和键强度的新的空集合。
+Produces a new, empty set of the same type, mutability, and key strength as
+@racket[st].
 
-@racket[set-copy-clear] 和 @racket[set-clear] 之间的区别在于后者概念上在给定集合上迭代 @racket[set-remove]，因此它保留给定集合上的任何 contract。@racket[set-copy-clear] 函数生成一个没有任何 contract 的新集合。
+A difference between @racket[set-copy-clear] and @racket[set-clear] is
+that the latter conceptually iterates @racket[set-remove] on the given
+set, and so it preserves any contract on the given set. The
+@racket[set-copy-clear] function produces a new set without any
+contracts.
 
-@racket[set-copy-clear] 函数必须调用具体的集合构造函数，因此没有泛型 fallback。
+The @racket[set-copy-clear] function must call concrete set constructors
+and thus has no generic fallback.
 }
 
 @defproc[(set-clear [st generic-set?]) (and/c generic-set? set-empty?)]{
 
-生成一个类似 @racket[st] 但移除了所有元素的集合。
+Produces a set like @racket[st] but with all elements removed.
 
-对于任何 @impl{实现} @racket[set-remove] 且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-remove] and @supp{supports}
+@racket[set->stream].
 
 }
 
 @defproc[(set-clear! [st generic-set?]) void?]{
 
-移除 @racket[st] 中的所有元素。
+Removes all elements from @racket[st].
 
-对于任何 @impl{实现} @racket[set-remove!] 且 @supp{支持} @racket[set->stream]，或 @impl{实现} @racket[set-first] 以及 @racket[set-count] 或 @racket[set-empty?] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-remove!] and either
+@supp{supports} @racket[set->stream] or @impl{implements} @racket[set-first] and either @racket[set-count] or @racket[set-empty?].
 
 @hash-set-caveats[]}
 
 
 @defproc[(set-union [st0 generic-set?] [st generic-set?] ...) generic-set?]{
 
-生成一个与 @racket[st0] 同类型的集合，包含来自 @racket[st0] 和所有 @racket[st] 的元素。
+Produces a set of the same type as @racket[st0] that includes the elements from
+@racket[st0] and all of the @racket[st]s.
 
-如果 @racket[st0] 是 list，每个 @racket[st] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的总大小乘以结果大小成正比。
+If @racket[st0] is a list, each @racket[st] must also be a list.  This
+operation runs on lists in time proportional to the total size of the
+@racket[st]s times the size of the result.
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与除最大不可变集合外的所有集合的总大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+total size of all of the sets except the largest immutable set.
 
-必须至少向 @racket[set-union] 提供一个集合以确定结果集合的类型（list、hash set 等）。如果存在 @racket[set-union] 可能被应用于零个参数的情况，则改为将预期类型的空集合作为第一个参数传入。
+At least one set must be provided to @racket[set-union] to determine the type
+of the resulting set (list, hash set, etc.).  If there is a case where
+@racket[set-union] may be applied to zero arguments, instead pass an empty set
+of the intended type as the first argument.
 
-对于任何 @impl{实现} @racket[set-add] 且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements}  @racket[set-add] and @supp{supports} @racket[set->stream].
 
 @examples[#:eval set-eval
 (set-union (set))
@@ -441,69 +536,113 @@ bset
 
 @defproc[(set-union! [st0 generic-set?] [st generic-set?] ...) void?]{
 
-将所有 @racket[st] 中的元素添加到 @racket[st0] 中。
+Adds the elements from all of the @racket[st]s to @racket[st0].
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st] 的总大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+total size of the @racket[st]s.
 
-对于任何 @impl{实现} @racket[set-add!] 且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-add!] and @supp{supports} @racket[set->stream].
 
 @hash-set-caveats[]}
 
 @defproc[(set-intersect [st0 generic-set?] [st generic-set?] ...) generic-set?]{
 
-生成一个与 @racket[st0] 同类型的集合，包含 @racket[st0] 中同时也被所有 @racket[st] 包含的元素。
+Produces a set of the same type as @racket[st0] that includes the elements from
+@racket[st0] that are also contained by all of the @racket[st]s.
 
-如果 @racket[st0] 是 list，每个 @racket[st] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的总大小乘以 @racket[st0] 的大小成正比。
+If @racket[st0] is a list, each @racket[st] must also be a list.  This
+operation runs on lists in time proportional to the total size of the
+@racket[st]s times the size of @racket[st0].
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与最小不可变集合的大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of the smallest immutable set.
 
-对于任何 @impl{实现} @racket[set-remove] 或同时 @racket[set-clear] 和 @racket[set-add]，且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} either @racket[set-remove] or
+both @racket[set-clear] and @racket[set-add], and @supp{supports} @racket[set->stream].
 
 }
 
 @defproc[(set-intersect! [st0 generic-set?] [st generic-set?] ...) void?]{
 
-从 @racket[st0] 中移除所有未被所有 @racket[st] 包含的元素。
+Removes every element from @racket[st0] that is not contained by all of the
+@racket[st]s.
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st0] 的大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of @racket[st0].
 
-对于任何 @impl{实现} @racket[set-remove!] 且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-remove!] and @supp{supports} @racket[set->stream].
 
 @hash-set-caveats[]}
 
 
 @defproc[(set-subtract [st0 generic-set?] [st generic-set?] ...) generic-set?]{
 
-生成一个与 @racket[st0] 同类型的集合，包含 @racket[st0] 中未被任何 @racket[st] 包含的元素。
+Produces a set of the same type as @racket[st0] that includes the elements from
+@racket[st0] that are not contained by any of the @racket[st]s.
 
-如果 @racket[st0] 是 list，每个 @racket[st] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的总大小乘以 @racket[st0] 的大小成正比。
+If @racket[st0] is a list, each @racket[st] must also be a list.  This
+operation runs on lists in time proportional to the total size of the
+@racket[st]s times the size of @racket[st0].
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st0] 的大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of @racket[st0].
 
-对于任何 @impl{实现} @racket[set-remove] 或同时 @racket[set-clear] 和 @racket[set-add]，且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} either @racket[set-remove] or
+both @racket[set-clear] and @racket[set-add], and @supp{supports} @racket[set->stream].
 
 }
 
 @defproc[(set-subtract! [st0 generic-set?] [st generic-set?] ...) void?]{
 
-从 @racket[st0] 中移除所有被任何 @racket[st] 包含的元素。
+Removes every element from @racket[st0] that is contained by any of the
+@racket[st]s.
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st0] 的大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of @racket[st0].
 
-对于任何 @impl{实现} @racket[set-remove!] 且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-remove!] and @supp{supports} @racket[set->stream].
 
 @hash-set-caveats[]}
 
 
 @defproc[(set-symmetric-difference [st0 generic-set?] [st generic-set?] ...) generic-set?]{
 
-生成一个与 @racket[st0] 同类型的集合，包含在 @racket[st0] 和 @racket[st] 中出现奇数次的所有元素。
+Produces a set of the same type as @racket[st0] that includes all of the
+elements contained an odd number of times in @racket[st0] and the
+@racket[st]s.
 
-如果 @racket[st0] 是 list，每个 @racket[st] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的总大小乘以 @racket[st0] 的大小成正比。
+If @racket[st0] is a list, each @racket[st] must also be a list.  This
+operation runs on lists in time proportional to the total size of the
+@racket[st]s times the size of @racket[st0].
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与除最大不可变集合外的所有集合的总大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+total size of all of the sets except the largest immutable set.
 
-对于任何 @impl{实现} @racket[set-remove] 或同时 @racket[set-clear] 和 @racket[set-add], and @supp{supports} @racket[set->stream].
+Supported for any @racket[st] that @impl{implements} @racket[set-remove] or both @racket[set-clear] and @racket[set-add], and @supp{supports} @racket[set->stream].
 
 @examples[#:eval set-eval
 (set-symmetric-difference (set 1) (set 1 2) (set 1 2 3))
@@ -513,24 +652,41 @@ bset
 
 @defproc[(set-symmetric-difference! [st0 generic-set?] [st generic-set?] ...) void?]{
 
-添加和移除 @racket[st0] 的元素，使其包含在 @racket[st] 和 @racket[st0] 的原始内容中出现奇数次的所有元素。
+Adds and removes elements of @racket[st0] so that it includes all of the
+elements contained an odd number of times in the @racket[st]s and the
+original contents of @racket[st0].
 
-如果 @racket[st0] 是 @tech{hash set}，每个 @racket[st] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st] 的总大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+total size of the @racket[st]s.
 
-对于任何 @impl{实现} @racket[set-remove!] 且 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @impl{implements} @racket[set-remove!] and @supp{supports} @racket[set->stream].
 
 @hash-set-caveats[]}
 
 
 @defproc[(set=? [st generic-set?] [st2 generic-set?]) boolean?]{
 
-如果 @racket[st] 和 @racket[st2] 包含相同的成员则返回 @racket[#t]；否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[st] and @racket[st2] contain the same
+members; returns @racket[#f] otherwise.
 
-如果 @racket[st] 是 list，则 @racket[st2] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的大小乘以 @racket[st2] 的大小成正比。
+If @racket[st0] is a list, each @racket[st] must also be a list.  This
+operation runs on lists in time proportional to the size of @racket[st] times
+the size of @racket[st2].
 
-如果 @racket[st] 是 @tech{hash set}，则 @racket[st2] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st] 的大小加 @racket[st2] 的大小成正比。
+If @racket[st0] is a @tech{hash set}, each @racket[st] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of @racket[st] plus the size of @racket[st2].
 
-对于同时 @supp{支持} @racket[subset?] 的任何 @racket[st] 和 @racket[st2] 提供支持；对于任何 @impl{实现} @racket[set=?] 的 @racket[st2] 也提供支持，而无论 @racket[st] 如何。
+Supported for any @racket[st] and @racket[st2] that both @supp{support}
+@racket[subset?]; also supported for any if @racket[st2] that @impl{implements}
+@racket[set=?] regardless of @racket[st].
 
 @examples[#:eval set-eval
 (set=? (list 1 2) (list 2 1))
@@ -545,13 +701,21 @@ bset
 
 @defproc[(subset? [st generic-set?] [st2 generic-set?]) boolean?]{
 
-@index["set-subset?"]{返回} 如果 @racket[st2] 包含 @racket[st] 的每个成员则返回 @racket[#t]；否则返回 @racket[#f]。
+@index["set-subset?"]{Returns} @racket[#t] if @racket[st2] contains every member of @racket[st];
+returns @racket[#f] otherwise.
 
-如果 @racket[st] 是 list，则 @racket[st2] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的大小乘以 @racket[st2] 的大小成正比。
+If @racket[st] is a list, then @racket[st2] must also be a list.  This
+operation runs on lists in time proportional to the size of @racket[st] times
+the size of @racket[st2].
 
-如果 @racket[st] 是 @tech{hash set}，则 @racket[st2] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st] 的大小成正比。
+If @racket[st] is a @tech{hash set}, then @racket[st2] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of @racket[st].
 
-对于任何 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream].
 
 @examples[#:eval set-eval
 (subset? (set 1) (set 1 2 3))
@@ -563,13 +727,22 @@ bset
 
 @defproc[(proper-subset? [st generic-set?] [st2 generic-set?]) boolean?]{
 
-如果 @racket[st2] 包含 @racket[st] 的每个成员并且至少有一个额外元素，则返回 @racket[#t]；否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[st2] contains every member of @racket[st] and at
+least one additional element; returns @racket[#f] otherwise.
 
-如果 @racket[st] 是 list，则 @racket[st2] 也必须是 list。此操作在 list 上的运行时间与 @racket[st] 的大小乘以 @racket[st2] 的大小成正比。
+If @racket[st] is a list, then @racket[st2] must also be a list.  This
+operation runs on lists in time proportional to the size of @racket[st] times
+the size of @racket[st2].
 
-如果 @racket[st] 是 @tech{hash set}，则 @racket[st2] 也必须是使用相同比较函数（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）的 @tech{hash set}。hash set 的可变性和键强度可以不同。此操作在 hash set 上的运行时间与 @racket[st] 的大小加 @racket[st2] 的大小成正比。
+If @racket[st] is a @tech{hash set}, then @racket[st2] must also be a
+@tech{hash set} that uses the same comparison function (@racket[equal?],
+@racket[equal-always?], @racket[eqv?], or @racket[eq?]).
+The mutability and key strength of the hash
+sets may differ.  This operation runs on hash sets in time proportional to the
+size of @racket[st] plus the size of @racket[st2].
 
-对于同时 @supp{支持} @racket[subset?] 的任何 @racket[st] 和 @racket[st2] 提供支持。
+Supported for any @racket[st] and @racket[st2] that both @supp{support}
+@racket[subset?].
 
 @examples[#:eval set-eval
 (proper-subset? (set 1) (set 1 2 3))
@@ -581,9 +754,9 @@ bset
 
 @defproc[(set->list [st generic-set?]) list?]{
 
-生成包含 @racket[st] 元素的 list。
+Produces a list containing the elements of @racket[st].
 
-对于任何 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream].
 
 }
 
@@ -591,9 +764,11 @@ bset
                   [proc (any/c . -> . any/c)])
          (listof any/c)]{
 
-以未指定的顺序将过程 @racket[proc] 应用于 @racket[st] 中的每个元素，将结果累积到一个 list 中。
+Applies the procedure @racket[proc] to each element in
+@racket[st] in an unspecified order, accumulating the results
+into a list.
 
-对于任何 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream].
 
 }
 
@@ -602,17 +777,19 @@ bset
                        [proc (any/c . -> . any)])
          void?]{
 
-以未指定的顺序将 @racket[proc] 应用于 @racket[st] 中的每个元素（用于 @racket[proc] 的副作用）。
+Applies @racket[proc] to each element in @racket[st] (for the
+side-effects of @racket[proc]) in an unspecified order.
 
-对于任何 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream].
 
 }
 
 @defproc[(in-set [st generic-set?]) sequence?]{
 
-显式将集合转换为 sequence 以用于 @racket[for] 和其他形式。
+Explicitly converts a set to a sequence for use with @racket[for] and
+other forms.
 
-对于任何 @supp{支持} @racket[set->stream] 的 @racket[st] 提供支持。
+Supported for any @racket[st] that @supp{supports} @racket[set->stream].
 
 }
 
@@ -626,23 +803,47 @@ bset
                                [prop impersonator-property?]
                                [prop-val any/c] ... ...)
          (and/c (or/c set-mutable? set-weak?) impersonator?)]{
- 模拟 @racket[st]，通过给定的过程重定向各种集合操作。
+ Impersonates @racket[st], redirecting various set operations via the given procedures.
 
- @racket[inject-proc] 过程在元素被临时放入集合以便与集合中可能已存在的其他元素进行比较时被调用。例如，在求值 @racket[(set-member? s e)] 时，@racket[e] 将在与 @racket[s] 的其他元素比较之前传递给 @racket[inject-proc]。
+ The @racket[inject-proc] procedure
+ is called whenever an element is temporarily put into the set for the purposes
+ of comparing it with other elements that may already be in the set. For example,
+ when evaluating @racket[(set-member? s e)], @racket[e] will be passed to the
+ @racket[inject-proc] before comparing it with other elements of @racket[s].
 
- @racket[add-proc] 过程在向集合添加元素时被调用，例如通过 @racket[set-add] 或 @racket[set-add!]。@racket[add-proc] 的结果被存储在集合中。
+ The @racket[add-proc] procedure is called when adding an element to a set, e.g.,
+ via @racket[set-add] or @racket[set-add!]. The result of the @racket[add-proc] is
+ stored in the set.
 
- @racket[shrink-proc] 过程在构建一个少一个元素的新集合时被调用。例如，在求值 @racket[(set-remove s e)] 或 @racket[(set-remove! s e)] 时，一个元素从集合中被移除，例如通过 @racket[set-remove] 或 @racket[set-remove!]。@racket[shrink-proc] 的结果是实际从集合中移除的元素。
+ The @racket[shrink-proc] procedure is called when building a new set with
+ one fewer element. For example, when evaluating @racket[(set-remove s e)]
+ or @racket[(set-remove! s e)],
+ an element is removed from a set, e.g.,
+ via @racket[set-remove] or @racket[set-remove!]. The result of the @racket[shrink-proc]
+ is the element actually removed from the set.
  
- @racket[extract-proc] 过程在元素从集合中被取出时被调用，例如通过 @racket[set-first]。@racket[extract-proc] 的结果是从集合中实际产生的元素。
+ The @racket[extract-proc] procedure is called when an element is pulled out of
+ a set, e.g., by @racket[set-first]. The result of the @racket[extract-proc] is
+ the element actually produced by from the set.
 
- @racket[clear-proc] 由 @racket[set-clear] 和 @racket[set-clear!] 调用，如果它返回（而不是转义，也许通过引发异常），则允许清除操作。其结果被忽略。如果 @racket[clear-proc] 是 @racket[#f]，则清除是逐个元素进行的（通过调用其他提供的过程）。
+ The @racket[clear-proc] is called by @racket[set-clear] and @racket[set-clear!]
+ and if it returns (as opposed to escaping, perhaps via raising an exception),
+ the clearing operation is permitted. Its result is ignored. If @racket[clear-proc]
+ is @racket[#f], then clearing is done element by element (via calls into the other
+ supplied procedures).
 
- @racket[equal-key-proc] 在需要元素的 hash code 时或元素被提供给集合中底层相等比较时被调用。@racket[equal-key-proc] 的结果在计算 hash 或比较相等性时使用。
+ The @racket[equal-key-proc] is called when an element's hash code is needed of when an
+ element is supplied to the underlying equality in the set. The result of
+ @racket[equal-key-proc] is used when computing the hash or comparing for equality.
  
- 如果 @racket[inject-proc]、@racket[add-proc]、@racket[shrink-proc] 或 @racket[extract-proc] 参数中的任何一个是 @racket[#f]，则它们都必须为 @racket[#f]，@racket[clear-proc] 和 @racket[equal-key-proc] 也必须为 @racket[#f]，并且必须至少提供一个属性。
+ If any of the @racket[inject-proc], @racket[add-proc], @racket[shrink-proc], or
+ @racket[extract-proc] arguments are  @racket[#f], then they all must be @racket[#f],
+ the @racket[clear-proc] and @racket[equal-key-proc] must also be @racket[#f],
+ and there must be at least one property supplied.
  
- 成对的 @racket[prop] 和 @racket[prop-val]（@racket[impersonate-hash-set] 的参数数量必须是奇数）添加 @tech{impersonator properties} 或覆盖 @racket[st] 的 impersonator property 值。
+ Pairs of @racket[prop] and @racket[prop-val] (the number of arguments to
+ @racket[impersonate-hash-set] must be odd) add @tech{impersonator properties} or
+ override impersonator property values of @racket[st].
 }
 
 @defproc[(chaperone-hash-set [st (or/c set? set-mutable? set-weak?)]
@@ -655,7 +856,12 @@ bset
                              [prop impersonator-property?]
                              [prop-val any/c] ... ...)
          (and/c (or/c set? set-mutable? set-weak?) chaperone?)]{
- 对 @racket[st] 施加 chaperone。类似于 @racket[impersonate-hash-set]，但有以下约束：@racket[inject-proc]、@racket[add-proc]、@racket[shrink-proc]、@racket[extract-proc] 和 @racket[equal-key-proc] 的结果必须是其第二个参数的 @racket[chaperone-of?]。此外，输入可以是 @racket[immutable?] 集合。
+ Chaperones @racket[st]. Like @racket[impersonate-hash-set] but with
+ the constraints that the results of the @racket[inject-proc],
+ @racket[add-proc], @racket[shrink-proc], @racket[extract-proc], and
+ @racket[equal-key-proc] must be
+ @racket[chaperone-of?] their second arguments. Also, the input
+ may be an @racket[immutable?] set.
 }
 
 @section{Custom Hash Sets}
@@ -672,22 +878,33 @@ bset
                      (code:line hash1-expr)
                      (code:line hash1-expr hash2-expr)])]{
 
-基于给定的比较 @racket[comparison-expr]、hash 函数 @racket[hash1-expr] 和 @racket[hash2-expr] 以及元素谓词 @racket[predicate-expr] 创建一个新的 hash set 类型；这些函数的接口与
-@racket[make-custom-set-types] 中的相同。新的集合类型有三种变体：不可变、强保留元素的可变、以及弱保留元素的可变。
+Creates a new hash set type based on the given comparison @racket[comparison-expr],
+hash functions @racket[hash1-expr] and @racket[hash2-expr], and element
+predicate @racket[predicate-expr]; the interfaces for these functions are the
+same as in @racket[make-custom-set-types].  The new set type has three
+variants: immutable, mutable with strongly-held elements, and mutable with
+weakly-held elements.
 
-定义七个名称：
+Defines seven names:
 
 @itemize[
-@item{@racket[name]@racketidfont{?} 识别新类型的实例，}
-@item{@racketidfont{immutable-}@racket[name]@racketidfont{?} 识别新类型的不可变实例，}
-@item{@racketidfont{mutable-}@racket[name]@racketidfont{?} 识别具有强保留元素的新类型的可变实例，}
-@item{@racketidfont{weak-}@racket[name]@racketidfont{?} 识别具有弱保留元素的新类型的可变实例，}
-@item{@racketidfont{make-immutable-}@racket[name] 构造新类型的不可变实例，}
-@item{@racketidfont{make-mutable-}@racket[name] 构造具有强保留元素的新类型的可变实例，以及}
-@item{@racketidfont{make-weak-}@racket[name] 构造具有弱保留元素的新类型的可变实例。}
+@item{@racket[name]@racketidfont{?} recognizes instances of the new type,}
+@item{@racketidfont{immutable-}@racket[name]@racketidfont{?} recognizes
+      immutable instances of the new type,}
+@item{@racketidfont{mutable-}@racket[name]@racketidfont{?} recognizes
+      mutable instances of the new type with strongly-held elements,}
+@item{@racketidfont{weak-}@racket[name]@racketidfont{?} recognizes
+      mutable instances of the new type with weakly-held elements,}
+@item{@racketidfont{make-immutable-}@racket[name] constructs
+      immutable instances of the new type,}
+@item{@racketidfont{make-mutable-}@racket[name] constructs
+      mutable instances of the new type with strongly-held elements, and}
+@item{@racketidfont{make-weak-}@racket[name] constructs
+      mutable instances of the new type with weakly-held elements.}
 ]
 
-所有构造函数都接受一个 stream 作为可选参数，提供初始元素。
+The constructors all accept a stream as an optional argument, providing
+initial elements.
 
 @examples[
 #:eval set-eval
@@ -742,27 +959,42 @@ bset
                  (->* [] [stream?] generic-set?)
                  (->* [] [stream?] generic-set?))]{
 
-基于给定的比较函数 @racket[eql?]、hash 函数 @racket[hash1] 和 @racket[hash2] 以及谓词 @racket[elem?] 创建一个新的集合类型。新的集合类型有不可变、强保留元素的可变以及弱保留元素的可变这三种变体。给定的 @racket[name] 在打印新集合类型的实例时使用，符号 @racket[who] 用于报告错误。
+Creates a new set type based on the given comparison function @racket[eql?],
+hash functions @racket[hash1] and @racket[hash2], and predicate @racket[elem?].
+The new set type has variants that are immutable, mutable with strongly-held
+elements, and mutable with weakly-held elements.  The given @racket[name] is
+used when printing instances of the new set type, and the symbol @racket[who]
+is used for reporting errors.
 
-比较函数 @racket[eql?] 可以接受 2 或 3 个参数。如果它接受 2 个参数，则给它两个元素进行比较。如果它接受 3 个参数且不接受 2 个参数，则还会给它一个递归比较函数，用于在比较元素的子部分时处理数据循环。
+The comparison function @racket[eql?] may accept 2 or 3 arguments.  If it
+accepts 2 arguments, it given two elements to compare them.  If it accepts 3
+arguments and does not accept 2 arguments, it is also given a recursive
+comparison function that handles data cycles when comparing sub-parts of the
+elements.
 
-hash 函数 @racket[hash1] 和 @racket[hash2] 可以接受 1 或 2 个参数。如果任一 hash 函数接受 1 个参数，则将其应用于元素以计算相应的 hash value。如果任一 hash 函数接受 2 个参数且不接受 1 个参数，则还会给它一个递归 hash 函数，用于在计算元素子部分的 hash values 时处理数据循环。
+The hash functions @racket[hash1] and @racket[hash2] may accept 1 or 2
+arguments.  If either hash function accepts 1 argument, it is applied to a
+element to compute the corresponding hash value.  If either hash function
+accepts 2 arguments and does not accept 1 argument, it is also given a
+recursive hash function that handles data cycles when computing hash values of
+sub-parts of the elements.
 
-谓词 @racket[elem?] 必须接受 1 个参数，用于识别新集合类型的有效元素。
+The predicate @racket[elem?] must accept 1 argument and is used to recognize
+valid elements for the new set type.
 
-生成七个值：
+Produces seven values:
 
 @itemize[
-@item{一个识别新集合类型所有实例的谓词，}
-@item{一个识别弱实例的谓词，}
-@item{一个识别可变实例的谓词，}
-@item{一个识别不可变实例的谓词，}
-@item{一个弱实例的构造函数，}
-@item{一个可变实例的构造函数，以及}
-@item{一个不可变实例的构造函数。}
+@item{a predicate recognizing all instances of the new set type,}
+@item{a predicate recognizing weak instances,}
+@item{a predicate recognizing mutable instances,}
+@item{a predicate recognizing immutable instances,}
+@item{a constructor for weak instances,}
+@item{a constructor for mutable instances, and}
+@item{a constructor for immutable instances.}
 ]
 
-示例参见 @racket[define-custom-set-types]。
+See @racket[define-custom-set-types] for an example.
 
 }
 

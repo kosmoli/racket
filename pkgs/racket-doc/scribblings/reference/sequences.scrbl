@@ -15,15 +15,19 @@
    @elem{See @racket[for] for information on the reachability of @|what| elements
          during an iteration.})
 
-@title[#:style 'toc #:tag "sequences+streams"]{序列与流}
+@title[#:style 'toc #:tag "sequences+streams"]{Sequences and Streams}
 
-@tech{序列}和@tech{流}抽象了集合中元素的迭代。序列支持通过@racket[for]宏或诸如@racket[sequence-map]之类的序列操作进行迭代。
-流是函数式序列，既可以通过通用方式使用，也可以通过特定于流的方式使用。@tech{生成器}是紧密相关的有状态对象，可以转换为序列，反之亦然。
+@tech{Sequences} and @tech{streams} abstract over iteration of elements in a
+collection. Sequences allow iteration with @racket[for] macros or with sequence
+operations such as @racket[sequence-map]. Streams are functional sequences that
+can be used either in a generic way or a stream-specific way. @tech{Generators}
+are closely related stateful objects that can be converted to a sequence and
+vice-versa.
 
 @local-table-of-contents[]
 
 @; ======================================================================
-@section[#:tag "sequences"]{序列}
+@section[#:tag "sequences"]{Sequences}
 
 @(define sequence-evaluator
    (let ([evaluator (make-base-eval)])
@@ -33,10 +37,14 @@
 
 @guideintro["sequences"]{sequences}
 
-@deftech{序列}封装了一个有序的值集合。序列的元素可以通过@racket[for]语法形式、
-@racket[sequence-generate]返回的过程或通过将序列转换为@tech{流}来提取。
+A @deftech{sequence} encapsulates an ordered collection of values.
+The elements of a sequence can be extracted with one of the
+@racket[for] syntactic forms, with the procedures returned by
+@racket[sequence-generate], or by converting the sequence into a
+@tech{stream}.
 
-序列数据类型与许多其他数据类型有重叠。在内置数据类型中，序列数据类型包括以下内容：
+The sequence datatype overlaps with many other datatypes.  Among
+built-in datatypes, the sequence datatype includes the following:
 
 @itemize[
 
@@ -68,15 +76,24 @@
 
 ]
 
-作为非负@tech{integer}的@tech{exact number} @racket[_k]充当类似于@racket[(in-range _k)]的序列，
-不同之处在于@racket[_k]本身不是一个@tech{stream}。
+An @tech{exact number} @racket[_k] that is a non-negative
+@tech{integer} acts as a sequence similar to @racket[(in-range _k)],
+except that @racket[_k] by itself is not a @tech{stream}.
 
-可以使用结构类型属性定义自定义序列。定义自定义序列的最简单方法是使用@racket[gen:stream] @tech{generic interface}。
-流是对可直接迭代的数据结构的一种合适的抽象。例如，列表可以通过@racket[first]和@racket[rest]直接迭代。
-另一方面，向量不能直接迭代：迭代必须通过索引进行。对于不能直接迭代的数据结构，可以将数据结构的@deftech{iterator}定义为流
-（例如，包含向量索引的结构）。
+Custom sequences can be defined using structure type properties.  The
+easiest method to define a custom sequence is to use the
+@racket[gen:stream] @tech{generic interface}. Streams are a suitable
+abstraction for data structures that are directly iterable.  For
+example, a list is directly iterable with @racket[first] and
+@racket[rest]. On the other hand, vectors are not directly iterable:
+iteration has to go through an index. For data structures that are not
+directly iterable, the @deftech{iterator} for the data structure can
+be defined to be a stream (e.g., a structure containing the index of a
+vector).
 
-例如，展开的链表（表示为向量的列表）本身不符合流抽象，但具有可以表示为流的基于索引的迭代器：
+For example, unrolled linked lists (represented as a list of vectors)
+themselves do not fit the stream abstraction, but have index-based
+iterators that can be represented as streams:
 
 @examples[#:eval sequence-evaluator
   (struct unrolled-list-iterator (idx lst)
@@ -108,16 +125,27 @@
   (for/list ([x ul1]) x)
 ]
 
-@racket[prop:sequence]属性在指定迭代方面提供了更大的灵活性，例如当需要预处理步骤来准备迭代数据时。
-@racket[make-do-sequence]函数根据给定的thunk（返回实现序列的过程）来创建序列，
-而@racket[prop:sequence]属性可以与结构类型关联，以实现其隐式转换为序列。
+The @racket[prop:sequence] property provides more flexibility in
+specifying iteration, such as when a pre-processing step is needed to
+prepare the data for iteration.  The @racket[make-do-sequence]
+function creates a sequence given a thunk that returns procedures to
+implement a sequence, and the @racket[prop:sequence] property can be
+associated with a structure type to implement its implicit conversion
+to a sequence.
 
-对于大多数序列类型，从序列中提取元素不会对原始序列值产生副作用；例如，从列表中提取元素序列不会改变列表。
-对于其他序列类型，每次提取都意味着副作用；例如，从端口提取字节序列会导致从端口读取字节。
-@elemtag["sequence-state"]{序列}的状态可能跨越该序列的所有使用（如端口），也可能仅限于每次通过@racket[for]形式、
-@racket[sequence->stream]、@racket[sequence-generate]或@racket[sequence-generate*] @deftech{initiate}该序列的独立时刻。
-具体来说，传递给@racket[make-do-sequence]的thunk在每次使用序列时被调用来@tech{initiate}该序列。
-因此，不同的序列在被多次@tech{initiate}时行为不同。
+For most sequence types, extracting elements from a sequence has no
+side-effect on the original sequence value; for example, extracting
+the sequence of elements from a list does not change the list.  For
+other sequence types, each extraction implies a side effect; for
+example, extracting the sequence of bytes from a port causes the bytes
+to be read from the port. @elemtag["sequence-state"]{A} sequence's state may either span all uses
+of the sequence, as for a port, or it may be confined to each distinct
+time that a sequence is @deftech{initiate}d by a @racket[for] form,
+@racket[sequence->stream], @racket[sequence-generate], or
+@racket[sequence-generate*]. Concretely, the thunk passed to
+@racket[make-do-sequence] is called to @tech{initiate} the sequence
+each time the sequence is used. Accordingly, different sequences behave
+differently when they are @tech{initiate}d multiple times.
 
 @examples[#:eval sequence-evaluator
           #:label #f
@@ -132,7 +160,9 @@
           (double-initiate (list 97 98 99 100))
           (double-initiate (in-naturals 97))]
 
-此外，序列中的后续元素可能仅通过调用@racket[sequence-generate]的第一个结果就被"消费"了，即使第二个结果从未被调用。
+Also, subsequent elements in a sequence may be ``consumed'' just by calling the
+first result of @racket[sequence-generate], even if the second
+result is never called.
 
 @examples[#:eval sequence-evaluator
           #:label #f
@@ -147,15 +177,20 @@
 
           (double-initiate-and-use-more? (open-input-string "abcdef"))]
 
-在此示例中，第一次调用@racket[sequence-generate]中嵌入的状态仅通过调用@racket[_more?.1]就"获取"了@racket[98]。
+In this example, the state embedded in the first call to @racket[sequence-generate]
+``takes'' the @racket[98] just by virtue of the invocation of @racket[_more?.1].
 
-序列的单个元素通常对应单个值，但一个元素也可能对应多个值。例如，哈希表为序列中的每个元素生成两个值——一个键和它的值。
+Individual elements of a sequence typically correspond to single
+values, but an element may also correspond to multiple values.  For
+example, a hash table generates two values---a key and its value---for
+each element in the sequence.
 
 @; ----------------------------------------------------------------------
-@subsection{序列谓词与构造函数}
+@subsection{Sequence Predicate and Constructors}
 
 @defproc[(sequence? [v any/c]) boolean?]{
-  如果@racket[v]可以用作@tech{sequence}，则返回@racket[#t]，否则返回@racket[#f]。
+  Returns @racket[#t] if @racket[v] can be used as a @tech{sequence},
+  @racket[#f] otherwise.
 
 @examples[#:eval sequence-evaluator
   (sequence? 42)
@@ -165,9 +200,14 @@
 
 @defproc*[([(in-range [end real?]) stream?]
            [(in-range [start real?] [end real?] [step real? 1]) stream?])]{
-  返回一个序列（也是@tech{stream}），其元素为数字。单参数情况@racket[(in-range end)]等效于@racket[(in-range 0 end 1)]。
-序列中的第一个数字是@racket[start]，后续每个元素通过将@racket[step]加到前一个元素来生成。
-如果@racket[step]为非负数，序列在遇到大于等于@racket[end]的元素之前停止；如果@racket[step]为负数，在遇到小于等于@racket[end]的元素之前停止。  @speed[in-range "number"]
+  Returns a sequence (that is also a @tech{stream}) whose elements are
+  numbers.  The single-argument case @racket[(in-range end)] is
+  equivalent to @racket[(in-range 0 end 1)].  The first number in the
+  sequence is @racket[start], and each successive element is generated
+  by adding @racket[step] to the previous element.  The sequence stops
+  before an element that would be greater or equal to @racket[end] if
+  @racket[step] is non-negative, or less or equal to @racket[end] if
+  @racket[step] is negative.  @speed[in-range "number"]
 
 
   @examples[#:label "Example: gaussian sum" #:eval sequence-evaluator
@@ -177,12 +217,16 @@
   @examples[#:label "Example: sum of even numbers" #:eval sequence-evaluator
     (for/sum ([x (in-range 0 100 2)]) x)]
 
-  当@racket[step]为零时，@racket[in-range]返回一个无限序列。当@racket[step]是一个非常小的数，并且@racket[step]或序列元素是浮点数时，它也可能返回无限序列。
+  When given zero as @racket[step], @racket[in-range] returns an infinite
+  sequence. It may also return infinite sequences when @racket[step] is a very
+  small number, and either @racket[step] or the sequence elements are
+  floating-point numbers.
 }
 
 @defproc[(in-inclusive-range [start real?] [end real?] [step real? 1]) stream?]{
 
-  类似于@racket[in-range]，但序列停止条件改为允许最后一个元素等于@racket[end]。 @speed[in-inclusive-range "number"]
+  Similar to @racket[in-range], but the sequence stopping condition is changed so that
+  the last element is allowed to be equal to @racket[end]. @speed[in-inclusive-range "number"]
 
   @examples[#:eval sequence-evaluator
     (sequence->list (in-inclusive-range 7 11))
@@ -195,7 +239,9 @@
 
 
 @defproc[(in-naturals [start exact-nonnegative-integer? 0]) stream?]{
-  返回一个精确整数的无限序列（也是@tech{stream}），从@racket[start]开始，每个元素比前一个元素大1。  @speed[in-naturals "integer"]
+  Returns an infinite sequence (that is also a @tech{stream}) of exact
+  integers starting with @racket[start], where each element is one
+  more than the preceding element.  @speed[in-naturals "integer"]
 
   @examples[#:eval sequence-evaluator
     (for/list ([k (in-naturals)]
@@ -205,7 +251,8 @@
 
 
 @defproc[(in-list [lst list?]) stream?]{
-  返回一个序列（也是@tech{stream}），等效于直接将@racket[lst]用作序列。
+  Returns a sequence (that is also a @tech{stream}) that is equivalent
+  to using @racket[lst] directly as a sequence.
   @info-on-seq["pairs" "lists"]
   @speed[in-list "list"]
   @for-element-reachability["list"]
@@ -218,8 +265,10 @@
 
 
 @defproc[(in-mlist [mlst mlist?]) sequence?]{
-  返回一个等效于@racket[mlst]的序列。虽然期望@racket[mlst]是@tech{mutable list}，但@racket[in-mlist]
-最初只检查@racket[mlst]是否为@tech{mutable pair}或@racket[null]，因为它可能在迭代期间发生变化。
+  Returns a sequence equivalent to @racket[mlst]. Although the
+  expectation is that @racket[mlst] is @tech{mutable list}, @racket[in-mlist]
+  initially checks only whether @racket[mlst] is a @tech{mutable pair} or @racket[null],
+  since it could change during iteration.
   @info-on-seq["mpairs" "mutable lists"]
   @speed[in-mlist "mutable list"]
 
@@ -233,15 +282,25 @@
                     [stop (or/c exact-integer? #f) #f]
                     [step (and/c exact-integer? (not/c zero?)) 1])
          sequence?]{
-  当未提供可选参数时，返回一个等效于@racket[vec]的序列。
+  Returns a sequence equivalent to @racket[vec] when no optional
+  arguments are supplied.
 
-@info-on-seq["vectors" "vectors"]
+  @info-on-seq["vectors" "vectors"]
 
-可选参数@racket[start]、@racket[stop]和@racket[step]类似于@racket[in-range]，不同之处在于@racket[stop]的@racket[#f]值等效于@racket[(vector-length vec)]。
-也就是说，序列中的第一个元素是@racket[(vector-ref vec start)]，后续每个元素通过将@racket[step]加到前一个元素的索引来生成。
-如果@racket[step]为非负数，序列在索引大于等于@racket[end]之前停止；如果@racket[step]为负数，在索引小于等于@racket[end]之前停止。
+  The optional arguments @racket[start], @racket[stop], and
+  @racket[step] are analogous to @racket[in-range], except that a
+  @racket[#f] value for @racket[stop] is equivalent to
+  @racket[(vector-length vec)].  That is, the first element in the
+  sequence is @racket[(vector-ref vec start)], and each successive
+  element is generated by adding @racket[step] to index of the
+  previous element.  The sequence stops before an index that would be
+  greater or equal to @racket[end] if @racket[step] is non-negative,
+  or less or equal to @racket[end] if @racket[step] is negative.
 
-如果@racket[start]不是有效索引，则@exnraise[exn:fail:contract]，除非@racket[start]、@racket[stop]和@racket[(vector-length vec)]相等，此时结果为空序列。
+  If @racket[start] is not a valid index, then the
+  @exnraise[exn:fail:contract], except when @racket[start], @racket[stop], and
+  @racket[(vector-length vec)] are equal, in which case the result is an
+  empty sequence.
 
   @examples[#:eval sequence-evaluator
             (for ([x (in-vector (vector 1) 1)]) x)
@@ -249,10 +308,14 @@
             (for ([x (in-vector (vector) 0 0)]) x)
             (for ([x (in-vector (vector 1) 1 1)]) x)]
 
-  如果@racket[stop]不在[-1, @racket[(vector-length vec)]]范围内，则@exnraise[exn:fail:contract]。
+  If @racket[stop] is not in [-1, @racket[(vector-length vec)]],
+  then the @exnraise[exn:fail:contract].
 
-如果@racket[start]小于@racket[stop]且@racket[step]为负数，则@exnraise[exn:fail:contract]。
-类似地，如果@racket[start]大于@racket[stop]且@racket[step]为正数，则@exnraise[exn:fail:contract]。
+  If @racket[start] is less than
+  @racket[stop] and @racket[step] is negative, then the
+  @exnraise[exn:fail:contract].  Similarly, if @racket[start]
+  is more than @racket[stop] and @racket[step] is positive, then the
+  @exnraise[exn:fail:contract].
 
   @speed[in-vector "vector"]
 
@@ -270,11 +333,13 @@
                     [stop (or/c exact-integer? #f) #f]
                     [step (and/c exact-integer? (not/c zero?)) 1])
          sequence?]{
-  当未提供可选参数时，返回一个等效于@racket[str]的序列。
+  Returns a sequence equivalent to @racket[str] when no optional
+  arguments are supplied.
 
-@info-on-seq["strings" "strings"]
+  @info-on-seq["strings" "strings"]
 
-可选参数@racket[start]、@racket[stop]和@racket[step]与@racket[in-vector]中的相同。
+  The optional arguments @racket[start], @racket[stop], and
+  @racket[step] are as in @racket[in-vector].
 
   @speed[in-string "string"]
 
@@ -290,11 +355,13 @@
                    [stop (or/c exact-integer? #f) #f]
                    [step (and/c exact-integer? (not/c zero?)) 1])
          sequence?]{
-  当未提供可选参数时，返回一个等效于@racket[bstr]的序列。
+  Returns a sequence equivalent to @racket[bstr] when no optional
+  arguments are supplied.
 
-@info-on-seq["bytestrings" "byte strings"]
+  @info-on-seq["bytestrings" "byte strings"]
 
-可选参数@racket[start]、@racket[stop]和@racket[step]与@racket[in-vector]中的相同。
+  The optional arguments @racket[start], @racket[stop], and
+  @racket[step] are as in @racket[in-vector].
 
   @speed[in-bytes "byte string"]
 
@@ -309,37 +376,45 @@
 @defproc[(in-port [r (input-port? . -> . any/c) read]
                   [in input-port? (current-input-port)])
          sequence?]{
-  返回一个序列，其元素通过调用@racket[r]处理@racket[in]来产生，直到产生@racket[eof]为止。}
+  Returns a sequence whose elements are produced by calling @racket[r]
+  on @racket[in] until it produces @racket[eof].}
 
 @defproc[(in-input-port-bytes [in input-port?]) sequence?]{
-  返回一个等效于@racket[(in-port read-byte in)]的序列。}
+  Returns a sequence equivalent to @racket[(in-port read-byte in)].}
 
 @defproc[(in-input-port-chars [in input-port?]) sequence?]{
-  返回一个序列，其元素以字符形式从@racket[in]读取（等效于@racket[(in-port read-char in)]）。}
+  Returns a sequence whose elements are read as characters from
+  @racket[in] (equivalent to @racket[(in-port read-char in)]).}
 
 @defproc[(in-lines [in input-port? (current-input-port)]
                    [mode (or/c 'linefeed 'return 'return-linefeed 'any 'any-one) 'any])
          sequence?]{
-  返回一个等效于@racket[(in-port (lambda (p) (read-line p mode)) in)]的序列。
-请注意，默认模式是@racket['any]，而@racket[read-line]的默认模式是@racket['linefeed]。}
+  Returns a sequence equivalent to
+  @racket[(in-port (lambda (p) (read-line p mode)) in)].  Note that
+  the default mode is @racket['any], whereas the default mode of
+  @racket[read-line] is @racket['linefeed].}
 
 @defproc[(in-bytes-lines [in input-port? (current-input-port)]
                          [mode (or/c 'linefeed 'return 'return-linefeed 'any 'any-one) 'any])
          sequence?]{
-  返回一个等效于@racket[(in-port (lambda (p) (read-bytes-line p mode)) in)]的序列。
-请注意，默认模式是@racket['any]，而@racket[read-bytes-line]的默认模式是@racket['linefeed]。}
+  Returns a sequence equivalent to
+  @racket[(in-port (lambda (p) (read-bytes-line p mode)) in)].  Note
+  that the default mode is @racket['any], whereas the default mode of
+  @racket[read-bytes-line] is @racket['linefeed].}
 
 @defproc*[([(in-hash [hash hash?]) sequence?]
            [(in-hash [hash hash?] [bad-index-v any/c]) sequence?])]{
-  返回一个等效于@racket[hash]的序列，除非提供了@racket[bad-index-v]。
+  Returns a sequence equivalent to @racket[hash], except when @racket[bad-index-v]
+  is supplied.
 
-与@racket[hash-map]类似，通过@racket[in-hash]进行的迭代可以适应遍历进行中对可变哈希表的某些修改。
-遍历线程删除或重映射的键不会产生即时的不良影响；如果该键已被遍历到，则修改不会影响遍历，否则遍历会跳过已删除的键或使用重映射键的新值。
-
-其他并发修改，包括由不同线程删除键，可能导致条目被跳过，或者如果预期条目的键在其键或值可获取之前被删除，则引发异常。
-如果提供了@racket[bad-index-v]，则在@racket[hash]被并发修改导致迭代没有@tech{valid hash index}的情况下，@racket[bad-index-v]将作为键和值返回。
-当遍历具有弱引用键的哈希表时，提供@racket[bad-index-v]特别有用，因为条目可以被异步删除
-（即在@racket[in-hash]已承诺进行下一次迭代之后，但在它可以访问下一次迭代的条目之前）。
+  If @racket[bad-index-v] is supplied, then @racket[bad-index-v] is
+  returned as both the key and the value in the case that the
+  @racket[hash] is modified concurrently so that iteration does not have a
+  @tech{valid hash index}. Providing @racket[bad-index-v] is particularly
+  useful when iterating through a hash table with weakly held keys, since
+  entries can be removed asynchronously (i.e., after @racket[in-hash] has
+  committed to another iteration, but before it can access the entry for the
+  next iteration).
 
   @examples[
     (define table (hash 'a 1 'b 2))
@@ -348,55 +423,50 @@
 
   @info-on-seq["hashtables" "hash tables"]
 
-  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}
-           #:changed "8.18.0.11" @elem{Strengthened the guarantees about traversal with
-                                       same-thread modifications to a mutable hash table.}]}
+  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
 
 @defproc*[([(in-hash-keys [hash hash?]) sequence?]
            [(in-hash-keys [hash hash?] [bad-index-v any/c]) sequence?])]{
-  返回一个序列，其元素是@racket[hash]的键，以与@racket[in-hash]相同的方式使用@racket[bad-index-v]，
-并具有与@racket[in-hash]类似的并发修改保证。
+  Returns a sequence whose elements are the keys of @racket[hash], using
+  @racket[bad-index-v] in the same way as @racket[in-hash].
 
   @examples[
     (define table (hash 'a 1 'b 2))
     (for ([key (in-hash-keys table)])
       (printf "key: ~a\n" key))]
 
-  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}
-           #:changed "8.18.0.11" @elem{Strengthened the guarantees about traversal with
-                                       same-thread modifications to a mutable hash table.}]}
+  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
 
 @defproc*[([(in-hash-values [hash hash?]) sequence?]
            [(in-hash-values [hash hash?] [bad-index-v any/c]) sequence?])]{
-  返回一个序列，其元素是@racket[hash]的值，以与@racket[in-hash]相同的方式使用@racket[bad-index-v]，
-并具有与@racket[in-hash]类似的并发修改保证。
+  Returns a sequence whose elements are the values of @racket[hash], using
+  @racket[bad-index-v] in the same way as @racket[in-hash].
 
   @examples[
     (define table (hash 'a 1 'b 2))
     (for ([value (in-hash-values table)])
       (printf "value: ~a\n" value))]
 
-  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}
-           #:changed "8.18.0.11" @elem{Strengthened the guarantees about traversal with
-                                       same-thread modifications to a mutable hash table.}]}
+  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
 
 @defproc*[([(in-hash-pairs [hash hash?]) sequence?]
            [(in-hash-pairs [hash hash?] [bad-index-v any/c]) sequence?])]{
-  返回一个序列，其元素为pair，每个pair包含来自@racket[hash]的键及其值（而不是直接将@racket[hash]用作序列，
-为每个元素分别获取键和值）。
+  Returns a sequence whose elements are pairs, each containing a key
+  and its value from @racket[hash] (as opposed to using @racket[hash]
+  directly as a sequence to get the key and value as separate values
+  for each element).
 
-如果提供了@racket[bad-index-v]参数，其使用方式与@racket[in-hash]相同。当遇到无效索引时，
-序列中的pair将以@racket[bad-index-v]同时作为其@racket[car]和@racket[cdr]。
-@racket[in-hash-pairs]的并发修改保证与@racket[in-hash]类似。
+  The @racket[bad-index-v] argument, if supplied, is used in the same
+  way as by @racket[in-hash]. When an invalid index is encountered,
+  the pair in the sequence with have @racket[bad-index-v] as both its
+  @racket[car] and @racket[cdr].
 
   @examples[
     (define table (hash 'a 1 'b 2))
     (for ([key+value (in-hash-pairs table)])
       (printf "key and value: ~a\n" key+value))]
 
-  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}
-           #:changed "8.18.0.11" @elem{Strengthened the guarantees about traversal with
-                                       same-thread modifications to a mutable hash table.}]}
+  @history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
 
 @deftogether[(
 @defproc[(in-mutable-hash
@@ -512,29 +582,40 @@
           [hash (and/c hash? hash-ephemeron?)] [bad-index-v any/c])
 	  sequence?]
 )]{
-   针对特定类型哈希表的序列构造函数。这些可能比类似的@racket[in-hash]形式性能更好。
+   Sequence constructors for specific kinds of hash tables.
+   These may perform better than the analogous @racket[in-hash]
+   forms.
 
    @history[#:added "6.4.0.6"
             #:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}
-            #:changed "8.0.0.10" @elem{Added @schemeidfont{ephemeron} variants.}]
+         #:changed "8.0.0.10" @elem{Added @schemeidfont{ephemeron} variants.}]
 }
 
 
 @defproc[(in-directory [dir (or/c #f path-string?) #f]
                        [use-dir? ((and/c path? complete-path?) . -> . any/c)
                                  (lambda (dir-path) #t)])
-         (sequence/c path?)]{
-  返回一个序列，生成@racket[dir]内所有文件、目录和链接的路径，但不包括@racket[use-dir?]返回@racket[#f]的任何目录的内容。
-如果@racket[dir]不是@racket[#f]，则生成的每个路径都以@racket[dir]为前缀。
-如果@racket[dir]是@racket[#f]，则生成当前目录内和相对于当前目录的路径。
+         sequence?]{
+  Returns a sequence that produces all of the paths for files,
+  directories, and links within @racket[dir], except for the
+  contents of any directory for which @racket[use-dir?] returns
+  @racket[#f]. If @racket[dir] is not
+  @racket[#f], then every produced path starts with @racket[dir] as
+  its prefix.  If @racket[dir] is @racket[#f], then paths in and
+  relative to the current directory are produced.
 
-@racket[in-directory]序列递归遍历嵌套子目录（通过@racket[use-dir?]过滤）。
-要生成仅包含目录直接内容的序列，请将@racket[directory-list]的结果用作序列。
+  An @racket[in-directory] sequence traverses nested subdirectories
+  recursively (filtered by @racket[use-dir?]).
+  To generate a sequence that includes only the immediate
+  content of a directory, use the result of @racket[directory-list] as
+  a sequence.
 
-每个目录的直接内容按@racket[path<?]排序报告，子目录的内容在该目录内后续路径之前报告。
+  The immediate content of each directory is reported as sorted by
+  @racket[path<?], and the content of a subdirectory is reported
+  before subsequent paths within the directory.
 
   @examples[
-    (eval:alts (current-directory (path-only (collection-file-path "main.rkt" "info")))
+    (eval:alts (current-directory (collection-path "info"))
                (void))
     (eval:alts (for/list ([f (in-directory)])
                   f)
@@ -544,12 +625,16 @@
                                    "main.rkt")))
     (eval:alts (for/list ([f (in-directory "compiled")])
                  f)
+               (map string->path '("main_rkt.dep"
+                                   "main_rkt.zo")))
+    (eval:alts (for/list ([f (in-directory "compiled")])
+                 f)
                (map string->path '("compiled/main_rkt.dep"
                                    "compiled/main_rkt.zo")))
     (eval:alts (for/list ([f (in-directory #f (lambda (p)
                                                 (not (regexp-match? #rx"compiled" p))))])
                   f)
-               (map string->path '("compiled" "main.rkt")))
+               (map string->path '("main.rkt" "compiled")))
   ]
 
 @history[#:changed "6.0.0.1" @elem{Added @racket[use-dir?] argument.}
@@ -560,14 +645,22 @@
             sequence?]
            [(in-producer [producer procedure?] [stop any/c] [arg any/c] ...)
             sequence?])]{
-  返回一个序列，包含对@racket[producer]的顺序调用所产生的值，该过程通常使用某些状态来完成其工作。
+  Returns a sequence that contains values from sequential calls to
+  @racket[producer], which would usually use some state to do its work.
 
-如果未给出@racket[stop]值，序列将无限进行，因此通常与有限序列或使用@racket[#:break]等一起使用。
-如果给出@racket[stop]值，则用于标识标记序列结束的值（该@racket[stop]值不包含在序列中）；
-@racket[stop]可以是一个谓词，应用于@racket[producer]的结果，或者可以是一个通过@racket[eq?]与结果比较的值。
-（如果停止值本身是函数或@racket[producer]返回多个值，则@racket[stop]参数必须是一个谓词。）
+  If a @racket[stop] value is not given, the sequence goes on
+  infinitely, and therefore it is common to use it with a finite sequence
+  or using @racket[#:break] etc.  If a @racket[stop] value is given, it
+  is used to identify a value that marks the end of the sequence (and
+  the @racket[stop] value is not included in the sequence);
+  @racket[stop] can be a predicate that is applied to the results of
+  @racket[producer], or it can be a value that is tested against the
+  result of with @racket[eq?].  (The @racket[stop] argument must be a
+  predicate if the stop value is itself a function or if
+  @racket[producer] returns multiple values.)
 
-如果指定了额外的@racket[arg]，它们会传递给每次对@racket[producer]的调用。
+  If additional @racket[arg]s are specified, they are passed to every
+  call to @racket[producer].
 
   @examples[
     (define (counter)
@@ -581,14 +674,18 @@
 }
 
 @defproc[(in-value [v any/c]) sequence?]{
-  返回一个产生单个值@racket[v]的序列。
+  Returns a sequence that produces a single value: @racket[v].
 
-此形式主要用于类似@racket[for*/list]等形式中的@racket[let]式绑定——但最近添加的@racket[#:do]子句形式涵盖了许多相同的用途。
+  This form is mostly useful for @racket[let]-like bindings in forms
+  such as @racket[for*/list]---but a @racket[#:do] clause form, added
+  more recently, covers many of the same uses.
 }
 
 @defproc[(in-indexed [seq sequence?]) sequence?]{
-  返回一个序列，其中每个元素有两个值：由@racket[seq]产生的值，以及从@racket[0]开始的非负精确整数。
-@racket[seq]的元素必须是单值的。
+  Returns a sequence where each element has two values: the value
+  produced by @racket[seq], and a non-negative exact integer starting
+  with @racket[0].  The elements of @racket[seq] must be
+  single-valued.
   
   @(examples
     #:eval sequence-evaluator
@@ -597,42 +694,55 @@
 }
 
 @defproc[(in-sequences [seq sequence?] ...) sequence?]{
-  返回一个由所有输入序列依次组成的序列。每个@racket[seq]仅在前一个@racket[seq]耗尽后才被@tech{initiate}。
-如果只提供一个@racket[seq]，则返回@racket[seq]；否则，每个@racket[seq]的元素必须具有相同数量的值。}
+  Returns a sequence that is made of all input sequences, one after
+  the other. Each @racket[seq] is @tech{initiate}d only after the
+  preceding @racket[seq] is exhausted. If a single @racket[seq] is
+  provided, then @racket[seq] is returned; otherwise, the elements of
+  each @racket[seq] must all have the same number of values.}
 
 @defproc[(in-cycle [seq sequence?] ...) sequence?]{
-  类似于@racket[in-sequences]，但序列以无限循环重复，其中每个@racket[seq]在每次迭代中都被重新@tech{initiate}。
-注意，如果未提供@racket[seq]或所有@racket[seq]变为空，则@racket[in-cycle]生成的序列在要求元素时永远不会返回——
-甚至在序列被@tech{initiate}时（如果所有@racket[seq]最初为空）也不会返回。}
+  Similar to @racket[in-sequences], but the sequences are repeated in
+  an infinite cycle, where each @racket[seq] is @tech{initiate}d
+  afresh in each iteration. Beware that if no @racket[seq]s are
+  provided or if all @racket[seq]s become empty, then the sequence
+  produced by @racket[in-cycle] never returns when an element is
+  demanded---or even when the sequence is @tech{initiate}d, if all
+  @racket[seq]s are initially empty.}
 
 @defproc[(in-parallel [seq sequence?] ...) sequence?]{
-  返回一个序列，其中每个元素的值数量与提供的@racket[seq]数量相同；这些值依次是每个@racket[seq]的值。
-每个@racket[seq]的元素必须是单值的。}
-
-@defproc[(in-parallel-values [n exact-nonnegative-integer?] [seq sequence?] ... ...) sequence?]{
-  返回一个序列，其中每个元素的值数量是提供的@racket[seq]产生的值数量的总和，
-每个@racket[seq]前面都有其产生值的数量@racket[n]（因此结果值的数量是@racket[n]的总和）。
-新序列的值依次是每个@racket[seq]的值。
-
-  @history[#:added "9.0.0.2"]}
+  Returns a sequence where each element has as many values as the
+  number of supplied @racket[seq]s; the values, in order, are the
+  values of each @racket[seq].  The elements of each @racket[seq] must
+  be single-valued.}
 
 @defproc[(in-values-sequence [seq sequence?]) sequence?]{
-  返回一个类似于@racket[seq]的序列，但它将@racket[seq]每个元素的多个值组合为元素列表。}
+  Returns a sequence that is like @racket[seq], but it combines
+  multiple values for each element from @racket[seq] as a list of
+  elements.}
 
 @defproc[(in-values*-sequence [seq sequence?]) sequence?]{
-  返回一个类似于@racket[seq]的序列，但当@racket[seq]的元素有多个值或单个列表值时，这些值会被组合成列表。
-换句话说，@racket[in-values*-sequence]类似于@racket[in-values-sequence]，
-不同之处在于非列表的单值元素不会被包装在列表中。
+  Returns a sequence that is like @racket[seq], but when an element of
+  @racket[seq] has multiple values or a single list value, then the
+  values are combined in a list. In other words,
+  @racket[in-values*-sequence] is like @racket[in-values-sequence],
+  except that non-list, single-valued elements are not wrapped in a
+  list.
 }
 
 @defproc[(stop-before [seq sequence?] [pred (any/c . -> . any)])
          sequence?]{
-  返回一个包含@racket[seq]元素的序列（必须是单值的），但只到对元素应用@racket[pred]产生@racket[#t]的最后一个元素之前，此后序列结束。
+  Returns a sequence that contains the elements of @racket[seq] (which
+  must be single-valued), but only until the last element for which
+  applying @racket[pred] to the element produces @racket[#t], after
+  which the sequence ends.
 }
 
 @defproc[(stop-after [seq sequence?] [pred (any/c . -> . any)])
          sequence?]{
-  返回一个包含@racket[seq]元素的序列（必须是单值的），但只到对元素应用@racket[pred]产生@racket[#t]的那个元素（含），此后序列结束。
+  Returns a sequence that contains the elements of @racket[seq] (which
+  must be single-valued), but only until the element (inclusive) for
+  which applying @racket[pred] to the element produces @racket[#t],
+  after which the sequence ends.
 }
 
 @defproc[(make-do-sequence
@@ -640,63 +750,85 @@
                                    (any/c . -> . any/c)
                                    any/c
                                    (or/c (any/c . -> . any/c) #f)
-                                   (or/c (any/c ... . -> . any/c) #f)
-                                   (or/c (any/c any/c ... . -> . any/c) #f)))
+                                   (or/c (() () #:rest list? . ->* . any/c) #f)
+                                   (or/c ((any/c) () #:rest list? . ->* . any/c) #f)))
                        (-> (values (any/c . -> . any)
                                    (or/c (any/c . -> . any/c) #f)
                                    (any/c . -> . any/c)
                                    any/c
                                    (or/c (any/c . -> . any/c) #f)
-                                   (or/c (any/c ... . -> . any/c) #f)
-                                   (or/c (any/c any/c ... . -> . any/c) #f))))])
+                                   (or/c (() () #:rest list? . ->* . any/c) #f)
+                                   (or/c ((any/c) () #:rest list? . ->* . any/c) #f))))])
          sequence?]{
-  返回一个序列，其元素根据@racket[thunk]生成。
+  Returns a sequence whose elements are generated by the procedures
+  and initial value returned by the thunk, which is called to
+  @tech{initiate} the sequence.  The initiated sequence is defined in
+  terms of a @defterm{position}, which is initialized to the third
+  result of the thunk, and the @defterm{element}, which may consist of
+  multiple values.
 
-当调用@racket[thunk]时，序列被@tech{initiate}。已初始化的序列定义为
-@defterm{position}（初始化为@racket[_init-pos]）和@defterm{element}（可能包含多个值）。
+  The @racket[thunk] results define the generated elements as follows:
+  @itemize[
+    @item{The first result is a @racket[_pos->element] procedure that
+      takes the current position and returns the value(s) for the
+      current element.}
+    @item{The optional second result is an @racket[_early-next-pos]
+      procedure that is described further below. Alternatively, the
+      optional second result can be @racket[#f], which is equivalent
+      to the identity function.}
+    @item{The third (or second) result is a @racket[_next-pos] procedure that
+      takes the current position and returns the next position.}
+    @item{The fourth (or third) result is the initial position.}
+    @item{The fifth (or fourth) result is a @racket[_continue-with-pos?] function
+      that takes the current position and returns a true result if the
+      sequence includes the value(s) for the current position, and
+      false if the sequence should end instead of including the
+      value(s). Alternatively, the fifth (or fourth) result can be @racket[#f] to
+      indicate that the sequence should always include the current
+      value(s). This function is checked on each position before
+      @racket[_pos->element] is used.}
+    @item{The sixth (or fifth) result is a @racket[_continue-with-val?] function
+      that is like the fifth (or fourth) result, but it takes the current element
+      value(s) instead of the current position.  Alternatively, the
+      sixth (or fifth) result can be @racket[#f] to indicate that the sequence
+      should always include the value(s) at the current position.}
+    @item{The seventh (or sixth) result is a @racket[_continue-after-pos+val?]
+      procedure that takes both the current position and the current
+      element value(s) and determines whether the sequence ends after
+      the current element is already included in the sequence.
+      Alternatively, the seventh (or sixth) result can be @racket[#f] to indicate
+      that the sequence can always continue after the current
+      value(s).}]
 
-@racket[thunk]过程必须返回6个或7个值。但是，请使用@racket[initiate-sequence]返回这些多值，
-而不是直接列出值。
+  The @racket[_early-next-pos] procedure, which is the optional second
+  result, takes the current position and returns an updated position.
+  This updated position is used for @racket[_next-pos] and
+  @racket[_continue-after-pos+val?], but not with
+  @racket[_continue-with-pos?] (which uses the original current
+  position). The intent of @racket[_early-next-pos] is to support a
+  sequence where the position must be incremented to avoid keeping a
+  value reachable while a loop processes the sequence value, so
+  @racket[_early-next-pos] is applied just after
+  @racket[_pos->element].
 
-  如果@racket[thunk]返回6个值：
-@itemize[
-@item{第一个结果是一个@racket[_pos->element]过程，接受当前位置并返回当前元素的值。}
-@item{第二个结果是一个@racket[_next-pos]过程，接受当前位置并返回下一个位置。}
-@item{第三个结果是一个@racket[_init-pos]值，即初始位置。}
-@item{第四个结果是一个@racket[_continue-with-pos?]函数，接受当前位置，如果序列包含当前位置的值则返回真值，
-如果序列应该结束而不包含这些值则返回假值。或者，@racket[_continue-with-pos?]可以是@racket[#f]，
-表示序列应始终包含当前值。在使用@racket[_pos->element]之前，对每个位置检查此函数。}
-@item{第五个结果是一个@racket[_continue-with-val?]函数，类似于@racket[_continue-with-pos?]，
-但它接受当前元素值作为参数而不是当前位置。或者，@racket[_continue-with-val?]可以是@racket[#f]，
-表示序列应始终包含当前位置的值。}
-@item{第六个结果是一个@racket[_continue-after-pos+val?]过程，同时接受当前位置和当前元素值，
-确定序列在当前元素已包含后是否结束。或者，@racket[_continue-after-pos+val?]可以是@racket[#f]，
-表示序列在包含当前值后可以始终继续。}]}
+  Each of the procedures listed above is called only once per
+  position.  Among the last three procedures, as soon as one of the
+  procedures returns @racket[#f], the sequence ends, and none are
+  called again.  Typically, one of the functions determines the end
+  condition, and @racket[#f] is used in place of the other two
+  functions.
 
-  如果@racket[thunk]返回7个值，第一个结果仍然是@racket[_pos->element]过程。
-但是，第二个结果现在是一个@racket[_early-next-pos]过程，下文将进一步描述。
-或者，@racket[_early-next-pos]可以是@racket[#f]，相当于恒等函数。
-其他结果的位置向后偏移一位，因此第三个结果现在是@racket[_next-pos]，第四个结果现在是@racket[_init-pos]，依此类推。
-
-@racket[_early-next-pos]过程接受当前位置并返回更新后的位置。此更新位置用于@racket[_next-pos]和@racket[_continue-after-pos+val?]，
-但不用于@racket[_continue-with-pos?]（后者使用原始当前位置）。
-@racket[_early-next-pos]的目的是支持这样一种序列：必须递增位置以避免在循环处理序列值时保持值可访问，
-因此@racket[_early-next-pos]在@racket[_pos->element]之后立即应用。
-@racket[_continue-after-pos+val?]函数需要为@racket[#f]以避免保留值来提供给该函数。
-
-  上述列出的每个过程每个位置仅调用一次。在@racket[_continue-with-pos?]、@racket[_continue-with-val?]和@racket[_continue-after-pos+val?]三个过程中，
-一旦其中一个返回@racket[#f]，序列就结束，并且不会再次调用其他过程。通常，其中一个函数确定结束条件，
-其余两个函数的位置使用@racket[#f]。
-
-@history[#:changed "6.7.0.4" @elem{Added support for the optional second result.}]
+@history[#:changed "6.7.0.4" @elem{Added support for the optional second result.}]}
 
 
 @defthing[prop:sequence struct-type-property?]{
 
-  将一个过程关联到结构类型，该过程接受结构实例并返回一个序列。如果@racket[v]是具有此属性的结构类型实例，
-则@racket[(sequence? v)]产生@racket[#t]。
+  Associates a procedure to a structure type that takes an instance of
+  the structure and returns a sequence.  If @racket[v] is an instance
+  of a structure type with this property, then @racket[(sequence? v)]
+  produces @racket[#t].
 
-使用预先存在的序列：
+  Using a pre-existing sequence:
 
   @examples[
     (struct my-set (table)
@@ -709,22 +841,20 @@
     (for/list ([c (make-set 'celeriac 'carrot 'potato)])
       c)]
 
-  使用@racket[make-do-sequence]：
+  Using @racket[make-do-sequence]:
 
   @let-syntax[([car (make-element-id-transformer
                      (lambda (id) #'@racketidfont{car}))])
     @examples[
-      (require racket/sequence)
       (struct train (car next)
         #:property prop:sequence
         (lambda (t)
           (make-do-sequence
            (lambda ()
-             (initiate-sequence
-              #:pos->element train-car
-              #:next-pos train-next
-              #:init-pos t
-              #:continue-with-pos? (lambda (t) t))))))
+             (values train-car train-next t
+                     (lambda (t) t)
+                     (lambda (v) #t)
+                     (lambda (t v) #t))))))
       (for/list ([c (train 'engine
                            (train 'boxcar
                                   (train 'caboose
@@ -732,17 +862,24 @@
         c)]]}
 
 @; ----------------------------------------------------------------------
-@subsection{序列转换}
+@subsection{Sequence Conversion}
 
 @defproc[(sequence->stream [seq sequence?]) stream?]{
-  将序列转换为@tech{stream}，后者支持@racket[stream-first]和@racket[stream-rest]操作。
-流的创建会急切地@tech{initiates}序列，但流会惰性地从序列中提取元素，缓存每个元素，
-使得每次对流应用@racket[stream-first]时产生相同的结果。
+  Coverts a sequence to a @tech{stream}, which supports the
+  @racket[stream-first] and @racket[stream-rest] operations. Creation
+  of the stream eagerly @tech{initiates} the sequence, but the stream
+  lazily draws elements from the sequence, caching each element so
+  that @racket[stream-first] produces the same result each time is
+  applied to a stream.
 
-如果从@racket[seq]提取元素涉及副作用，那么每次首次使用@racket[stream-first]或@racket[stream-rest]
-来访问或跳过元素时，该副作用都会执行。
+  If extracting an element from @racket[seq] involves a side-effect,
+  then the effect is performed each time that either
+  @racket[stream-first] or @racket[stream-rest] is first used to
+  access or skip an element.
 
-注意，@elemref["sequence-state"]{序列本身可以有状态}，因此对同一@racket[seq]多次调用@racket[sequence->stream]不一定是独立的。
+  Note that a @elemref["sequence-state"]{sequence itself can have
+  state}, so multiple calls to @racket[sequence->stream] on the same
+  @racket[seq] are not necessarily independent.
 
   @examples[
   #:eval sequence-evaluator
@@ -759,10 +896,15 @@
 
 @defproc[(sequence-generate [seq sequence?])
          (values (-> boolean?) (-> any))]{
-  @tech{Initiates}一个序列并返回两个thunk用于从序列中提取元素。第一个在序列还有更多值可用时返回@racket[#t]。
-第二个返回序列的下一个元素（可能是多个值）；如果没有更多元素可用，则@exnraise[exn:fail:contract]。
+  @tech{Initiates} a sequence and returns two thunks to extract
+  elements from the sequence.  The first returns @racket[#t] if more
+  values are available for the sequence.  The second returns the next
+  element (which may be multiple values) from the sequence; if no more
+  elements are available, the @exnraise[exn:fail:contract].
 
-注意，@elemref["sequence-state"]{序列本身可以有状态}，因此对同一@racket[seq]多次调用@racket[sequence-generate]不一定是独立的。
+  Note that a @elemref["sequence-state"]{sequence itself can have
+  state}, so multiple calls to @racket[sequence-generate] on the same
+  @racket[seq] are not necessarily independent.
 
   @examples[
   #:eval sequence-evaluator
@@ -780,98 +922,132 @@
 @defproc[(sequence-generate* [seq sequence?])
          (values (or/c list? #f)
                  (-> (values (or/c list? #f) procedure?)))]{
-  类似于@racket[sequence-generate]，但通过返回序列第一个元素的值列表——如果序列为空则返回@racket[#f]——以及一个继续序列的thunk来避免状态（除序列本身固有的状态外）；
-thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列的第二个元素，依此类推。
-如果在元素结果为@racket[#f]（表示序列中没有更多值）时调用thunk，则@exnraise[exn:fail:contract]。}
+  Like @racket[sequence-generate], but avoids state (aside from any
+  inherent in the sequence) by returning a list of values for the
+  sequence's first element---or @racket[#f] if the sequence is
+  empty---and a thunk to continue with the sequence; the result of the
+  thunk is the same as the result of @racket[sequence-generate*], but
+  for the second element of the sequence, and so on. If the thunk is
+  called when the element result is @racket[#f] (indicating no further
+  values in the sequence), the @exnraise[exn:fail:contract].}
 
 @; ----------------------------------------------------------------------
-@subsection[#:tag "more-sequences"]{额外的序列操作}
+@subsection[#:tag "more-sequences"]{Additional Sequence Operations}
 
 @note-lib[racket/sequence]
 
 @defthing[empty-sequence sequence?]{
-  一个没有元素的序列。}
+  A sequence with no elements.}
 
 @defproc[(sequence->list [s sequence?]) list?]{
-  返回一个列表，其元素是@s的元素，每个元素必须是单值。如果@s是无限的，此函数不会终止。}
+  Returns a list whose elements are the elements of @racket[s], each
+  of which must be a single value.  If @racket[s] is infinite, this
+  function does not terminate.}
 
 @defproc[(sequence-length [s sequence?])
          exact-nonnegative-integer?]{
-  通过提取并丢弃@s的所有元素来返回其元素数量。如果@s是无限的，此函数不会终止。}
+  Returns the number of elements of @racket[s] by extracting and
+  discarding all of them.  If @racket[s] is infinite, this function
+  does not terminate.}
 
 @defproc[(sequence-ref [s sequence?] [i exact-nonnegative-integer?])
          any]{
-  返回@s的第@racket[i]个元素（可能是多个值）。}
+  Returns the @racket[i]th element of @racket[s] (which may be
+  multiple values).}
 
 @defproc[(sequence-tail [s sequence?] [i exact-nonnegative-integer?])
          sequence?]{
-  返回一个等效于@s的序列，但省略了前@racket[i]个元素。
+  Returns a sequence equivalent to @racket[s], except that the first
+  @racket[i] elements are omitted.
 
-  如果@tech[#:key "initiate"]{initiating} @racket[s]涉及副作用，则在结果序列被@tech{initiate}之前不会@tech{initiate} @racket[s]，
-此时从序列中提取前@racket[i]个元素。
+  In case @tech[#:key "initiate"]{initiating} @racket[s] involves a
+  side effect, the sequence @racket[s] is not @tech{initiate}d until
+  the resulting sequence is @tech{initiate}d, at which point the first
+  @racket[i] elements are extracted from the sequence.
 }
 
 @defproc[(sequence-append [s sequence?] ...)
          sequence?]{
-  返回一个序列，按原始序列中的顺序包含每个序列的所有元素。新序列是惰性构造的。
+  Returns a sequence that contains all elements of each sequence in
+  the order they appear in the original sequences.  The new sequence
+  is constructed lazily.
 
-如果所有给定的@s都是@tech{streams}，则结果也是@tech{stream}。
+  If all given @racket[s]s are @tech{streams}, the result is also a
+  @tech{stream}.
 }
 
 @defproc[(sequence-map [f procedure?]
                        [s sequence?])
          sequence?]{
-  返回一个序列，包含对@s的每个元素应用@racket[f]的结果。新序列是惰性构造的。
+  Returns a sequence that contains @racket[f] applied to each element
+  of @racket[s].  The new sequence is constructed lazily.
 
-如果@s是@tech{stream}，则结果也是@tech{stream}。
+  If @racket[s] is a @tech{stream}, then the result is also a
+  @tech{stream}.
 }
 
 @defproc[(sequence-andmap [f (-> any/c ... boolean?)]
                           [s sequence?])
          boolean?]{
-  如果@racket[f]对@s的每个元素都返回真值结果，则返回@racket[#t]。如果@s是无限的且@racket[f]从未返回假值结果，则此函数不会终止。
+  Returns @racket[#t] if @racket[f] returns a true result on every
+  element of @racket[s].  If @racket[s] is infinite and @racket[f]
+  never returns a false result, this function does not terminate.
 }
 
 @defproc[(sequence-ormap [f (-> any/c ... boolean?)]
                          [s sequence?])
          boolean?]{
-  如果@racket[f]对@s的某个元素返回真值结果，则返回@racket[#t]。如果@s是无限的且@racket[f]从未返回真值结果，则此函数不会终止。
+  Returns @racket[#t] if @racket[f] returns a true result on some
+  element of @racket[s].  If @racket[s] is infinite and @racket[f]
+  never returns a true result, this function does not terminate.
 }
 
 @defproc[(sequence-for-each [f (-> any/c ... any)]
                             [s sequence?])
          void?]{
-  对@s的每个元素应用@racket[f]。如果@s是无限的，此函数不会终止。
+  Applies @racket[f] to each element of @racket[s].  If @racket[s] is
+  infinite, this function does not terminate.
 }
 
 @defproc[(sequence-fold [f (-> any/c any/c ... any/c)]
                         [i any/c]
                         [s sequence?])
          any/c]{
-  以@racket[i]作为初始累加器，对@s的每个元素折叠@racket[f]。如果@s是无限的，此函数不会终止。
-@racket[f]函数以累加器作为第一个参数，下一个序列元素作为第二个参数。
+  Folds @racket[f] over each element of @racket[s] with @racket[i] as
+  the initial accumulator.  If @racket[s] is infinite, this function
+  does not terminate. The @racket[f] function takes the accumulator as
+  its first argument and the next sequence element as its second.
 }
 
 @defproc[(sequence-count [f procedure?] [s sequence?])
          exact-nonnegative-integer?]{
-  返回@s中@racket[f]返回真值结果的元素数量。如果@s是无限的，此函数不会终止。
+  Returns the number of elements in @racket[s] for which @racket[f]
+  returns a true result.  If @racket[s] is infinite, this function
+  does not terminate.
 }
 
 @defproc[(sequence-filter [f (-> any/c ... boolean?)]
                           [s sequence?])
          sequence?]{
-  返回一个序列，其元素是@s中@racket[f]返回真值结果的元素。虽然新序列是惰性构造的，
-但如果@s在@racket[f]返回真值结果的两个元素之间有无限多个@racket[f]返回假值结果的元素，
-则在此无限子序列期间，对该序列的操作不会终止。
+  Returns a sequence whose elements are the elements of @racket[s] for
+  which @racket[f] returns a true result.  Although the new sequence
+  is constructed lazily, if @racket[s] has an infinite number of
+  elements where @racket[f] returns a false result in between two
+  elements where @racket[f] returns a true result, then operations on
+  this sequence will not terminate during the infinite sub-sequence.
 
-如果@s是@tech{stream}，则结果也是@tech{stream}。
+  If @racket[s] is a @tech{stream}, then the result is also a
+  @tech{stream}.
 }
 
 @defproc[(sequence-add-between [s sequence?] [e any/c])
          sequence?]{
-  返回一个序列，其元素是@s的元素，但在@s中每对元素之间有@racket[e]。新序列是惰性构造的。
+  Returns a sequence whose elements are the elements of @racket[s],
+  but with @racket[e] between each pair of elements in @racket[s].
+  The new sequence is constructed lazily.
 
-如果@s是@tech{stream}，则结果也是@tech{stream}。
+  If @racket[s] is a @tech{stream}, then the result is also a
+  @tech{stream}.
 
   @examples[#:eval sequence-evaluator
     (let* ([all-reds (in-cycle '("red"))]
@@ -889,11 +1065,13 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
                      [elem/c contract?] ...)
          contract?]{
 
-包装一个@tech{sequence}，要求其产生具有与@racket[elem/c]合约数量相同数量的值的元素，
-并要求每个值满足相应的@racket[elem/c]。结果不保证与原始值是相同类型的序列；
-例如，包装后的列表不保证满足@racket[list?]。
+Wraps a @tech{sequence},
+obligating it to produce elements with as many values as there are @racket[elem/c] contracts,
+and obligating each value to satisfy the corresponding @racket[elem/c].  The
+result is not guaranteed to be the same kind of sequence as the original value;
+for instance, a wrapped list is not guaranteed to satisfy @racket[list?].
 
-如果@racket[min-count]是一个数字，则要求流中至少有那么多元素。
+If @racket[min-count] is a number, the stream is required to have at least that many elements in it.
 
 @examples[
 #:eval sequence-evaluator
@@ -923,10 +1101,12 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
 
 }
 
-@subsubsection{额外的序列构造函数与函数}
+@subsubsection{Additional Sequence Constructors}
 
 @defproc[(in-syntax [stx syntax?]) sequence?]{
-  生成一个序列，其元素是@racket[stx]的连续子部分。等效于@racket[(stx->list lst)]。
+  Produces a sequence whose elements are the successive subparts of
+  @racket[stx].
+  Equivalent to @racket[(stx->list lst)].
   @speed[in-syntax "syntax"]
 
 @examples[#:eval sequence-evaluator
@@ -937,7 +1117,8 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
 
 @defproc[(in-slice [length exact-positive-integer?] [seq sequence?])
          sequence?]{
-  返回一个序列，其元素是包含@racket[seq]的前@racket[length]个元素、接下来@racket[length]个元素等依次排列的列表。
+  Returns a sequence whose elements are lists with the first @racket[length]
+  elements of @racket[seq], then the next @racket[length] and so on.
 
   @examples[#:eval sequence-evaluator
   (for/list ([e (in-slice 3 (in-range 8))]) e)
@@ -945,62 +1126,35 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
   @history[#:added "6.3"]
 }
 
-@defproc[(initiate-sequence
-          [#:pos->element pos->element (any/c . -> . any)]
-          [#:early-next-pos early-next-pos (or/c (any/c . -> . any) #f) #f]
-          [#:next-pos next-pos (any/c . -> . any/c)]
-          [#:init-pos init-pos any/c]
-          [#:continue-with-pos? continue-with-pos? (or/c (any/c . -> . any/c) #f) #f]
-          [#:continue-with-val? continue-with-val? (or/c (any/c ... . -> . any/c) #f) #f]
-          [#:continue-after-pos+val? continue-after-pos+val? (or/c (any/c any/c ... . -> . any/c) #f) #f])
-         (values (any/c . -> . any)
-                 (or/c (any/c . -> . any) #f)
-                 (any/c . -> . any/c)
-                 any/c
-                 (or/c (any/c . -> . any/c) #f)
-                 (or/c (any/c ... . -> . any/c) #f)
-                 (or/c (any/c any/c ... . -> . any/c) #f))]{
-  返回适用于@racket[make-do-sequence]中thunk参数的值。每个参数的含义请参见@racket[make-do-sequence]。
-
-  @examples[#:eval sequence-evaluator
-    (define (in-alt-list xs)
-      (make-do-sequence
-       (λ ()
-         (initiate-sequence
-          #:pos->element car
-          #:next-pos (λ (xs) (cdr (cdr xs)))
-          #:init-pos xs
-          #:continue-with-pos? pair?
-          #:continue-after-pos+val? (λ (xs _) (pair? (cdr xs)))))))
-    (sequence->list (in-alt-list '(1 2 3 4 5 6)))
-    (sequence->list (in-alt-list '(1 2 3 4 5 6 7)))
-  ]
-  @history[#:added "8.10.0.5"]
-}
-
 
 @; ======================================================================
-@section[#:tag "streams"]{流}
+@section[#:tag "streams"]{Streams}
 
-@deftech{stream}是一种@tech{sequence}，支持通过@racket[stream-first]和@racket[stream-rest]进行函数式迭代。
-@racket[stream-cons]形式构造惰性流，但普通列表可以用作流，并且@racket[in-range]和@racket[in-naturals]等函数也可以创建流。
+A @deftech{stream} is a kind of @tech{sequence} that supports
+functional iteration via @racket[stream-first] and
+@racket[stream-rest].  The @racket[stream-cons] form constructs a lazy
+stream, but plain lists can be used as streams, and functions such as
+@racket[in-range] and @racket[in-naturals] also create streams.
 
 @note-lib[racket/stream]
 
 @defproc[(stream? [v any/c]) boolean?]{
-  如果@racket[v]可以用作@tech{stream}，则返回@racket[#t]，否则返回@racket[#f]。
+  Returns @racket[#t] if @racket[v] can be used as a @tech{stream},
+  @racket[#f] otherwise.
 }
 
 @defproc[(stream-empty? [s stream?]) boolean?]{
-  如果@s没有元素，则返回@racket[#t]，否则返回@racket[#f]。
+  Returns @racket[#t] if @racket[s] has no elements, @racket[#f]
+  otherwise.
 }
 
 @defproc[(stream-first [s (and/c stream? (not/c stream-empty?))]) any]{
-  返回@s中第一个元素的值。
+  Returns the value(s) of the first element in @racket[s].
 }
 
 @defproc[(stream-rest [s (and/c stream? (not/c stream-empty?))]) stream?]{
-  返回一个等效于@s但不含其第一个元素的流。
+  Returns a stream that is equivalent to @racket[s] without its first
+  element.
 }
 
 @defform*[[(stream-cons first-expr rest-expr)
@@ -1008,196 +1162,241 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
            (stream-cons first-expr #:eager rest-expr)
            (stream-cons #:eager first-expr #:eager rest-expr)]]{
 
-  生成一个流，其第一个元素由@racket[first-expr]确定，其余部分由@racket[rest-expr]确定。
+  Produces a stream whose first element is determined by
+  @racket[first-expr] and whose rest is determined by
+  @racket[rest-expr].
 
-如果@racket[first-expr]前面没有@racket[#:eager]，则@racket[first-expr]不会立即求值。
-相反，对结果流使用@racket[stream-first]会强制对@racket[first-expr]求值（一次）以产生流的第一个元素。
-如果对@racket[first-expr]求值引发异常或试图强制自身求值，则@exnraise[exn:fail:contract]，
-并且后续尝试强制求值将触发另一个异常。
+  If @racket[first-expr] is not preceded by @racket[#:eager], then
+  @racket[first-expr] is not evaluated immediately. Instead,
+  @racket[stream-first] on the result stream forces the evaluation of
+  @racket[first-expr] (once) to produce the first element of the
+  stream. If evaluating @racket[first-expr] raises an exception or
+  tries to force itself, then an @exnraise[exn:fail:contract], and
+  future attempts to force evaluation will trigger another exception.
 
-如果@racket[rest-expr]前面没有@racket[#:eager]，则@racket[rest-expr]不会立即求值。
-相反，对结果流使用@racket[stream-rest]会产生另一个流，类似于@racket[(stream-lazy rest-expr)]产生的流。
+  If @racket[rest-expr] is not preceded by @racket[#:eager], then
+  @racket[rest-expr] is not evaluated immediately. Instead,
+  @racket[stream-rest] on the result stream produces another stream
+  that is like the one produced by @racket[(stream-lazy rest-expr)].
 
-由@racket[first-expr]产生的流的第一个元素可以是多个值。@racket[rest-expr]在求值时必须产生一个流，
-否则@exnraise[exn:fail:contract?]。
+  The first element of the stream as produced by @racket[first-expr]
+  must be a single value. The @racket[rest-expr] must produce a stream
+  when it is evaluated, otherwise the @exnraise[exn:fail:contract?].
 
-  @history[#:changed "8.0.0.12" @elem{Added @racket[#:eager] options.}
-           #:changed "8.8.0.7" @elem{Changed to allow multiple values.}]}
+  @history[#:changed "8.0.0.12" @elem{Added @racket[#:eager] options.}]}
 
 @defform*[[(stream-lazy stream-expr)
            (stream-lazy #:who who-expr stream-expr)]]{
 
- 类似于@racket[(delay stream-expr)]，但结果是一个流而不是@tech{promise}，并且@racket[stream-expr]最终被强制求值时必须产生一个流。
-@racket[stream-lazy]产生的流与@racket[stream-expr]产生的流具有相同的内容；
-也就是说，对结果流执行@racket[stream-first]等操作将强制对@racket[stream-expr]求值并在其结果上重试。
+ Similar to @racket[(delay stream-expr)], but the result is a stream
+ instead of a @tech{promise}, and @racket[stream-expr] must produce a
+ stream when it is eventually forced. The stream produced by
+ @racket[stream-lazy] has the same content as the stream produced by
+ @racket[stream-expr]; that is, operations like @racket[stream-first]
+ on the result stream will force @racket[stream-expr] and retry on its
+ result.
 
-如果对@racket[stream-expr]求值引发异常或试图强制自身求值，则@exnraise[exn:fail:contract]，
-并且后续尝试强制求值将触发另一个异常。
+ If evaluating @racket[stream-expr] raises an exception or tries to
+ force itself, then an @exnraise[exn:fail:contract], and future
+ attempts to force evaluation will trigger another exception.
 
-如果提供了@racket[who-expr]，则在构造延迟流时对其求值。如果@racket[stream-expr]之后产生非流的值，
-且@racket[who-expr]产生了符号值，则该符号用于错误消息。
+ If @racket[who-expr] is provided, it is evaluated when constructing
+ the delayed stream. If @racket[stream-expr] later produces a value
+ that is not a stream, and if @racket[who-expr] produced a symbol
+ value, then the symbol is used for the error message.
 
  @history[#:added "8.0.0.12"]}
 
 @defproc[(stream-force [s stream?]) stream?]{
 
- 强制对来自@racket[stream-lazy]、@racket[stream-cons]的@racket[stream-rest]等的延迟流进行求值，返回强制后的流。
-如果@s不是延迟流，则返回@s。
+ Forces the evaluation of a delayed stream from @racket[stream-lazy],
+ from the @racket[stream-rest] of a @racket[stream-cons], etc.,
+ returning the forced stream. If @racket[s] is not a delayed stream,
+ then @racket[s] is returned.
 
-通常不需要@racket[stream-force]，因为@racket[stream-first]、@racket[stream-rest]和@racket[stream-empty?]等操作会根据需要强制延迟流。
-在极少数情况下，@racket[stream-force]可以用于揭示流的底层实现
-（例如，作为具有@racket[prop:stream]属性的结构类型实例的流）。
+ Normally, @racket[stream-force] is not needed, because operations
+ like @racket[stream-first], @racket[stream-rest], and
+ @racket[stream-empty?] force a delayed stream as needed. In rare
+ cases, @racket[stream-force] can be useful to reveal the underlying
+ implementation of a stream (e.g., a stream that is an instance of a
+ structure type that has the @racket[prop:stream] property).
 
  @history[#:added "8.0.0.12"]}
 
-@defform[#:literals (values)
-         (stream elem-expr ...)
-         #:grammar ([elem-expr (values single-expr ...)
-                               single-expr])]{
-  以@racket[empty-stream]结尾的嵌套@racket[stream-cons]es的简写。作为匹配模式，@racket[stream]
-匹配具有与@racket[elem-expr]数量相同的元素的流，且每个元素必须匹配相应的@racket[elem-expr]模式。
-@racket[elem-expr]模式可以是@racket[(values single-expr ...)]，用于匹配流中的多值元素。
-
-  @history[#:changed "8.8.0.7" @elem{Changed to allow multiple values.}]
+@defform[(stream e ...)]{
+  A shorthand for nested @racket[stream-cons]es ending with
+  @racket[empty-stream]. As a match pattern, @racket[stream]
+  matches a stream with as many elements as @racket[e]s,
+  and each element must match the corresponding @racket[e] pattern.
 }
 
-@defform[(stream* elem-expr ... tail-expr)]{
-  嵌套@racket[stream-cons]es的简写，但@racket[tail-expr]在强制求值时必须产生一个流，
-该流用作流的其余部分而不是@racket[empty-stream]。类似于@racket[list*]但用于流。
-作为匹配模式，@racket[stream*]类似于@racket[stream]模式，
-但@racket[tail-expr]模式匹配最后一个@racket[elem-expr]之后流的"其余"部分。
+@defform[(stream* e ... tail)]{
+  A shorthand for nested @racket[stream-cons]es, but the @racket[tail]
+  must produce a stream when it is forced, and that stream is used as the rest of the stream instead of
+  @racket[empty-stream]. Similar to @racket[list*] but for streams.
+  As a match pattern, @racket[stream*] is similar to a @racket[stream] pattern,
+  but the @racket[tail] pattern matches the ``rest'' of the stream after the last @racket[e].
 
 @history[#:added "6.3"
-         #:changed "8.0.0.12"
-         @elem{Changed to delay @racket[tail-expr] even if zero
-               @racket[elem-expr]s are provided.}
-         #:changed "8.8.0.7"
-         @elem{Changed to allow multiple values.}]
-}
+         #:changed "8.0.0.12" @elem{Changed to delay @racket[rest-expr] even
+                                    if zero @racket[expr]s are provided.}]}
 
 @defproc[(in-stream [s stream?]) sequence?]{
-  返回一个等效于@s的序列。
+  Returns a sequence that is equivalent to @racket[s].
   @speed[in-stream "streams"]
   @for-element-reachability["stream"]
 
 @history[#:changed "6.7.0.4" @elem{Improved element-reachability guarantee for streams in @racket[for].}]}
 
 @defthing[empty-stream stream?]{
-  一个没有元素的流。
+  A stream with no elements.
 }
 
 @defproc[(stream->list [s stream?]) list?]{
-  返回一个列表，其元素是@s的元素，每个元素必须是单值。如果@s是无限的，此函数不会终止。
+  Returns a list whose elements are the elements of @racket[s], each
+  of which must be a single value.  If @racket[s] is infinite, this
+  function does not terminate.
 }
 
 @defproc[(stream-length [s stream?])
          exact-nonnegative-integer?]{
-  返回@s的元素数量。如果@s是无限的，此函数不会终止。
+  Returns the number of elements of @racket[s].  If @racket[s] is
+  infinite, this function does not terminate.
 
-对于惰性流，此函数仅强制对子流求值，而不对流的元素求值。
+  In the case of lazy streams, this function forces evaluation only of
+  the sub-streams, and not the stream's elements.
 }
 
 @defproc[(stream-ref [s stream?] [i exact-nonnegative-integer?])
          any]{
-  返回@s的第@racket[i]个元素（可能是多个值）。
+  Returns the @racket[i]th element of @racket[s] (which may be
+  multiple values).
 }
 
 @defproc[(stream-tail [s stream?] [i exact-nonnegative-integer?])
          stream?]{
-  返回一个等效于@s的流，但省略了前@racket[i]个元素。
+  Returns a stream equivalent to @racket[s], except that the first
+  @racket[i] elements are omitted.
 
-如果从@s提取元素涉及副作用，则在从结果流中提取第一个元素之前不会提取它们。
+  In case extracting elements from @racket[s] involves a side effect,
+  they will not be extracted until the first element is extracted from
+  the resulting stream.
 }
 
 @defproc[(stream-take [s stream?] [i exact-nonnegative-integer?])
          stream?]{
-  返回包含@s的前@racket[i]个元素的流。
+  Returns a stream of the first @racket[i] elements of @racket[s].
 }
 
 @defproc[(stream-append [s stream?] ...)
          stream?]{
-  返回一个流，按原始流中的顺序包含每个流的所有元素。新流是惰性构造的，
-而最后一个给定的流用作结果的尾部。
+  Returns a stream that contains all elements of each stream in the
+  order they appear in the original streams.  The new stream is
+  constructed lazily, while the last given stream is used in the tail
+  of the result.
 }
 
 @defproc[(stream-map [f procedure?]
                      [s stream?])
          stream?]{
-  返回一个流，包含对@s的每个元素应用@racket[f]的结果。新流是惰性构造的。
+  Returns a stream that contains @racket[f] applied to each element of
+  @racket[s].  The new stream is constructed lazily.
 }
 
 @defproc[(stream-andmap [f (-> any/c ... boolean?)]
                         [s stream?])
          boolean?]{
-  如果@racket[f]对@s的每个元素都返回真值结果，则返回@racket[#t]。如果@s是无限的且@racket[f]从未返回假值结果，则此函数不会终止。
+  Returns @racket[#t] if @racket[f] returns a true result on every
+  element of @racket[s].  If @racket[s] is infinite and @racket[f]
+  never returns a false result, this function does not terminate.
 }
 
 @defproc[(stream-ormap [f (-> any/c ... boolean?)]
                        [s stream?])
          boolean?]{
-  如果@racket[f]对@s的某个元素返回真值结果，则返回@racket[#t]。如果@s是无限的且@racket[f]从未返回真值结果，则此函数不会终止。
+  Returns @racket[#t] if @racket[f] returns a true result on some
+  element of @racket[s].  If @racket[s] is infinite and @racket[f]
+  never returns a true result, this function does not terminate.
 }
 
 @defproc[(stream-for-each [f (-> any/c ... any)]
                           [s stream?])
          void?]{
-  对@s的每个元素应用@racket[f]。如果@s是无限的，此函数不会终止。
+  Applies @racket[f] to each element of @racket[s].  If @racket[s] is
+  infinite, this function does not terminate.
 }
 
 @defproc[(stream-fold [f (-> any/c any/c ... any/c)]
                       [i any/c]
                       [s stream?])
          any/c]{
-  以@racket[i]作为初始累加器，对@s的每个元素折叠@racket[f]。如果@s是无限的，此函数不会终止。
-@racket[f]函数以累加器作为第一个参数，下一个流的元素作为第二个参数。
+  Folds @racket[f] over each element of @racket[s] with @racket[i] as
+  the initial accumulator.  If @racket[s] is infinite, this function
+  does not terminate. The @racket[f] function takes the accumulator as
+  its first argument and the next stream element as its second.
 }
 
 @defproc[(stream-count [f procedure?] [s stream?])
          exact-nonnegative-integer?]{
-  返回@s中@racket[f]返回真值结果的元素数量。如果@s是无限的，此函数不会终止。
+  Returns the number of elements in @racket[s] for which @racket[f]
+  returns a true result.  If @racket[s] is infinite, this function
+  does not terminate.
 }
 
 @defproc[(stream-filter [f (-> any/c ... boolean?)]
                           [s stream?])
          stream?]{
-  返回一个流，其元素是@s中@racket[f]返回真值结果的元素。虽然新流是惰性构造的，
-但如果@s在@racket[f]返回假值结果的位置有无限多个元素，则在此无限子流期间对该流的操作不会终止。
+  Returns a stream whose elements are the elements of @racket[s] for
+  which @racket[f] returns a true result.  Although the new stream is
+  constructed lazily, if @racket[s] has an infinite number of elements
+  where @racket[f] returns a false result in between two elements
+  where @racket[f] returns a true result, then operations on this
+  stream will not terminate during the infinite sub-stream.
 }
 
 @defproc[(stream-add-between [s stream?] [e any/c])
          stream?]{
-  返回一个流，其元素是@s的元素，但在@s中每对元素之间有@racket[e]。新流是惰性构造的。
+  Returns a stream whose elements are the elements of @racket[s], but
+  with @racket[e] between each pair of elements in @racket[s].  The
+  new stream is constructed lazily.
 }
 
 @deftogether[(@defform[(for/stream (for-clause ...) body-or-break ... body)]
               @defform[(for*/stream (for-clause ...) body-or-break ... body)])]{
-  分别类似于@racket[for/list]和@racket[for*/list]进行迭代，但结果惰性地收集到@tech{stream}中而非列表中。
+  Iterates like @racket[for/list] and @racket[for*/list], respectively, but the
+  results are lazily collected into a @tech{stream} instead of a list.
 
-与大多数@racket[for]形式不同，这些形式是惰性求值的，因此每个@racket[body]在结果流被强制求值之前不会求值。
-这使得@racket[for/stream]和@racket[for*/stream]可以迭代无限序列，而不像它们的有限对应版本。
+  Unlike most @racket[for] forms, these forms are evaluated lazily, so each
+  @racket[body] will not be evaluated until the resulting stream is forced. This
+  allows @racket[for/stream] and @racket[for*/stream] to iterate over infinite
+  sequences, unlike their finite counterparts.
+
+  Please note that these forms do not support returning @tech{multiple values}.
 
   @examples[#:eval sequence-evaluator
     (for/stream ([i '(1 2 3)]) (* i i))
     (stream->list (for/stream ([i '(1 2 3)]) (* i i)))
     (stream-ref (for/stream ([i '(1 2 3)]) (displayln i) (* i i)) 1)
     (stream-ref (for/stream ([i (in-naturals)]) (* i i)) 25)
-    (stream-ref (for/stream ([i (in-naturals)]) (values i (add1 i))) 10)
   ]
 
-  @history[#:added "6.3.0.9"
-           #:changed "8.8.0.7" @elem{Changed to allow multiple values.}]
+  @history[#:added "6.3.0.9"]
 }
 
 @defthing[gen:stream any/c]{
-  将三个方法关联到结构类型，以实现流的@tech{generic interface}（参见@secref["struct-generics"]）。
+  Associates three methods to a structure type to implement the
+  @tech{generic interface} (see @secref["struct-generics"]) for
+  streams.
 
-要提供方法实现，应在结构类型定义中使用@racket[#:methods]关键字。必须实现以下三个方法：
+  To supply method implementations, the @racket[#:methods] keyword
+  should be used in a structure type definition. The following three
+  methods should be implemented:
 
-@itemize[
-@item{@racket[_stream-empty?]：接受一个参数}
-@item{@racket[_stream-first]：接受一个参数}
-@item{@racket[_stream-rest]：接受一个参数}
-]
+  @itemize[
+    @item{@racket[stream-empty?] : accepts one argument}
+    @item{@racket[stream-first] : accepts one argument}
+    @item{@racket[stream-rest] : accepts one argument}
+  ]
 
   @examples[#:eval sequence-evaluator
     (struct list-stream (v)
@@ -1213,43 +1412,51 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
     (stream? l1)
     (stream-first l1)
   ]
-
-  @history[#:changed "8.7.0.5"
-           @elem{Added a check so that omitting any of
-                 @racket[_stream-empty?], @racket[_stream-first], and @racket[_stream-rest]
-                 is now a syntax error.}]
-
 }
 
 @defthing[prop:stream struct-type-property?]{
-  一个结构类型属性，用于定义流API的自定义扩展。不鼓励使用@racket[prop:stream]属性；
-请改用@racket[gen:stream] @tech{generic interface}。接受一个包含三个过程的向量，
-这些过程接受与@racket[gen:stream]中方法相同的参数。
+  A structure type property used to define custom
+  extensions to the stream API. Using the @racket[prop:stream] property
+  is discouraged; use the @racket[gen:stream] @tech{generic interface}
+  instead. Accepts a vector of three procedures taking the same arguments
+  as the methods in @racket[gen:stream].
 }
 
 @defproc[(stream/c [c contract?]) contract?]{
-返回一个识别流的合约。流中的所有元素必须匹配@racket[c]。
+Returns a contract that recognizes streams. All elements of the stream must match
+@racket[c].
 
-如果@racket[c]参数是平坦合约或监管合约，则结果将是监管合约。否则，结果将是模拟合约。
+If the @racket[c] argument is a flat contract or a chaperone contract, then the
+result will be a chaperone contract. Otherwise, the result will be an
+impersonator contract.
 
-当@racket[stream/c]合约应用于流时，结果与输入不是@racket[eq?]关系。
-结果将是输入的@tech{chaperone}或@tech{impersonator}，取决于合约类型。
+When an @racket[stream/c] contract is applied to a stream, the result is not
+@racket[eq?] to the input. The result will be either a @tech{chaperone} or
+@tech{impersonator} of the input depending on the type of contract.
 
-流上的合约出于必要是惰性求值的（因为流可能是无限的）。直到从流中检索到违规值之前，不会引发合约违规。
-作为此规则的例外，作为列表的流会立即检查，就像@racket[c]与@racket[listof]一起使用一样。
+Contracts on streams are evaluated lazily by necessity (since streams may be
+infinite). Contract violations will not be raised until the value in violation
+is retrieved from the stream. As an exception to this rule, streams that are
+lists are checked immediately, as if @racket[c] had been used with
+@racket[listof].
 
-如果将合约应用于流，并且该流随后用作另一个流的尾部（作为@racket[stream-cons]的第二个参数），
-则新元素不会用合约检查，但尾部的元素仍会被强制执行。
+If a contract is applied to a stream, and that stream is subsequently used as
+the tail of another stream (as the second parameter to @racket[stream-cons]),
+the new elements will not be checked with the contract, but the tail's elements
+will still be enforced.
 
 @history[#:added "6.1.1.8"]}
 
 @close-eval[sequence-evaluator]
 
 @; ======================================================================
-@section{生成器}
+@section{Generators}
 
-@deftech{generator}是一个返回值序列的过程，每次调用生成器时递增序列。
-特别地，@racket[generator]形式通过对调用@racket[yield]来从生成器返回值的体进行求值来实现生成器。
+A @deftech{generator} is a procedure that returns a sequence of
+values, incrementing the sequence each time that the generator is
+called. In particular, the @racket[generator] form implements a
+generator by evaluating a body that calls @racket[yield] to return
+values from the generator.
 
 @defmodule[racket/generator]
 
@@ -1259,20 +1466,28 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
      the-eval))
 
 @defproc[(generator? [v any/c]) boolean?]{
-  如果@racket[v]是@tech{generator}，则返回@racket[#t]，否则返回@racket[#f]。
+  Return @racket[#t] if @racket[v] is a @tech{generator},
+  @racket[#f] otherwise.
 }
 
 @defform/subs[(generator formals body ...+)
               ([formals (id ...)
                         (id ...+ . rest-id)
                         rest-id])]{
-  创建一个@tech{generator}，其中@racket[formals]指定参数。不支持关键字和可选参数。
-这与单个@racket[case-lambda]子句的@racket[formals]相同。
+  Creates a @tech{generator}, where @racket[formals] specify the arguments.
+  Keyword and optional arguments are not supported. This is the same as the
+  @racket[formals] of a single @racket[case-lambda] clause.
 
-第一次调用生成器时，参数绑定到@racket[formals]，并开始对@racket[body]求值。在@racket[body]的@tech{dynamic extent}期间，
-生成器可以使用@racket[yield]函数立即返回。第二次调用生成器时，在@racket[yield]调用处恢复执行，
-产生第二次调用的参数作为@racket[yield]的结果，依此类推。@racket[body]的最终结果提供给一个隐式的最终@racket[yield]；
-在该最终@racket[yield]之后，再次调用生成器会返回相同的值，但所有此类调用必须向生成器提供0个参数。
+  For the first call to a generator, the arguments are bound to the
+  @racket[formals] and evaluation of @racket[body] starts. During the
+  @tech{dynamic extent} of @racket[body], the generator can return
+  immediately using the @racket[yield] function. A second call to the
+  generator resumes at the @racket[yield] call, producing the
+  arguments of the second call as the results of the @racket[yield],
+  and so on. The eventual results of @racket[body] are supplied to an
+  implicit final @racket[yield]; after that final @racket[yield],
+  calling the generator again returns the same values, but all such
+  calls must provide 0 arguments to the generator.
 
   @examples[#:eval generator-eval
     (define g (generator ()
@@ -1289,11 +1504,16 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
     (g)]}
 
 @defproc[(yield [v any/c] ...) any]{
-  从生成器返回@racket[v]，保存生成器内部的执行点（即在@racket[generator]体的@tech{dynamic extent}内），
-以便下次调用生成器时恢复执行。@racket[yield]的结果是提供给生成器下一次调用的参数。
+  Returns @racket[v]s from a generator, saving the point of execution
+  inside a generator (i.e., within the @tech{dynamic extent} of a
+  @racket[generator] body) to be resumed by the next call to the
+  generator. The results of @racket[yield] are the arguments that are
+  provided to the next call of the generator.
 
-当不在@racket[generator]、@racket[infinite-generator]或@racket[in-generator]体的@tech{dynamic extent}内时，
-@racket[yield]引发@racket[exn:fail:contract]。
+  When not in the @tech{dynamic extent} of a @racket[generator],
+  @racket[infinite-generator], or @racket[in-generator] body,
+  @racket[yield] raises @racket[exn:fail] after evaluating its
+  @racket[expr]s.
 
   @examples[#:eval generator-eval
     (define my-generator (generator () (yield 1) (yield 2 3 4)))
@@ -1312,7 +1532,9 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
     (pass-values-generator 12)]}
 
 @defform[(infinite-generator body ...+)]{
-  类似于@racket[generator]，但当最后一个@racket[body]完成而没有隐式@racket[yield]时，重复对@racket[body]求值。
+  Like @racket[generator], but repeats evaluation of the
+  @racket[body]s when the last @racket[body] completes without
+  implicitly @racket[yield]ing.
 
   @examples[#:eval generator-eval
     (define welcome
@@ -1327,8 +1549,11 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
 @defform/subs[(in-generator maybe-arity body ...+)
               ([maybe-arity code:blank
                             (code:line #:arity arity-k)])]{
-  生成一个封装了由@racket[(generator () body ...)]形成的@tech{generator}的@tech{sequence}。
-生成器生成的值构成序列的元素，但生成器生成的最后一个值除外（即返回生成的值）。
+  Produces a @tech{sequence} that encapsulates the @tech{generator}
+  formed by @racket[(generator () body ...+)]. The values produced by
+  the generator form the elements of the sequence, except for the last
+  value produced by the generator (i.e., the values produced by
+  returning).
 
   @examples[#:eval generator-eval
     (for/list ([i (in-generator
@@ -1382,13 +1607,18 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
 
 
 @defproc[(generator-state [g generator?]) symbol?]{
-  返回一个描述生成器状态的符号。
+  Returns a symbol that describes the state of the generator.
 
   @itemize[
-    @item{@racket['fresh]——生成器刚刚创建，尚未被调用。}
-    @item{@racket['suspended]——生成器内的控制由于调用@racket[yield]而挂起。可以调用生成器。}
-    @item{@racket['running]——生成器当前正在执行。}
-    @item{@racket['done]——生成器已执行完其整个体，将继续产生与上次调用相同的结果。}]
+    @item{@racket['fresh] --- The generator has been freshly created and
+          has not been called yet.}
+    @item{@racket['suspended] --- Control within the generator has been
+          suspended due to a call to @racket[yield].  The generator can
+          be called.}
+    @item{@racket['running] --- The generator is currently executing.}
+    @item{@racket['done] --- The generator has executed its entire
+          body and will continue to produce the same result as from
+          the last call.}]
 
   @examples[#:eval generator-eval
     (define my-generator (generator () (yield 1) (yield 2)))
@@ -1408,10 +1638,15 @@ thunk的结果与@racket[sequence-generate*]的结果相同，但是针对序列
     (introspective-generator)]}
 
 @defproc[(sequence->generator [s sequence?]) (-> any)]{
-  将@tech{sequence}转换为@tech{generator}。每次调用生成器时，生成器返回序列的下一个元素，
-序列的每个元素必须是单值。当序列结束时，生成器返回@|void-const|作为最终结果。}
+  Converts a @tech{sequence} to a @tech{generator}. The generator
+  returns the next element of the sequence each time the generator is
+  invoked, where each element of the sequence must be a single
+  value. When the sequence ends, the generator returns @|void-const|
+  as its final result.}
 
 @defproc[(sequence->repeated-generator [s sequence?]) (-> any)]{
-  类似于@racket[sequence->generator]，但当@s没有更多值时，生成器重新开始序列（因此生成器永远不会停止产生值）。}
+  Like @racket[sequence->generator], but when @racket[s] has no
+  further values, the generator starts the sequence again (so that the
+  generator never stops producing values).}
 
 @close-eval[generator-eval]

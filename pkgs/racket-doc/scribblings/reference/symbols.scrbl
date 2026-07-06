@@ -12,7 +12,7 @@
 一个 @deftech{symbol} 就像一个不可变的 string，但 symbols 通常是
 @tech{interned}，因此具有相同字符内容的两个 symbols 通常是 @racket[eq?]。
 默认 reader（参见 @secref["parse-symbol"]）产生的所有 symbols 都是
-@tech[interned]。
+@tech{interned}。
 
 @racket[string->uninterned-symbol] 和 @racket[gensym] 这两个 procedures 生成
 @deftech{uninterned} symbols，即不与任何其他 symbol @racket[eq?]、

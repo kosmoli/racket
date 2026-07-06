@@ -6,108 +6,110 @@
                      racket/unsafe/ops
                      racket/require
                      racket/random
-                     racket/list))
+                     racket/list
+                     math/flonum))
 
 @(define math-eval (make-base-eval))
 @examples[#:hidden #:eval math-eval (require racket/math)]
 
-@title[#:tag "numbers" #:style '(toc)]{数值}
+@title[#:tag "numbers" #:style '(toc)]{Numbers}
 
-@guideintro["numbers"]{数值}
+@guideintro["numbers"]{numbers}
 
-所有 @deftech{numbers} 都是 @deftech{complex numbers}。其中一部分是
-@deftech{real numbers}，且所有可表示的实数同时也是
-@deftech{rational numbers}，除了
-@as-index{@racket[+inf.0]} (正 @as-index{infinity})、
-@as-index{@racketvalfont{+inf.f}} (单精度变体，当
-通过 @racket[read-single-flonum] 启用时)、
-@as-index{@racket[-inf.0]} (负无穷大)、
-@as-index{@racketvalfont{-inf.f}} (单精度变体，当
-启用时)、@as-index{@racket[+nan.0]} (@as-index{not-a-number}) 以及
-@as-index{@racketvalfont{+nan.f}} (单精度变体，当
-启用时)。在有理数中，一部分是 @deftech{integers}，
-因为对该数应用 @racket[round] 会产生相同的数。
+All @deftech{numbers} are @deftech{complex numbers}. Some of them are
+@deftech{real numbers}, and all of the real numbers that can be
+represented are also @deftech{rational numbers}, except for
+@as-index{@racket[+inf.0]} (positive @as-index{infinity}),
+@as-index{@racketvalfont{+inf.f}} (single-precision variant, when
+enabled via @racket[read-single-flonum]),
+@as-index{@racket[-inf.0]} (negative infinity),
+@as-index{@racketvalfont{-inf.f}} (single-precision variant, when
+enabled), @as-index{@racket[+nan.0]} (@as-index{not-a-number}), and
+@as-index{@racketvalfont{+nan.f}} (single-precision variant, when
+enabled). Among the rational numbers, some are @deftech{integers},
+because @racket[round] applied to the number produces the same number.
 
-@margin-note/ref{参见 @secref["parse-number"] 了解
-数字字面量的语法信息。}
+@margin-note/ref{See @secref["parse-number"] for information on the
+syntax of number literals.}
 
-与这些分类正交，每个数值还可能是
-@deftech{exact number} 或 @deftech{inexact number}。除非
-另有指定，涉及不精确数的计算
-产生不精确结果。然而，对不精确数的某些操作
-却产生精确数，例如将不精确数
-与精确 @racket[0] 相乘。某些对部分有理数参数在数学上产生
-无理数的操作 (如 @racket[sqrt]) 可能
-即使对精确参数也产生不精确结果。
+Orthogonal to those categories, each number is also either an
+@deftech{exact number} or an @deftech{inexact number}. Unless
+otherwise specified, computations that involve an inexact number
+produce inexact results. Certain operations on inexact numbers,
+however, produce an exact number, such as multiplying an inexact
+number with an exact @racket[0]. Operations that mathematically produce
+irrational numbers for some rational arguments (e.g., @racket[sqrt]) may
+produce inexact results even for exact arguments.
 
-对于复数，其实部和虚部
-要么都是精确且具有相同精度，要么该数具有
-精确零实部和不精确虚部；具有
-精确零虚部的复数是实数。
+In the case of complex numbers, either the real and imaginary parts
+are both exact or inexact with the same precision, or the number has
+an exact zero real part and an inexact imaginary part; a complex
+number with an exact zero imaginary part is a real number.
 
-不精确实数被实现为双精度
-@as-index{IEEE floating-point numbers}，也称为
-@deftech{flonums}，或单精度 IEEE 浮点数，
-也称为 @deftech{single-flonums}。Single-flonums 仅在
-@racket[(single-flonum-available?)] 报告
-@racket[#t] 时才受支持。虽然我们写作 @racketvalfont{+inf.f}、
-@racketvalfont{-inf.f} 和 @racketvalfont{+nan.f} 来表示
-single-flonums，这些形式默认被读取为双精度 flonums，
-因为 @racket[read-single-flonum] 默认是 @racket[#f]。
-当支持 single-flonums 时，不精确数仍默认
-表示为 flonums，单精度仅在
-计算以 single-flonums 开头时才使用。
+Inexact real numbers are implemented as double-precision
+@as-index{IEEE floating-point numbers}, also known as
+@deftech{flonums}, or as single-precision IEEE floating-point numbers,
+also known as @deftech{single-flonums}. Single-flonums are
+supported only when @racket[(single-flonum-available?)] reports
+@racket[#t]. Although we write @racketvalfont{+inf.f},
+@racketvalfont{-inf.f}, and @racketvalfont{+nan.f} to mean
+single-flonums, those forms read as double-precision flonums by
+default, since @racket[read-single-flonum] is @racket[#f] by default.
+When single-flonums are supported, inexact numbers are still
+represented as flonums by default, and single precision is used only
+when a computation starts with single-flonums.
 
-不精确数可以强制转换为精确形式，除了不精确数
-@racket[+inf.0]、@racketvalfont{+inf.f}、
-@racket[-inf.0]、@racketvalfont{-inf.f}、@racket[+nan.0] 和 @racketvalfont{+nan.f}，
-它们没有精确形式。@index["division by inexact zero"]{将}一个
-数除以精确零引发异常；将除
-@racket[+nan.0] 或 @racketvalfont{+nan.f} 之外的非零数除以不精确零返回 @racket[+inf.0]、
-@racketvalfont{+inf.f}、@racket[-inf.0]
-或 @racketvalfont{-inf.f}，取决于被除数的符号和精度。
-@racket[+nan.0] 值不 @racket[=] 自身，但 @racket[+nan.0]
-@racket[eqv?] 自身，@racketvalfont{+nan.f} 同样 @racket[eqv?] 但
-不 @racket[=] 自身。反过来，@racket[(= 0.0 -0.0)] 是
-@racket[#t]，但 @racket[(eqv? 0.0 -0.0)] 是 @racket[#f]，
-@racketvalfont{0.0f0} 和 @racketvalfont{-0.0f0} 也同样 (它们是单精度变体)。数据
-@as-index{@racketvalfont{-nan.0}} 引用与 @racket[+nan.0] 相同的常量，
-@as-index{@racketvalfont{-nan.f}} 与 @racketvalfont{+nan.f} 相同。
+Inexact numbers can be coerced to exact form, except for the inexact
+numbers @racket[+inf.0], @racketvalfont{+inf.f},
+@racket[-inf.0], @racketvalfont{-inf.f}, @racket[+nan.0], and @racketvalfont{+nan.f}, which
+have no exact form. @index["division by inexact zero"]{Dividing} a
+number by exact zero raises an exception; dividing a non-zero number
+other than @racket[+nan.0] or @racketvalfont{+nan.f} by an inexact zero returns @racket[+inf.0],
+@racketvalfont{+inf.f}, @racket[-inf.0]
+or @racketvalfont{-inf.f}, depending on the sign and precision of the dividend. The
+@racket[+nan.0] value is not @racket[=] to itself, but @racket[+nan.0]
+is @racket[eqv?] to itself, and @racketvalfont{+nan.f} is similarly @racket[eqv?] but
+not @racket[=] to itself. Conversely, @racket[(= 0.0 -0.0)] is
+@racket[#t], but @racket[(eqv? 0.0 -0.0)] is @racket[#f], and the
+same for @racketvalfont{0.0f0} and @racketvalfont{-0.0f0} (which are single-precision variants). The datum
+@as-index{@racketvalfont{-nan.0}} refers to the same constant as @racket[+nan.0],
+and @as-index{@racketvalfont{-nan.f}} is the same as @racketvalfont{+nan.f}.
 
-涉及无穷大的计算产生与 IEEE
-双精度或单精度浮点一致的结果，在 IEEE 规定结果的情况下；
-在 IEEE 未提供规定的情况下，
-结果对应于趋近
-无穷大的极限，或 @racket[+nan.0] 或 @racketvalfont{+nan.f} (如果不存在这样的极限)。
+Calculations with infinities produce results consistent with IEEE
+double- or single-precision floating point where IEEE specifies the result; in
+cases where IEEE provides no specification,
+the result corresponds to the limit approaching
+infinity, or @racket[+nan.0] or @racketvalfont{+nan.f} if no such limit exists.
 
-精确数的精度和大小仅受可用
-内存限制 (以及可产生无理数的
-操作的精度)。特别是，精确数的加法、乘法、减法和
-除法总是产生精确结果。
+The precision and size of exact numbers is limited only by available
+memory (and the precision of operations that can produce irrational
+numbers). In particular, adding, multiplying, subtracting, and
+dividing exact numbers always produces an exact result.
 
-@deftech{fixnum} 是一个精确整数，其二进制补码
-表示可放入 30 或 31 位 (取决于 Racket 变体)
-在 32 位平台上，或 61 或 63 位 (取决于 Racket 变体) 在
-64 位平台上。使用 fixnums 计算时无需分配。
-另请参见下面的 @racketmodname[racket/fixnum] 模块。
+A @deftech{fixnum} is an exact integer whose two's complement
+representation fits into 30 or 31 bits (depending on the Racket variant)
+on a 32-bit platform or 61 or 63 bits (depending on the Racket variant) on a
+64-bit platform. No allocation is required when computing
+with fixnums. See also the @racketmodname[racket/fixnum] module, below.
 
-两个 @racket[=] 的 fixnums 也根据 @racket[eq?] 相同。
-否则，对两个数应用 @racket[eq?]
-的结果是未定义的，除了由默认读取器
-在 @racket[read-syntax] 模式下产生的数是 @tech{interned} 的，因此在它们 @racket[eqv?] 时是 @racket[eq?] 的。
+Two fixnums that are @racket[=] are also the same
+according to @racket[eq?]. Otherwise, the result of @racket[eq?]
+applied to two numbers is undefined, except that numbers produced
+by the default reader in @racket[read-syntax] mode are @tech{interned} and therefore @racket[eq?]
+when they are @racket[eqv?].
 
-两个实数在它们都是相同精度的不精确数或都是精确数，且 @racket[=] 时是 @racket[eqv?] 的
-(上面提到的 @racket[+nan.0]、@racketvalfont{+nan.f}、
-@racket[+0.0]、@racketvalfont{+0.0f0}、@racket[-0.0] 和 @racketvalfont{-0.0f0} 除外)。
-两个复数在其实部和虚部是 @racket[eqv?] 时是 @racket[eqv?] 的。
-两个数在它们是 @racket[eqv?] 时是 @racket[equal?] 的。
+Two real numbers are @racket[eqv?] when they are both inexact with the same precision or both
+exact, and when they are @racket[=] (except for @racket[+nan.0], @racketvalfont{+nan.f},
+@racket[+0.0], @racketvalfont{+0.0f0}, @racket[-0.0], and @racketvalfont{-0.0f0}, as noted above).
+Two complex numbers are @racket[eqv?] when their real and imaginary parts are @racket[eqv?].
+Two numbers are @racket[equal?] when they are @racket[eqv?].
 
-@see-read-print["number"]{数值}
+@see-read-print["number"]{numbers}
 
 @local-table-of-contents[]
 
 @; ----------------------------------------
-@section[#:tag "number-types"]{数值类型}
+@section[#:tag "number-types"]{Number Types}
 
 @defproc[(number? [v any/c]) boolean?]{Returns @racket[#t] if @racket[v]
  is a number, @racket[#f] otherwise.
@@ -264,12 +266,12 @@ produces @racket[#f] for all arguments.
  a double-precision floating-point number, it is returned.}
 
 @; ----------------------------------------
-@section[#:tag "generic-numbers"]{通用数值运算}
+@section[#:tag "generic-numbers"]{Generic Numerics}
 
-大多数 Racket 数值运算适用于任何类型的数值。
+Most Racket numeric operations work on any kind of number.
 
 @; ----------------------------------------
-@subsection{算术运算}
+@subsection{Arithmetic}
 
 @defproc[(+ [z number?] ...) number?]{
 
@@ -317,9 +319,6 @@ If @racket[z] is exact @racket[0] and no @racket[w] is exact
 
 Returns @racket[(truncate (/ n m))].
 
-If @racket[m] is exact @racket[0], @racket[0.0], or @racket[-0.0], the
- @exnraise[exn:fail:contract:divide-by-zero].
-
 @mz-examples[(quotient 10 3) (quotient -10.0 3) (eval:error (quotient +inf.0 3))]}
 
 
@@ -335,7 +334,7 @@ Returns @racket[_q] with the same sign as @racket[n] such that
 
 ]
 
-If @racket[m] is exact @racket[0], @racket[0.0], or @racket[-0.0], the
+If @racket[m] is exact @racket[0], the
  @exnraise[exn:fail:contract:divide-by-zero].
 
 @mz-examples[(remainder 10 3) (remainder -10.0 3) (remainder 10.0 -3) (remainder -10 -3) (eval:error (remainder +inf.0 3))]}
@@ -346,9 +345,6 @@ If @racket[m] is exact @racket[0], @racket[0.0], or @racket[-0.0], the
 Returns @racket[(values (quotient n m) (remainder n m))], but the
  combination may be computed more efficiently than separate calls to
  @racket[quotient] and @racket[remainder].
-
-If @racket[m] is exact @racket[0], @racket[0.0], or @racket[-0.0], the
- @exnraise[exn:fail:contract:divide-by-zero].
 
 @mz-examples[
 (quotient/remainder 10 3)
@@ -367,7 +363,7 @@ Returns @racket[_q] with the same sign as @racket[m] where
 
 ]
 
-If @racket[m] is exact @racket[0], @racket[0.0], or @racket[-0.0], the
+If @racket[m] is exact @racket[0], the
  @exnraise[exn:fail:contract:divide-by-zero].
 
 @mz-examples[(modulo 10 3) (modulo -10.0 3)  (modulo 10.0 -3) (modulo -10 -3) (eval:error (modulo +inf.0 3))]}
@@ -412,10 +408,10 @@ Returns the @as-index{greatest common divisor} (a non-negative
 @mz-examples[(gcd 10) (gcd 12 81.0) (gcd 1/2 1/3)]}
 
 
-@defproc[(lcm [n rational?] ...) (or/c rational? +inf.0)]{
+@defproc[(lcm [n rational?] ...) rational?]{
 
 Returns the @as-index{least common multiple} (a non-negative number)
- of the @racket[n]s. For two non-integer @racket[n]s, the result is
+ of the @racket[n]s; non-integer @racket[n]s, the result is
  the absolute value of the product divided by the
  @racket[gcd]. If no arguments are provided, the result is
  @racket[1]. If any argument is zero, the result is zero; furthermore,
@@ -494,7 +490,7 @@ Among the real numbers within @racket[(abs tolerance)] of @racket[x],
 ]}
 
 @; ----------------------------------------
-@subsection{数值比较}
+@subsection{Number Comparison}
 
 @defproc[(= [z number?] [w number?] ...) boolean?]{ Returns
  @racket[#t] if all of the arguments are numerically equal,
@@ -526,7 +522,7 @@ Among the real numbers within @racket[(abs tolerance)] of @racket[x],
 @history/arity[]}
 
 
-@defproc[(> [x real?] [y real?] ...) boolean?]{ Returns @racket[#t] if
+@defproc[(> [x real?] [y real?] ...+) boolean?]{ Returns @racket[#t] if
  the arguments in the given order are strictly decreasing,
  @racket[#f] otherwise.
 
@@ -545,7 +541,7 @@ Among the real numbers within @racket[(abs tolerance)] of @racket[x],
 
 
 @; ------------------------------------------------------------------------
-@subsection{幂与根}
+@subsection{Powers and Roots}
 
 @defproc[(sqrt [z number?]) number?]{
 
@@ -684,8 +680,8 @@ Returns the natural logarithm of @racket[z].  The result is normally
  can potentially run faster. If @racket[b] is exact
  @racket[1], @exnraise[exn:fail:contract:divide-by-zero].
 
- Consider using @racketidfont{fllogb} from @racketmodname[math/flonum #:indirect]
- instead when accuracy is important.
+ Consider using @racket[fllogb] instead when accuracy is
+ important.
 
 @mz-examples[(log (exp 1)) (log 2+3i) (log 1) (log 100 10) (log 8 2) (log 5 5)]
 
@@ -693,7 +689,7 @@ Returns the natural logarithm of @racket[z].  The result is normally
 
 
 @; ------------------------------------------------------------------------
-@subsection{三角函数}
+@subsection{Trigonometric Functions}
 
 @defproc[(sin [z number?]) number?]{
 
@@ -760,7 +756,7 @@ In the two-argument case, the result is roughly the same as @racket[
                                    for any positive @racket[x] (not just exact values) when @racket[y] is @racket[0].}]}
 
 @; ------------------------------------------------------------------------
-@subsection{复数}
+@subsection{Complex Numbers}
 
 @defproc[(make-rectangular [x real?] [y real?]) number?]{
 
@@ -820,15 +816,12 @@ Returns the imaginary part of the complex number @racket[z] in
  @racket[pi], possibly equal to @racket[pi] (but never equal
  to @racket[(- pi)]).
 
- If @racket[z] is exact @racket[0], the
- @exnraise[exn:fail:contract:divide-by-zero].
-
 @mz-examples[(angle -3) (angle 3.0) (angle 3+4i) (angle +inf.0+inf.0i) (angle -1)]}
 
 @; ------------------------------------------------------------------------
-@subsection{按位操作}
+@subsection{Bitwise Operations}
 
-@section-index{逻辑运算符}
+@section-index{logical operators}
 
 @defproc[(bitwise-ior [n exact-integer?] ...) exact-integer?]{ Returns
  the bitwise ``inclusive or'' of the @racket[n]s in their (semi-infinite)
@@ -872,18 +865,6 @@ This operation is equivalent to
 but it is faster and runs in constant time when @racket[n] is positive.
 
 @mz-examples[(bitwise-bit-set? 5 0) (bitwise-bit-set? 5 2) (bitwise-bit-set? -5 (expt 2 700))]}
-
-
-@defproc[(bitwise-first-bit-set [n exact-integer?])
-         exact-integer?]{
-
-Returns @racket[-1] if @racket[n] is @racket[0], otherwise returns the
-smallest @racket[_m] for which @racket[(bitwise-bit-set? n _m)]
-produces @racket[#t].
-
-@mz-examples[(bitwise-first-bit-set 128)]
-
-@history[#:added "8.16.0.4"]}
 
 
 @defproc[(bitwise-bit-field [n exact-integer?]
@@ -936,7 +917,9 @@ both in binary and as integers.
 @mz-examples[(integer-length 8) (integer-length -8)]}
 
 @; ------------------------------------------------------------------------
-@subsection{随机数}
+@subsection{Random Numbers}
+
+@margin-note{When security is a concern, use @racket[crypto-random-bytes] instead of @racket[random].}
 
 @defproc*[([(random [k (integer-in 1 4294967087)]
                     [rand-gen pseudo-random-generator?
@@ -946,7 +929,7 @@ both in binary and as integers.
                     [max (integer-in (+ 1 min) (+ 4294967087 min))]
                     [rand-gen pseudo-random-generator?
                               (current-pseudo-random-generator)])
-            exact-integer?]
+            exact-nonnegative-integer?]
            [(random [rand-gen pseudo-random-generator?
                               (current-pseudo-random-generator)])
             (and/c real? inexact? (>/c 0) (</c 1))])]{
@@ -966,14 +949,6 @@ generator (which defaults to the current one, as produced by
 internal state for generating numbers. The random number generator
 uses L'Ecuyer's MRG32k3a algorithm @cite["L'Ecuyer02"] that has a
 state space of practically 192 bits.
-
-When security is a concern, use @racket[crypto-random-bytes]
-instead of @racket[random].
-
-The @racketmodname[math/base #:indirect] library provides @seclink[
- #:indirect? #t #:doc '(lib "math/scribblings/math.scrbl") "Random_Number_Generation"]{
-  additional functions for random number generation}
-without the limit of @racket[4294967087].
 
 @history[#:changed "6.4"]{Added support for ranges.}}
 
@@ -1047,7 +1022,7 @@ three integers is non-zero. Otherwise, the result is @racket[#f].}
 
 @; ------------------------------------------------------------------------
 
-@subsection{其他随机性工具}
+@subsection{Other Randomness Utilities}
 
 @defmodule[racket/random]{}
 
@@ -1097,7 +1072,7 @@ evaluates the entire sequence.
 
 
 @; ------------------------------------------------------------------------
-@subsection{数值与字符串转换}
+@subsection{Number--String Conversions}
 
 @section-index["numbers" "machine representations"]
 @section-index["numbers" "floating-point"]
@@ -1284,7 +1259,7 @@ for the machine running Racket, @racket[#f] if the native encoding
 is little-endian.}
 
 @; ------------------------------------------------------------------------
-@subsection{额外常量和函数}
+@subsection{Extra Constants and Functions}
 
 @note-lib[racket/math]
 
