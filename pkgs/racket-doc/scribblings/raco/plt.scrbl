@@ -5,128 +5,51 @@
                      setup/pack
                      racket/contract/base))
 
-@title[#:tag "plt"]{@exec{raco pack}: Packing Library Collections}
+@title[#:tag "plt"]{@exec{raco pack}: 打包库 Collection}
 
-The @exec{raco pack} command creates an archive of files and
-directories. Formerly, such archives were used directly to distribute
-library files to Racket users, but the package manager (see
-@other-manual['(lib "pkg/scribblings/pkg.scrbl")]) is now the
-preferred mechanism for distribution.
+@exec{raco pack} 命令创建文件和目录的归档。以前，这些归档直接用于向 Racket 用户分发库文件，但包管理器（参见 @other-manual['(lib "pkg/scribblings/pkg.scrbl")]）现在是首选的分发机制。
 
-A packed archive usually has the suffix @as-index{@filepath{.plt}}.
-The @exec{raco pkg} command recognizes a @filepath{.plt} archive for
-installation as a package. The @exec{raco setup} command (see
-@secref["setup"]) also supports @filepath{.plt} unpacking and
-installation when using the @Flag{A} flag, but such installations do
-not benefit from the more general management facilities of @exec{raco
-pkg}, while the @exec{raco unpack} command (see @secref["unpack"])
-unpacks an archive locally without attempting to install it. DrRacket
-recognizes the @filepath{.plt} and currently treats such an archive in
-the same way as @exec{raco setup -A}.
+打包归档通常以 @filepath{.plt} 为后缀。@exec{raco pkg} 命令识别 @filepath{.plt} 归档作为包安装。@exec{raco setup} 命令（参见 @secref["setup"]）在使用 @Flag{A} 标志时也支持 @filepath{.plt} 解包和安装，但此类安装不能享受 @exec{raco pkg} 更通用的管理功能，而 @exec{raco unpack} 命令（参见 @secref["unpack"]）则本地解包归档而不尝试安装。DrRacket 识别 @filepath{.plt}，目前以与 @exec{raco setup -A} 相同的方式处理此类归档。
 
-An archive contains the following elements:
+归档包含以下元素：
 
 @itemize[
 
- @item{A set of files and directories to be unpacked, and flags
- indicating whether they are to be unpacked relative to the Racket
- add-ons directory (which is user-specific), the Racket installation
- directory, or a user-selected directory.
+ @item{要解包的一组文件和目录，以及指示它们是相对于 Racket add-on 目录（用户特定）、Racket 安装目录还是用户选定目录解包的标志。
 
- The files and directories for an archive are provided on the command
- line to @exec{raco pack}, either directly or in the form of
- collection names when the @DFlag{collect} flag is used.
+  归档的文件和目录在命令行上提供给 @exec{raco pack}，无论直接提供还是在使用 @DFlag{collect} 标志时以 collection 名称的形式提供。
 
- The @as-index{@DFlag{at-plt}} flag indicates that the files and
- directories should be unpacked relative to the user's add-ons
- directory, unless the user specifies the Racket installation
- directory when unpacking. The @as-index{@DFlag{collection-plt}} flag
- implies @DFlag{at-plt}.  The @as-index{@DFlag{all-users}} flag
- overrides @DFlag{at-plt}, and it indicates that the files and
- directories should be unpacked relative to the Racket
- installation directory, always.}
+  @as-index{@DFlag{at-plt}} 标志指示文件和目录应相对于用户的 add-on 目录解包，除非用户在解包时指定 Racket 安装目录。@as-index{@DFlag{collection-plt}} 标志隐含 @DFlag{at-plt}。@as-index{@DFlag{all-users}} 标志覆盖 @DFlag{at-plt}}，指示文件和目录应始终相对于 Racket 安装目录解包。}
 
- @item{A flag for each file indicating whether it overwrites an
- existing file when the archive is unpacked; the default is to leave
- the old file in place, but the @as-index{@DFlag{replace}} flag
- enables replacing for all files in the archive.}
+ @item{每个文件的一个标志，指示归档解包时是否覆盖现有文件；默认是保留旧文件，但 @as-index{@DFlag{replace}} 标志为归档中的所有文件启用替换。}
 
- @item{A list of collections to be set-up (via @exec{raco setup})
- after the archive is unpacked; the @as-index{@DPFlag{setup}} flag
- adds a collection name to the archive's list, but each collection for
- @DFlag{collection-plt} is added automatically.}
+ @item{归档解包后要设置（通过 @exec{raco setup}）的 collection 列表；@as-index{@DFlag{setup}} 标志将 collection 名称添加到归档列表中，但 @DFlag{collection-plt} 会自动添加每个 collection。}
 
- @item{A name for the archive, which is reported to the user by the
- unpacking interface; the @as-index{@DFlag{plt-name}} flag sets the
- archive's name, but a default name is determined automatically when
- using @DFlag{collect}.}
+ @item{归档的名称，由解包界面向用户报告；@as-index{@DFlag{plt-name}} 标志设置归档名称，但在使用 @DFlag{collect} 时会自动确定默认名称。}
 
- @item{A list of required collections (with associated version
- numbers) and a list of conflicting collections; the @exec{raco pack}
- command always names the @filepath{racket} collection in the required
- list (using the collection's pack-time version), @exec{raco pack}
- names each packed collection in the conflict list (so that a
- collection is not unpacked on top of a different version of the same
- collection), and @exec{raco pack} extracts other requirements and
- conflicts from the @filepath{info.rkt} files of collections when
- using @DFlag{collect}.}
+ @item{所需 collection 列表（带关联版本号）和冲突 collection 列表；@exec{raco pack} 命令总是在所需列表中命名 @filepath{racket} collection（使用 collection 的打包时版本），@exec{raco pack} 将每个打包的 collection 命名在冲突列表中（以便 collection 不会解压到不同版本的相同 collection 之上），并且 @exec{raco pack} 在使用 @DFlag{collect} 时从 collection 的 @filepath{info.rkt} 文件中提取其它需求和冲突。}
 
 ]
 
-Specify individual directories and files for the archive when not
-using @DFlag{collect}. Each file and directory must be specified with
-a relative path. By default, if the archive is unpacked with DrRacket,
-the user will be prompted for a target directory, and if @exec{raco
-setup} is used to unpack the archive, the files and directories will
-be unpacked relative to the current directory. If the @DFlag{at-plt}
-flag is provided, the files and directories will be unpacked relative
-to the user's Racket add-ons directory, instead. Finally, if the
-@DFlag{all-users} flag is provided, the files and directories will be
-unpacked relative to the Racket installation directory, instead.
+不使用 @DFlag{collect} 时为归档指定单个目录和文件。每个文件和目录必须使用相对路径指定。默认情况下，如果归档使用 DrRacket 解包，将提示用户输入目标目录，而如果 @exec{raco setup} 用于解包归档，文件和目录将相对于当前目录解包。如果提供了 @DFlag{at-plt} 标志，文件和目录将改为相对于用户的 Racket add-on 目录解包。最后，如果提供了 @DFlag{all-users} 标志，文件和目录将改为相对于 Racket 安装目录解包。
 
-Use the @DFlag{collect} flag to pack one or more collections;
-sub-collections can be designated by using a @litchar{/} as a path
-separator on all platforms. In this mode, @exec{raco pack}
-automatically uses paths relative to the Racket installation or
-add-ons directory for the archived files, and the collections will be
-set-up after unpacking. In addition, @exec{raco pack} consults each
-collection's @filepath{info.rkt} file, as described below, to
-determine the set of required and conflicting collections. Finally,
-@exec{raco pack} consults the first collection's @filepath{info.rkt}
-file to obtain a default name for the archive.  For example, the
-following command creates a @filepath{sirmail.plt} archive for
-distributing a @filepath{sirmail} collection:
+使用 @DFlag{collect} 标志打包一个或多个 collection；子 collection 可以在所有平台上使用 @litchar{/} 作为路径分隔符来指定。在此模式下，@exec{raco pack} 自动使用相对于 Racket 安装或 add-on 目录的路径来归档文件，并且 collection 将在解包后设置。此外，@exec{raco pack} 会查询每个 collection 的 @filepath{info.rkt} 文件（如下所述）以确定所需和冲突的 collection 集合。最后，@exec{raco pack} 查询第一个 collection 的 @filepath{info.rkt} 文件以获取归档的默认名称。例如，以下命令创建 @filepath{sirmail.plt} 归档用于分发 @filepath{sirmail} collection：
 
 @commandline{raco pack --collect sirmail.plt sirmail}
 
-When packing collections, @exec{raco pack} checks the following fields
-of each collection's @filepath{info.rkt} file (see @secref["info.rkt"]):
+打包 collection 时，@exec{raco pack} 检查每个 collection 的 @filepath{info.rkt} 文件的以下字段（参见 @secref["info.rkt"]）：
 
 @itemize[
 
- @item{@racket[requires] --- A list of the form @racket[(list (list
- _coll _vers) ...)] where each @racket[_coll] is a non-empty list of
- relative-path strings, and each @racket[_vers] is a (possibly empty)
- list of exact integers. The indicated collections must be installed
- at unpacking time, with version sequences that match as much of the
- version sequence specified in the corresponding @racket[vers].
+ @item{@racket[requires] --- 形式为 @racket[(list (list _coll _vers) ...)] 的列表，其中每个 @racket[_coll] 是非空的相对路径字符串列表，每个 @racket[_vers] 是（可能为空的）精确整数列表。所指示的 collection 必须在解包时安装，且版本序列与对应 @racket[_vers] 中指定的版本序列尽可能匹配。
 
- A collection's version is indicated by a @racket[version] field in
- its @filepath{info.rkt} file, and the default version is the empty list.
- The version sequence generalized major and minor version numbers. For
- example, version @racket['(2 5 4 7)] of a collection can be used when
- any of @racket['()], @racket['(2)], @racket['(2 5)], @racket['(2 5
- 4)], or @racket['(2 5 4 7)] is required.}
+  collection 的版本由其 @filepath{info.rkt} 文件中的 @racket[version] 字段指示，默认版本是空列表。版本序列推广了主要和次要版本号。例如，collection 的 @racket['(2 5 4 7)] 版本可以在需要 @racket['()]、@racket['(2)]、@racket['(2 5)]、@racket['(2 5 4)] 或 @racket['(2 5 4 7)] 时使用。}
 
- @item{@racket[conflicts] --- A list of the form @racket[(list _coll
- ...)] where each @racket[_coll] is a non-empty list of relative-path
- strings. The indicated collections must @emph{not} be installed at
- unpacking time.}
+ @item{@racket[conflicts] --- 形式为 @racket[(list _coll ...)] 的列表，其中每个 @racket[_coll] 是非空的相对路径字符串列表。所指示的 collection 在解包时@emph{不能}安装。}
 
 ]
 
-For example, the @filepath{info.rkt} file in the @filepath{sirmail} collection
-might contain the following @racket[info] declaration:
+例如，@sirmail collection 中的 @filepath{info.rkt} 文件可能包含以下 @racket[info] 声明：
 
 @racketmod[
 info
@@ -136,37 +59,24 @@ info
 (define requires (list (list "mred")))
 ]
 
-Then, the @filepath{sirmail.plt} file (created by the command-line
-example above) will contain the name ``SirMail.'' When the archive is
-unpacked, the unpacker will check that the @filepath{mred} collection
-is installed, and that @filepath{mred} has the same version as when
-@filepath{sirmail.plt} was created.
+然后，@filepath{sirmail.plt} 文件（由上面的命令行示例创建）将包含名称 "SirMail"。归档解包时，解包器将检查 @filepath{mred} collection 是否已安装，以及 @filepath{mred} 是否与 @filepath{sirmail.plt} 创建时具有相同的版本。
 
 @; ------------------------------------------------------------------------
 
 @section[#:tag "format-of-.plt-archives"]{Format of @filepath{.plt} Archives}
 
-The extension @filepath{.plt} is not required for a distribution
-archive, but the @filepath{.plt}-extension convention helps users
-identify the purpose of a distribution file.
+@filepath{.plt} 扩展名不是分发归档所必需的，但 @filepath{.plt}-扩展名约定有助于用户识别分发文件的用途。
 
-The raw format of a distribution file is described below. This format
-is uncompressed and sensitive to communication modes (text
-vs. binary), so the distribution format is derived from the raw format
-by first compressing the file using @exec{gzip}, then encoding the gzipped
-file with the MIME base64 standard (which relies only the characters
-@litchar{A}-@litchar{Z}, @litchar{a}-@litchar{z}, @litchar{0}-@litchar{9}, 
-@litchar{+}, @litchar{/}, and @litchar{=}; all other characters are ignored
-when a base64-encoded file is decoded).
+分发文件的原始格式如下所述。此格式是未压缩的，并且对通信模式（文本与二进制）敏感，因此分发格式通过首先使用 @exec{gzip} 压缩文件，然后使用 MIME base64 标准（仅依赖字符 @litchar{A}-@litchar{Z}、@litchar{a}-@litchar{z}、@litchar{0}-@litchar{9}、@litchar{+}、@litchar{/} 和 @litchar{=}；解码 base64 编码文件时忽略所有其它字符）编码压缩后的文件而从原始格式派生。
 
-The raw format is
+原始格式为
 
 @itemize[
   @item{
-    @litchar{PLT} are the first three characters.}
+    @litchar{PLT} 是前三个字符。}
 
   @item{
-    An S-expression matching
+    匹配以下模式的 S-expression：
 
     @racketblock[
                             (lambda (request failure)
@@ -181,47 +91,32 @@ The raw format is
                                 [else (failure)]))
      ]
 
-    where the @racket[_name], @racket[_requires], @|etc|, meta-variables
-    stand for S-expressions as follows:
+    其中 @racket[_name]、@racket[_requires] 等元变量表示如下 S-expression：
     
     @itemize[
       @item{
-        @racket[_name] --- a human-readable string describing the archive's
-        contents. This name is used only for printing messages to the
-        user during unpacking.}
+        @racket[_name] --- 描述归档内容的人类可读字符串。此名称仅用于在解包期间向用户打印消息。}
 
       @item{
-        @racket[_requires] --- a list of collections required to be installed before
-        unpacking the archive, which associated versions; see the
-        documentation of @racket[pack] for details.}
+        @racket[_requires] --- 解包归档之前必须安装的 collection 列表，带有关联版本；有关详细信息，请参阅 @racket[pack] 的文档。}
 
      @item{
-        @racket[_conflicts] --- a list of collections required @emph{not} to be installed
-        before unpacking the archive.}
+        @racket[_conflicts] --- 解包归档之前@emph{不能}安装的 collection 列表。}
 
      @item{
-        @racket[_plt-relative?] --- a boolean; if true, then the archive's
-        content should be unpacked relative to the plt add-ons directory.}
+        @racket[_plt-relative?] --- 布尔值；如果为真，则归档内容应相对于 plt add-on 目录解包。}
 
      @item{
-        @racket[_plt-home-relative?] --- a boolean; if true and if
-        @racket['plt-relative?] is true, then the archive's content should be
-        unpacked relative to the Racket installation.}
+        @racket[_plt-home-relative?] --- 布尔值；如果为真且 @racket['plt-relative?] 为真，则归档内容应相对于 Racket 安装目录解包。}
 
      @item{
-        @racket[_test-plt-dirs] --- @racket[#f] or a @racket['_paths] where 
-        @racket[_paths] is a list of path strings;
-        in the latter case, a true value of @racket[_plt-home-relative?] is
-        cancelled if any of the directories in the list (relative to the
-        Racket installation) is unwritable by the user.}
+        @racket[_test-plt-dirs] --- @racket[#f] 或 @racket['_paths]，其中 @racket[_paths] 是路径字符串列表；在后一种情况下，如果列表中任何目录（相对于 Racket 安装目录）对用户不可写，则 @racket[_plt-home-relative?] 的真值将被取消。}
    ]
 
-    The S-expression is extracted from the archive
-    using @racket[read] (and the result is @emph{not}
-    @racket[eval]uated).}
+    使用 @racket[read] 从归档中提取 S-expression（结果@emph{不}进行 @racket[eval]）。}
 
  @item{
-   An S-expression matching
+   匹配以下模式的 S-expression：
 
                 @racketblock[
                          (unit (import main-collects-parent-dir mzuntar) 
@@ -230,62 +125,36 @@ The raw format is
                                (@#,racket[quote] _collections))
                  ]
 
-    where @racket[_collections] is a list of collection paths
-    (where each collection path is a list of strings); once the archive
-    is unpacked, @exec{raco setup} will compile and setup the specified
-    collections.
+    其中 @racket[_collections] 是 collection 路径列表（每个 collection path 是字符串列表）；归档解包后，@exec{raco setup} 将编译和设置指定的 collection。
 
-     The S-expression is extracted from the archive
-     using @racket[read] (and the result is @emph{not}
-     @racket[eval]uated).}
+     使用 @racket[read] 从归档中提取 S-expression（结果@emph{不}进行 @racket[eval]）。}
 
 ]
 
-The archive continues with @tech{unpackables}. @tech{Unpackables} are
-extracted until the end-of-file is found (as indicated by an
-@litchar{=} in the base64-encoded input archive).
+归档继续包含 @tech{unpackables}。它们被提取直到找到文件结束（由 base64 编码的输入归档中的 @litchar{=} 指示）。
 
-An @deftech{unpackable} is one of the following:
+@deftech{unpackable} 是以下之一：
 
 @itemize[
    @item{
-     The symbol @racket['dir] followed by a list S-expression. The @racket[build-path]
-     procedure will be applied to the list to obtain a relative path for
-     the directory (and the relative path is combined with the target
-     directory path to get a complete path).
+     符号 @racket['dir] 后跟一个列表 S-expression。@racket[build-path] 过程将应用于该列表以获取目录的相对路径（相对路径与目标目录路径组合以获取完整路径）。
 
-     The @racket['dir] symbol and list are extracted from the archive
-     using @racket[read] (and the result is @emph{not}
-     @racket[eval]uated).}
+     使用 @racket[read] 从归档中提取 @racket['dir] 符号和列表（结果@emph{不}进行 @racket[eval]）。}
 
    @item{
-     The symbol @racket['file], a list, a number, an asterisk, and the file
-     data. The list specifies the file's relative path, just as for
-     directories. The number indicates the size of the file to be
-     unpacked in bytes. The asterisk indicates the start of the file
-     data; the next n bytes are written to the file, where n is the
-     specified size of the file.
+     符号 @racket['file]、一个列表、一个数字、一个星号和文件数据。列表指定文件的相对路径，与目录相同。数字指示要解包的文件大小（以字节为单位）。星号指示文件数据的开始；接下来的 n 个字节写入文件，其中 n 是指定的文件大小。
 
-     The symbol, list, and number are all extracted from the archive
-     using @racket[read] (and the result is @emph{not}
-     @racket[eval]uated). After the number is read, input characters
-     are discarded until an asterisk is found. The file data must
-     follow this asterisk immediately.}
+     使用 @racket[read] 从归档中提取符号、列表和数字（结果@emph{不}进行 @racket[eval]）。读取数字后，输入字符被丢弃直到找到星号。文件数据必须紧跟在此星号之后。}
    
    @item{
-     The symbol @racket['file-replace] is treated like @racket['file], 
-     but if the file exists on disk already, the file in the archive replaces
-     the file on disk.}
+     符号 @racket['file-replace] 的处理方式类似于 @racket['file]，但如果文件已存在于磁盘上，则归档中的文件替换磁盘上的文件。}
 ]
 
 @; ----------------------------------------
 
-@section{API for Packing}
+@section{打包 API}
 
-@defmodule[setup/pack]{Although the @exec{raco pack} command can be
-used to create most @filepath{.plt} files, the
-@racketmodname[setup/pack] library provides a more general API for
-making @filepath{.plt} archives.}
+@defmodule[setup/pack]{虽然 @exec{raco pack} 命令可用于创建大多数 @filepath{.plt} 文件，但 @racketmodname[setup/pack] 库提供了更通用的 API 用于创建 @filepath{.plt} 归档。}
 
 @defproc[(pack-collections-plt
           (dest path-string?)
@@ -297,33 +166,17 @@ making @filepath{.plt} archives.}
           [#:extra-setup-collections collection-list (listof path-string?) null] 
           [#:file-filter filter-proc (path-string? . -> . boolean?) std-filter]) void?]{
 
-  Creates the @filepath{.plt} file specified by the pathname @racket[dest],
-  using the @racket[name] as the name reported to @exec{raco setup}
-  as the archive's description.
+  创建由路径名 @racket[dest] 指定的 @filepath{.plt} 文件，使用 @racket[name] 作为报告给 @exec{raco setup} 的归档描述名称。
 
-  The archive contains the collections listed in @racket[collections], which
-  should be a list of collection paths; each collection path is, in
-  turn, a list of relative-path strings.
+  归档包含 @racket[collections] 中列出的 collection，该列表应是 collection 路径列表；每个 collection path 又是相对路径字符串列表。
 
-  If the @racket[#:replace?] argument is @racket[#f], then attempting to
-  unpack the archive will report an error when any of the collections exist
-  already, otherwise unpacking the archive will overwrite an existing
-  collection.
+  如果 @racket[#:replace?] 参数为 @racket[#f]，则当任何 collection 已存在时，尝试解包归档将报告错误，否则解包归档将覆盖现有 collection。
 
-  If the @racket[#:at-plt-home?] argument is @racket[#t], then the archived
-  collections will be installed into the Racket installation directory
-  instead of the user's directory if the main @filepath{collects} directory
-  is writable by the user. If the @racket[#:test-plt-collects?] argument is
-  @racket[#f] (the default is @racket[#t]) and the @racket[#:at-plt-home?] argument
-  is @racket[#t], then installation fails if the main @filepath{collects}
-  directory is not writable.
+  如果 @racket[#:at-plt-home?] 参数为 @racket[#t]，则当主 @filepath{collects} 目录对用户可写时，归档的 collection 将安装到 Racket 安装目录而不是用户的目录。如果 @racket[#:test-plt-collects?] 参数为 @racket[#f]（默认值为 @racket[#t]），且 @racket[#:at-plt-home?] 参数为 @racket[#t]，则当主 @filepath{collects} 目录不可写时安装失败。
 
-  The optional @racket[#:extra-setup-collections] argument is a list of
-  collection paths that are not included in the archive, but are
-  set-up when the archive is unpacked.
+  可选的 @racket[#:extra-setup-collections] 参数是不包含但在归档解包时设置的 collection 路径列表。
 
-  The optional @racket[#:file-filter] argument is the same as for
-  @racket[pack-plt].}
+  可选的 @racket[#:file-filter] 参数与 @racket[pack-plt] 的相同。}
 
 @defproc[(pack-collections
           (dest path-string?)
@@ -333,7 +186,7 @@ making @filepath{.plt} archives.}
           (extra-setup-collections (listof path-string?))
           [filter (path-string? . -> . boolean?) std-filter]
           [at-plt-home? boolean? #f]) void?]{
-  Old, keywordless variant of @racket[pack-collections-plt] for backward compatibility.}
+@racket[pack-collections-plt] 的旧式无关键字变体，用于向后兼容。
 
 @defproc[(pack-plt
             (dest path-string?)
@@ -357,52 +210,21 @@ making @filepath{.plt} archives.}
                          (listof (listof path-string?)) null])
          void?]{
 
-  Creates the @filepath{.plt} file specified by the pathname @racket[dest],
-  using the string @racket[name] as the name reported to @exec{raco setup} as
-  the archive's description. The @racket[paths] argument must be a list of
-  relative paths for directories and files; the contents of these files and
-  directories will be packed into the archive. The optional @racket[as-paths]
-  list provides the path to be recorded in the archive for each element of 
-  @racket[paths] (so that the unpacked paths can be different from the packed
-  paths).
+  创建由路径名 @racket[dest] 指定的 @filepath{.plt} 文件，使用字符串 @racket[name] 作为报告给 @exec{raco setup} 的归档描述名称。@racket[paths] 参数必须是目录和文件的相对路径列表；这些文件和目录的内容将被打包到归档中。可选的 @racket[as-paths] 列表提供要为 @racket[paths] 的每个元素记录在归档中的路径（以便解包路径可以与打包路径不同）。
 
-  The @racket[#:file-filter] procedure is called with the relative path of each
-  candidate for packing. If it returns @racket[#f] for some path, then that
-  file or directory is omitted from the archive. If it returns @racket['file]
-  or @racket['file-replace] for a file, the file is packed with that mode,
-  rather than the default mode. The default is @racket[std-filter].
+  @racket[#:file-filter] 过程被调用每个要打包的候选的相对路径。如果对某些路径返回 @racket[#f]，则该文件或目录从归档中省略。如果对文件返回 @racket['file] 或 @racket['file-replace]，则文件以该模式打包，而非默认模式。默认值是 @racket[std-filter]。
   
-  If the @racket[#:encode?] argument is @racket[#f], then the output archive
-  is in raw form, and still must be gzipped and mime-encoded (in that
-  order). The default value is @racket[#t].
+  如果 @racket[#:encode?] 参数为 @racket[#f]，则输出归档为原始形式，仍需按顺序进行 gzip 和 mime 编码。默认值为 @racket[#t]。
 
-  The @racket[#:file-mode] argument must be @racket['file] or
-  @racket['file-replace], indicating the default mode for a file in the
-  archive. The default is @racket['file].
+  @racket[#:file-mode] 参数必须是 @racket['file] 或 @racket['file-replace]，指示归档中文件的默认模式。默认值是 @racket['file]。
 
-  The @racket[#:unpack-unit] argument is usually
-  @racket[#f]. Otherwise, it must be an S-expression for the
-  S-expression that describes unpacking; see
-  @secref["format-of-.plt-archives"] more information about the
-  unit. If the @racket[#:unpack-unit] argument is @racket[#f], an
-  appropriate S-expression is generated.
+  @racket[#:unpack-unit] 参数通常为 @racket[#f]。否则，它必须是描述解包的 S-expression 的 S-expression；有关 unit 的更多信息，请参阅 @secref["format-of-.plt-archives"]。如果 @racket[#:unpack-unit] 参数为 @racket[#f]，则生成适当的 S-expression。
 
-  The @racket[#:collections] argument is a list of collection paths to be
-  compiled after the archive is unpacked. The default is the @racket[null].
+  @racket[#:collections] 参数是归档解包后要编译的 collection 路径列表。默认值为 @racket[null]。
 
-  If the @racket[#:plt-relative?] argument is true (the default is
-  @racket[#f]), the archive's files and directories are to be unpacked
-  relative to the user's add-ons directory or the Racket installation
-  directories, depending on whether the @racket[#:at-plt-home?]
-  argument is true and whether directories specified by
-  @racket[#:test-plt-dirs] are writable by the user.
+  如果 @racket[#:plt-relative?] 参数为真（默认值为 @racket[#f]），则归档的文件和目录将相对于用户的 add-on 目录或 Racket 安装目录解包，取决于 @racket[#:at-plt-home?] 参数是否为真以及 @racket[#:test-plt-dirs] 指定的目录是否对用户可写。
 
-  If the @racket[#:at-plt-home?] argument is true (the default is
-  @racket[#f]), then @racket[#:plt-relative?] must be true, and the
-  archive is unpacked relative to the Racket installation directory. In
-  that case, a relative path that starts with @filepath{collects} is
-  mapped to the installation's main @filepath{collects} directory, and
-  so on, for the following the initial directory names:
+  如果 @racket[#:at-plt-home?] 参数为真（默认值为 @racket[#f]），则 @racket[#:plt-relative?] 必须为真，且归档相对于 Racket 安装目录解包。在这种情况下，以 @filepath{collects} 开头的相对路径映射到安装的主 @filepath{collects} 目录，以下初始目录名称依此类推：
 
   @itemize[
      @item{@filepath{collects}}
@@ -411,26 +233,11 @@ making @filepath{.plt} archives.}
      @item{@filepath{include}}
    ]
 
-  If @racket[#:test-plt-dirs] is a @racket[list], then
-  @racket[#:at-plt-home?] must be @racket[#t]. In that case, when the archive
-  is unpacked, if any of the relative directories in the
-  @racket[#:test-plt-dirs] list is unwritable by the current user, then the
-  archive is unpacked in the user's add-ons directory after all.
+  如果 @racket[#:test-plt-dirs] 是 @racket[list]，则 @racket[#:at-plt-home?] 必须为 @racket[#t]。在这种情况下，当归档解包时，如果 @racket[#:test-plt-dirs] 列表中的任何相对目录对当前用户不可写，则归档最终在用户的 add-on 目录中解包。
 
-  The @racket[#:requires] argument should have the shape @racket[(list
-      (list _coll-path _version) _...)]  where each
-      @racket[_coll-path] is a non-empty list of relative-path
-      strings, and each @@racket[_version] is a (possibly empty) list
-      of exact integers. The indicated collections must be installed
-      at unpacking time, with version sequences that match as much of
-      the version sequence specified in the corresponding
-      @@racket[_version]. A collection's version is indicated by the
-      @racketidfont{version} field of its @filepath{info.rkt} file.
+  @racket[#:requires] 参数应具有 @racket[(list (list _coll-path _version) _...)] 的形式，其中每个 @racket[_coll-path] 是非空的相对路径字符串列表，每个 @@racket[_version] 是（可能为空的）精确整数列表。所指示的 collection 必须在解包时安装，且版本序列与对应 @@racket[_version] 中指定的版本序列尽可能匹配。collection 的版本由其 @filepath{info.rkt} 文件的 @racketidfont{version} 字段指示。
 
-  The @racket[#:conflicts] argument should have the shape
-       @racket[(list _coll-path _...)]  where each @racket[_coll-path]
-       is a non-empty list of relative-path strings. The indicated
-       collections must @emph{not} be installed at unpacking time.}
+  @racket[#:conflicts] 参数应具有 @racket[(list _coll-path _...)] 的形式，其中每个 @racket[_coll-path] 是非空的相对路径字符串列表。所指示的 collection 在解包时@emph{不能}安装。}
 
 @defproc[(pack
           (dest path-string?)
@@ -446,15 +253,10 @@ making @filepath{.plt} archives.}
                             (listof exact-integer?)) null]
           [conflicts (listof (listof path-string?)) null]
           [at-plt-home? boolean? #f]) void?]{
-  Old, keywordless variant of @racket[pack-plt] for backward compatibility.}
+@racket[pack-plt] 的旧式无关键字变体，用于向后兼容。
 
 @defproc[(std-filter (p path-string?)) boolean?]{
-  Returns @racket[#t] unless @racket[p], after stripping its directory
-  path and converting to a byte string, matches one of the following
-  regular expressions: @litchar{^[.]git}, @litchar{^[.]svn$},
-  @litchar{^CVS$}, @litchar{^[.]cvsignore}, @litchar{^compiled$},
-  @litchar{^doc}, @litchar{~$}, @litchar{^#.*#$}, @litchar{^[.]#}, or
-  @litchar{[.]plt$}.}
+除非 @racket[p] 在去除目录路径并转换为字节字符串后匹配以下正则表达式之一：@litchar{^[.]git}、@litchar{^[.]svn$}、@litchar{^CVS$}、@litchar{^[.]cvsignore}、@litchar{^compiled$}、@litchar{^doc}、@litchar{~$}、@litchar{^#.*#$}、@litchar{^[.]#} 或 @litchar{[.]plt$}，否则返回 @racket[#t]。
 
 @defproc[(mztar (path path-string?)
                 [#:as-path as-path path-string? path]

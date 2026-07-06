@@ -6,298 +6,120 @@
                      setup/dirs
                      setup/getinfo))
 
-@title[#:tag "config-file"]{Installation Configuration and Search Paths}
+@title[#:tag "config-file"]{安装配置与搜索路径}
 
-A @deftech{configuration directory} path is built into the Racket executable as
-selected at install time, and its location can be changed via the
-@envvar{PLTCONFIGDIR} directory or @DFlag{config}/@Flag{G}
-command-line flag. Use @racket[find-config-dir] to locate the
-configuration directory.
+@deftech{配置目录}路径在构建 Racket 可执行文件时被内置，由安装时选择决定，其位置可通过 @envvar{PLTCONFIGDIR} 环境变量或 @DFlag{config}/@Flag{G} 命令行标志修改。使用 @racket[find-config-dir] 来定位配置目录。
 
-Modify the @as-index{@filepath{config.rktd}} file in the @tech{configuration directory}
-to configure other directories as described below. Use the
-@racketmodname[setup/dirs] library (which combines information from
-the configuration files and other sources) to locate configured
-directories, instead of reading @filepath{config.rktd} directly.
-A @filepath{config.rktd} file can also appear in the directory
-@racket[(build-path (find-system-path 'addon-dir) "etc")], but it
-controls only the results of @racket[find-addon-tethered-console-bin-dir] and
-@racket[find-addon-tethered-gui-bin-dir].
+修改 @tech{配置目录}中的 @as-index{@filepath{config.rktd}} 文件，如下所述配置其他目录。使用 @racketmodname[setup/dirs] 库（它综合了配置文件和其他来源的信息）来定位已配置的目录，而不是直接读取 @filepath{config.rktd}。@filepath{config.rktd} 文件也可能出现在目录 @racket[(build-path (find-system-path 'addon-dir) "etc")] 中，但它仅控制 @racket[find-addon-tethered-console-bin-dir] 和 @racket[find-addon-tethered-gui-bin-dir] 的结果。
 
-The path of the @deftech{main collection directory} is built into the
-Racket executable, and it can be changed via the
-@DFlag{collects}/@Flag{X} flag, so it has no entry in
-@filepath{config.rktd}. Most paths that are specified in
-@filepath{config.rktd} have default values that are relative to the
-main collection directory. The paths of the @tech{configuration directory} and
-@tech{main collection directory} thus work together to determine a
-Racket configuration.
+@deftech{主集合目录}路径被内置到 Racket 可执行文件中，它可以通过 @DFlag{collects}/@Flag{X} 标志修改，因此它在 @filepath{config.rktd} 中没有条目。@filepath{config.rktd} 中指定的大多数路径都有相对于主集合目录的默认值。@tech{配置目录}和@tech{主集合目录}的路径因此共同决定了 Racket 的配置。
 
-A @filepath{config.rktd} file in the configuration directory should
-contain a @racket[read]able hash table with any of the following
-symbolic keys, where a relative path is relative to the @tech{main collection
-directory}:
+配置目录中的 @filepath{config.rktd} 文件应包含一个 @racket[read] 可读的哈希表，带有以下任意符号键，其中相对路径是相对于@tech{主集合目录}的：
 
 @itemlist[
 
- @item{@indexed-racket['installation-name] --- a string for the installation
-       name, which is used to determine user- and version-specific paths,
-       such as the initial path produced by @racket[find-library-collection-paths]
-       and the location of packages that are installed in @exec{user} 
-       @tech[#:doc '(lib "pkg/scribblings/pkg.scrbl")]{package
-       scope}. The default is @racket[(version)].}
+ @item{@indexed-racket['installation-name] --- 安装名称的字符串，用于确定用户特定和版本特定的路径，例如 @racket[find-library-collection-paths] 产生的初始路径，以及安装在 @exec{user} @tech[#:doc '(lib "pkg/scribblings/pkg.scrbl")]{package scope} 中的包的位置。默认值是 @racket[(version)]。}
 
- @item{@indexed-racket['collects-search-dirs] --- a list of paths,
-       strings, byte strings, or @racket[#f] representing the search
-       path for collections. Each @racket[#f] in the list, if any, is
-       replaced with the @tech{main collection directory}.}
+ @item{@indexed-racket['collects-search-dirs] --- 路径、字符串、字节字符串或 @racket[#f] 的列表，表示集合的搜索路径。列表中的每个 @racket[#f]（如果有）被替换为@tech{主集合目录}。}
 
- @item{@indexed-racket['lib-dir] --- a path, string, or byte string for the
-       @deftech{main library directory}. It defaults to a @filepath{lib}
-       sibling directory of the @tech{main collection directory}.}
+ @item{@indexed-racket['lib-dir] --- @deftech{主库目录}的路径、字符串或字节字符串。它默认是@tech{主集合目录}的 @filepath{lib} 同级目录。}
 
- @item{@indexed-racket['lib-search-dirs] --- a list of paths, strings, byte
-       strings, or @racket[#f] representing the search path for
-       directories containing foreign libraries. Each @racket[#f] in
-       the list, if any, is replaced with the default search path,
-       which is the user- and version-specific @filepath{lib}
-       directory followed by the @tech{main library directory}.}
+ @item{@indexed-racket['lib-search-dirs] --- 路径、字符串、字节字符串或 @racket[#f] 的列表，表示包含 foreign library 的目录的搜索路径。列表中的每个 @racket[#f]（如果有）被替换为默认搜索路径，即用户特定和版本特定的 @filepath{lib} 目录，后跟@tech{主库目录}。}
 
- @item{@indexed-racket['dll-dir] --- a path, string, or byte string for a
-       directory containing shared libraries for the main
-       executable. It defaults to the @tech{main library directory}.}
+ @item{@indexed-racket['dll-dir] --- 包含主可执行文件共享库的目录的路径、字符串或字节字符串。它默认是@tech{主库目录}。}
 
- @item{@indexed-racket['share-dir] --- a path, string, or byte string for the
-       @deftech{main shared-file directory}, which normally includes installed packages.
-       It defaults to a @filepath{share} sibling directory of the main
-       collection directory.}
+ @item{@indexed-racket['share-dir] --- @deftech{主共享文件目录}的路径、字符串或字节字符串，通常包含已安装的包。它默认是主集合目录的 @filepath{share} 同级目录。}
 
- @item{@indexed-racket['share-search-dirs] --- analogous to
-       @racket['lib-search-dirs], where @racket[#f] is replaced by the
-       default search path, which is a user- and version-specific
-       directory followed by a directory as potentially configured via
-       @scheme['share-dir].
+ @item{@indexed-racket['share-search-dirs] --- 类似于 @racket['lib-search-dirs]，其中 @racket[#f] 被替换为默认搜索路径，即用户特定和版本特定的目录，后跟可能通过 @scheme['share-dir] 配置的目录。
 
        @history[#:added "8.1.0.6"]}
        
- @item{@indexed-racket['links-file] --- a path, string, or byte string for the
-       @tech[#:doc reference-doc]{collection links file}. It defaults
-       to a @filepath{links.rktd} file in the @tech{main shared-file directory}.}
+ @item{@indexed-racket['links-file] --- @tech[#:doc reference-doc]{集合链接文件}的路径、字符串或字节字符串。它默认是@tech{主共享文件目录}中的 @filepath{links.rktd} 文件。}
 
- @item{@indexed-racket['links-search-files] --- like @racket['lib-search-dirs],
-       but for @tech[#:doc reference-doc]{collection links file}. A @racket[#f]
-       is replaced by the default search path, which has the links file as potentially configured
-       via @scheme['links-file]. A user- and version-specific
-       links file is always added to the beginning of a search.}
+ @item{@indexed-racket['links-search-files] --- 类似于 @racket['lib-search-dirs]，但用于 @tech[#:doc reference-doc]{集合链接文件}。@racket[#f] 被替换为默认搜索路径，其中包含可能通过 @scheme['links-file] 配置的链接文件。用户特定和版本特定的链接文件总是添加到搜索的开头。}
 
- @item{@indexed-racket['pkgs-dir] --- a path, string, or byte string
-       for packages that have @exec{installation} @tech[#:doc '(lib
-       "pkg/scribblings/pkg.scrbl")]{package scope}. It defaults to
-       @filepath{pkgs} in the main shared-file directory.}
+ @item{@indexed-racket['pkgs-dir] --- 具有 @exec{installation} @tech[#:doc '(lib "pkg/scribblings/pkg.scrbl")]{package scope} 的包的路径、字符串或字节字符串。它默认是主共享文件目录中的 @filepath{pkgs}。}
 
- @item{@indexed-racket['pkgs-search-dirs] --- similar to
-       @racket['lib-search-dirs], but for packages in roughly
-       @exec{installation} @tech[#:doc '(lib
-       "pkg/scribblings/pkg.scrbl")]{package scope}. More precisely, a
-       @racket[#f] value in the list is replaced with the directory
-       specified by @racket['pkgs-dir], and that point in the search
-       list corresponds to @exec{installation} scope. Paths before or
-       after a @racket[#f] value in the list can be selected as a
-       scopes to start searches at that path's point in the list.
-       Directories listed in @racket['pkgs-search-dirs] typically oblige
-       a corresponding entry in @racket['links-search-files], where
-       the corresponding entry is @filepath{links.rktd} within the
-       directory.
+ @item{@indexed-racket['pkgs-search-dirs] --- 类似于 @racket['lib-search-dirs]，但用于大致处于 @exec{installation} @tech[#:doc '(lib "pkg/scribblings/pkg.scrbl")]{package scope} 中的包。更精确地说，列表中的 @racket[#f] 值被替换为由 @racket['pkgs-dir] 指定的目录，并且搜索列表中的该点对应于 @exec{installation} scope。列表中在 @racket[#f] 值之前或之后的路径可以被选择为从该路径的列表点开始搜索的 scope。@racket['pkgs-search-dirs] 中列出的目录通常要求在 @racket['links-search-files] 中有对应的条目，其中对应条目是目录内的 @filepath{links.rktd}。
 
-       @history[#:changed "7.0.0.19" @elem{Adapt the package-search path in
-                                           a general way for a directory scope.}]}
+       @history[#:changed "7.0.0.19" @elem{以通用方式调整包搜索路径以适应目录 scope。}]}
 
- @item{@indexed-racket['compiled-file-roots] --- a list of paths
-       and @racket['same] used to initialize @racket[current-compiled-file-roots].
-       A path, which is relative or absolute, can be specified as a string
-       or byte string that is converted to a path with @racket[string->path]
-       or @racket[bytes->path], respectively.
+ @item{@indexed-racket['compiled-file-roots] --- 路径和 @racket['same] 的列表，用于初始化 @racket[current-compiled-file-roots]。路径可以是相对路径或绝对路径，可以指定为通过 @racket[string->path] 或 @racket[bytes->path] 转换为路径的字符串或字节字符串。
 
        @history[#:added "8.0.0.9"]}
 
- @item{@indexed-racket['bin-dir] --- a path, string, or byte string for the
-       installation's directory containing executables. It defaults to a
-       @filepath{bin} sibling directory of the @tech{main collection
-       directory}.}
+ @item{@indexed-racket['bin-dir] --- 安装目录中包含可执行文件的目录的路径、字符串或字节字符串。它默认是@tech{主集合目录}的 @filepath{bin} 同级目录。}
 
- @item{@indexed-racket['gui-bin-dir] --- a path, string, or byte
-       string for the installation's directory containing GUI
-       executables. It defaults to a the @racket['bin-dir] value, if
-       configured, or otherwise defaults in a platform-specific way:
-       to the @filepath{bin} sibling directory of the @tech{main
-       collection directory} on Unix, and to the parent of the
-       @tech{main collection directory} on Windows and Mac OS.
+ @item{@indexed-racket['gui-bin-dir] --- 安装目录中包含 GUI 可执行文件的目录的路径、字符串或字节字符串。如果配置了，它默认是 @racket['bin-dir] 的值，否则以平台特定的方式默认：在 Unix 上是 @tech{主集合目录}的 @filepath{bin} 同级目录，在 Windows 和 Mac OS 上是 @tech{主集合目录}的父目录。
 
        @history[#:added "6.8.0.2"]}
 
- @item{@indexed-racket['bin-search-dirs] --- like
-       @racket['lib-search-dirs], but for finding executables
-       such as @exec{racket}. A @racket[#f]
-       is replaced by the default search path, which is a
-       user- and version-specific directory followed by the main console
-       executable directory as potentially configured via
-       @scheme['bin-dir].
+ @item{@indexed-racket['bin-search-dirs] --- 类似于 @racket['lib-search-dirs]，但用于查找可执行文件，例如 @exec{racket}。@racket[#f] 被替换为默认搜索路径，即用户特定和版本特定的目录，后跟可能通过 @scheme['bin-dir] 配置的控制台可执行文件目录。
 
        @history[#:added "8.1.0.6"]}
 
- @item{@indexed-racket['gui-bin-search-dirs] --- like
-       @racket['bin-search-dirs], but for GUI executables,
-       and defaults to the @racket['bin-search-dirs] value.
+ @item{@indexed-racket['gui-bin-search-dirs] --- 类似于 @racket['bin-search-dirs]，但用于 GUI 可执行文件，默认值是 @racket['bin-search-dirs] 的值。
 
        @history[#:added "8.1.0.6"]}
 
- @item{@indexed-racket['apps-dir] --- a path, string, or byte string
-       for the installation's directory for @filepath{.desktop} files.
-       It defaults to a @filepath{applications} subdirectory of the
-       @tech{main shared-file directory}.}
+ @item{@indexed-racket['apps-dir] --- 安装目录中用于 @filepath{.desktop} 文件的目录的路径、字符串或字节字符串。它默认是@tech{主共享文件目录}的 @filepath{applications} 子目录。}
 
- @item{@indexed-racket['man-dir] --- a path, string, or byte string for the
-       installation's man-page directory. It defaults to a @filepath{man}
-       sibling directory of the @tech{main shared-file directory}.}
+ @item{@indexed-racket['man-dir] --- 安装目录的 man-page 目录的路径、字符串或字节字符串。它默认是@tech{主共享文件目录}的 @filepath{man} 同级目录。}
 
- @item{@indexed-racket['man-search-dirs] --- analogous to
-       @racket['lib-search-dirs], where @racket[#f] is replaced by the
-       default search path, which is a user- and version-specific
-       directory followed by a directory as potentially configured via
-       @scheme['man-dir].
+ @item{@indexed-racket['man-search-dirs] --- 类似于 @racket['lib-search-dirs]，其中 @racket[#f] 被替换为默认搜索路径，即用户特定和版本特定的目录，后跟可能通过 @scheme['man-dir] 配置的目录。
 
        @history[#:added "8.1.0.6"]}
 
- @item{@indexed-racket['doc-dir] --- a path, string, or byte string for the
-       main documentation directory. The value defaults to a
-       @filepath{doc} sibling directory of the
-       @tech{main collection directory}.}
+ @item{@indexed-racket['doc-dir] --- 主文档目录的路径、字符串或字节字符串。它默认是@tech{主集合目录}的 @filepath{doc} 同级目录。}
 
- @item{@indexed-racket['doc-search-dirs] --- analogous to
-       @racket['lib-search-dirs], where @racket[#f] is replaced by the
-       default search path, which is a user- and version-specific
-       directory followed by a directory as potentially configured via
-       @scheme['doc-dir].}
+ @item{@indexed-racket['doc-search-dirs] --- 类似于 @racket['lib-search-dirs]，其中 @racket[#f] 被替换为默认搜索路径，即用户特定和版本特定的目录，后跟可能通过 @scheme['doc-dir] 配置的目录。}
 
- @item{@indexed-racket['doc-search-url] --- a URL string that is augmented
-       with version and search-tag queries to form a remote
-       documentation reference.}
+ @item{@indexed-racket['doc-search-url] --- 一个 URL 字符串，附带版本和 search-tag 查询以形成远程文档引用。}
 
- @item{@indexed-racket['doc-open-url] --- a URL string or @racket[#f];
-       a string supplies a URL that is used instead of a local path to
-       search and maybe open documentation pages (which normally makes
-       sense only in an environment where opening a local HTML file
-       does not work).}
+ @item{@indexed-racket['doc-open-url] --- 一个 URL 字符串或 @racket[#f]；字符串提供一个 URL，用于代替本地路径来搜索和可能打开文档页面（这通常只在无法打开本地 HTML 文件的环境中有意义）。}
 
- @item{@indexed-racket['include-dir] --- a path, string, or byte string for
-       the main directory containing C header files. It defaults to an
-       @filepath{include} sibling directory of the @tech{main collection
-       directory}.}
+ @item{@indexed-racket['include-dir] --- 包含 C 头文件的主目录的路径、字符串或字节字符串。它默认是@tech{主集合目录}的 @filepath{include} 同级目录。}
 
- @item{@indexed-racket['include-search-dirs] --- like
-       @racket[doc-search-dirs], but for directories containing C
-       header files.}
+ @item{@indexed-racket['include-search-dirs] --- 类似于 @racket[doc-search-dirs]，但用于包含 C 头文件的目录。}
 
- @item{@indexed-racket['info-domain-root] --- a path, string, byte
-       string, of @racket[#f]; used as a prefix to redirect the paths
-       used for recording and finding @filepath{info.rkt} information via
-       @racket[find-relevant-directories]. It defaults to @racket[#f], which
-       uses paths as-is.
+ @item{@indexed-racket['info-domain-root] --- 路径、字符串、字节字符串或 @racket[#f]；用作前缀以重定向用于通过 @racket[find-relevant-directories] 记录和查找 @filepath{info.rkt} 信息的路径。它默认是 @racket[#f]，即按原样使用路径。
 
        @history[#:added "8.10.0.4"]}
 
- @item{@indexed-racket['catalogs] --- a list of URL strings used as the search
-       path for resolving package names. An @racket[#f] in the list
-       is replaced with the default search path. A string that does not
-       start with alphabetic characters followed by @litchar{://} is
-       treated as a path, where a relative path is relative to the
-       configuration directory.}
+ @item{@indexed-racket['catalogs] --- URL 字符串的列表，用作解析包名的搜索路径。列表中的 @racket[#f] 被替换为默认搜索路径。不以字母字符后跟 @litchar{://} 开头的字符串被视为路径，其中相对路径是相对于配置目录的。}
 
- @item{@indexed-racket['default-scope] --- either @racket["user"] or
-       @racket["installation"], determining the default @tech[#:doc
-       '(lib "pkg/scribblings/pkg.scrbl")]{package scope} for
-       package-management operations.}
+ @item{@indexed-racket['default-scope] --- @racket["user"] 或 @racket["installation"] 之一，确定包管理操作的默认 @tech[#:doc '(lib "pkg/scribblings/pkg.scrbl")]{package scope}。}
 
- @item{@indexed-racket['download-cache-dir] --- a path string used as
-       the location for storing downloaded package archives. When not
-       specified, packages are cached in a @filepath{download-cache}
-       directory in the user's cache directory as reported by
-       @racket[(find-system-path 'cache-dir)].}
+ @item{@indexed-racket['download-cache-dir] --- 用作存储已下载包归档的位置的路径字符串。未指定时，包缓存在用户缓存目录中的 @filepath{download-cache} 目录中，由 @racket[(find-system-path 'cache-dir)] 报告。}
 
- @item{@indexed-racket['download-cache-max-files] and
-       @indexed-racket['download-cache-max-bytes] --- real numbers that
-       determine limits on the download cache. When not specified, the
-       cache is allowed to hold up to 1024 files that total up to
-       64@|~|MB.}
+ @item{@indexed-racket['download-cache-max-files] 和 @indexed-racket['download-cache-max-bytes] --- 确定下载缓存限制的实数。未指定时，缓存允许最多容纳 1024 个文件，总计达 64@|~|MB。}
 
- @item{@indexed-racket['build-stamp] --- a string that identifies a build,
-       which can be used to augment the Racket version number to more
-       specifically identify the build. An empty string is normally
-       appropriate for a release build. The default @racket{banner}
-       also shows the build stamp when non-empty.}
+ @item{@indexed-racket['build-stamp] --- 标识构建的字符串，可用于补充 Racket 版本号以更具体地标识构建。空字符串通常适用于发布构建。默认 @racket{banner} 也显示非空的 build stamp。
 
-       @history[#:changed "8.11.1.7" @elem{Added build stamp to
-                                           @racket{banner}.}]
+       @history[#:changed "8.11.1.7" @elem{将 build stamp 添加到 @racket{banner}。}]}
 
- @item{@indexed-racket['main-language-family] --- a string that names
-       the main @tech{language family}. The default is @racket["Racket"].
+ @item{@indexed-racket['main-language-family] --- 命名主 @tech{语言族}的字符串。默认值是 @racket["Racket"]。
 
        @history[#:added "8.14.0.5"]}
 
- @item{@indexed-racket['base-documentation-packages] --- a list of
-       strings, each of which names a package. Any documentation
-       provided by the package and its dependencies is considered part
-       of the distribution's base language. This classification affects
-       the way that documentation search results are sorted and reported.
-       The default is @racket['("racket-doc")].
+ @item{@indexed-racket['base-documentation-packages] --- 字符串列表，每个字符串命名一个包。包及其依赖项提供的任何文档都被视为分发基础语言的一部分。此分类影响文档搜索结果的排序和报告方式。默认值是 @racket['("racket-doc")]。
 
        @history[#:added "8.14.0.5"]}
 
- @item{@indexed-racket['distribution-documentation-packages] --- like
-       @racket['base-documentation-packages], but identifies a larger set of
-       documentation that is considered part of the distribution
-       beyond (but normally including) the base language. The default
-       is @racket['("main-distribution")].
+ @item{@indexed-racket['distribution-documentation-packages] --- 类似于 @racket['base-documentation-packages]，但标识被视为分发一部分的更大文档集（超出但通常包括基础语言）。默认值是 @racket['("main-distribution")]。
 
        @history[#:added "8.14.0.5"]}
 
- @item{@indexed-racket['absolute-installation?] --- a boolean that is
-       @racket[#t] if the installation uses absolute path names,
-       @racket[#f] otherwise.}
+ @item{@indexed-racket['absolute-installation?] --- 布尔值，如果安装使用绝对路径名则为 @racket[#t]，否则为 @racket[#f]。}
 
- @item{@indexed-racket['cgc-suffix] --- a string used as the suffix (before
-       the actual suffix, such as @filepath{.exe}) for a
-       @filepath{CGC} executable. Use Windows-style casing, and the
-       string will be downcased as appropriate (e.g., for a Unix
-       binary name). A @racket[#f] value means that if the
-       @exec{racket} binary identifies itself as CGC, then the suffix
-       is @racket[""], otherwise it is @racket["CGC"].}
+ @item{@indexed-racket['cgc-suffix] --- 用作 CGC 可执行文件后缀（在实际后缀之前，如 @filepath{.exe}）的字符串。使用 Windows 风格的大小写，字符串将酌情转为小写（例如用于 Unix 二进制名称）。@racket[#f] 值表示如果 @exec{racket} 二进制标识自身为 CGC，则后缀为 @racket[""]，否则为 @racket["CGC"]。}
 
- @item{@indexed-racket['3m-suffix] --- analogous to @racket['cgc-suffix], but
-       for 3m. A @racket[#f] value means that if the @exec{racket}
-       binary identifies itself as 3m, then the suffix is
-       @racket[""], otherwise it is @racket["BC"].}
+ @item{@indexed-racket['3m-suffix] --- 类似于 @racket['cgc-suffix]，但用于 3m。@racket[#f] 值表示如果 @exec{racket} 二进制标识自身为 3m，则后缀为 @racket[""]，否则为 @racket["BC"]。}
 
- @item{@indexed-racket['cs-suffix] --- analogous to @racket['cgc-suffix], but
-       for CS. A @racket[#f] value means that if the @exec{racket}
-       binary identifies itself as CS, then the suffix is
-       @racket[""], otherwise it is @racket["CS"].}
+ @item{@indexed-racket['cs-suffix] --- 类似于 @racket['cgc-suffix]，但用于 CS。@racket[#f] 值表示如果 @exec{racket} 二进制标识自身为 CS，则后缀为 @racket[""]，否则为 @racket["CS"]。}
 
- @item{@indexed-racket['config-tethered-console-bin-dir] and
-       @indexed-racket['config-tethered-gui-bin-dir] --- a path for a
-       directory to hold extra copies of executables that are tied to the
-       configuration directory (as reported by @racket[find-config-dir])
-       that is active at the time the executables are created. See also
-       @secref["tethered-install"],
-       @racket[find-config-tethered-console-bin-dir], and
-       @racket[find-config-tethered-gui-bin-dir].}
+ @item{@indexed-racket['config-tethered-console-bin-dir] 和 @indexed-racket['config-tethered-gui-bin-dir] --- 用于保存额外可执行文件副本的目录路径，这些副本绑定到创建可执行文件时活动的配置目录（由 @racket[find-config-dir] 报告）。另请参见 @secref["tethered-install"]、@racket[find-config-tethered-console-bin-dir] 和 @racket[find-config-tethered-gui-bin-dir]。}
 
-  @item{@indexed-racket['interactive-file] and
-        @indexed-racket['gui-interactive-file] --- a module path
-        to the interactive module that runs when the REPL
-        runs on startup, unless the
-        @Flag{q}/@DFlag{no-init-file} is provided. Defaults to
-        @racket['racket/interactive] and
-        @racket['racket/gui/interactive].}
+  @item{@indexed-racket['interactive-file] 和 @indexed-racket['gui-interactive-file] --- 交互式模块的模块路径，在 REPL 启动时运行，除非提供了 @Flag{q}/@DFlag{no-init-file}。默认值分别为 @racket['racket/interactive] 和 @racket['racket/gui/interactive]。}
 
   ]

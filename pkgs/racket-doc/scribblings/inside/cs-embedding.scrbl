@@ -2,71 +2,44 @@
 @(require "utils.rkt"
           scribble/bnf)
 
-@cs-title[#:tag "cs-embedding"]{Embedding into a Program}
+@cs-title[#:tag "cs-embedding"]{嵌入到程序中}
 
 @section-index["embedding Racket CS"]
 
-To embed Racket CS in a program, follow these steps:
+要将 Racket CS 嵌入到程序中，请按照以下步骤操作：
 
 @itemize[
 
- @item{Locate or @seclink["src-build"]{build} the Racket CS library.
+@item{定位或 @seclink["src-build"]{构建} Racket CS 库。
 
-  On Unix, the library is @as-index{@filepath{libracketcs.a}}.
-  Building from source and installing places the libraries into the
-  installation's @filepath{lib} directory.
+ 在 Unix 上，库是 @as-index{@filepath{libracketcs.a}}。从源码构建和安装会将库放到安装的 @filepath{lib} 目录下。
 
-  On Windows, link to @filepath{libracketcs@italic{x}.dll} (where
-  @italic{x} represents the version number). At run time, either
-  @filepath{libracketcs@italic{x}.dll} must be moved to a location in
-  the standard DLL search path, or your embedding application must
-  ``delayload'' link the DLLs and explicitly load them before use.
-  (@filepath{Racket.exe} uses the latter strategy.) See also
-  @secref["link-dll"].
+ 在 Windows 上，链接到 @filepath{libracketcs@italic{x}.dll}（其中 @italic{x} 表示版本号）。运行时，libracketcs@italic{x}.dll 必须移到标准 DLL 搜索路径中，或者嵌入程序必须“delayload”链接 DLL 并在使用前显式加载。（@filepath{Racket.exe} 采用后一种策略。）另见 @secref["link-dll"]。
 
-  On Mac OS, besides @as-index{@filepath{libracketcs.a}} for static
-  linking, a dynamic library is provided by the @filepath{Racket}
-  framework, which is typically installed in @filepath{lib}
-  sub-directory of the installation. Supply @exec{-framework Racket}
-  to @exec{gcc} when linking, along with @exec{-F} and a path to the
-  @filepath{lib} directory. At run time, either
-  @filepath{Racket.framework} must be moved to a location in the
-  standard framework search path, or your embedding executable must
-  provide a specific path to the framework (possibly an
-  executable-relative path using the Mach-O @tt["@executable_path"]
-  prefix). When targeting the Hardened Runtime, you must enable the
-  ``Allow Unsigned Executable Memory'' entitlement, otherwise you will
-  run into ``out of memory'' errors when calling @cppi{racket_boot}.}
+ 在 Mac OS 上，除了用于静态链接的 @as-index{@filepath{libracketcs.a}}，@filepath{Racket} framework 也提供了动态库。链接时给 @exec{gcc} 传 @exec{-framework Racket} 以及 @exec{-F} 和 @filepath{lib} 目录路径。运行时需确保 framework 可被找到；面向 Hardened Runtime 时必须启用“Allow Unsigned Executable Memory”授权，否则调用 @cppi{racket_boot} 时会报“out of memory”错误。}
 
- @item{For each C file that uses Racket library functions,
-  @cpp{#include} the files @as-index{@filepath{chezscheme.h}}
-  and @as-index{@filepath{racketcs.h}}.
+ @item{对于每个使用 Racket 库函数的 C 文件，
+  @cpp{#include} 文件 @as-index{@filepath{chezscheme.h}}
+  和 @as-index{@filepath{racketcs.h}}。
 
-  The @filepath{chezscheme.h} and @filepath{racketcs.h} files are
-  distributed with the Racket software in the installation's
-  @filepath{include} directory. Building and installing from source
-  also places this file in the installation's @filepath{include}
-  directory.}
+  @filepath{chezscheme.h} 和 @filepath{racketcs.h} 文件随 Racket 软件
+  一起分发在安装的 @filepath{include} 目录中。从源码构建和安装也会将
+  这些文件放入安装的 @filepath{include} 目录。}
 
- @item{In your program, call @cppi{racket_boot}. The
-  @cppi{racket_boot} function takes a pointer to a
-  @cpp{racket_boot_arguments_t} for configuring the Racket instance.
-  After zeroing out the @cpp{racket_boot_arguments_t} value
-  (typicially with @cpp{memset}), only the following fields are
-  required to be set:
+ @item{在你的程序中，调用 @cppi{racket_boot}。
+  @cppi{racket_boot} 函数接受一个指向
+  @cpp{racket_boot_arguments_t} 的指针，用于配置 Racket 实例。
+  将 @cpp{racket_boot_arguments_t} 值清零后
+  （通常使用 @cpp{memset}），只需设置以下字段：
 
   @itemlist[
 
-     @item{@cpp{exec_file} --- a path to be reported by
-           @racket[(find-system-path 'exec-file)], usually
-           @cpp{argv[0]} for the @cpp{argv} received by your program's
-           @cpp{main}.}
+     @item{@cpp{exec_file} --- 由 @racket[(find-system-path 'exec-file)] 报告的路径，
+           通常是程序 @cpp{main} 收到的 @cpp{argv} 中的 @cpp{argv[0]}。}
 
-     @item{@cpp{boot1_path} or @cpp{boot1_data} and @cpp{boot1_len}
-           --- either a path to @filepath{petite.boot} or the content
-           of @filepath{petite.boot} and its length in bytes. In the
-           former case, use a path that includes at least one
-           directory separator.}
+     @item{@cpp{boot1_path} 或 @cpp{boot1_data} 和 @cpp{boot1_len}
+           --- 到 @filepath{petite.boot} 的路径，或 @filepath{petite.boot} 的内容及其字节长度。
+           在前一种情况下，使用包含至少一个目录分隔符的路径。}
 
      @item{@cpp{boot2_path} or @cpp{boot2_data} and @cpp{boot2_len}
            --- either a path to @filepath{scheme.boot} (with a
@@ -80,16 +53,13 @@ To embed Racket CS in a program, follow these steps:
 
   ]
 
-  The @filepath{petite.boot}, @filepath{scheme.boot}, and
-  @filepath{racket.boot} files are distributed with the Racket
-  software in the installation's @filepath{lib} directory for Windows,
-  and they are distributed within the @filepath{Racket} framework on
-  Mac OS X; they must be @seclink["src-build"]{built} from source on Unix.
-  These files can be combined into a single file---or even
-  embedded into the executable---as long as the @cpp{boot1_offset},
-  @cpp{boot2_offset}, and @cpp{boot3_offset} fields of
-  @cpp{racket_boot_arguments_t} are set to identify the starting
-  offset of each boot image in the file.
+  @filepath{petite.boot}、@filepath{scheme.boot} 和
+  @filepath{racket.boot} 文件随 Racket 软件一起分发在 Windows 上安装的
+  @filepath{lib} 目录中，在 Mac OS X 上分发在 @filepath{Racket} framework 中；
+  在 Unix 上必须从源码 @seclink["src-build"]{构建}。
+  这些文件可以合并为一个文件——甚至可以嵌入到可执行文件中——
+  只要在 @cpp{racket_boot_arguments_t} 中设置 @cpp{boot1_offset}、
+  @cpp{boot2_offset} 和 @cpp{boot3_offset} 字段来标识文件中每个 boot 镜像的起始偏移量。
 
   See @secref["segment-ideas"] for advice on embedding files like
   @filepath{petite.boot} in an executable, or consider using
@@ -130,24 +100,22 @@ To embed Racket CS in a program, follow these steps:
   @DFlag{mods}, embed the file content (see @secref["segment-ideas"])
   and load the content with @cppi{racket_embedded_load_file_region}.}
 
- @item{Access Racket through @cppi{racket_dynamic_require},
-  @cppi{racket_eval}, and/or other functions described in this manual.
+ @item{通过 @cppi{racket_dynamic_require}、
+  @cppi{racket_eval} 和/或本手册中描述的其他函数访问 Racket。
 
-  If the embedding program configures built-in parameters in a way
-  that should be considered part of the default configuration, then
-  call the @racketidfont{seal} function provided by the primitive
-  @racketidfont{#%boot} module afterward. The snapshot of parameter
-  values taken by @racketidfont{seal} is used for certain
-  privileged operations, such as installing a @|PLaneT| package.}
+  如果嵌入程序以某种方式配置 built-in parameter，
+  且该方式应被视为默认配置的一部分，
+  则随后调用 primitive @racketidfont{#%boot} module 提供的
+  @racketidfont{seal} 函数。@racketidfont{seal} 获取的参数值快照
+  用于某些特权操作，例如安装 @|PLaneT| package。}
 
- @item{Compile the program and link it with the Racket libraries.}
+ @item{编译程序并将其与 Racket 库链接。}
 
 ]
 
-@index['("allocation")]{Racket} values may be moved or garbage
-collected any time that @cpp{racket_...} functions are used to run
-Racket code. Do not retain a reference to any Racket value across such
-a call.
+@index['("allocation")]{Racket} 值在使用 @cpp{racket_...} 函数运行
+Racket 代码的任何时候都可能被移动或垃圾回收。
+不要在这样的调用之间保留对任何 Racket 值的引用。
 
 For example, the following is a simple embedding program that runs a
 module @filepath{run.rkt}, assuming that @filepath{run.c} is created
@@ -195,15 +163,15 @@ int main(int argc, char *argv[])
 }
 }}
 
-As another example, the following is a simple embedding program that
-evaluates all expressions provided on the command line and displays
-the results, then runs a @racket[read]-@racket[eval]-@racket[print]
-loop, all using @racketmodname[racket/base]. Run
+作为另一个例子，下面是一个简单的嵌入程序，
+它评估命令行上提供的所有表达式并显示结果，
+然后运行一个 @racket[read]-@racket[eval]-@racket[print] 循环，
+全部使用 @racketmodname[racket/base]。运行
 
 @commandline{raco ctool --c-mods base.c ++lib racket/base}
 
-to generate @filepath{base.c}, which encapsulates @racket[racket/base]
-and all of its transitive imports.
+生成 @filepath{base.c}，它封装了 @racket[racket/base]
+及其所有传递导入。
 
 @filebox["main.c"]{
 @verbatim[#:indent 2]{

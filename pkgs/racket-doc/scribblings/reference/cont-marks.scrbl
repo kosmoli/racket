@@ -7,67 +7,46 @@
 
 @title[#:tag "contmarks"]{Continuation Marks}
 
-See @secref["mark-model"] and @secref["prompt-model"] for
-general information about continuation marks.
+参见 @secref["mark-model"] 和 @secref["prompt-model"] 了解 continuation marks 的一般信息。
 
-The list of continuation marks for a key @racket[_k] and a continuation
-@racket[_C] that extends @cont[0] is defined as follows:
+对于 key @racket[_k] 和扩展 @cont[0] 的 continuation @racket[_C]，其 continuation marks 列表定义如下：
 
 @itemize[
 
- @item{If @racket[_C] is an empty continuation, then the mark list is
- @racket[null].}
+ @item{如果 @racket[_C] 是空 continuation，则 mark 列表为 @racket[null]。}
 
- @item{If @racket[_C]'s first frame contains a mark @racket[_m] for @racket[_k],
- then the mark list for @racket[_C] is @racket[(cons _m _lst)],
- where @racket[_lst] is the mark list for @racket[_k] in @cont[0].}
+ @item{如果 @racket[_C] 的第一帧包含 key 为 @racket[_k] 的 mark @racket[_m]，
+ 则 @racket[_C] 的 mark 列表为 @racket[(cons _m _lst)]，
+ 其中 @racket[_lst] 是 @racket[_k] 在 @cont[0] 中的 mark 列表。}
 
- @item{If @racket[_C]'s first frame does not contain a mark keyed by
- @racket[_k], then the mark list for @racket[_C] is the mark list for
- @cont[0].}
+ @item{如果 @racket[_C] 的第一帧不包含 key 为 @racket[_k] 的 mark，
+ 则 @racket[_C] 的 mark 列表与 @cont[0] 的 mark 列表相同。}
 
 ]
 
-The @racket[with-continuation-mark] form installs a mark on the first
-frame of the current continuation (see @secref["wcm"]).  Procedures
-such as @racket[current-continuation-marks] allow inspection of marks.
+@racket[with-continuation-mark] 形式在当前 continuation 的第一帧上安装一个 mark（参见 @secref["wcm"]）。
+@racket[current-continuation-marks] 等过程允许检查 mark。
 
-Whenever Racket creates an exception record for a primitive exception,
-it fills the @racket[continuation-marks] field with the value of
-@racket[(current-continuation-marks)], thus providing a snapshot of
-the continuation marks at the time of the exception.
+每当 Racket 为 primitive exception 创建异常记录时，
+它会用 @racket[(current-continuation-marks)] 的值填充 @racket[continuation-marks] 字段，
+从而提供异常发生时 continuation marks 的快照。
 
-When a continuation procedure returned by
-@racket[call-with-current-continuation] or
-@racket[call-with-composable-continuation] is invoked, it restores the
-captured continuation, and also restores the marks in the
-continuation's frames to the marks that were present when
-@racket[call-with-current-continuation] or
-@racket[call-with-composable-continuation] was invoked.
+当调用 @racket[call-with-current-continuation] 或
+@racket[call-with-composable-continuation] 返回的 continuation procedure 时，
+它会恢复捕获的 continuation，同时恢复 continuation 帧中的 mark
+到调用 @racket[call-with-current-continuation] 或
+@racket[call-with-composable-continuation] 时存在的 mark。
 
 @defproc[(continuation-marks [cont (or/c continuation? thread? #f)]
                              [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          continuation-mark-set?]{
 
-Returns an opaque value containing the set of continuation marks for
-all keys in the continuation @racket[cont] (or the current
-continuation of @racket[cont] if it is a thread) up to the prompt
-tagged by @racket[prompt-tag]. If @racket[cont] is @racket[#f], the
-resulting set of continuation marks is empty. If @racket[cont] is an escape
-continuation (see @secref["prompt-model"]), then the current
-continuation must extend @racket[cont], or the
-@exnraise[exn:fail:contract]. If @racket[cont] was not captured with
-respect to @racket[prompt-tag] and does not include a prompt for
-@racket[prompt-tag], the @exnraise[exn:fail:contract]. If
-@racket[cont] is a dead thread, the result is an empty set of
-continuation marks.}
+返回一个不透明值，包含 continuation @racket[cont] 中所有 key 的 continuation marks 集合（如果 @racket[cont] 是线程，则为其当前 continuation），直到 @racket[prompt-tag] 标记的 prompt。如果 @racket[cont] 为 @racket[#f]，则返回空的 continuation marks 集合。如果 @racket[cont] 是 escape continuation（参见 @secref["prompt-model"]），则当前 continuation 必须扩展 @racket[cont]，否则 @exnraise[exn:fail:contract]。如果 @racket[cont] 不是相对于 @racket[prompt-tag] 捕获的，并且不包含 @racket[prompt-tag] 的 prompt，则 @exnraise[exn:fail:contract]。如果 @racket[cont] 是死线程，则返回空的 continuation marks 集合。}
 
 @defproc[(current-continuation-marks [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          continuation-mark-set?]{
 
-Returns an opaque value containing the set of continuation marks for
-all keys in the current continuation up to @racket[prompt-tag]. In
-other words, it produces the same value as
+返回一个不透明值，包含当前 continuation 中直到 @racket[prompt-tag] 的所有 key 的 continuation marks 集合。换句话说，它产生与以下代码相同的值：
 
 @racketblock[
 (call-with-current-continuation
@@ -81,16 +60,9 @@ other words, it produces the same value as
           [key-v any/c]
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          list?]{
-Returns a newly-created list containing the marks for @racket[key-v]
-in @racket[mark-set], which is a set of marks returned by
-@racket[current-continuation-marks] or @racket[#f] as a shorthand for
-@racket[(current-continuation-marks prompt-tag)]. The result list is truncated at
-the first point, if any, where continuation frames were originally
-separated by a prompt tagged with @racket[prompt-tag]. Producing the result
-takes time proportional to the size of the continuation reflected by
-@racket[mark-set].
+返回一个新创建的列表，包含 @racket[mark-set] 中 @racket[key-v] 的 mark，该 mark 集合由 @racket[current-continuation-marks] 返回，或使用 @racket[#f] 作为 @racket[(current-continuation-marks prompt-tag)] 的简写。结果列表在第一个点（如果存在）被截断，该点处的 continuation 帧最初由 @racket[prompt-tag] 标记的 prompt 分隔。生成结果所需的时间与 @racket[mark-set] 反映的 continuation 大小成正比。
 
-@history[#:changed "8.0.0.1" @elem{Changed to allow @racket[mark-set] as @racket[#f].}]}
+@history[#:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]}
 
 
 @defproc[(continuation-mark-set->list*
@@ -99,21 +71,9 @@ takes time proportional to the size of the continuation reflected by
           [none-v any/c #f]
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          (listof vector?)]{
-Returns a newly-created list containing vectors of marks in
-@racket[mark-set] for the keys in @racket[key-list], up to
-@racket[prompt-tag], where a @racket[#f] value for @racket[mark-set]
-is equivalent to @racket[(current-continuation-marks prompt-tag)].
-The length of each vector in the result list is
-the same as the length of @racket[key-list], and a value in a
-particular vector position is the value for the corresponding key in
-@racket[key-list]. Values for multiple keys appear in a single vector
-only when the marks are for the same continuation frame in
-@racket[mark-set]. The @racket[none-v] argument is used for vector
-elements to indicate the lack of a value. Producing the result
-takes time proportional to the size of the continuation reflected by
-@racket[mark-set] times the length of @racket[key-list].
+返回一个新创建的列表，包含 @racket[mark-set] 中 @racket[key-list] 各 key 对应的 mark 向量，直到 @racket[prompt-tag]，其中 @racket[mark-set] 的 @racket[#f] 值等同于 @racket[(current-continuation-marks prompt-tag)]。结果列表中每个向量的长度与 @racket[key-list] 的长度相同，特定位置的值是 @racket[key-list] 中对应 key 的值。仅当 @racket[mark-set] 中的 mark 用于同一 continuation 帧时，多个 key 的值才会出现在单个向量中。@racket[none-v] 参数用于向量元素表示值的缺失。生成结果所需的时间与 @racket[mark-set] 反映的 continuation 大小乘以 @racket[key-list] 的长度成正比。
 
-@history[#:changed "8.0.0.1" @elem{Changed to allow @racket[mark-set] as @racket[#f].}]}
+@history[#:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]
 
 
 @defproc[(continuation-mark-set->iterator
@@ -123,20 +83,10 @@ takes time proportional to the size of the continuation reflected by
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          (-> (values (or/c vector? #f) procedure?))]{
 
-Like @racket[continuation-mark-set->list*], but instead of returning a
-list of values, returns a functional iterator in the form of a
-procedure that returns one element of the would-be list and a new
-iterator function for the rest of the would-be list. An iterator
-procedure returns @racket[#f] instead of a vector when no more
-elements are available; in that case, the returned iterator
-procedure is like the called one, producing no further values.
-The time required for each step is proportional to the length of
-@racket[key-list] times the size of the segment of the continuation
-reflected by @racket[mark-set] between frames that have keys in
-@racket[key-list].
+类似于 @racket[continuation-mark-set->list*]，但不返回值列表，而是返回一个函数式迭代器，形式为一个过程，返回预期列表的一个元素以及剩余部分的新迭代器函数。当没有更多元素时，迭代器过程返回 @racket[#f] 而不是向量；在这种情况下，返回的迭代器函数与调用的那个相同，不再产生值。每一步所需的时间与 @racket[key-list] 的长度乘以 @racket[mark-set] 反映的 continuation 中各帧之间（包含 @racket[key-list] 中 key 的帧）的大小成正比。
 
 @history[#:added "7.5.0.7"
-         #:changed "8.0.0.1" @elem{Changed to allow @racket[mark-set] as @racket[#f].}]}
+         #:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]
 
 
 @defproc[(continuation-mark-set-first 
@@ -145,21 +95,11 @@ reflected by @racket[mark-set] between frames that have keys in
           [none-v any/c #f]
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          any]{
-Returns the first element of the list that would be returned by
-@racket[(continuation-mark-set->list (or mark-set
-(current-continuation-marks prompt-tag)) key-v prompt-tag)], or
-@racket[none-v] if the result would be the empty list.
+返回 @racket[(continuation-mark-set->list (or mark-set (current-continuation-marks prompt-tag)) key-v prompt-tag)] 将返回的列表的第一个元素，如果结果将是空列表，则返回 @racket[none-v]。
 
-The result
-is produced in (amortized) constant time. Typically, this
-result can be computed more quickly using
-@racket[continuation-mark-set-first] than using
-@racket[continuation-mark-set->list] or by using
-@racket[continuation-mark-set->iterator] and iterating just once.
+结果以（摊销）常数时间产生。通常，使用 @racket[continuation-mark-set-first] 可以比使用 @racket[continuation-mark-set->list] 或使用 @racket[continuation-mark-set->iterator] 仅迭代一次更快地计算此结果。
 
-Although @racket[#f] and @racket[(current-continuation-marks
-prompt-tag)] are equivalent for @racket[mark-set], providing @racket[#f]
-as @racket[mark-set] can enable shortcuts that make it even faster.}
+虽然 @racket[#f] 和 @racket[(current-continuation-marks prompt-tag)] 对于 @racket[mark-set] 是等价的，但提供 @racket[#f] 作为 @racket[mark-set] 可以启用使其更快的快捷方式。
 
 
 @defproc[(call-with-immediate-continuation-mark
@@ -168,22 +108,9 @@ as @racket[mark-set] can enable shortcuts that make it even faster.}
           [default-v any/c #f])
          any]{
 
-Calls @racket[proc] with the value associated with @racket[key-v] in
-the first frame of the current continuation (i.e., a value that would
-be replaced if the call to
-@racket[call-with-immediate-continuation-mark] were replaced with a
-@racket[with-continuation-mark] form using @racket[key-v] as the key
-expression). If no such value exists in the first frame,
-@racket[default-v] is passed to @racket[proc]. The @racket[proc] is
-called in tail position with respect to the
-@racket[call-with-immediate-continuation-mark] call.
+使用当前 continuation 第一帧中与 @racket[key-v] 关联的值调用 @racket[proc]（即，如果将 @racket[call-with-immediate-continuation-mark] 的调用替换为使用 @racket[key-v] 作为 key 表达式的 @racket[with-continuation-mark] 形式，该值将被替换的值）。如果第一帧中不存在这样的值，则将 @racket[default-v] 传递给 @racket[proc]。@racket[proc] 在 @racket[call-with-immediate-continuation-mark] 调用的 tail position 中被调用。
 
-This function could be implemented with a combination of
-@racket[with-continuation-mark], @racket[current-continuation-marks],
-and @racket[continuation-mark-set->list*], as shown below, but
-@racket[call-with-immediate-continuation-mark] is implemented more
-efficiently; it inspects only the first frame of the current
-continuation.
+此函数可以结合 @racket[with-continuation-mark]、@racket[current-continuation-marks] 和 @racket[continuation-mark-set->list*] 实现，如下所示，但 @racket[call-with-immediate-continuation-mark] 的实现更高效；它仅检查当前 continuation 的第一帧。
 
 @racketblock[
 (code:comment "Equivalent, but inefficient:")
@@ -200,26 +127,17 @@ continuation.
 
 @defproc*[([(make-continuation-mark-key) continuation-mark-key?]
            [(make-continuation-mark-key [sym symbol?]) continuation-mark-key?])]{
-Creates a continuation mark key that is not @racket[equal?] to the result
-of any other value (including prior and future results from
-@racket[make-continuation-mark-key]). The continuation mark key can be used
-as the key argument for @racket[with-continuation-mark] or accessor procedures
-like @racket[continuation-mark-set-first]. The mark key can be chaperoned
-or impersonated, unlike other values that are used as the mark key.
+创建一个 continuation mark key，该 key 与任何其他值（包括先前和将来的 @racket[make-continuation-mark-key] 的结果）都不是 @racket[equal?] 的。continuation mark key 可用作 @racket[with-continuation-mark] 或访问器过程（如 @racket[continuation-mark-set-first]）的 key 参数。与用作 mark key 的其他值不同，mark key 可以被 chaperone 或 impersonate。
 
-The optional @racket[sym] argument, if provided, is used when printing
-the continuation mark.}
+可选的 @racket[sym] 参数（如果提供）在打印 continuation mark 时使用。}
 
 
 @defproc[(continuation-mark-key? [v any/c]) boolean?]{
-Returns @racket[#t] if @racket[v] is a mark key created by
-@racket[make-continuation-mark-key], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[make-continuation-mark-key] 创建的 mark key，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(continuation-mark-set? [v any/c]) boolean?]{
-Returns @racket[#t] if @racket[v] is a mark set created by
-@racket[continuation-marks] or @racket[current-continuation-marks],
-@racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[continuation-marks] 或 @racket[current-continuation-marks] 创建的 mark set，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(continuation-mark-set->context [mark-set continuation-mark-set?]

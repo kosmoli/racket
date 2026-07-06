@@ -4,19 +4,15 @@
 
 @(define cgc-v-3m "CGC versus 3m")
 
-@bc-title[#:tag "embedding"]{Embedding into a Program}
+@bc-title[#:tag "embedding"]{嵌入到程序中}
 
 @section-index["embedding Racket BC"]
 
-The Racket run-time system can be embedded into a larger program.  The
-embedding process for Racket CGC or Racket 3m (see @secref[cgc-v-3m])
-is essentially the same, but the process for Racket 3m is most easily
-understood as a variant of the process for Racket CGC (even though
-Racket 3m is the standard variant of Racket).
+Racket 运行时系统可以嵌入到更大的程序中。Racket CGC 与 Racket 3m(见 @secref[cgc-v-3m])的嵌入过程基本相同，但 Racket 3m 的过程最容易理解为 Racket CGC 过程的变体(尽管 Racket 3m 是 Racket 的标准变体)。
 
-@section{CGC Embedding}
+@section{CGC 嵌入}
 
-To embed Racket CGC in a program, follow these steps:
+要将 Racket CGC 嵌入到程序中，请按以下步骤操作：
 
 @itemize[
 
@@ -147,7 +143,7 @@ To embed Racket CGC in a program, follow these steps:
   certain privileged operations, such as installing a @|PLaneT|
   package.}
 
- @item{Compile the program and link it with the Racket libraries.}
+ @item{编译程序并将其与 Racket 库链接。}
 
 ]
 
@@ -291,7 +287,7 @@ non-zero first argument.  See @secref["im:memoryalloc"] for more
 information.
 
 
-@section{3m Embedding}
+@section{3m 嵌入}
 
 Racket 3m can be embedded mostly the same as Racket, as long as the
 embedding program cooperates with the precise garbage collector as
@@ -302,7 +298,7 @@ In either your source in the in compiler command line, @cpp{#define}
 @|mzc| with the @DFlag{cc} and @DFlag{3m} flags, @cpp{MZ_PRECISE_GC}
 is automatically defined.
 
-In addition, some library details are different:
+此外，一些库细节有所不同：
 
 @itemize[
 

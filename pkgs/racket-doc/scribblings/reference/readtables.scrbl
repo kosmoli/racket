@@ -1,71 +1,53 @@
 #lang scribble/doc
 @(require scribble/bnf "mz.rkt")
 
-@title[#:style 'toc]{Reader Extension}
+@title[#:style 'toc]{读取器扩展}
 
-Racket's reader can be extended in three ways: through a reader-macro
-procedure in a @tech{readtable} (see @secref["readtables"]), through a
-@litchar{#reader} form (see @secref["parse-reader"]), or through a
-custom-port byte reader that returns a ``special'' result procedure
-(see @secref["customport"]). All three kinds of @deftech{reader
-extension procedures} accept similar arguments, and their results are
-treated in the same way by @racket[read] and @racket[read-syntax] (or,
-more precisely, by the default read handler; see
-@racket[port-read-handler]).
+Racket 的读取器可以通过三种方式扩展：通过 @tech{readtable} 中的 reader-macro
+过程（参见 @secref["readtables"]）、通过 @litchar{#reader} 形式（参见 @secref["parse-reader"]），
+或通过返回"special"结果过程的 custom-port byte reader（参见 @secref["customport"]）。
+所有这三种 @deftech{reader extension procedures} 接受类似的参数，并且它们的结果
+由 @racket[read] 和 @racket[read-syntax]（或更准确地说，由默认的 read handler；
+参见 @racket[port-read-handler]）以相同方式处理。
 
 @local-table-of-contents[]
 
 @;------------------------------------------------------------------------
-@section[#:tag "readtables"]{Readtables}
+@section[#:tag "readtables"]{读取表}
 
-The dispatch table in @secref["default-readtable-dispatch"]
-corresponds to the default @deftech{readtable}. By creating a new
-readtable and installing it via the @racket[current-readtable]
-parameter, the reader's behavior can be extended.
+@secref["default-readtable-dispatch"] 中的调度表对应于默认的 @deftech{readtable}。
+通过创建新的 readtable 并通过 @racket[current-readtable] 参数安装它，可以扩展读取器的行为。
 
-A readtable is consulted at specific times by the reader:
+读取器在特定时间查阅 readtable：
 
 @itemize[
 
- @item{when looking for the start of a datum;}
+ @item{查找 datum 的起始位置时；}
 
- @item{when determining how to parse a datum that starts with
-   @litchar{#};}
+ @item{确定如何解析以 @litchar{#} 开头的 datum 时；}
 
- @item{when looking for a delimiter to terminate a symbol or number;}
+ @item{查找分隔符以终止 symbol 或 number 时；}
 
- @item{when looking for an opener (such as @litchar{(}), closer (such
-   as @litchar{)}), or @litchar{.} after the first character parsed as
-   a sequence for a pair, list, vector, or hash table; or}
+ @item{在解析为 pair、list、vector 或 hash table 的序列的第一个字符之后，
+ 查找 opener（如 @litchar{(}）、closer（如 @litchar{)}）或 @litchar{.} 时；或}
 
- @item{when looking for an opener after @litchar{#}@nonterm{n} in a
-   vector of specified length @nonterm{n}.}
+ @item{在指定长度 @nonterm{n} 的 vector 中，@litchar{#}@nonterm{n} 之后查找 opener 时。}
 
 ]
 
 The readtable is ignored at other times.  In particular, after parsing
 a character that is mapped to the default behavior of @litchar{;}, the
-readtable is ignored until the comment's terminating newline is
-discovered. Similarly, the readtable does not affect string parsing
-until a closing double-quote is found.  Meanwhile, if a character is
-mapped to the default behavior of @litchar{(}, then it starts a sequence
-that is closed by any character that is mapped to a closing parenthesis
-@litchar{)}. An apparent exception is that the default parsing of
-@litchar{|} quotes a symbol until a matching character is found, but
-the parser is simply using the character that started the quote; it
-does not consult the readtable.
+readtable 直到发现注释的终止换行符时才被忽略。类似地，直到找到闭合双引号之前，
+readtable 不影响 string 解析。同时，如果一个字符被映射到 @litchar{(} 的默认行为，
+那么它启动一个序列，该序列由任何映射到闭合括号 @litchar{)} 的字符关闭。
+一个明显的例外是，@litchar{|} 的默认解析引用一个 symbol 直到找到匹配字符，
+但解析器只是使用启动引用的字符；它不查阅 readtable。
 
-For many contexts, @racket[#f] identifies the default readtable. In
-particular, @racket[#f] is the initial value for the
-@racket[current-readtable] parameter, which causes the reader to
-behave as described in @secref["reader"].
+对于许多上下文，@racket[#f] 标识默认的 readtable。特别是，@racket[#f] 是
+@racket[current-readtable] 参数的初始值，使读取器表现为 @secref["reader"] 中描述的行为。
 
 @defproc[(readtable? [v any/c]) boolean?]{
-
-Returns @racket[#t] if @racket[v] is a readtable, @racket[#f]
-otherwise.
-
-}
+如果 @racket[v] 是 readtable，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(make-readtable [readtable (or/c readtable? #f)]
                          [key (or/c char? #f)]
@@ -79,90 +61,62 @@ otherwise.
                         ...)
            readtable?]{
 
-Creates a new readtable that is like @racket[readtable] (which can be
-@racket[#f] to indicate the default readtable),
-except that the reader's behavior is modified for each
-@racket[key] according to the given @racket[mode] and
-@racket[action]. The @racket[...] for @racket[make-readtable] applies
-to all three of @racket[key], @racket[mode], and @racket[action]; in
-other words, the total number of arguments to @racket[make-readtable]
-must be @math{1} modulo @math{3}.
+创建一个类似于 @racket[readtable]（可以是 @racket[#f] 表示默认 readtable）的新 readtable，
+但读取器对每个 @racket[key] 的行为根据给定的 @racket[mode] 和 @racket[action] 进行修改。
+@racket[make-readtable] 的 @racket[...] 适用于 @racket[key]、@racket[mode] 和 @racket[action] 全部三个；
+换句话说，@racket[make-readtable] 的参数总数必须为 @math{1} 对 @math{3} 取模。
 
-The possible combinations for @racket[key], @racket[mode], and
-@racket[action] are as follows:
+@racket[key]、@racket[mode] 和 @racket[action] 的可能组合如下：
 
 @itemize[
 
- @item{@racket[(code:line _char (unsyntax @indexed-racket['terminating-macro]) _proc)] --- causes
- @racket[_char] to be parsed as a delimiter, and an
- unquoted/uncommented @racket[_char] in the input string triggers a
- call to the @deftech{reader macro} @racket[_proc]; the activity of
- @racket[_proc] is described further below.  Conceptually, characters
- like @litchar{;}, @litchar{(}, and @litchar{)} are mapped to
- terminating reader macros in the default readtable.}
+ @item{@racket[(code:line _char (unsyntax @indexed-racket['terminating-macro]) _proc)] ---
+ 使 @racket[_char] 被解析为分隔符，并且输入字符串中未引用/未注释的 @racket[_char]
+ 触发对 @deftech{reader macro} @racket[_proc] 的调用；@racket[_proc] 的活动将在下面进一步描述。
+ 从概念上讲，像 @litchar{;}、@litchar{(} 和 @litchar{)} 这样的字符在默认 readtable 中
+ 被映射到 terminating reader macro。}
 
- @item{@racket[(code:line _char (unsyntax @indexed-racket['non-terminating-macro]) _proc)] --- like
- the @racket['terminating-macro] variant, but @racket[_char] is not
- treated as a delimiter, so it can be used in the middle of an
- identifier or number. Conceptually, @litchar{#} is mapped to a
- non-terminating macro in the default readtable.}
+ @item{@racket[(code:line _char (unsyntax @indexed-racket['non-terminating-macro]) _proc)] ---
+ 类似于 @racket['terminating-macro] 变体，但 @racket[_char] 不被视为分隔符，
+ 因此它可以在 identifier 或 number 的中间使用。从概念上讲，@litchar{#} 在默认 readtable 中
+ 被映射到 non-terminating macro。}
 
- @item{@racket[(code:line _char (unsyntax @indexed-racket['dispatch-macro]) _proc)] --- like the
- @racket['non-terminating-macro] variant, but for @racket[_char] only
- when it follows a @litchar{#} (or, more precisely, when the character
- follows one that has been mapped to the behavior of @litchar{#}
- in the default readtable).}
+ @item{@racket[(code:line _char (unsyntax @indexed-racket['dispatch-macro]) _proc)] ---
+ 类似于 @racket['non-terminating-macro] 变体，但仅当 @racket[_char] 跟随在 @litchar{#} 之后时
+ （或者更准确地说，当字符跟随在已映射到默认 readtable 中 @litchar{#} 行为的字符之后时）。}
 
- @item{@racket[(code:line _char _like-char _readtable)] --- causes
- @racket[_char] to be parsed in the same way that @racket[_like-char]
- is parsed in @racket[_readtable], where @racket[_readtable] can be
- @racket[#f] to indicate the default readtable. (The mapping of
- @racket[_char] does not apply after @litchar{#}, which is configured
- separately via @racket['dispatch-macro].) Mapping a character to
- the same actions as @litchar{|} in the default reader means that the
- character starts quoting for symbols, and the same character
- terminates the quote; in contrast, mapping a character to the same
- action as a @litchar{"} means that the character starts a string, but
- the string is still terminated with a closing @litchar{"}. Finally,
- mapping a character to an action in the default readtable means that
- the character's behavior is sensitive to parameters that affect the
- original character; for example, mapping a character to the same
- action as a curly brace @litchar["{"] in the default readtable means
- that the character is disallowed when the
- @racket[read-curly-brace-as-paren] parameter is set to @racket[#f].}
+ @item{@racket[(code:line _char _like-char _readtable)] ---
+ 使 @racket[_char] 的解析方式与 @racket[_like-char] 在 @racket[_readtable] 中的解析方式相同，
+ 其中 @racket[_readtable] 可以是 @racket[#f] 表示默认 readtable。（@racket[_char] 的映射
+ 不适用于 @litchar{#} 之后，@litchar{#} 通过 @racket['dispatch-macro] 单独配置。）
+ 将字符映射到与默认读取器中 @litchar{|} 相同的操作意味着该字符开始引用 symbol，
+ 并且相同的字符终止引用；相反，将字符映射到与 @litchar{"} 相同的操作意味着
+ 该字符开始一个 string，但 string 仍然以闭合的 @litchar{"} 终止。最后，
+ 将字符映射到默认 readtable 中的操作意味着该字符的行为对影响原始字符的参数敏感；
+ 例如，将字符映射到与默认 readtable 中花括号 @litchar["{"] 相同的操作意味着
+ 当 @racket[read-curly-brace-as-paren] 参数设置为 @racket[#f] 时，该字符被禁止。}
 
  @item{@racket[(code:line #f (unsyntax @indexed-racket['non-terminating-macro]) _proc)] ---
- replaces the macro used to parse characters with no specific mapping:
- i.e., the characters (other than @litchar{#} or @litchar{|}) that can
- start a symbol or number with the default readtable.}
+ 替换用于解析没有特定映射的字符的 macro：即，可以使用默认 readtable 启动 symbol 或 number 的字符
+ （@litchar{#} 或 @litchar{|} 除外）。}
 
 ]
 
-If multiple @racket['dispatch-macro] mappings are provided for a
-single @racket[_char], all but the last one are ignored. Similarly, if
-multiple non-@racket['dispatch-macro] mappings are provided for a
-single @racket[_char], all but the last one are ignored.
+如果为单个 @racket[_char] 提供了多个 @racket['dispatch-macro] 映射，除最后一个外其余都被忽略。
+类似地，如果为单个 @racket[_char] 提供了多个非 @racket['dispatch-macro] 映射，
+除最后一个外其余都被忽略。
 
-A reader macro @racket[_proc] must accept six arguments, and it can
-optionally accept two arguments. The first two arguments are always
-the character that triggered the reader macro and the input port for
-reading. When the reader macro is triggered by @racket[read-syntax]
-(or @racket[read-syntax/recursive]), the procedure is passed four
-additional arguments that represent a source location for
-already-consumed character(s): the source name, a line number or
-@racket[#f], a column number or @racket[#f], and a position or
-@racket[#f]. When the reader macro is triggered by @racket[read] (or
-@racket[read/recursive]), the procedure is passed only two arguments
-if it accepts two arguments, otherwise it is passed six arguments
-where the third is always @racket[#f]. See @secref["reader-procs"]
-for information on the procedure's results.
+Reader macro @racket[_proc] 必须接受六个参数，并且可以可选地接受两个参数。
+前两个参数始终是触发 reader macro 的字符和用于读取的输入端口。
+当 reader macro 由 @racket[read-syntax]（或 @racket[read-syntax/recursive]）触发时，
+过程会收到四个额外参数，表示已消耗字符的源位置：source name、line number 或 @racket[#f]、
+column number 或 @racket[#f] 以及 position 或 @racket[#f]。当 reader macro 由 @racket[read]
+（或 @racket[read/recursive]）触发时，如果过程接受两个参数，则只传递两个参数，
+否则传递六个参数，其中第三个始终是 @racket[#f]。有关过程结果的信息，请参见 @secref["reader-procs"]。
 
-A reader macro normally reads characters from the given input port to
-produce a value to be used as the ``reader macro-expansion'' of the
-consumed characters. The reader macro might produce a special-comment
-value (see @secref["special-comments"]) to cause the consumed
-character to be treated as whitespace, and it might use
-@racket[read/recursive] or @racket[read-syntax/recursive].}
+Reader macro 通常从给定的输入端口读取字符，以产生用作消耗字符的 "reader-macroid-expansion" 的值。
+Reader macro 可能产生 special-comment 值（参见 @secref["special-comments"]），使消耗的字符被视为 whitespace，
+并且可能使用 @racket[read/recursive] 或 @racket[read-syntax/recursive]。}
 
 @defproc[(readtable-mapping [readtable readtable?] [char char?])
          (values (or/c char?
@@ -171,8 +125,7 @@ character to be treated as whitespace, and it might use
                  (or/c #f procedure?)
                  (or/c #f procedure?))]{
 
-Produces information about the mappings in @racket[readtable] for
-@racket[char]. The result is three values:
+产生关于 @racket[readtable] 中 @racket[char] 的映射信息。结果是三个值：
 
 @itemize[
 

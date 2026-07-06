@@ -15,13 +15,12 @@
 @(define-syntax-rule (defstruct+ id fields . rest)
    (defstruct id fields #:prefab . rest))
 
-@title{Bytecode Representation}
+@title{字节码表示}
 
 @defmodule[compiler/zo-structs]
 
-The @racketmodname[compiler/zo-structs] library defines the bytecode
-structures that are produced by @racket[zo-parse] and consumed by
-@racket[decompile] and @racket[zo-marshal].
+@racketmodname[compiler/zo-structs] 库定义了由 @racket[zo-parse] 生成并被
+@racket[decompile] 和 @racket[zo-marshal] 消费的 bytecode 结构。
 
 @nested[#:style 'inset]{
 @elem[#:style (style #f (list (background-color-property "yellow")))]{@bold{Warning:}}
@@ -32,10 +31,10 @@ structures that are produced by @racket[zo-parse] and consumed by
 
 
 @defstruct+[zo ()]{
-  A supertype for all forms that can appear in compiled code.}
+  所有能出现在编译后代码中的 form 的超类型。}
 
 @; --------------------------------------------------
-@section{Prefix}
+@section{前缀}
 
 @deftogether[(
 @defstruct+[(linkl-directory zo)
@@ -43,7 +42,7 @@ structures that are produced by @racket[zo-parse] and consumed by
 @defstruct+[(linkl-bundle zo)
             ([table (hash/c (or/c symbol? fixnum?) (or linkl? any/c))])]
 )]{
-  Wraps compiled code.
+  包裹编译后的代码。
 
  Module and top-level compilation produce one or more linklets that
  represent independent evaluation in a specific phase. Even a single
@@ -141,11 +140,8 @@ structures that are produced by @racket[zo-parse] and consumed by
             ([arity procedure-arity?]
              [preserves-marks? boolean?])]{
 
-Represents the shape of an expected import, which should be a function
-having the arity specified by @racket[arity]. The
-@racket[preserves-marks?]  field is true if calling the function is
-expected to leave continuation marks unchanged by the time it
-returns.}
+表示预期导入的形状，应该是一个具有 @racket[arity] 指定元数的函数。
+如果调用该函数在返回时预期不改变 continuation mark，则 @racket[preserves-marks?] 字段为真。}
 
 @deftogether[(
 @defstruct+[struct-shape ()]
@@ -160,12 +156,11 @@ returns.}
 @defstruct+[(struct-other-shape struct-shape) ()]
 )]{
 
-Represents the shape of an expected import as a structure-type
-binding, constructor, etc.}
+表示预期导入的形状，作为结构类型绑定、构造函数等。}
 
 
 @; --------------------------------------------------
-@section{Forms and Inline Variants}
+@section{Form 和内联变体}
 
 @defstruct+[(form zo) ()]{
   A supertype for all forms that can appear in a linklet body (including
@@ -189,7 +184,7 @@ binding, constructor, etc.}
  be used for cross-module inlining of the function.}
 
 @; --------------------------------------------------
-@section{Expressions}
+@section{表达式}
 
 @defstruct+[(expr form) ()]{
   A supertype for all expression forms that can appear in compiled code,
@@ -394,7 +389,7 @@ binding, constructor, etc.}
             ([test (or/c expr? seq? any/c)]
              [then (or/c expr? seq? any/c)]
              [else (or/c expr? seq? any/c)])]{
-  Represents an @racket[if] form.
+  表示 @racket[if] 形式。
 
   After @racket[test] is evaluated, the stack is restored to its depth
   from before evaluating @racket[test].}
@@ -403,20 +398,20 @@ binding, constructor, etc.}
             ([key (or/c expr? seq? any/c)]
              [val (or/c expr? seq? any/c)]
              [body (or/c expr? seq? any/c)])]{
-  Represents a @racket[with-continuation-mark] expression.
+  表示 @racket[with-continuation-mark] 表达式。
 
   After each of @racket[key] and @racket[val] is evaluated, the stack is
   restored to its depth from before evaluating @racket[key] or
   @racket[val].}
 
 @defstruct+[(seq expr) ([forms (listof (or/c expr? any/c))])]{
-  Represents a @racket[begin] form.
+  表示 @racket[begin] 形式。
 
   After each form in @racket[forms] is evaluated, the stack is restored
   to its depth from before evaluating the form.}
 
 @defstruct+[(beg0 expr) ([seq (listof (or/c expr? seq? any/c))])]{
-  Represents a @racket[begin0] expression.
+  表示 @racket[begin0] 表达式。
 
   After each expression in @racket[seq] is evaluated, the stack is
   restored to its depth from before evaluating the expression.
@@ -469,11 +464,10 @@ binding, constructor, etc.}
              [def-val (or/c expr? seq? any/c)]
              [body (or/c expr? seq? any/c)])]{
 
-  Represents a @racket[(call-with-immediate-continuation-mark key
-  (lambda (_arg) _body) val)] expression that is handled specially by
-  the run-time system to avoid a closure allocation. One initialized
-  slot is pushed onto the stack after @racket[expr] and @racket[val]
-  are evaluated and before @racket[body] is evaluated.
+  表示 @racket[(call-with-immediate-continuation-mark key
+  (lambda (_arg) _body) val)] 表达式，由运行时系统特殊处理以避免闭包分配。
+  在 @racket[expr] 和 @racket[val] 求值后、@racket[body] 求值前，
+  将一个已初始化的槽压入栈。
 
   After each of @racket[key] and @racket[val] is evaluated, the stack is
   restored to its depth from before evaluating @racket[key] or
