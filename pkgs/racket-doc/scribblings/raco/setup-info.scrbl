@@ -29,15 +29,15 @@
                     pkg/path
                     scribblings/main/contents))
 
-@title[#:tag "setup-info"]{Controlling @exec{raco setup} with @filepath{info.rkt} Files}
+@title[#:tag "setup-info"]{使用 @filepath{info.rkt} 文件控制 @exec{raco setup}}
 
-To compile a collection's files to bytecode, @exec{raco setup} uses the
-@racket[compile-collection-zos] procedure. That procedure, in turn,
-consults the collection's @filepath{info.rkt} file, if it exists, for
-specific instructions on compiling the collection. See
-@racket[compile-collection-zos] for more information on the fields of
-@filepath{info.rkt} that it uses, and see @secref["info.rkt"] for
-information on the format of an @filepath{info.rkt} file.
+为了将集合的文件编译为字节码，@exec{raco setup} 使用
+@racket[compile-collection-zos] 过程。该过程反过来
+会查阅集合的 @filepath{info.rkt} 文件（如果存在），以获取
+编译该集合的具体指令。参见
+@racket[compile-collection-zos] 了解它使用的
+@filepath{info.rkt} 字段的更多信息，参见 @secref["info.rkt"]
+了解 @filepath{info.rkt} 文件格式的信息。
 
 Additional fields are used by the
 @seclink["top" #:doc '(lib "pkg/scribblings/pkg.scrbl") "Racket package manager"]
@@ -45,31 +45,28 @@ and are documented in @secref["metadata" #:doc '(lib "pkg/scribblings/pkg.scrbl"
 The @exec{raco test} command also recognizes additional fields, which are
 documented in @secref["test-config-info" #:doc '(lib "scribblings/raco/raco.scrbl")].
 
-Optional @filepath{info.rkt} fields trigger additional actions by
-@exec{raco setup}:
+可选的 @filepath{info.rkt} 字段触发 @exec{raco setup} 的其他操作：
 
 @itemize[
 
  @item{@as-index{@racketidfont{scribblings}} : @racket[(listof (cons/c string? list?))] ---
-   A list of documents to build. Each document in the list is itself
-   represented as a list, where each document's list starts with a
-   string that is a collection-relative path to the document's source
-   file. A document name (which is derived from the source module's
-   name by default) is intended to be globally unique in the same way
-   as a package or module name. See @secref["doc-info"] for more
-   information about a @racketidfont{scribblings} value.
-   Before a document is rendered by @exec{raco setup}, the document's
-   main @racket[part] is adjusted in several
-   ways; see @secref["doc-adjust"].}
+   要构建的文档列表。列表中的每个文档本身
+   表示为一个列表，其中每个文档的列表以字符串开头，
+   该字符串是文档源文件的集合相对路径。
+   文档名称（默认从源模块的名称派生）旨在与
+   包名或模块名一样全局唯一。参见 @secref["doc-info"]
+   了解 @racketidfont{scribblings} 值的更多信息。
+   在 @exec{raco setup} 渲染文档之前，文档的
+   主 @racket[part] 会以多种方式进行调整；
+   参见 @secref["doc-adjust"]。}
 
  @item{@as-index{@racketidfont{release-note-files}} : @racket[(listof (cons/c string? (cons/c string? list?)))] ---
-   A list of release-notes text files to link from the main documentation pages.
-   Each note is itself represented as a list, and the list can specify auxiliary
-   notes that are grouped with the main note.
+   要从主文档页面链接的发布说明文本文件列表。
+   每个说明本身表示为一个列表，该列表可以指定与主说明
+   分组的辅助说明。
 
-   A @racketidfont{release-note-files} entry must be a value
-   that can be generated from an expression matching the following
-   @racket[_entry] grammar:
+   @racketidfont{release-note-files} 条目必须是一个
+   可以从匹配以下 @racket[_entry] 语法的表达式生成的值：
 
    @racketgrammar*[
      #:literals (list)
@@ -84,19 +81,17 @@ Optional @filepath{info.rkt} fields trigger additional actions by
    The @racket[_order-integer] is used to order notes and defaults to @racket[0].}
 
  @item{@indexed-racket[racket-launcher-names] : @racket[(listof string?)]
-   --- @elemtag["racket-launcher-names"] A list of executable names
-   to be generated in the installation's executable directory to run
-   Racket-based programs implemented by the collection. A parallel
-   list of library names must be provided by
-   @racket[racket-launcher-libraries] or
-   @racket[racket-launcher-flags].
+   --- @elemtag["racket-launcher-names"] 要在安装的可执行文件目录中生成的可执行文件名列表，
+   用于运行该集合实现的基于 Racket 的程序。必须通过
+   @racket[racket-launcher-libraries] 或
+   @racket[racket-launcher-flags] 提供并行的库名列表。
 
-   For each name, a launching executable is set up using
-   @racket[make-racket-launcher].  The arguments are @Flag{l-} and
-   @tt{@nonterm{colls}/.../@nonterm{file}}, where @nonterm{file} is
-   the file named by @racket[racket-launcher-libraries] and
-   @tt{@nonterm{colls}/...}  are the collections (and subcollections)
-   of the @filepath{info.rkt} file.
+   对于每个名称，使用 @racket[make-racket-launcher] 设置
+   一个启动可执行文件。参数为 @Flag{l-} 和
+   @tt{@nonterm{colls}/.../@nonterm{file}}，其中 @nonterm{file} 是
+   @racket[racket-launcher-libraries] 命名的文件，
+   @tt{@nonterm{colls}/...} 是 @filepath{info.rkt} 文件的集合
+   （和子集合）。
 
    In addition,
 
@@ -105,241 +100,218 @@ Optional @filepath{info.rkt} fields trigger additional actions by
      (build-path (collection-path #,(nonterm "colls") _...) #,(nonterm "suffixless-file")))
    ]
 
-   is provided for the optional @racket[_aux] argument (for icons,
-   etc.) to @racket[make-racket-launcher], where
-   @nonterm{suffixless-file} is @nonterm{file} without its suffix.
+   被提供给 @racket[make-racket-launcher] 的可选 @racket[_aux] 参数
+   （用于图标等），其中
+   @nonterm{suffixless-file} 是去掉后缀的 @nonterm{file}。
 
-   If @racket[racket-launcher-flags] is provided, it is used as a
-   list of command-line arguments passed to @exec{racket} instead of
-   the above default, allowing arbitrary command-line arguments. If
-   @racket[racket-launcher-flags] is specified together with
-   @racket[racket-launcher-libraries], then the flags will override
-   the libraries, but the libraries can still be used to specify a
-   name for @racket[build-aux-from-path] (to find related information
-   like icon files etc).}
+   如果提供了 @racket[racket-launcher-flags]，它将作为
+   传递给 @exec{racket} 的命令行参数列表，取代
+   上述默认值，允许任意命令行参数。如果
+   @racket[racket-launcher-flags] 与
+   @racket[racket-launcher-libraries] 一起指定，则 flags 将覆盖
+   libraries，但 libraries 仍可用于为
+   @racket[build-aux-from-path] 指定名称
+   （以查找如图标文件等相关信息）。}
 
  @item{@indexed-racket[racket-launcher-libraries] : @racket[(listof
-   path-string?)] --- A list of library names in parallel to
-   @elemref["racket-launcher-names"]{@racket[racket-launcher-names]}.}
+   path-string?)] --- 与 @elemref["racket-launcher-names"]{@racket[racket-launcher-names]} 并行的库名列表。}
 
  @item{@indexed-racket[racket-launcher-flags] : @racket[(listof string?)]
-   --- A list of command-line flag lists, in parallel to
-   @elemref["racket-launcher-names"]{@racket[racket-launcher-names]}.}
+   --- 与 @elemref["racket-launcher-names"]{@racket[racket-launcher-names]} 并行的命令行标志列表。}
 
  @item{@indexed-racket[mzscheme-launcher-names],
-   @racket[mzscheme-launcher-libraries], and
-   @racket[mzscheme-launcher-flags] --- Backward-compatible variant of
-   @racket[racket-launcher-names], etc.}
+   @racket[mzscheme-launcher-libraries] 和
+   @racket[mzscheme-launcher-flags] --- @racket[racket-launcher-names] 等的向后兼容变体。}
 
  @item{@indexed-racket[gracket-launcher-names] : @racket[(listof string?)]  ---
-   @elemtag["gracket-launcher-names"] Like
-   @elemref["racket-launcher-names"]{@racket[racket-launcher-names]},
-   but for GRacket-based executables. The launcher-name list is treated
-   in parallel to @racket[gracket-launcher-libraries] and
-   @racket[gracket-launcher-flags].}
+   @elemtag["gracket-launcher-names"] 类似于
+   @elemref["racket-launcher-names"]{@racket[racket-launcher-names]}，
+   但用于基于 GRacket 的可执行文件。启动器名称列表与
+   @racket[gracket-launcher-libraries] 和
+   @racket[gracket-launcher-flags] 并行处理。}
 
  @item{@indexed-racket[gracket-launcher-libraries] : @racket[(listof path-string?)]
-   --- A list of library names in parallel to
-   @elemref["gracket-launcher-names"]{@racket[gracket-launcher-names]}.}
+   --- 与 @elemref["gracket-launcher-names"]{@racket[gracket-launcher-names]} 并行的库名列表。}
 
  @item{@indexed-racket[gracket-launcher-flags] : @racket[(listof string?)] --- A
    list of command-line flag lists, in parallel to
    @elemref["gracket-launcher-names"]{@racket[gracket-launcher-names]}.}
 
  @item{@indexed-racket[mred-launcher-names],
-   @racket[mred-launcher-libraries], and
-   @racket[mred-launcher-flags] --- Backward-compatible variant of
-   @racket[gracket-launcher-names], etc.}
+   @racket[mred-launcher-libraries] 和
+   @racket[mred-launcher-flags] --- @racket[gracket-launcher-names] 等的向后兼容变体。}
 
  @item{@indexed-racket[copy-foreign-libs] : @racket[(listof (and/c
-   path-string? relative-path?))] --- Files to copy into a
-   directory where foreign libraries are found by @racket[ffi-lib].
-   If @racket[install-platform] is defined, then the files are copied
-   only if the current platform matches the definition.
+   path-string? relative-path?))] --- 要复制到 @racket[ffi-lib] 查找外部库的
+   目录中的文件。如果定义了 @racket[install-platform]，
+   则仅当当前平台匹配该定义时才复制文件。
 
-   On Mac OS, when a Mach-O file is copied, if the copied file
-   includes a library reference that starts @litchar{@"@"loader_path/},
-   and if the referenced library exists in a different location among
-   the paths listed by @racket[(get-lib-search-dirs)], then the
-   library reference is updated to an absolute path.
+   在 Mac OS 上，当复制 Mach-O 文件时，如果复制的文件
+   包含以 @litchar{@"@"loader_path/} 开头的库引用，
+   并且引用的库在 @racket[(get-lib-search-dirs)] 列出的路径中
+   的不同位置存在，则库引用会被更新为绝对路径。
 
-   On Unix, when an ELF file is copied, if the copied file includes an
-   RPATH setting of @litchar{$ORIGIN} and the file is being installed
-   to a user-specific location, then the file's RPATH is adjusted to
-   @litchar{$ORIGIN:} followed by the path to the main installation's
-   library directory as reported by @racket[(find-lib-dir)].
+   在 Unix 上，当复制 ELF 文件时，如果复制的文件包含
+   @litchar{$ORIGIN} 的 RPATH 设置，并且文件被安装到
+   用户特定位置，则文件的 RPATH 会调整为
+   @litchar{$ORIGIN:} 后跟 @racket[(find-lib-dir)] 报告的
+   主安装库目录的路径。
 
-   On Windows, deleting a previously installed foreign library may be
-   complicated by a lock on the file, if it is in use. To compensate,
-   @exec{raco setup} deletes a foreign-library file by first renaming
-   the file to have the prefix @filepath{raco-setup-delete-}; it then
-   attempts to delete the renamed file and merely issues a warning on
-   a failure to delete the renamed file. Meanwhile, in modes where
-   @exec{raco setup} removes uninstalled libraries, it attempts to
-   delete any file in the foreign-library directory whose name starts
-   with @filepath{raco-setup-delete-} (in an attempt to clean up after
-   previous failures).}
+   在 Windows 上，如果外部库正在使用中，文件锁可能会使删除
+   先前安装的外部库变得复杂。作为补偿，
+   @exec{raco setup} 通过首先将文件重命名为带
+   @filepath{raco-setup-delete-} 前缀来删除外部库文件；然后
+   尝试删除重命名后的文件，如果删除失败则仅发出警告。
+   同时，在 @exec{raco setup} 移除未安装库的模式中，
+   它会尝试删除外部库目录中名称以
+   @filepath{raco-setup-delete-} 开头的任何文件
+   （以尝试清理之前失败的残留）。}
 
  @item{@indexed-racket[move-foreign-libs] : @racket[(listof (and/c
-   path-string? relative-path?))] --- Like @racket[copy-foreign-libs],
-   but the original file is removed after it is copied (which makes sense
-   for precompiled packages).}
+   path-string? relative-path?))] --- 类似于 @racket[copy-foreign-libs]，
+   但原始文件在复制后被移除（这对于预编译包有意义）。}
 
  @item{@indexed-racket[copy-shared-files] : @racket[(listof (and/c
-   path-string? relative-path?))] --- Files to copy into a
-   directory where shared files are found.
-   If @racket[install-platform] is defined, then the files are copied
-   only if the current platform matches the definition.
+   path-string? relative-path?))] --- 要复制到共享文件所在目录的文件。
+   如果定义了 @racket[install-platform]，
+   则仅当当前平台匹配该定义时才复制文件。
 
-   On Windows, uninstalled files are deleted in the same way as for
-   @racket[copy-foreign-libs], and the name prefix
-   @filepath{raco-setup-delete-} is similarly special.}
+   在 Windows 上，未安装的文件以与
+   @racket[copy-foreign-libs] 相同的方式删除，名称前缀
+   @filepath{raco-setup-delete-} 同样具有特殊含义。}
 
  @item{@indexed-racket[move-shared-files] : @racket[(listof (and/c
-   path-string? relative-path?))] --- Like @racket[copy-shared-files],
-   but the original file is removed after it is copied (which makes sense
-   for precompiled packages).}
+   path-string? relative-path?))] --- 类似于 @racket[copy-shared-files]，
+   但原始文件在复制后被移除（这对于预编译包有意义）。}
 
  @item{@indexed-racket[copy-man-pages] : @racket[(listof (and/c
-   path-string? relative-path? filename-extension))] --- Files to copy
-   into a @tt{man} directory. The file suffix determines its category;
-   for example, @litchar{.1} should be used for a @tt{man} page
-   describing an executable.
+   path-string? relative-path? filename-extension))] --- 要复制到 @tt{man} 目录的文件。
+   文件后缀决定其类别；例如，@litchar{.1}
+   应用于描述可执行文件的 @tt{man} 页面。
 
-   On Windows, uninstalled files are deleted in the same way as for
-   @racket[copy-foreign-libs], and the name prefix
-   @filepath{raco-setup-delete-} is similarly special.}
+   在 Windows 上，未安装的文件以与
+   @racket[copy-foreign-libs] 相同的方式删除，名称前缀
+   @filepath{raco-setup-delete-} 同样具有特殊含义。}
 
  @item{@indexed-racket[move-man-pages] : @racket[(listof (and/c
-   path-string? relative-path? filename-extension))] --- Like
-   @racket[copy-man-pages], but the original file is removed after it
-   is copied (which makes sense for precompiled packages).}
+   path-string? relative-path? filename-extension))] --- 类似于 @racket[copy-man-pages]，但原始文件
+   在复制后被移除（这对于预编译包有意义）。}
 
  @item{@indexed-racket[install-platform] : @racket[platform-spec?]
-   If this specification matches the current platform, the foreign
-   libraries associated with this package are copied or moved into
-   useful locations. See @racket[copy-foreign-libs],
-   @racket[move-foreign-libs], @racket[copy-shared-files], and
-   @racket[move-shared-files]. Also see @racket[matching-platform?] for
-   information on the way that the specification is compared to
-   @racket[(system-type)] and @racket[(system-library-subpath #f)].}
+   如果此规范匹配当前平台，则与此包关联的外部
+   库将被复制或移动到有用位置。参见
+   @racket[copy-foreign-libs]、@racket[move-foreign-libs]、
+   @racket[copy-shared-files] 和 @racket[move-shared-files]。
+   另请参见 @racket[matching-platform?] 了解规范如何与
+   @racket[(system-type)] 和 @racket[(system-library-subpath #f)] 进行比较的信息。}
 
  @item{@indexed-racket[install-collection] : @racket[path-string?] ---
-   A library module relative to the collection that provides
-   @racket[installer]. The @racket[installer] procedure must accept
-   one, two, three, or four arguments:
+   一个相对于集合的库模块，提供
+   @racket[installer]。@racket[installer] 过程必须接受
+   一个、两个、三个或四个参数：
 
    @itemlist[
 
-   @item{The first argument is a directory path to the parent of the
-   Racket installation's @filepath{collects} directory.}
+   @item{第一个参数是 Racket 安装的 @filepath{collects} 目录父目录
+   的目录路径。}
 
-   @item{The second argument, if accepted, is a path to the
-   collection's own directory.}
+   @item{第二个参数（如果接受）是集合自身目录的路径。}
 
-   @item{The third argument, if accepted, is a boolean indicating
-   whether the collection is installed as user-specific (@racket[#t])
-   or installation-wide (@racket[#f]).}
+   @item{第三个参数（如果接受）是一个布尔值，指示
+   集合是作为用户特定 (@racket[#t])
+   还是安装范围 (@racket[#f]) 安装。}
 
-   @item{The fourth argument, if accepted, is a boolean indicating
-   whether the collection is installed as installation-wide and should
-   nevertheless avoid modifying the installation; an
-   @racket[installer] procedure that does not accept this argument is
-   never called when the argument would be @racket[#t]. An installer
-   that does accept this argument is called with @racket[#t] to that
-   it can perform user-specific work, even though the collection is
-   installed installation-wide.}
+   @item{第四个参数（如果接受）是一个布尔值，指示
+   集合是否作为安装范围安装但仍应避免修改安装；
+   不接受此参数的 @racket[installer] 过程在参数为
+   @racket[#t] 时永远不会被调用。接受此参数的 installer
+   会在 @racket[#t] 时被调用，以便它可以执行用户特定的工作，
+   即使集合已安装为安装范围。}
 
    ]}
 
  @item{@indexed-racket[pre-install-collection] : @racket[path-string?] ---
-   Like @racket[install-collection], except that the corresponding
-   installer procedures are called @emph{before} the normal @filepath{.zo} build,
-   instead of after. The provided procedure is
-   @racket[pre-installer], so it can be provided by the
-   same file that provides an @racket[installer] procedure.}
+   类似于 @racket[install-collection]，但相应的
+   installer 过程在正常 @filepath{.zo} 构建 @emph{之前} 调用，
+   而非之后。提供的过程是
+   @racket[pre-installer]，因此它可以由
+   提供 @racket[installer] 过程的同一文件提供。}
 
  @item{@indexed-racket[post-install-collection] : @racket[path-string?]  ---
-   Like @racket[install-collection] for a procedure that is called right after the
-   @racket[install-collection] procedure is executed. The
-   @DFlag{no-install} flag can be provided to @exec{raco setup}
-   to disable @racket[install-collection] and @racket[pre-install-collection],
-   but not @racket[post-install-collection].  The @racket[post-install-collection]
-   function is therefore expected to perform operations that are always needed,
-   even after an installation that contains pre-compiled files. The
-   provided procedure is @racket[post-installer], so it
-   can be provided by the same file that provides an
-   @racket[installer] procedure.}
+   类似于 @racket[install-collection]，用于在 @racket[install-collection]
+   过程执行之后立即调用的过程。
+   @DFlag{no-install} 标志可以提供给 @exec{raco setup}
+   以禁用 @racket[install-collection] 和 @racket[pre-install-collection]，
+   但不能禁用 @racket[post-install-collection]。因此，
+   @racket[post-install-collection] 函数应执行始终需要的操作，
+   即使在包含预编译文件的安装之后也是如此。
+   提供的过程是 @racket[post-installer]，因此它可以由
+   提供 @racket[installer] 过程的同一文件提供。}
 
  @item{@indexed-racket[assume-virtual-sources] : @racket[any/c] ---
-   A true value indicates that bytecode files without a corresponding
-   source file should not be removed from @filepath{compiled} directories,
-   and no files should not be removed when the
-   @DFlag{clean} or @Flag{c} flag is passed to @exec{raco setup}.}
+   真值表示没有相应源文件的字节码文件不应从
+   @filepath{compiled} 目录中删除，并且在向
+   @exec{raco setup} 传递 @DFlag{clean} 或 @Flag{c} 标志时，
+   不应删除任何文件。}
 
  @item{@indexed-racket[clean] : @racket[(listof path-string?)] ---
-   @elemtag["clean"] A list of pathnames to be deleted when the
-   @DFlag{clean} or @Flag{c} flag is passed to @exec{raco setup}. The
-   pathnames must be relative to the collection. If any path names a
-   directory, each of the files in the directory are deleted, but none
-   of the subdirectories of the directory are checked. If the path
-   names a file, the file is deleted. The default, if this flag is not
-   specified, is to delete all files in the @filepath{compiled}
-   subdirectory, and all of the files in the platform-specific
-   subdirectory of the compiled directory for the current platform.
+   @elemtag["clean"] 当 @DFlag{clean} 或 @Flag{c} 标志传递给 @exec{raco setup} 时要删除的路径名列表。
+   路径名必须相对于集合。如果任何路径命名了
+   目录，则目录中的每个文件都会被删除，但不会检查
+   目录的任何子目录。如果路径命名了文件，
+   则删除该文件。如果未指定此标志，则默认删除
+   @filepath{compiled} 子目录中的所有文件，
+   以及当前平台的 compiled 目录中
+   平台特定子目录中的所有文件。
 
-   Just as compiling @filepath{.zo} files will compile each module
-   used by a compiled module, deleting a module's compiled image will
-   delete the @filepath{.zo} of each module that is used by the
-   module. More specifically, used modules are determined when
-   deleting a @filepath{.dep} file, which would have been created to
-   accompany a @filepath{.zo} file when the @filepath{.zo} was built
-   by @exec{raco setup} or @exec{raco make} (see
-   @secref["Dependency\x20Files"]). If the @filepath{.dep} file
-   indicates another module, that module's @filepath{.zo} is deleted
-   only if it also has an accompanying @filepath{.dep} file. In that
-   case, the @filepath{.dep} file is deleted, and additional used
-   modules are deleted based on the used module's @filepath{.dep}
-   file, etc. Supplying a specific list of collections to @exec{raco
-   setup} disables this dependency-based deletion of compiled files.}
+   正如编译 @filepath{.zo} 文件会编译已编译模块使用的每个模块，
+   删除模块的编译镜像也会删除该模块使用的每个模块的
+   @filepath{.zo}。更具体地说，在删除
+   @filepath{.dep} 文件时确定使用的模块，该文件是在
+   @filepath{.zo} 由 @exec{raco setup} 或 @exec{raco make} 构建时
+   创建的，伴随 @filepath{.zo} 文件
+   （参见 @secref["Dependency\x20Files"]）。如果 @filepath{.dep} 文件
+   指示了另一个模块，则仅当该模块也有伴随的
+   @filepath{.dep} 文件时才删除其 @filepath{.zo}。在这种情况下，
+   @filepath{.dep} 文件被删除，并根据已使用模块的
+   @filepath{.dep} 文件删除其他使用的模块，以此类推。
+   向 @exec{raco setup} 提供特定的集合列表会禁用此基于依赖的
+   已编译文件删除。}
 
  @item{@racket[compile-omit-paths], @racket[compile-omit-files], and
-   @racket[compile-include-files] --- Used indirectly via
-   @racket[compile-collection-zos].}
+   @racket[compile-include-files] --- 通过 @racket[compile-collection-zos] 间接使用。}
 
  @item{@racket[module-suffixes] and @racket[doc-module-suffixes] ---
-   Used indirectly via @racket[get-module-suffixes].}
+   通过 @racket[get-module-suffixes] 间接使用。}
 
- @item{@indexed-racket[language-family] --- A list of hash tables,
-   where each hash table describes a @tech{language family}. See
-   @secref["lang-fam"] for information about the content of ach hash
-   table.
-
-   @history[#:added "9.0.0.11"]}
-
- @item{@indexed-racket[main-doc-index] --- A collection name (in the
-   sense of @racket[collection-name?]) or a list of collection names to
-   be added to a @exec{raco setup} request when @DFlag{doc-index}
-   is specified without @DFlag{avoid-main}.
+ @item{@indexed-racket[language-family] --- 一个哈希表列表，
+   其中每个哈希表描述一个 @tech{语言系列}。参见
+   @secref["lang-fam"] 了解每个哈希表内容的信息。
 
    @history[#:added "9.0.0.11"]}
 
- @item{@indexed-racket[user-doc-index] --- A collection name (in the
-   sense of @racket[collection-name?]) or a list of collection names to
-   be added to a @exec{raco setup} request when @DFlag{doc-index}
-   is specified without @DFlag{no-user}.
+ @item{@indexed-racket[main-doc-index] --- 一个集合名称（在 @racket[collection-name?] 的意义上）或
+   集合名称列表，当在未指定 @DFlag{avoid-main} 的情况下
+   指定了 @DFlag{doc-index} 时，将添加到
+   @exec{raco setup} 请求中。
+
+   @history[#:added "9.0.0.11"]}
+
+ @item{@indexed-racket[user-doc-index] --- 一个集合名称（在 @racket[collection-name?] 的意义上）或
+   集合名称列表，当在未指定 @DFlag{no-user} 的情况下
+   指定了 @DFlag{doc-index} 时，将添加到
+   @exec{raco setup} 请求中。
 
    @history[#:added "9.0.0.11"]}
 
 ]
 
 @; ----------------------------------------
-@section[#:tag "doc-info"]{Document Descriptions in @filepath{info.rkt} Files}
+@section[#:tag "doc-info"]{@filepath{info.rkt} 文件中的文档描述}
 
-A @racketidfont{scribblings} entry is introduced in @secref["setup-info"]
-as having the shape @racket[(listof (cons/c string? list?))], but it
-more precisely must be a value that can be generated from an expression
-matching the following @racket[_entry] grammar:
+@racketidfont{scribblings} 条目在 @secref["setup-info"] 中介绍时
+形式为 @racket[(listof (cons/c string? list?))]，但更精确地说，它必须是
+可以从匹配以下 @racket[_entry] 语法的表达式生成的值：
 
 @racketgrammar*[
   #:literals (list)
@@ -362,173 +334,141 @@ matching the following @racket[_entry] grammar:
         #f]
 ]
 
-A document entry @racket[_doc] must have at least a @racket[_src-string],
-and it optionally continues with information on how to
-build the document. If a document's list contains a second item,
-@racket[_flags], it must be a list of mode symbols (described
-below). If a document's list contains a third item,
-@racket[_category], it must be a list that categorizes the document
-(described further below). If a document's list contains a fourth
-item, @racket[_name], it is a name to use for the generated
-documentation, instead of defaulting to the source file's name
-(sans extension), where @racket[#f] means to use the default; a
-non-@racket[#f] value for @racket[_name] must fit the grammar
-of a collection-name element as checked by
-@racket[collection-name-element?]. If a
-document's list contains a fifth item, @racket[_out-k], it is used
-a hint for the number of files to use for the document's
-cross-reference information; see below. If a document's list
-contains a fourth item, @racket[_order-n], it is used a hint for
-the order of rendering; see below.
+文档条目 @racket[_doc] 必须至少有一个 @racket[_src-string]，
+并可选地包含关于如何构建文档的信息。
+如果文档列表包含第二个条目 @racket[_flags]，
+它必须是一个模式符号列表（下面描述）。
+如果文档列表包含第三个条目 @racket[_category]，
+它必须是一个对文档进行分类的列表（下面进一步描述）。
+如果文档列表包含第四个条目 @racket[_name]，
+它是要用于生成文档的名称，取代默认的源文件名
+（不含扩展名），其中 @racket[#f] 表示使用默认值；
+@racket[_name] 的非 @racket[#f] 值必须符合由
+@racket[collection-name-element?] 检查的集合名称元素语法。
+如果文档列表包含第五个条目 @racket[_out-k]，它用作
+文档交叉引用信息使用的文件数量的提示；见下文。
+如果文档列表包含第四个条目 @racket[_order-n]，
+它用作渲染顺序的提示；见下文。
 
-Each mode symbol in @racket[_flags] can be one of the following,
-where only @racket['multi-page] is commonly used:
+@racket[_flags] 中的每个模式符号可以是以下之一，
+其中只有 @racket['multi-page] 是常用的：
 
 @itemize[
 
-  @item{@racket['multi-page] : Generates multi-page HTML output,
-        instead of the default single-page format.}
+  @item{@racket['multi-page] : 生成多页 HTML 输出，
+        而非默认的单页格式。}
 
-  @item{@racket['main-doc] : Indicates that the generated
-        documentation should be written into the main installation
-        directory, instead of to a user-specific directory. This
-        mode is the default for a collection that is itself located
-        in the main installation.}
+  @item{@racket['main-doc] : 表示生成的
+        文档应写入主安装目录，而非用户特定目录。
+        对于自身位于主安装中的集合，此模式是默认值。}
 
-  @item{@racket['user-doc] : Indicates that the generated
-        documentation should be written a user-specific
-        directory. This mode is the default for a collection that
-        is not itself located in the main installation.}
+  @item{@racket['user-doc] : 表示生成的
+        文档应写入用户特定目录。
+        对于自身不在主安装中的集合，此模式是默认值。}
 
-  @item{@racket['depends-all] : Indicates that the document should
-        be rebuilt if any other document is rebuilt---except for
-        documents that have the @racket['no-depend-on] flag.}
+  @item{@racket['depends-all] : 表示如果任何其他文档被重建，
+        该文档也应被重建---除了具有 @racket['no-depend-on] 标志的文档。}
 
-  @item{@racket['depends-all-main] : Indicates that the document
-        should be rebuilt if any other document is rebuilt that is
-        installed into the main installation---except for documents
-        that have the @racket['no-depend-on] flag.}
+  @item{@racket['depends-all-main] : 表示如果安装到主安装中的
+        任何其他文档被重建，该文档也应被重建---
+        除了具有 @racket['no-depend-on] 标志的文档。}
 
-  @item{@racket['depends-all-user] : Indicates that the document
-        should be rebuilt if any other document is rebuilt that is
-        installed into the user's space---except for documents
-        that have the @racket['no-depend-on] flag.}
+  @item{@racket['depends-all-user] : 表示如果安装到用户空间中的
+        任何其他文档被重建，该文档也应被重建---
+        除了具有 @racket['no-depend-on] 标志的文档。}
 
-  @item{@racket['depend-family] : Indicates that the document should
-        be rebuilt if the set of registered language families changes.
-        This flag normally should be combined with
-        @racket['depends-all], @racket['depends-all-main], or
-        @racket['depends-all-user]; if it is combined with
-        @racket['depends-all-main], then it depends only on language
-        families in the main installation. }
+  @item{@racket['depend-family] : 表示如果注册的语言系列集合发生变化，
+        文档应被重建。此标志通常应与
+        @racket['depends-all]、@racket['depends-all-main] 或
+        @racket['depends-all-user] 结合使用；如果与
+        @racket['depends-all-main] 结合，则仅依赖于主安装中的
+        语言系列。 }
 
-  @item{@racket['always-run] : Build the document every time that
-        @exec{raco setup} is run, even if none of its dependencies
-        change.}
+  @item{@racket['always-run] : 每次运行 @exec{raco setup} 时都构建文档，
+        即使其依赖项没有任何变化。}
 
-  @item{@racket['no-depend-on] : Removes the document for
-        consideration for other dependencies. Furthermore,
-        references from the document to other documents are always
-        direct, instead of potentially indirect (i.e., resolved at
-        document-viewing time and potentially redirected to a
-        remote site).}
+  @item{@racket['no-depend-on] : 将该文档从其他依赖项的
+        考虑中移除。此外，从该文档到其他文档的引用始终是
+        直接的，而非潜在的间接引用（即在文档查看时解析，
+        并可能重定向到远程站点）。}
 
-  @item{@racket['main-doc-root] : Designates the root document for
-        the main installation. The document that currently has this
-        mode should be the only one with the mode.}
+  @item{@racket['main-doc-root] : 指定主安装的根文档。
+        当前具有此模式的文档应该是唯一具有此模式的文档。}
 
-  @item{@racket['user-doc-root] : Designates the root document for
-        the user-specific documentation directory. The document
-        that currently has this mode should be the only one with
-        the mode.}
+  @item{@racket['user-doc-root] : 指定用户特定文档目录的根文档。
+        当前具有此模式的文档应该是唯一具有此模式的文档。}
 
-  @item{@racket['keep-style] : Leave the document's style as-is,
-        instead of imposing the document style for manuals.}
+  @item{@racket['keep-style] : 保持文档样式不变，
+        而非强制使用手册文档样式。}
 
-  @item{@racket['no-search] : Build the document without a search
-        box.}
+  @item{@racket['no-search] : 构建文档时不包含搜索框。}
 
-  @item{@racket['every-main-layer] : With @racket['main-doc],
-        indicates that the document should be rendered separately
-        at every installation layer (see @secref["layered-install"]).}
+  @item{@racket['every-main-layer] : 与 @racket['main-doc] 一起使用时，
+        表示文档应在每个安装层单独渲染
+        (see @secref["layered-install"])。}
 
 ]
 
-The @racket[_category] list specifies how to show the document in
-the root table of contents and, for the @racket[_lang-fam] part,
-how to classify the documentation's content for searching. This
-information can be extended or overridden through a
-@racket['doc-properties] table within the @racket[tag-prefix] of
-the document's main @racket[part], but we first consider
-@racket[_category] on its own:
+@racket[_category] 列表指定如何在根目录中显示文档，
+以及对于 @racket[_lang-fam] 部分，如何对文档内容进行分类以用于搜索。 这些信息可以通过文档主 @racket[part] 的 @racket[tag-prefix]
+中的 @racket['doc-properties] 表进行扩展或覆盖，
+但首先考虑 @racket[_category] 本身：
 
 @itemlist[
 
-   @item{A @racket[_category] list must start with a @racket[_category-name], which
-   determines where the manual appears in a document listing such as
-   the root documentation page. A category is a symbol, string, or a
-   boxed string. If it is a string or a boxed string, then the string is the category label on
-   the root page (when the document's @tech{language families} include the
-   language family used for the listing, which is @racket["Racket"]
-   for the root documentation page). If it is a symbol, then it should
-   be one of the following categories listed below:
+   @item{@racket[_category] 列表必须以 @racket[_category-name] 开头，
+   它决定手册在文档列表（如根文档页面）中出现的位置。
+   类别是符号、字符串或盒装字符串。如果是字符串或盒装字符串，
+   则字符串是根页面上的类别标签
+   （当文档的 @tech{语言系列} 包含用于列表的语言系列时，
+   根文档页面使用 @racket["Racket"]）。如果是符号，则它应该是
+   下列类别之一：
 
    @itemize[
 
-     @item{@racket['getting-started] : High-level, introductory
-        documentation, typeset at the same level as other category
-        titles.}
+     @item{@racket['getting-started] : 高级入门文档，以与其他类别标题
+        相同的级别排版。}
 
-     @item{@racket['core] : A core reference or library for a language
-        family as may be specified with a @racket[_lang-fam].}
+     @item{@racket['core] : 语言系列的核心参考或库，可通过
+        @racket[_lang-fam] 指定。}
 
-     @item{@racket['racket-core] : A core reference or library for
-        Racket. This category normally should be used only by specific
-        packages in the main Racket distribution. When rendering a
-        listing for a @tech{language family} other than @racket["Racket"],
-        these documents appear after @racket['library] instead of
-        after @racket['core].}
+     @item{@racket['racket-core] : Racket 的核心参考或库。此类别通常应由
+        主 Racket 发行版中的特定包使用。当为
+        @racket["Racket"] 以外的 @tech{语言系列} 渲染列表时，
+        这些文档出现在 @racket['library] 之后而不是
+        @racket['core] 之后。}
 
-     @item{@racket['teaching] : Documentation for a teaching language
-        or library. Documents in this category appear after
-        @racket['language] if @racket['racket-core] is moved to
-        later.}
+     @item{@racket['teaching] : 教学语言或库的文档。如果
+        @racket['racket-core] 被移到后面，此类别中的文档
+        出现在 @racket['language] 之后。}
 
-     @item{@racket['language] : Documentation for a prominent
-        programming language. If @racket['racket-core] is moved to
-        later, documents in this category appear immediately after
-        @racket['racket-core] and before @racket['teaching].}
+     @item{@racket['language] : 知名编程语言的文档。如果
+        @racket['racket-core] 被移到后面，此类别中的文档
+        紧接在 @racket['racket-core] 之后、
+        @racket['teaching] 之前出现。}
 
-     @item{@racket['tool] : Documentation for an executable.}
+     @item{@racket['tool] : 可执行程序的文档。}
 
-     @item{@racket['gui-library] : Documentation for GUI and graphics
-           libraries.}
+     @item{@racket['gui-library] : GUI 和图形库的文档。}
 
-     @item{@racket['net-library] : Documentation for networking
-           libraries.}
+     @item{@racket['net-library] : 网络库的文档。}
 
-     @item{@racket['parsing-library] : Documentation for parsing
-           libraries.}
+     @item{@racket['parsing-library] : 解析库的文档。}
 
-     @item{@racket['tool-library] : Documentation for programming-tool
-           libraries (i.e., not important enough for the more
-           prominent @racket['tool] category).}
+     @item{@racket['tool-library] : 编程工具库的文档（即对于更突出的
+           @racket['tool] 类别来说不够重要）。}
 
-     @item{@racket['interop] : Documentation for interoperability
-           tools and libraries.}
+     @item{@racket['interop] : 互操作性工具和库的文档。}
 
-     @item{@racket['drracket-plugin] : Documentation for DrRacket
-           Plugins.}
+     @item{@racket['drracket-plugin] : DrRacket 插件的文档。}
 
-     @item{All string and boxed-string categories as ordered by
-        @racket[string<=?] appear at this point relative to other
-        categories.}
+     @item{所有按 @racket[string<=?] 排序的字符串和盒装字符串类别
+        在这一点上相对于其他类别出现。}
 
-     @item{@racket['library] : Documentation for miscellaneous libraries.}
+     @item{@racket['library] : 杂项库的文档。}
 
-     @item{All documents whose @tech{language families} do not include the
-        current language family appear at this point, at least for
-        most categories. Documents are ordered by @racket[string<=?]
+     @item{所有其 @tech{语言系列} 不包含当前语言系列的文档
+        在这一点上出现，至少对于大多数类别是这样。 Documents are ordered by @racket[string<=?]
         on the first family name; within a language family, they are
         ordered as in a documentation listing for that language
         family. A document whose category is @racket['language],
@@ -541,63 +481,54 @@ the document's main @racket[part], but we first consider
         family name in the document's families. A boxed string avoid
         this prefixing.}
 
-     @item{@racket['legacy] : Documentation for deprecated libraries,
-        languages, and tools.}
+     @item{@racket['legacy] : 已弃用的库、语言和工具的文档。}
 
-     @item{@racket['experimental] : Documentation for an experimental
-           language or library.}
+     @item{@racket['experimental] : 实验性语言或库的文档。}
 
-     @item{@racket['other] : Other documentation.}
+     @item{@racket['other] : 其他文档。}
 
-     @item{@racket['omit] : Documentation that should not be listed on
-        the root page or indexed for searching.}
+     @item{@racket['omit] : 不应在根页面列出或为搜索建立索引的文档。}
 
-     @item{@racket['omit-start] : Documentation that should not be
-        listed on the root page but should be indexed for
-        searching.}
+     @item{@racket['omit-start] : 不应在根页面列出但应为搜索建立索引的文档。}
 
    ]
 
-   If the @racket[_category] list is not given, or if the category symbol is unrecognized,
-   the documentation is added to the (@racket['library]) category.}
+   如果未提供 @racket[_category] 列表，或者类别符号无法识别，
+   则文档被添加到 (@racket['library]) 类别。}
 
-   @item{If the category list has a second element, @racket[_sort-number], it must be a real number
-   that designates the manual's sorting position with the category;
-   manuals with the same sorting position are ordered
-   alphabetically. For a pair of manuals with sorting numbers
-   @racket[_n] and @racket[_m], the groups for the manuals are
-   separated by space if @racket[(truncate (/ _n 10))]and
-   @racket[(truncate (/ _m 10))] are different.}
+   @item{如果类别列表有第二个元素 @racket[_sort-number]，它必须是一个实数，
+   指定手册在类别中的排序位置；具有相同排序位置的手册
+   按字母顺序排列。对于排序编号为 @racket[_n] 和 @racket[_m]
+   的两个手册，如果 @racket[(truncate (/ _n 10))]
+   和 @racket[(truncate (/ _m 10))] 不同，
+   则手册组之间用空格分隔。}
 
-   @item{If the category list has a third element, @racket[_lang-fam], then
-   it must be a list of strings, where each string names a language
-   family. The default for @racket[_lang-fam] is @racket[(list "Racket")].
-   This @tech{language family} list is used to organize a listing of all documentation,
-   and is also used for index entries that are extracted from the
-   document and used for searching. For index entries, the
-   document, a part within the document, or an individual index
-   entry may specify its own language family, and @racket[_lang-fam]
-   provides only a default for entries that do not otherwise specify a
-   language family.}
+   @item{如果类别列表有第三个元素 @racket[_lang-fam]，则它
+   必须是一个字符串列表，其中每个字符串命名一个语言系列。
+   @racket[_lang-fam] 的默认值为 @racket[(list "Racket")]。
+   此 @tech{语言系列} 列表用于组织所有文档的列表，
+   也用于从文档中提取并用于搜索的索引条目。
+   对于索引条目，文档、文档内的部分或单个索引条目
+   可以指定自己的语言系列，@racket[_lang-fam]
+   仅为未另行指定语言系列的条目提供默认值。}
 
-   @item{If a document's main @racket[part] has a @racket[tag-prefix]
-   hash table that maps @racket['doc-properties] to another hash
-   table, the inner hash table can override and generalize the
-   @racket[_category] list:
+   @item{如果文档的主 @racket[part] 有一个 @racket[tag-prefix]
+   哈希表将 @racket['doc-properties] 映射到另一个哈希表，
+   则内部哈希表可以覆盖和泛化 @racket[_category] 列表：
 
    @itemlist[
 
-    @item{If @racket['language-family] is mapped to a list of strings,
-    it provides a replacement for @racket[_lang-fam].}
+    @item{如果 @racket['language-family] 被映射到一个字符串列表，
+    它为 @racket[_lang-fam] 提供替换。}
 
-    @item{If @racket['category] is mapped to a hash table
-    @racket[_cat-ht], it is used to get a @racket[_category]
-    replacement specific to a @tech{language family}. If @racket[_cat-ht]
-    maps the listing's language family name to a list, that list is
-    used of @racket[_category]. Otherwise, if @racket[_cat-ht] maps
-    @racket['default] to a list, that list is used instead of
-    @racket[_category]. In either case, the replacement list cannot
-    contain a @racket[_lang-fam] component; a
+    @item{如果 @racket['category] 被映射到一个哈希表
+    @racket[_cat-ht]，它用于获取特定于某个 @tech{语言系列} 的
+    @racket[_category] 替换。如果 @racket[_cat-ht]
+    将列表的语言系列名映射到一个列表，则该列表用于
+    @racket[_category]。否则，如果 @racket[_cat-ht] 将
+    @racket['default] 映射到一个列表，则该列表用于替换
+    @racket[_category]。在任何情况下，替换列表不能
+    包含 @racket[_lang-fam] 组件；
     @racket['language-family] mapping (as described in the previous
     bullet) is the only way to replace a @racket[_lang-fam] component.}
 
@@ -605,53 +536,47 @@ the document's main @racket[part], but we first consider
 
 ]
 
-The @racket[_out-k] specification is a hint on whether to break the
-document's cross-reference information into multiple parts, which
-can reduce the time and memory use for resolving a cross-reference
-into the document. It must be a positive, exact integer, and the
-default is @racket[1].
+@racket[_out-k] 规范是一个提示，指示是否将
+文档的交叉引用信息分成多个部分，这可以减少
+解析文档中交叉引用的时间和内存使用。
+它必须是一个正的精确整数，默认值为 @racket[1]。
 
-The @racket[_order-n] specification is a hint for ordering document
-builds, since documentation references can be mutually recursive.
-The order hint can be any real number. A value of @racket[-10] or
-less disables running the document in parallel to other documents.
-The main Racket reference is given a value of @racket[-11], the
-search page is given a value of @racket[10], and the default is
-@racket[0].
+@racket[_order-n] 规范是文档构建顺序的提示，
+因为文档引用可以是相互递归的。
+顺序提示可以是任何实数。值为 @racket[-10] 或更小
+会禁用与其他文档并行运行该文档。
+主 Racket 参考被赋予 @racket[-11] 的值，
+搜索页面被赋予 @racket[10] 的值，默认值为 @racket[0]。
 
-A directory for pre-rendered documentation is computed from the
-source file name by starting with the directory of the
-@filepath{info.rkt} file, adding @filepath{doc}, and then using the
-document name (which is usually the source file's name without a
-suffix); if such a directory exists and does not have a
-@filepath{synced.rktd} file, then it is treated as pre-rendered
-documentation and moved into place, in which case the documentation
-source file need not be present. Moving documentation into place
-may require no movement at all, depending on the way that the
-enclosing collection is installed, but movement includes adding a
-@filepath{synced.rktd} file to represent the installation.
+预渲染文档的目录从源文件名计算，
+从 @filepath{info.rkt} 文件的目录开始，
+添加 @filepath{doc}，然后使用文档名称
+（通常是源文件名去掉后缀）；
+如果这样的目录存在且没有 @filepath{synced.rktd} 文件，
+则将其视为预渲染文档并移到适当位置，
+在这种情况下文档源文件不需要存在。
+将文档移到适当位置可能根本不需要移动，
+这取决于外围集合的安装方式，
+但移动包括添加 @filepath{synced.rktd} 文件来表示安装。
 
-The destination for a rendered document depends on whether the
-enclosing collection is part of a Racket installation or installed as
-a package in user @tech[#:doc '(lib
-"pkg/scribblings/pkg.scrbl")]{package scope}. When the document is in
-user scope, then it is rendered within the package in the same
-location as for pre-rendered documentation. An exception is when the
-documentation is declared in @racketidfont{scribblings} with
-@racket['depends-all], @racket['depends-all-main], or
-@racket['depends-all-user] and without @racket['every-main-layer]; in
-that case, it is rendered in a more central location (and not included
-in a pre-rendered form) as part of the strategy described in
-@secref["doc-listing"].
+渲染文档的目标位置取决于外围集合是 Racket 安装的一部分，
+还是作为用户 @tech[#:doc '(lib "pkg/scribblings/pkg.scrbl")]{package scope} 中的包安装。
+当文档在用户范围内时，它在包内的相同位置渲染，
+与预渲染文档的位置相同。例外情况是当文档
+在 @racketidfont{scribblings} 中声明了
+@racket['depends-all]、@racket['depends-all-main] 或
+@racket['depends-all-user] 且没有 @racket['every-main-layer] 时；
+在这种情况下，它在更中心的位置渲染
+（且不以预渲染形式包含），作为
+@secref["doc-listing"] 中描述的策略的一部分。
 
-If the a document's main @racket[part]'s has a @racket[tag-prefix] as
-a hash table, if that hash table has @racket['doc-properties] mapped
-to another hash table, and if the inner table maps @racket['supplant]
-to a string, then @exec{raco setup} copies a rendered
-@filepath{index.html} to a sibling directory name by the
-@racket['supplant] string. This step, which is performed at the end of
-the @exec{raco setup} document-rendering phase, is intended to
-support document listing as described in @secref["doc-listing"].
+如果文档主 @racket[part]'s 有一个作为哈希表的 @racket[tag-prefix]，
+如果该哈希表将 @racket['doc-properties] 映射到另一个哈希表，
+并且内部表将 @racket['supplant] 映射到一个字符串，
+则 @exec{raco setup} 将渲染后的 @filepath{index.html}
+复制到由 @racket['supplant] 字符串命名的兄弟目录。
+此步骤在 @exec{raco setup} 文档渲染阶段结束时执行，
+旨在支持 @secref["doc-listing"] 中描述的文档列表。
 
 @history[#:changed "6.4" @elem{Allow a category to be a string
                               instead of a symbol.}
@@ -664,41 +589,36 @@ support document listing as described in @secref["doc-listing"].
                                     in a document's main @racket[part] and for
                                     boxed-string category names.}]
 
-@section[#:tag "doc-adjust"]{Document Setup Adjustments}
+@section[#:tag "doc-adjust"]{文档设置调整}
 
-Before a document is rendered by @exec{raco setup}, its main
-@racket[part] is adjusted in several ways:
+在 @exec{raco setup} 渲染文档之前，其主 @racket[part]
+会以多种方式进行调整：
 
 @itemlist[
 
-  @item{The @racket[tag-prefix] field of the @racket[part] is
-  adjusted to have the named document's module path as its
-  @racket['tag-prefix], which means that other documents can refer
-  to the rendered document via @racket[secref] or
-  @racket[other-doc].}
+  @item{@racket[part] 的 @racket[tag-prefix] 字段被调整为
+  以命名文档的模块路径作为其 @racket['tag-prefix]，
+  这意味着其他文档可以通过 @racket[secref] 或
+  @racket[other-doc] 引用渲染后的文档。}
 
-  @item{A @racket['(part "top")] tag is added to the
-  @racket[part]'s @racket[tag] field if it is not present already.}
+  @item{如果 @racket[part] 的 @racket[tag] 字段中尚不存在
+  @racket['(part "top")] 标签，则添加它。}
 
-  @item{A @racket[document-version] style property is added using
-  @racket[(version)] if no @racket[document-version] property is
-  present already.}
+  @item{如果尚不存在 @racket[document-version] 样式属性，
+  则使用 @racket[(version)] 添加它。}
 
-  @item{A @racket[body-id] style property is added with
-  @racket["doc-racket-lang-org"] if no @racket[body-id] property
-  is present already.}
+  @item{如果尚不存在 @racket[body-id] 样式属性，
+  则使用 @racket["doc-racket-lang-org"] 添加它。}
 
-  @item{A @racket[document-source] style property is added with
-  the document's module path.}
+  @item{使用文档的模块路径添加 @racket[document-source] 样式属性。}
 
-  @item{A @racket['show-language-family] style property is added.}
+  @item{添加 @racket['show-language-family] 样式属性。}
 
-  @item{A default @tech{language family} is determined as
-  @racket[_lang-fam] from @racket[_category] in a
-  @racket[scribblings] entry or (if not present) the value of a
-  @racket['default-language-family] key in the @racket[part]'s
-  @racket[tag-prefix] as a hash table (perhaps originally supplied
-  to @racket[title]). That list of strings, if either, is added as
+  @item{默认的 @tech{语言系列} 被确定为
+  @racket[scribblings] 条目中 @racket[_category] 的 @racket[_lang-fam]，
+  或者（如果不存在）@racket[part] 的 @racket[tag-prefix]
+  作为哈希表中 @racket['default-language-family] 键的值
+  （可能最初提供给 @racket[title]）。 That list of strings, if either, is added as
   @racket['language-family] to a new table that is paired with
   @racket['index-extras] (if any) already in the table. That way,
   @racket[_category] or the main @racket[part] of a document can
@@ -716,73 +636,65 @@ Before a document is rendered by @exec{raco setup}, its main
 
 ]
 
-The document's rendering may be further adjusted at the renderer level
-(see @secref["renderer" #:doc '(lib
-"scribblings/scribble/scribble.scrbl")]), including configuration at
-the level of CSS or Latex.
+文档的渲染可以在渲染器级别进一步调整
+（参见 @secref["renderer" #:doc '(lib
+"scribblings/scribble/scribble.scrbl")]），
+包括 CSS 或 LaTeX 级别的配置。
 
 
-@section[#:tag "lang-fam"]{Documentation Language Families}
+@section[#:tag "lang-fam"]{文档语言系列}
 
 @defmodule[setup/language-family]
 
 @history[#:added "9.0.0.11"]
 
-A @deftech{language family} is a classification used in documentation
-that affects the way that search results are shown and filtered, and
-it also affects the way that documentation is categorized and shown in
-a listing of all documentation. A language family is not merely a
-module-based language, but instead stands for a set of languages that
-share a module-naming convention. As a rule of thumb, a language
-family is distinct enough that it might have its own downloadable
-distribution.
+@deftech{语言系列} 是文档中使用的一种分类，
+影响搜索结果的显示和过滤方式，
+也影响文档在所有文档列表中的分类和显示方式。
+语言系列不仅仅是基于模块的语言，
+而是代表共享模块命名约定的一组语言。
+根据经验，一个语言系列足够独特，
+可能有自己的可下载发行版。
 
-Language families are declared and used in several ways and places:
+语言系列以多种方式和位置声明和使用：
 
 @itemlist[
 
- @item{A Racket installation is configured with a default language
- family, where the default is @racket["Racket"]; see
- @racket[get-main-language-family]. This default is used by the main
- documentation listing, and it is used by the documentation-search
- page as the default language family.}
+ @item{Racket 安装配置了一个默认语言系列，
+ 默认为 @racket["Racket"]；参见 @racket[get-main-language-family]。
+ 此默认值用于主文档列表，
+ 也用于文档搜索页面作为默认语言系列。}
 
- @item{A @racketidfont{language-family} definition in an
- @filepath{info.rkt} file in a collection can declare a language
- family. This declaration is used in rendered documentation to list
- language families for navigation, and it is used by
- @seclink["docs"]{@exec{raco docs}} to map a language family name to
- an entry point into documentation and configuration for navigation.
+ @item{集合中 @filepath{info.rkt} 文件中的
+ @racketidfont{language-family} 定义可以声明一个语言系列。
+ 此声明用于渲染文档中列出导航用的语言系列，
+ 并由 @seclink["docs"]{@exec{raco docs}} 用于将语言系列名称
+ 映射到文档入口点和导航配置。
 
  A @racketidfont{language-family} definition's value is a list of hash
  tables, where each table can have the following keys:
 
  @itemlist[
 
-  @item{@racket['family]: The language-family name as a
-  string---technically optional, but effectively required.}
+  @item{@racket['family]: 作为字符串的语言系列名称---技术上可选，但实际上必需。}
 
-  @item{@racket['describe-doc]: A module path for the source of a
-  document that describes the language family or its representative
-  language. If @racket['describe-doc] is not mapped, then
+  @item{@racket['describe-doc]: 描述语言系列或其代表语言的文档源的模块路径。 If @racket['describe-doc] is not mapped, then
   @racket['doc] (if mapped) is used for the description document, or
   else no description link is provided for the language family.}
 
-  @item{@racket['start-doc]: A module path for the starting document
-  for the language family or its representative language. If
+  @item{@racket['start-doc]: 语言系列或其代表语言的起始文档的模块路径。 If
   @racket['start-doc] is not mapped, then @racket['doc] (if mapped) is
   used for the starting document. If neither @racket['start-doc] nor
   @racket['doc] is mapped, but @racket['family-root] is present, then
   @racket['family-root] determines the starting page. If none of those
   keys are mapped, a default starting page is used.}
 
-  @item{@racket['doc]: A module path for a document used as
-  @racket['describe-doc] and/or @racket['start-doc] when those are not
-  mapped.}
+  @item{@racket['doc]: 当 @racket['describe-doc] 和/或 @racket['start-doc]
+  未映射时使用的文档模块路径。}
 
-  @item{@racket['order]: A real number that orders the family relative
-  to other families (higher is earlier in the list, the Racket
-  language is @racket[100], and the default is @racket[0]).}
+  @item{@racket['order]: 一个实数，用于将系列相对于其他系列排序
+  （数值越高在列表中越靠前，Racket 语言为 @racket[100]，
+  默认为 @racket[0]）。}
 
   @item{@racket['family-root]: The name of the document (if any) that
   should be considered the starting listing for the language family,
@@ -794,10 +706,9 @@ Language families are declared and used in several ways and places:
 
  ]}
 
- @item{Each regular document rendered via @exec{raco setup} declares a
- list of language families. The document is considered in each of
- those families for the purposes of generating a listing, prioritizing
- search results, or filtering search results. A document's language
+ @item{通过 @exec{raco setup} 渲染的每个常规文档声明一个语言系列列表。
+ 文档在每个该系列中都被考虑，
+ 用于生成列表、优先排序搜索结果或过滤搜索结果。 A document's language
  family can be declared by the @racket[_lang-fam] part of the
  document's @racketidfont{scribblings} entry in an @filepath{info.rkt}
  file (see @secref["doc-info"]), or it can be declared with the
@@ -814,24 +725,21 @@ Language families are declared and used in several ways and places:
  configuration via @tech[#:doc '(lib
  "scribblings/scribble/scribble.scrbl")]{part context}.}
 
- @item{A module-based language used via @hash-lang[] can specify a
- language family for navigating from a programming environment to
- documentation. See @racket[’documentation-language-family] in
+ @item{通过 @hash-lang[] 使用的基于模块的语言可以指定一个语言系列，
+ 用于从编程环境导航到文档。 See @racket[’documentation-language-family] in
  @seclink["sec:documentation-language-family"
           #:doc '(lib "scribblings/tools/tools.scrbl")
           #:indirect? #t]{DrRacket's documentation} for more information.}
 
 ]
 
-Navigation and searching for HTML can be adapted to a language family
-at viewing time (as opposed to rendering time) via query parameters:
+HTML 的导航和搜索可以在查看时（而非渲染时）通过查询参数适应语言系列：
 
 @itemlist[
 
-  @item{@tt{fam}: A language family, normally a capitalized name like
-  @litchar{Racket} or @litchar{Rhombus}. This query parameter adjust
-  the prioritization and printing of search results, but it does not
-  filter those results.}
+  @item{@tt{fam}: 一个语言系列，通常是大写名称如
+  @litchar{Racket} 或 @litchar{Rhombus}。此查询参数调整
+  搜索结果的优先排序和打印，但不过滤这些结果。}
 
   @item{@tt{famroot}: A document name, normally a case-folded name
   like @litchar{rhombus}, representing an entry point for a language
@@ -845,16 +753,14 @@ at viewing time (as opposed to rendering time) via query parameters:
                                 [#:namespace namespace (or/c #f namespace?) #f])
          (listof hash?)]{
 
- Finds @racketidfont{language-family} declarations in
- @filepath{info.rkt} files and returns the hash tables for well-formed
- entries. The @racket[user?] argument determines whether user-scope
- language families are included as well as installation-scope
- declarations. The @racket[namespace] argument is passed along to
- @racket[get-info/full].
+ 在 @filepath{info.rkt} 文件中查找 @racketidfont{language-family} 声明，
+ 并返回格式良好的条目的哈希表。@racket[user?] 参数决定是否包含
+ 用户范围的声明以及安装范围的声明。
+ @racket[namespace] 参数被传递给 @racket[get-info/full]。
 
 }
 
-@section[#:tag "doc-listing"]{Rendering Documentation Listings}
+@section[#:tag "doc-listing"]{渲染文档列表}
 
 @defmodule[scribblings/main/contents]
 
@@ -878,24 +784,22 @@ at viewing time (as opposed to rendering time) via query parameters:
                          [#:date doc-date (or/c #f string?) #f])
            pre-part?]{
 
-Creates the content of a document that lists all installed
-documentation from the perspective of @racket[main-family].
+创建一个文档的内容，从 @racket[main-family] 的角度列出所有已安装的文档。
 
-The @racket[language-family] argument selects the language family used
-to render the document (i.e., compared to language families of listed
-documents), while the @racket[default-language-family] argument
-specifies the language families that the document listing declares for
-itself.
+@racket[language-family] 参数选择用于渲染文档的语言系列
+（即与列出文档的语言系列进行比较），
+而 @racket[default-language-family] 参数指定
+文档列表为自身声明的语言系列。
 
-Use this function as follows:
+按如下方式使用此函数：
 
 @itemlist[
 
- @item{Create a subcollection (say,
-  @filepath{my-language/scribblings/main}) with an @filepath{info.rkt}
-  file and a sub-collectiopn of that one (say,
-  @filepath{my-language/scribblings/main/user}) with its own
-  @filepath{info.rkt} file. Each layer will have one document.}
+ @item{创建一个子集合（例如
+  @filepath{my-language/scribblings/main}），其中包含一个 @filepath{info.rkt}
+  文件，以及该子集合的一个子集合（例如
+  @filepath{my-language/scribblings/main/user}），
+  带有自己的 @filepath{info.rkt} 文件。每层将有一个文档。}
 
  @item{In the outer subcollection, create a document (say,
    @filepath{my-language.scrbl}) that renders on the assumption that
@@ -956,7 +860,7 @@ Use this function as follows:
                                       [#:supplant supplant (or/c #f string?) #f])
          hash?]{
 
-Constructs a hash table suitable for the @racket[#:doc-properties]
-argument of @racket[build-contents].
+构造一个适用于 @racket[build-contents]
+@racket[#:doc-properties] 参数的哈希表。
 
 }
