@@ -3,68 +3,29 @@
           (for-label racket/linklet
                      racket/unsafe/ops))
 
-@title[#:tag "linklets"]{Linklets and the Core Compiler}
+@title[#:tag "linklets"]{Linklet 与核心编译器}
 
 @defmodule[racket/linklet]
 
-A @deftech{linklet} is a primitive element of compilation, bytecode
-marshaling, and evaluation. Racket's implementations of modules,
-macros, and top-level evaluation are all built on linklets. Racket
-programmers generally do not encounter linklets directly, but the
-@racketmodname[racket/linklet] library provides access to linklet
-facilities.
+@deftech{linklet} 是编译、字节码封送和求值的基本元素。 Racket 的 module、宏和顶层求值的实现都建立在 linklet 之上。 Racket 程序员通常不会直接遇到 linklet，但 @racketmodname[racket/linklet] 库提供了对 linklet 功能的访问。
 
-A single Racket module (or collection of top-level forms) is typically
-implemented by multiple linklets. For example, each phase of
-evaluation that exists in a module is implemented in a separate
-linklet. A linklet is also used for metadata such as the @tech{module
-path index}es for a module's @racket[require]s. These linklets, plus
-some other metadata, are combined to form a @deftech{linklet bundle}.
-Information in a @tech{linklet bundle} is keyed by either a symbol or
-a @tech{fixnum}. A @tech{linklet bundle} containing
-@tech{linklet}s can be marshaled to and from a byte stream by
-@racket[write] and (with @racket[read-accept-compiled] is enabled)
-@racket[read]. A compiled form in the sense of
-@racket[compiled-expression?] (such as the result from
-@racket[compile]) may be a linklet bundle.
+单个 Racket module（或顶层形式的集合）通常由多个 linklet 实现。 例如，module 中存在的每个求值阶段都在一个单独的 linklet 中实现。 linklet 还用于元数据，例如 module 的 @racket[require] 的 @tech{module path index}。 这些 linklet 与其他一些元数据组合形成一个 @deftech{linklet bundle}。
+@tech{linklet bundle} 中的信息以 symbol 或 @tech{fixnum} 为键。 包含 @tech{linklet} 的 @tech{linklet bundle} 可以通过 @racket[write] 和 @racket[read]（在启用 @racket[read-accept-compiled] 的情况下）与字节流相互封送处理。 @racket[compiled-expression?] 意义上的编译形式（例如 @racket[compile] 的结果）可能是 linklet bundle。
 
-When a Racket module has submodules, the @tech{linklet bundles} for
-the module and the submodules are grouped together in a
-@deftech{linklet directory}. A @tech{linklet directory} can have
-nested linklet directories. Information in a linklet directory is
-keyed by @racket[#f] or a symbol, where @racket[#f] must be mapped to
-a @tech{linklet bundle} (if anything) and each symbol must be mapped
-to a @tech{linklet directory}. A @tech{linklet directory} can be
-equivalently viewed as a mapping from a lists of symbols to a
-@tech{linklet bundle}. Like @tech{linklet bundles}, a @tech{linklet
-directory} can be marshaled to and from a byte stream by
-@racket[write] and @racket[read]; the marshaled form allows individual
-@tech{linklet bundles} to be loaded independently.
-A compiled form in the sense of @racket[compiled-expression?] (such as
-the result from @racket[compile]) may be a linklet directory.
+当 Racket module 有 submodule 时，module 及其 submodule 的 @tech{linklet bundles} 组合在一个 @deftech{linklet directory} 中。 @tech{linklet directory} 可以有嵌套的 linklet directory。 linklet directory 中的信息由 @racket[#f] 或 symbol 索引；
+@racket[#f] 必须映射到 @tech{linklet bundle}（如果有的话），
+每个 symbol 必须映射到 @tech{linklet directory}。 @tech{linklet directory} 可以等价地视为从 symbol 列表到 @tech{linklet bundle} 的映射。 与 @tech{linklet bundles} 类似，@tech{linklet directory} 可以通过 @racket[write] 和 @racket[read] 与字节流相互封送处理；
+封送处理形式允许独立加载单个 @tech{linklet bundles}。
+@racket[compiled-expression?] 意义上的编译形式（例如 @racket[compile] 的结果）可能是 linklet directory。
 
-A linklet consists of a set of variable definitions and expressions,
-an exported subset of the defined variable names, a set of variables to export
-from the linklet despite having no corresponding definition, and a set
-of imports that provide other variables for the linklet to use. To run
-a linklet, it is instantiated as as @deftech{linklet instance} (or
-just @defterm{instance}, for short). When a linklet is instantiated,
-it receives other @tech{linklet instances} for its imports, and it
-extracts a specified set of variables that are exported from each of
-the given instances. The newly created @tech{linklet instance}
-provides its exported variables for use by other linklets or for
-direct access via @racket[instance-variable-value]. A @tech{linklet
-instance} can be synthesized directly with @racket[make-instance].
+linklet 由一组变量定义和表达式组成，
+包括已定义变量名称的导出子集、尽管没有对应定义但仍要从 linklet 导出的变量，以及为 linklet 提供其他变量的导入集。 要运行 linklet，需要将其实例化为 @deftech{linklet instance}
+（或简称为 @defterm{instance}）。 当 linklet 被实例化时，它接收用于导入的其他 @tech{linklet instances}，
+并从每个给定实例中提取一组指定的变量。 新创建的 @tech{linklet instance} 提供其导出变量供其他 linklet 使用，
+或通过 @racket[instance-variable-value] 直接访问。 @tech{linklet instance} 可以用 @racket[make-instance] 直接合成。
 
-A linklet is created by compiling an enriched S-expression
-representation of its source. Since linklets exist below the layer of
-macros and syntax objects, linklet compilation does not use
-@tech{syntax objects}. Instead, linklet compilation uses
-@deftech{correlated objects}, which are like @tech{syntax objects}
-without lexical-context information and without the constraint that
-content is coerced to correlated objects. Using an S-expression or
-@tech{correlated object}, the grammar of a linklet as recognized by
-@racket[compile-linklet] is
+linklet 通过编译其源代码的丰富 S-expression 表示来创建。 由于 linklet 存在于宏和 syntax object 层之下，linklet 编译不使用 @tech{syntax objects}。 相反，linklet 编译使用 @deftech{correlated objects}，
+它类似于 @tech{syntax objects}，但没有词法上下文信息，也没有内容被强制转换为 correlated object 的约束。 使用 S-expression 或 @tech{correlated object}，linklet 的语法（如 @racket[compile-linklet] 所识别的）如下
 
 @specform[(linklet [[imported-id/renamed ...] ...]
                    [exported-id/renamed ...]
@@ -75,9 +36,8 @@ content is coerced to correlated objects. Using an S-expression or
            [exported-id/renamed exported-id
                                 (internal-exported-id external-exported-id)])]
 
-Each import set @racket[[_imported-id/renamed ...]] refers to a single
-imported instance, and each @racket[_import-id/renamed] corresponds to
-a variable from that instance. If separate
+每个导入集 @racket[[_imported-id/renamed ...]] 引用单个导入的实例，
+每个 @racket[_import-id/renamed] 对应于该实例中的一个变量。 If separate
 @racket[_external-imported-id] and @racket[_internal-imported-id] are
 specified, then @racket[_external-imported-id] is the name of the
 variable as exported by the instance, and
@@ -144,11 +104,9 @@ otherwise.}
                                       '(serializable)])
             (values linklet? vector?)])]{
 
-Takes an S-expression or @tech{correlated object} for a
-@schemeidfont{linklet} form and produces a @tech{linklet}.
-As long as @racket['serializable] included in @racket[options], the
-resulting linklet can be marshaled to and from a byte stream when it is
-part of a @tech{linklet bundle} (possibly in a @tech{linklet directory}).
+接受 @schemeidfont{linklet} 形式的 S-expression 或 @tech{correlated object}，并产生 @tech{linklet}。
+只要 @racket[options] 中包含 @racket['serializable]，
+生成的 linklet 就可以作为 @tech{linklet bundle}（可能在 @tech{linklet directory} 中）的一部分与字节流相互封送处理。
 
 The optional @racket[info] hash provides various debugging details
 about the linklet, such as the module name the linklet is part of,
@@ -158,8 +116,7 @@ debugging purposes and as the default name of the linklet's instance.
 If @racket[info] is not a hash, it is assumed to be a name value
 directly for backward compatibility.
 
-The optional @racket[import-keys] and @racket[get-import] arguments
-support cross-linklet optimization. If @racket[import-keys] is a
+可选的 @racket[import-keys] 和 @racket[get-import] 参数支持跨 linklet 优化。 If @racket[import-keys] is a
 vector, it must have as many elements as sets of imports in
 @racket[form]. If the compiler becomes interested in optimizing a
 reference to an imported variable, it passes back to
@@ -205,17 +162,13 @@ unsafe mode by wrapping it in @racket[begin-unsafe]; when a whole
 linklet is compiled in unsafe mode, @racket[begin-unsafe] is redundant
 and ignored.
 
-If @racket['static] is included in @racket[options], then the linklet
-must be instantiated only once; if the linklet is serialized, then any
-individual instance read from the serialized form must be instantiated
-at most once. Compilation with @racket['static] is intended to improve
-the performance of references within the linklet to defined and
-imported variables.
+如果 @racket['static] 包含在 @racket[options] 中，则 linklet 只能被实例化一次；
+如果 linklet 被序列化，则从序列化形式读取的每个单独实例也必须至多实例化一次。 使用 @racket['static] 进行编译旨在提高 linklet
+内部对已定义和导入变量的引用的性能。
 
-If @racket['quick] is included in @racket[options], then linklet
-compilation may trade run-time performance for compile-time
-performance---that is, spend less time compiling the linklet, but the
-resulting linklet may run more slowly.
+如果 @racket['quick] 包含在 @racket[options] 中，
+则 linklet 编译可能用运行时性能换取编译时性能——即，花费更少的时间编译 linklet，
+但生成的 linklet 可能运行得更慢。
 
 If @racket['use-prompt] is included in @racket[options], then
 instantiating resulting linklet always wraps a prompt around each
@@ -224,9 +177,8 @@ supplying @racket[#t] as the @racket[_use-prompt?] argument to
 @racket[instantiate-linklet] may only wrap a prompt around the entire
 instantiation.
 
-If @racket['unlimited-compile] is included in @racket[options], then
-compilation never falls back to interpreted mode for an especially
-large linklet. See also @secref["cs-compiler-modes"].
+如果 @racket['unlimited-compile] 包含在 @racket[options] 中，
+则编译不会因为 linklet 特别大而回退到解释模式。 See also @secref["cs-compiler-modes"].
 
 If @racket['uninterned-literal] is included in @racket[options], then
 literals in @racket[form] will not necessarily be interned via
@@ -265,8 +217,7 @@ The symbols in @racket[options] must be distinct, otherwise
                                         '(serializable)])
              (values linklet? vector?)])]{
 
-Like @racket[compile-linklet], but takes an already-compiled linklet
-and potentially optimizes it further.
+类似于 @racket[compile-linklet]，但接受一个已编译的 linklet 并可能进一步优化。
 
 @history[#:changed "7.1.0.6" @elem{Added the @racket[options] argument.}
          #:changed "7.1.0.8" @elem{Added the @racket['use-prompt] option.}
@@ -277,9 +228,8 @@ and potentially optimizes it further.
 
 @defproc[(eval-linklet [linklet linklet?]) linklet?]{
 
-Returns a variant of a @racket[linklet] that is prepared for JIT
-compilation such that every later use of the result linklet with
-@racket[instantiate-linklet] shares the JIT-generated code. However,
+返回一个准备好的用于 JIT 编译的 @racket[linklet] 变体，
+以便在 @racket[instantiate-linklet] 中之后每次使用结果 linklet 时都能共享 JIT 生成的代码。 However,
 the result of @racket[eval-linklet] cannot be marshaled to a byte
 stream as part of a @tech{linklet bundle}, and it cannot be used with
 @racket[recompile-linklet].}
@@ -299,11 +249,10 @@ stream as part of a @tech{linklet bundle}, and it cannot be used with
 
 Instantiates @racket[linklet] by running its definitions and
 expressions, using the given @racket[import-instances] for its
-imports. The number of instances in @racket[import-instances] must
-match the number of import sets in @racket[linklet].
+imports. @racket[import-instances] 中的实例数量必须与 @racket[linklet] 中的导入集数量匹配。
 
-If @racket[target-instance] is @racket[#f] or not provided, the result
-is a fresh instance for the linklet. If @racket[target-instance] is an
+如果 @racket[target-instance] 是 @racket[#f] 或未提供，
+结果为 linklet 的新实例。 If @racket[target-instance] is an
 instance, then the instance is used and modified for the linklet
 definitions and expressions, and the result is the value of the last
 expression in the linklet.
@@ -326,7 +275,7 @@ definition and expression.}
 @defproc[(linklet-import-variables [linklet linklet?])
          (listof (listof symbol?))]{
 
-Returns a description of a linklet's imports. Each element of the
+返回 linklet 导入的描述。 Each element of the
 result list corresponds to an import set as satisfied by a single
 instance on instantiation, and each member of the set is a variable
 name that is used from the corresponding imported instance.}
@@ -334,7 +283,7 @@ name that is used from the corresponding imported instance.}
 @defproc[(linklet-export-variables [linklet linklet?])
          (listof symbol?)]{
 
-Returns a description of a linklet's exports. Each element of the list
+返回 linklet 导出的描述。 Each element of the list
 corresponds to a variable that is made available by the linklet in its
 instance.}
 
@@ -395,8 +344,7 @@ Returns @racket[#t] if @racket[v] is a @tech{linklet directory},
 @defproc[(hash->linklet-directory [content (and/c hash? hash-eq? immutable? (not/c impersonator?))])
          linklet-directory?]{
 
-Constructs a @tech{linklet directory} given mappings in the form of a
-@tech{hash table}. Each key of @racket[content] must be either a
+根据 @tech{hash table} 形式的映射构造 @tech{linklet directory}。 Each key of @racket[content] must be either a
 symbol or @racket[#f], each symbol must be mapped to a @tech{linklet
 directory}, and @racket[#f] must be mapped to a @tech{linklet bundle}
 or not mapped.}
@@ -405,8 +353,7 @@ or not mapped.}
 @defproc[(linklet-directory->hash [linklet-directory linklet-directory?])
          (and/c hash? hash-eq? immutable? (not/c impersonator?))]{
 
-Extracts the content of a @tech{linklet directory} into a @tech{hash
-table}.}
+将 @tech{linklet directory} 的内容提取到 @tech{hash table} 中。}
 
          
 @defproc[(linklet-bundle? [v any/c]) boolean?]{
@@ -418,8 +365,7 @@ Returns @racket[#t] if @racket[v] is a @tech{linklet bundle},
 @defproc[(hash->linklet-bundle [content (and/c hash? hash-eq? immutable? (not/c impersonator?))])
          linklet-bundle?]{
 
-Constructs a @tech{linklet bundle} given mappings in the form of a
-@tech{hash table}. Each key of @racket[content] must be either a
+根据 @tech{hash table} 形式的映射构造 @tech{linklet bundle}。 Each key of @racket[content] must be either a
 symbol or a @tech{fixnum}. Values in the hash table are unconstrained,
 but the intent is that they are all @tech{linklets} or values that can
 be recovered from @racket[write] output by @racket[read].}
@@ -428,8 +374,7 @@ be recovered from @racket[write] output by @racket[read].}
 @defproc[(linklet-bundle->hash [linklet-bundle linklet-bundle?])
          (and/c hash? hash-eq? immutable? (not/c impersonator?))]{
 
-Extracts the content of a @tech{linklet bundle} into a @tech{hash
-table}.}
+将 @tech{linklet bundle} 的内容提取到 @tech{hash table} 中。}
 
 
 @defproc[(linklet-body-reserved-symbol? [sym symbol?]) boolean?]{
@@ -454,7 +399,7 @@ Returns @racket[#t] if @racket[v] is a @tech{linklet instance},
                         [variable-value any/c] ... ...)
          instance?]{
 
-Constructs a @tech{linklet instance} directly. Besides associating an
+直接构造 @tech{linklet instance}。 Besides associating an
 arbitrary @racket[name] and @racket[data] value to the instance, the
 instance is populated with variables as specified by
 @racket[variable-name] and @racket[variable-value].
@@ -625,9 +570,7 @@ Like @racket[syntax?], @racket[syntax-source], @racket[syntax-line],
 @racket[syntax-property-symbol-keys], but for @tech{correlated
 objects}.
 
-Unlike @racket[datum->syntax], @racket[datum->correlated] does not
-recur through the given S-expression and convert pieces to
-@tech{correlated objects}. Instead, a @tech{correlated object} is
+与 @racket[datum->syntax] 不同，@racket[datum->correlated] 不会递归遍历给定的 S-expression 并将其各部分转换为 @tech{correlated objects}。 Instead, a @tech{correlated object} is
 simply wrapped around the immediate value. In contrast,
 @racket[correlated->datum] recurs through its argument (which is not
 necessarily a @tech{correlated object}) to discover any
