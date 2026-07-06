@@ -3142,7 +3142,7 @@ chaperone 或 impersonator 值上。
 @subsection{Obligation Information in Check Syntax}
 
 DrRacket 中的 @seclink[#:doc '(lib "scribblings/drracket/drracket.scrbl")
-"buttons" #:indirect? #:t]{Check Syntax} 根据契约组合子在程序展开形式中
+"buttons" #:indirect? #t]{Check Syntax} 根据契约组合子在程序展开形式中
 留下的 @racket[syntax-property]
 显示契约的义务信息。这些属性指示契约在源代码中出现的位置
 以及契约的正负位置出现的位置。

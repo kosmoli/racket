@@ -13,7 +13,7 @@ The @racketmodname[racket/surrogate] 库提供了一种用于构建 @deftech{pro
                [method-spec (augment default-expr method-id arg-spec ...)
                             (override method-id arg-spec ...)]
                [arg-spec (id ...)
-                         id]]){
+                         id])]{
 
 @racket[surrogate] form 产生四个值：一个 host @tech{mixin}（接受并返回 class 的 procedure）、一个 host @tech{interface}、一个 surrogate @tech{class} 和一个 surrogate @tech{interface}。
 
@@ -35,7 +35,7 @@ Host mixin 为 @racket[surrogate] form 中的每个 @racket[method-id] 都有一
                          this 
                          (λ (x y z) (super m x y z))
                          x y z)
-                   (super m x y z))]
+                   (super m x y z)))]
 其中 @racket[_surrogate] 绑定到最近传递给 host mixin 的 @racket[set-surrogate] 方法的值。
 
 Host interface 有名称 @racket[set-surrogate]、@racket[get-surrogate] 以及原始 form 中所有的 @racket[method-id]。

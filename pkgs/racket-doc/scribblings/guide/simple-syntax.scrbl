@@ -237,7 +237,7 @@ Racket 的标识符语法特别自由。除特殊字符外，
 
 总是对第一个 @nonterm{expr} 求值。如果它产生一个
 非 @racket[#f] 的值，则对第二个 @nonterm{expr} 求值以作为整个
-@racket[if} 表达式的结果，否则对第三个 @nonterm{expr} 求值
+@racket[if] 表达式的结果，否则对第三个 @nonterm{expr} 求值
 
 @examples[
 (if (> 2 3)
@@ -350,7 +350,7 @@ Racket 的标识符语法特别自由。除特殊字符外，
 
 总是对第一个 @nonterm{expr} 求值。如果它产生一个
 非 @racket[#f] 的值，则对第二个 @nonterm{expr} 求值以作为整个
-@racket[if} 表达式的结果，否则对第三个 @nonterm{expr} 求值
+@racket[if] 表达式的结果，否则对第三个 @nonterm{expr} 求值
 
 @examples[
 (if (> 2 3)
@@ -463,7 +463,7 @@ Racket 的标识符语法特别自由。除特殊字符外，
 
 总是对第一个 @nonterm{expr} 求值。如果它产生一个
 非 @racket[#f] 的值，则对第二个 @nonterm{expr} 求值以作为整个
-@racket[if} 表达式的结果，否则对第三个 @nonterm{expr} 求值
+@racket[if] 表达式的结果，否则对第三个 @nonterm{expr} 求值
 
 @examples[
 (if (> 2 3)
@@ -601,7 +601,7 @@ louder
 书写的"匿名"函数，但如果可能的话，编译器会推断出一个名称，以使打印和错误报告尽可能信息丰富。
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section[#:tag "local-binding-intro"]{使用 @racket[define]、@racket[let] 和 @racket[let*} 的局部绑定}
+@section[#:tag "local-binding-intro"]{使用 @racket[define]、@racket[let] 和 @racket[let*] 的局部绑定}
 
 是时候收回我们 Racket 文法中的另一个简化了。在函数体中，
 定义可以出现在函数体表达式之前：
@@ -636,9 +636,9 @@ louder
 
 创建局部绑定的另一种方式是 @racket[let] 形式。
 @racket[let] 的优点是它可以在任何表达式位置使用。此外，
-@racket[let} 一次性绑定多个标识符，而不需要为每个标识符单独使用 @racket[define]。
+@racket[let] 一次性绑定多个标识符，而不需要为每个标识符单独使用 @racket[define]。
 
-@moreguide["intdefs"]{@racket[let] and @racket[let*}}
+@moreguide["intdefs"]{@racket[let] and @racket[let*]}
 
 @racketblock[
 #,let-expr-stx

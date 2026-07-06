@@ -15,9 +15,9 @@
 
        @margin-note{关于 Lisp 的其他方言及其与 Racket 的关系，详见 @secref["dialects"]。}}
 
- @item{一组编程@vdefterm{family}——Racket 的变体，或更广泛家族；或}
+ @item{一组编程@defterm{family}——Racket 的变体，或更广泛家族；或}
 
- @item{一组 @defterm{tools}——用于使用一组编程@vdefterm{family}的工具集。}
+ @item{一组 @defterm{tools}——用于使用一组编程@defterm{family}的工具集。}
 
 ]
 
