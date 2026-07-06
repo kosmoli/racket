@@ -30,7 +30,7 @@ to switch to the usual langle/rangle that is used in syntax definitions.
 ;}
 
 @;------------------------------------------------------------------------
-@title[#:tag "eval-model"]{Evaluation Model}
+@title[#:tag "eval-model"]{求值模型}
 
 Racket evaluation can be viewed as the simplification of expressions
 to obtain values. For example, just as an elementary-school student
@@ -38,7 +38,7 @@ simplifies
 
 @verbatim{  1 + 1 = 2}
 
-Racket evaluation simplifies
+Racket 求值简化
 
 @racketblock[
 (+ 1 1) @#,reduces 2
@@ -50,9 +50,9 @@ simpler expressions. In particular, a @deftech{value}, such as the number @racke
 is an expression that evaluation simplifies no further.
 
 @;------------------------------------------------------------------------
-@section[#:tag "cont-model"]{Sub-expression Evaluation and Continuations}
+@section[#:tag "cont-model"]{子表达式求值与 Continuation}
 
-Some simplifications require more than one step. For example:
+某些简化需要多于一步。 For example:
 
 @racketblock[
 (- 4 #,(redex (+ 1 1))) #,reduces #,(redex (- 4 2)) #,reduces 2
@@ -98,7 +98,7 @@ substituting @racket[_expr] in place of @hole in some @tech{continuation}
 ]
 
 In this case, the @tech{continuation} for reducing @racket[(+ 1 1)] is
-@sub[_C (- 4 @#,hole)], not just @racket[_C]. The requirement specified in the first paragraph above is not met.
+@sub[_C (- 4 @#,hole)], not just @racket[_C]. 第一段所述的要求未被满足。
 
 In contrast, @racket[(+ 1 1)] is in @tech{tail position} with respect
 to @racket[(if (zero? 0) (+ 1 1) 3)] because, for any continuation
@@ -108,7 +108,7 @@ to @racket[(if (zero? 0) (+ 1 1) 3)] because, for any continuation
 @#,sub[_C (if (zero? 0) (+ 1 1) 3)] @#,reduces @#,sub[_C (if #t (+ 1 1) 3)] @#,reduces @#,sub[_C (+ 1 1)]
 ]
 
-The requirement specified in the first paragraph is met.
+第一段所述的要求被满足。
 The steps in this reduction sequence are driven by the definition of
 @racket[if], and they do not depend on the @tech{continuation}
 @racket[_C]. The ``then'' branch of an @racket[if] form is always in
@@ -122,7 +122,7 @@ specification of @tech{tail positions} accompanies the description of
 each syntactic form, such as @racket[if].
 
 @;------------------------------------------------------------------------
-@section[#:tag "values-model"]{Multiple Return Values}
+@section[#:tag "values-model"]{多返回值}
 
 A Racket expression can evaluate to @deftech{multiple values}, to
 provide symmetry with the fact that a procedure can accept multiple arguments.
@@ -146,13 +146,13 @@ procedures (notably @racket[call-with-values]) create continuations
 internally that accept a certain number of @tech{values}.
 
 @;------------------------------------------------------------------------
-@section{Top-Level Variables}
+@section{Top-Level Variable}
 
 Given
 
 @verbatim{  x = 10}
 
-then an algebra student simplifies @tt{x + 1} as follows:
+代数学生将 @tt{x + 1} 简化如下：
 
 @verbatim{  x + 1 = 10 + 1 = 11}
 
@@ -179,7 +179,7 @@ Each evaluation step, then, transforms the current set of definitions and
 program into a new set of definitions and program. Before a
 @racket[define] can be moved into the set of definitions, its
 expression (i.e., its right-hand side) must be reduced to a @tech{value}.
-(The left-hand side is not an expression position, and so it is not evaluated.)
+（左侧不是表达式位置，因此不被求值。）
 
 @prog-steps/no-obj[
 [{}
@@ -211,7 +211,7 @@ existing @tech{top-level variable}:
 ]
 
 @;------------------------------------------------------------------------
-@section{Objects and Imperative Update}
+@section{对象与 Imperative Update}
 
 In addition to @racket[set!] for imperative update of @tech{top-level
 variables}, various procedures enable the modification of elements
@@ -316,7 +316,7 @@ program. A program representation created with
 existing @tech{objects}.
 
 @;------------------------------------------------------------------------
-@section[#:tag "gc-model"]{Garbage Collection}
+@section[#:tag "gc-model"]{垃圾回收}
 
 @margin-note/ref{See @secref["memory"] for functions related to
 garbage collection.}
@@ -356,13 +356,13 @@ always reachable. Values produced by @racket[quote] remain reachable
 when the @racket[quote] expression itself is reachable.
 
 @;------------------------------------------------------------------------
-@section{Procedure Applications and Local Variables}
+@section{Procedure Application 与 Local Variable}
 
 Given
 
 @verbatim{  f(x) = x + 10}
 
-an algebra student simplifies @tt{f(7)} as follows:
+代数学生将 @tt{f(7)} 简化如下：
 
 @verbatim{  f(7) = 7 + 10 = 17}
 
@@ -370,7 +370,7 @@ The key step in this simplification is to take the body of the defined
 function @tt{f} and replace each @tt{x} with the actual
 @tech{value} @tt{7}.
 
-Racket procedure application works much the same way. A procedure is
+Racket procedure application 的工作方式大致相同。 A procedure is
 an @tech{object}, so evaluating @racket[(f 7)] starts with a
 @tech{variable} lookup:
 
@@ -468,7 +468,7 @@ Evaluation of a local-variable form, such as @racket[(let ([x (+ 1
 that replaces every instance of @racket[x] in @racket[_expr].
 
 @;------------------------------------------------------------------------
-@section[#:tag "vars-and-locs"]{Variables and Locations}
+@section[#:tag "vars-and-locs"]{Variable 与 Location}
 
 A @deftech{variable} is a placeholder for a @tech{value}, and
 expressions in an initial program refer to @tech{variables}. A
@@ -504,11 +504,11 @@ forms. As a result, future references to the @tech{variable} always
 access the same @tech{location}.
 
 @;------------------------------------------------------------------------
-@section[#:tag "module-eval-model"]{Modules and Module-Level Variables}
+@section[#:tag "module-eval-model"]{Module 与 Module-Level Variable}
 
 @margin-note/ref{See @secref["module"] for the syntax of modules.}
 
-Most definitions in Racket are in @deftech{modules}. In terms of evaluation,
+Racket 中的大多数定义都在 @deftech{module} 中。 In terms of evaluation,
 a module is essentially a prefix on a defined name, so that different
 modules can define the same name. That is, a @deftech{module-level
 variable} is like a @tech{top-level variable} from the perspective of
@@ -543,9 +543,9 @@ The purpose of @deftech{phases} is to
 address the necessary separation of names defined at execution time versus
 names defined at expansion time.
 
-A module can be @tech{instantiate}d in multiple @tech{phases}. A
+Module 可以在多个 @tech{phase} 被 @tech{instantiate}。 A
 phase is an integer that, like a module name, is effectively a prefix on the names
-of module-level definitions. Phase 0 is the execution-time phase.
+of module-level definitions. Phase 0 是执行时 phase。
 
 A top-level @racket[require]
 @tech{instantiates} a module at @tech{phase} 0, if the module is not
