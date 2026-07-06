@@ -35,9 +35,7 @@ Racket 的读取器可以通过三种方式扩展：通过 @tech{readtable} 中�
 
 ]
 
-The readtable is ignored at other times.  In particular, after parsing
-a character that is mapped to the default behavior of @litchar{;}, the
-readtable 直到发现注释的终止换行符时才被忽略。类似地，直到找到闭合双引号之前，
+在其他时候，readtable 会被忽略。特别是，在解析了一个被映射到 @litchar{;} 的默认行为的字符之后，readtable 直到发现注释的终止换行符时才被忽略。类似地，直到找到闭合双引号之前，
 readtable 不影响 string 解析。同时，如果一个字符被映射到 @litchar{(} 的默认行为，
 那么它启动一个序列，该序列由任何映射到闭合括号 @litchar{)} 的字符关闭。
 一个明显的例外是，@litchar{|} 的默认解析引用一个 symbol 直到找到匹配字符，
@@ -129,27 +127,15 @@ Reader macro 可能产生 special-comment 值（参见 @secref["special-comments
 
 @itemize[
 
- @item{either a character (mapping to the same behavior as the
- character in the default readtable), @racket['terminating-macro], or
- @racket['non-terminating-macro]; this result reports the main (i.e.,
- non-@racket['dispatch-macro]) mapping for @racket[char]. When the result
- is a character, then @racket[char] is mapped to the same behavior as the
- returned character in the default readtable.}
+ @item{要么是一个字符（映射到与默认 readtable 中该字符相同的行为），要么是 @racket['terminating-macro]，要么是 @racket['non-terminating-macro]；此结果报告 @racket[char] 的主要（即非 @racket['dispatch-macro]）映射。当结果是一个字符时，@racket[char] 被映射到与默认 readtable 中返回字符相同的行为。}
 
- @item{either @racket[#f] or a reader-macro procedure; the result is a
- procedure when the first result is @racket['terminating-macro] or
- @racket['non-terminating-macro].}
+ @item{要么是 @racket[#f]，要么是一个 reader-macro 过程；当第一个结果是 @racket['terminating-macro] 或 @racket['non-terminating-macro] 时，结果是一个过程。}
 
- @item{either @racket[#f] or a reader-macro procedure; the result is a
- procedure when the character has a @racket['dispatch-macro] mapping in
- @racket[readtable] to override the default dispatch behavior.}
+ @item{要么是 @racket[#f]，要么是一个 reader-macro 过程；当该字符在 @racket[readtable] 中有 @racket['dispatch-macro] 映射以覆盖默认 dispatch 行为时，结果是一个过程。}
 
 ]
 
-Note that reader-macro procedures for the default readtable are not
-directly accessible. To invoke default behaviors, use
-@racket[read/recursive] or @racket[read-syntax/recursive] with a
-character and the @racket[#f] readtable.}
+请注意，默认 readtable 的 reader-macro 过程不能直接访问。要调用默认行为，请使用 @racket[read/recursive] 或 @racket[read-syntax/recursive]，并传入一个字符和 @racket[#f] readtable。}
 
 @(begin
 #readerscribble/comment-reader
@@ -282,69 +268,31 @@ character and the @racket[#f] readtable.}
 ])
 
 @;------------------------------------------------------------------------
-@section[#:tag "reader-procs"]{Reader-Extension Procedures}
+@section[#:tag "reader-procs"]{Reader 扩展过程}
 
-Calls to @techlink{reader extension procedures} can be triggered
-through @racket[read], @racket[read/recursive], or @racket[read-syntax].
-In addition, a special-read procedure
-can be triggered by calls to @racket[read-char-or-special], or
-by the context of @racket[read-bytes-avail!],
-@racket[peek-bytes-avail!*], @racket[read-bytes-avail!], and
-@racket[peek-bytes-avail!*].
+对 @techlink{reader extension procedures} 的调用可以通过 @racket[read]、@racket[read/recursive] 或 @racket[read-syntax] 触发。此外，special-read 过程可以通过调用 @racket[read-char-or-special] 触发，或者通过 @racket[read-bytes-avail!]、@racket[peek-bytes-avail!*]、@racket[read-bytes-avail!] 和 @racket[peek-bytes-avail!*] 的上下文触发。
 
-Optional arities for reader-macro and special-result procedures allow
-them to distinguish reads via @racket[read], @|etc|, from reads via
-@racket[read-syntax], @|etc| (where the source value is @racket[#f] and
-no other location information is available).
+reader-macro 和 special-result 过程的可选参数数量允许它们区分通过 @racket[read] 等进行的读取，与通过 @racket[read-syntax] 等进行的读取（其中 source 值为 @racket[#f] 且没有其他位置信息可用）。
 
-When a reader-extension procedure is called in syntax-reading mode
-(via @racket[read-syntax], @|etc|), it should generally return a syntax
-object that has no lexical context (e.g., a syntax object created
-using @racket[datum->syntax] with @racket[#f] as the first
-argument and with the given location information as the third
-argument). Another possible result is a special-comment value (see
-@secref["special-comments"]). If the procedure's result is not a
-syntax object and not a special-comment value, it is converted to one
-using @racket[datum->syntax].
+当 reader-extension 过程在语法读取模式中（通过 @racket[read-syntax] 等）被调用时，它通常应返回一个没有词法上下文的语法对象（例如，使用 @racket[datum->syntax] 创建，以 @racket[#f] 作为第一个参数，以给定的位置信息作为第三个参数）。另一种可能的结果是 special-comment 值（参见 @secref["special-comments"]）。如果过程的结果既不是语法对象也不是 special-comment 值，则使用 @racket[datum->syntax] 将其转换为语法对象。
 
-When a reader-extension procedure is called in non-syntax-reading
-modes, it should generally not return a syntax object. If a syntax
-object is returned, it is converted to a plain value using
-@racket[syntax->datum].
+当 reader-extension 过程在非语法读取模式中被调用时，它通常不应返回语法对象。如果返回语法对象，则使用 @racket[syntax->datum] 将其转换为普通值。
 
-In either context, when the result from a reader-extension procedure
-is a special-comment value (see @secref["special-comments"]), then
-@racket[read], @racket[read-syntax], @|etc| treat the value as a
-delimiting comment and otherwise ignore it.
+在任何一种上下文中，当 reader-extension 过程的结果是 special-comment 值（参见 @secref["special-comments"]）时，@racket[read]、@racket[read-syntax] 等过程将该值视为分隔注释并忽略它。
 
-Also, in either context, the result may be copied to prevent mutation
-to vectors or boxes before the read result is completed, and to
-support the construction of graphs with cycles. Mutable boxes,
-vectors, and @tech{prefab} structures are copied, along with any
-pairs, boxes, vectors, prefab structures that lead to such mutable
-values, to placeholders produced by a recursive read (see
-@racket[read/recursive]), or to references of a shared value. Graph
-structure (including cycles) is preserved in the copy.
+此外，在任何一种上下文中，结果可能被复制以防止在读取结果完成之前对向量或 box 的修改，并支持构建带环的图。可变的 box、向量和 @tech{prefab} 结构会被复制，包括任何导致此类可变值的 pair、box、向量、prefab 结构，递归读取产生的占位符（参见 @racket[read/recursive]），或者共享值的引用。图结构（包括环）在复制中得以保留。
 
 @;------------------------------------------------------------------------
-@section[#:tag "special-comments"]{Special Comments}
+@section[#:tag "special-comments"]{特殊注释}
 
 @defproc[(make-special-comment [v any/c]) special-comment?]{
 
-Creates a special-comment value that encapsulates @racket[v]. The
-@racket[read], @racket[read-syntax], @|etc|, procedures treat values
-constructed with @racket[make-special-comment] as delimiting
-whitespace when returned by a reader-extension procedure (see
-@secref["reader-procs"]).}
+创建一个封装 @racket[v] 的 special-comment 值。@racket[read]、@racket[read-syntax] 等过程会将由 @racket[make-special-comment] 构造的值在由 reader-extension 过程返回时视为分隔空白（参见 @secref["reader-procs"]）。}
 
 @defproc[(special-comment? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is the result of
-@racket[make-special-comment], @racket[#f] otherwise.}
+如果 @racket[v] 是 @racket[make-special-comment] 的结果，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(special-comment-value [sc special-comment?]) any]{
 
-Returns the value encapsulated by the special-comment value
-@racket[sc]. This value is never used directly by a reader, but it
-might be used by the context of a @racket[read-char-or-special], @|etc|,
-call that detects a special comment.}
+返回由 special-comment 值 @racket[sc] 封装的值。该值永远不会被读取器直接使用，但可能被检测到特殊注释的 @racket[read-char-or-special] 等调用的上下文使用。}
