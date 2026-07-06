@@ -48,13 +48,13 @@ regexp 的 @litchar{\}，后者再转义 @litchar{.}。另外
 在 Racket 字符串中需要转义的字符是
 @litchar{"}。}
 
-If we needed to match the character @litchar{.} itself, we can escape
-it by preceding it with a @litchar{\}.  The character sequence
-@litchar{\.} is thus a @tech{metasequence}, since it doesn't match
-itself but rather just @litchar{.}.  So, to match @litchar{a},
-@litchar{.}, and @litchar{c} in succession, we use the regexp pattern
-@racket[#rx"a\\.c"]; the double @litchar{\} is an artifact of Racket
-strings, not the @tech{regexp} pattern itself.
+如果我们需要匹配字符 @litchar{.} 本身，可以在其前面加上
+@litchar{\\} 来转义它。字符序列
+@litchar{\\.} 因此是一个 @tech{元序列}，因为它不匹配自身，
+而只匹配 @litchar{.}。因此，要依次匹配 @litchar{a}、
+@litchar{.} 和 @litchar{c}，我们使用 regexp 模式
+@racket[#rx"a\\\\.c"]；双 @litchar{\} 是 Racket 字符串造成的，
+而非 @tech{regexp} 模式本身。
 
 @racket[regexp] 函数接受一个字符串或字节串，并
 生成一个 @tech{regexp} 值。当您构建一个要
@@ -151,9 +151,9 @@ regexp 元字符的字符会用反斜杠转义，使其
              为了获得最高效率，请使用字节串匹配而不是字符串匹配，
              因为直接匹配字节避免了 UTF-8 编码。}
 
-If you have data that is in a port, there's no need to first read it
-into a string. Functions like @racket[regexp-match] can match on the
-port directly:
+如果数据在端口（port）中，无需先将其读入字符串。
+像 @racket[regexp-match] 这样的函数可以直接在
+端口上进行匹配：
 
 @interaction[
 (define-values (i o) (make-pipe))
@@ -210,8 +210,8 @@ regexp @racket[#rx"\u20+"] 而非 @racket[#rx"\u20*"]。
 (regexp-replace #rx"." "racket" string-upcase)
 ]
 
-If the pattern doesn't occur in the text string, the returned string
-is identical to the text string.
+如果模式未出现在文本字符串中，返回的字符串
+与文本字符串完全一致。
 
 @racket[regexp-replace*] 函数用插入字符串替换
 文本字符串中的 @emph{所有} 匹配：
@@ -236,7 +236,7 @@ is identical to the text string.
 ]
 
 上面的 @tech{regexp} 匹配失败，因为 @litchar{contact}
-没有出现在文本字符串的开头。 In
+没有出现在文本字符串的开头。在
 
 @interaction[
 #:eval rx-eval
@@ -253,18 +253,18 @@ regexp 匹配 @emph{最后一个} @litchar{laugh}。
 (regexp-match-positions #px"yack\\b" "yackety yack")
 ]
 
-the @litchar{yack} in @litchar{yackety} doesn't end at a word boundary
-so it isn't matched.  The second @litchar{yack} does and is.
+@litchar{yackety} 中的 @litchar{yack} 没有在单词边界处结束，
+因此不被匹配。第二个 @litchar{yack} 在单词边界处结束，因此被匹配。
 
 元序列 @litchar{\B}（同样仅限 @litchar{#px}）具有
-与 @litchar{\b} 相反的效果；它断言不存在单词边界。 In
+与 @litchar{\b} 相反的效果；它断言不存在单词边界。在
 
 @interaction[
 #:eval rx-eval
 (regexp-match-positions #px"an\\B" "an analysis")
 ]
 
-the @litchar{an} that doesn't end in a word boundary is matched.
+没有在单词边界处结束的那个 @litchar{an} 被匹配了。
 
 @; ----------------------------------------
 
@@ -308,44 +308,41 @@ the @litchar{an} that doesn't end in a word boundary is matched.
 @racket[#rx"do[^g]"] 匹配所有以 @litchar{do} 开头的三字符序列，
 但不包括 @litchar{dog}。
 
-Note that the @tech{metacharacter} @litchar{^} inside brackets means
-something quite different from what it means outside.  Most other
-@tech{metacharacters} (@litchar{.}, @litchar{*}, @litchar{+},
-@litchar{?}, etc.) cease to be @tech{metacharacters} when inside
-brackets, although you may still escape them for peace of mind. A
-@litchar{-} is a @tech{metacharacter} only when it's inside brackets,
-and when it is neither the first nor the last character between the
-brackets.
+请注意，方括号内的 @tech{元字符} @litchar{^} 的含义与
+在方括号外截然不同。大多数其他
+@tech{元字符}（@litchar{.}、@litchar{*}、@litchar{+}、
+@litchar{?} 等）在方括号内不再是 @tech{元字符}，
+不过你仍然可以转义它们以求心安。@litchar{-} 只有
+在方括号内且既不是方括号内的第一个也不是最后一个字符时
+才是 @tech{元字符}。
 
-Bracketed character classes cannot contain other bracketed character
-classes (although they contain certain other types of character
-classes; see below).  Thus, a @litchar{[} inside a bracketed character
-class doesn't have to be a metacharacter; it can stand for itself.
-For example, @racket[#rx"[a[b]"] matches @litchar{a}, @litchar{[}, and
-@litchar{b}.
+方括号字符类不能包含其他方括号字符类
+（尽管它们可以包含某些其他类型的字符类；见下文）。
+因此，方括号字符类内的 @litchar{[} 不必是元字符；
+它可以表示自身。例如，@racket[#rx"[a[b]"] 匹配
+@litchar{a}、@litchar{[} 和 @litchar{b}。
 
-Furthermore, since empty bracketed character classes are disallowed, a
-@litchar{]} immediately occurring after the opening left bracket also
-doesn't need to be a metacharacter.  For example, @racket[#rx"[]ab]"]
-matches @litchar{]}, @litchar{a}, and @litchar{b}.
+此外，由于不允许空方括号字符类，
+紧跟在左方括号之后的 @litchar{]} 也不必是元字符。
+例如，@racket[#rx"[]ab]"] 匹配
+@litchar{]}、@litchar{a} 和 @litchar{b}。
 
 @subsection{一些常用的字符类}
 
-In @litchar{#px} syntax, some standard character classes can be
-conveniently represented as metasequences instead of as explicit
-bracketed expressions:  @litchar{\d} matches a digit
-(the same as @litchar{[0-9]}); @litchar{\s} matches an ASCII whitespace character; and
-@litchar{\w} matches a character that could be part of a
-``word''.
+在 @litchar{#px} 语法中，一些标准字符类可以方便地
+表示为元序列而非显式的方括号表达式：
+@litchar{\d} 匹配一个数字（等同于 @litchar{[0-9]}）；
+@litchar{\s} 匹配一个 ASCII 空白字符；
+@litchar{\w} 匹配一个可以作为
+``单词''一部分的字符。
 
-@margin-note{Following regexp custom, we identify ``word'' characters
-as @litchar{[A-Za-z0-9_]}, although these are too restrictive for what
-a Racketeer might consider a ``word.''}
+@margin-note{按照 regexp 惯例，我们将 ``单词'' 字符定义为
+@litchar{[A-Za-z0-9_]}，尽管这对于 Racketeer 所认为的
+``单词''来说过于严格了。}
 
-The upper-case versions of these metasequences stand for the
-inversions of the corresponding character classes: @litchar{\D}
-matches a non-digit, @litchar{\S} a non-whitespace character, and
-@litchar{\W} a non-``word'' character.
+这些元序列的大写版本表示相应字符类的
+反转：@litchar{\D} 匹配非数字，@litchar{\S} 匹配
+非空白字符，@litchar{\W} 匹配非 ``单词'' 字符。
 
 请记住，在 Racket 字符串中使用这些
 元序列时要使用双反斜杠：
@@ -377,7 +374,7 @@ POSIX 类有
 
  @item{@litchar{[:blank:]} --- ASCII 等宽空白：空格和制表符}
 
- @item{@litchar{[:cntrl:]} --- ``control'' characters: ASCII 0 to 31}
+ @item{@litchar{[:cntrl:]} --- ``控制''字符: ASCII 0 至 31}
 
  @item{@litchar{[:digit:]} --- ASCII 数字，等同于 @litchar{\d}}
 
@@ -575,12 +572,11 @@ regexp 中指定的子模式数量，即使某个子模式
 此外，@litchar{\$} 表示空字符串，用于将
 反向引用 @litchar{\}@math{n} 与紧随其后的数字分隔开，非常有用。
 
-反向引用 can also be used within a @litchar{#px} pattern to
-refer back to an already matched subpattern in the pattern.
-@litchar{\}@math{n} stands for an exact repeat of the @math{n}th
-submatch. Note that @litchar{\0}, which is useful in an insert string,
-makes no sense within the regexp pattern, because the entire regexp
-has not matched yet so you cannot refer back to it.}
+反向引用也可以在 @litchar{#px} 模式中使用，以引用
+模式中已经匹配的子模式。@litchar{\}@math{n} 表示
+第 @math{n} 个子匹配的精确重复。请注意，@litchar{\0}
+在插入字符串中很有用，但在 regexp 模式中没有意义，
+因为整个 regexp 尚未匹配完毕，因此无法引用它。}
 
 @interaction[
 #:eval rx-eval
@@ -622,7 +618,7 @@ has not matched yet so you cannot refer back to it.}
   "\\1")
 ]
 
-@subsection{Non-capturing 分组}
+@subsection{非捕获分组}
 
 经常需要指定一个分组（通常用于
 量化），但不触发 @tech{子匹配}
@@ -630,12 +626,12 @@ has not matched yet so you cannot refer back to it.}
 创建非捕获分组，使用 @litchar{(?:} 而非
 @litchar{(} 作为分组的开头。
 
-In the following example, a non-capturing cluster eliminates the
-``directory'' portion of a given Unix pathname, and a capturing
-cluster identifies the basename.
+在以下示例中，一个非捕获分组消除了给定
+Unix 路径名的 ``目录'' 部分，而一个捕获分组
+则识别出基础文件名。
 
-@margin-note{But don't parse paths with regexps. Use functions like
- @racket[split-path], instead.}
+@margin-note{但不要用 regexp 解析路径。请使用像
+ @racket[split-path] 这样的函数。}
 
 @interaction[
 #:eval rx-eval
@@ -756,9 +752,9 @@ cluster identifies the basename.
 
 @section{回溯}
 
-We've already seen that greedy quantifiers match the maximal number of
-times, but the overriding priority is that the overall match succeed.
-Consider
+我们已经看到贪婪量词会匹配最大次数，
+但最高优先原则是确保整体匹配成功。
+考虑以下情况：
 
 @interaction[
 #:eval rx-eval
@@ -787,13 +783,11 @@ regexp 匹配器通过一个称为 @deftech{回溯} 的过程
 匹配器进一步回溯。只有当所有可能的回溯
 都已尝试且未成功时，才会承认整体失败。
 
-回溯 is not restricted to greedy quantifiers.
-Nongreedy quantifiers match as few instances as
-possible, and progressively backtrack to more and more
-instances in order to attain an overall match.  There
-is backtracking in alternation too, as the more
-rightward alternates are tried when locally successful
-leftward ones fail to yield an overall match.
+回溯不仅限于贪婪量词。非贪婪量词匹配尽可能少的
+实例，并逐步回溯到更多实例，
+以实现整体匹配。选择也有回溯，
+当局部成功的左侧选项无法产生整体匹配时，
+会尝试更右侧的选项。
 
 有时禁用回溯是高效的。例如，我们
 可能希望提交一个选择，或者我们知道尝试替代方案是
@@ -815,15 +809,14 @@ leftward ones fail to yield an overall match.
 
 @section{前瞻与后顾}
 
-You can have assertions in your pattern that look @emph{ahead} or
-@emph{behind} to ensure that a subpattern does or does not occur.
-These ``look around'' assertions are specified by putting the
-subpattern checked for in a cluster whose leading characters are:
-@litchar{?=} (for positive lookahead), @litchar{?!} (negative
-lookahead), @litchar{?<=} (positive lookbehind), @litchar{?<!}
-(negative lookbehind).  Note that the subpattern in the assertion does
-not generate a match in the final result; it merely allows or
-disallows the rest of the match.
+你可以在模式中使用断言来向前或向后查看，
+以确保子模式出现或不出现。这些 ``环视''
+断言由将待检查的子模式放入一个分组中来指定，
+分组的前导字符为：@litchar{?=}（正向前瞻）、
+@litchar{?!}（负向前瞻）、@litchar{?<=}（正向后顾）、
+@litchar{?<!}（负向后顾）。请注意，断言中的子模式
+不会在最终结果中产生匹配；它仅仅允许或禁止
+其余部分的匹配。
 
 @subsection{前瞻}
 
@@ -879,8 +872,7 @@ regexp @racket[#rx"(?<=grey)hound"] 匹配 @litchar{hound}，但
 regexp @racket[#rx"(?<!grey)hound"] 匹配 @litchar{hound}，但
 仅当它前面 @emph{不是} @litchar{grey} 时。
 
-前瞻s and lookbehinds can be convenient when they
-are not confusing.  
+前瞻和后顾在不令人困惑时可以很方便。
 
 @; ----------------------------------------
 
@@ -888,11 +880,10 @@ are not confusing.
 
 @(define ex-eval (make-base-eval))
 
-Here's an extended example from Friedl's @italic{Mastering Regular
-Expressions}, page 189, that covers many of the features described in
-this chapter.  The problem is to fashion a regexp that will match any
-and only IP addresses or @emph{dotted quads}: four numbers separated
-by three dots, with each number between 0 and 255.
+以下是来自 Friedl 所著《@italic{精通正则表达式}》第 189 页的一个扩展示例，
+涵盖了本章中描述的许多特性。问题是设计一个 regexp，
+使之仅匹配 IP 地址或 @emph{点分四段}：
+用三个点分隔的四个数字，每个数字在 0 到 255 之间。
 
 首先，我们定义一个子 regexp @racket[n0-255]，它匹配从 0 到
 255 的数字：
@@ -940,7 +931,7 @@ IP 地址是由四个 @racket[n0-255] 组成的字符串，
    "$"))      (code:comment @#,t{with nothing following})
 ]
 
-Let's try it out:
+让我们试试看：
 
 @interaction[
 #:eval ex-eval
@@ -955,10 +946,10 @@ Let's try it out:
 (regexp-match (pregexp ip-re1) "0.00.000.00")
 ]
 
-All-zero sequences are not valid IP addresses!  前瞻 to the
-rescue.  Before starting to match @racket[ip-re1], we look ahead to
-ensure we don't have all zeros.  We could use positive lookahead to
-ensure there @emph{is} a digit other than zero.
+全零序列不是有效的 IP 地址！前瞻来救援了。在
+开始匹配 @racket[ip-re1] 之前，我们向前查看以确保
+不是全零。我们可以使用正向前瞻来确保
+@emph{存在} 一个非零的数字。
 
 @interaction[
 #:eval ex-eval
@@ -969,8 +960,8 @@ ensure there @emph{is} a digit other than zero.
      ip-re1)))
 ]
 
-Or we could use negative lookahead to ensure that what's ahead isn't
-composed of @emph{only} zeros and dots.
+或者我们可以使用负向前瞻来确保前面的内容
+不是 @emph{仅} 由零和点组成的。
 
 @interaction[
 #:eval ex-eval
