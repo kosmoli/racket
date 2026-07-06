@@ -16,15 +16,15 @@
      [(_ f ...)
       (begin (defkeywords f) ...)]))
 
-@title[#:tag "mzlib:unit" #:style 'toc]{Units}
+@title[#:tag "mzlib:unit" #:style 'toc]{单元}
 
 @guideintro["units"]{units}
 
-@deftech{Units} organize a program into separately compilable and
+@deftech{单元} organize a program into separately compilable and
 reusable components. The imports and exports of a unit are grouped
 into a @deftech{signature}, which can include ``static'' information
 (such as macros) in addition to placeholders for run-time values.
-Units with suitably matching signatures can be @deftech{linked}
+单元 with suitably matching signatures can be @deftech{linked}
 together to form a larger unit, and a unit with no imports can be
 @deftech{invoked} to execute its body.
 
@@ -36,7 +36,7 @@ with @hash-lang[]; see @secref["single-unit"].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "creatingunits"]{Creating Units}
+@section[#:tag "creatingunits"]{创建单元}
 
 @defform/subs[
 #:literals (import export prefix rename only except tag init-depend tag)
@@ -66,92 +66,79 @@ with @hash-lang[]; see @secref["single-unit"].}
   sig-id
   (tag id sig-id)])]{
 
-Produces a unit that encapsulates its
-@racket[unit-body-expr-or-defn]s. Expressions in the @racket[unit]
-body can refer to identifiers bound by the @racket[sig-spec]s of the
-@racket[import] clause, and the body must include one definition for
-each identifier of a @racket[sig-spec] in the @racket[export] clause.
-An identifier that is exported cannot be @racket[set!]ed in either the
-defining unit or importing units, although the implicit assignment
-to initialize the variable may be visible as a mutation.
+生成一个单元，封装其
+@racket[unit-body-expr-or-defn] 表达式。@racket[unit]
+主体中的表达式可以引用 @racket[import] 子句的
+@racket[sig-spec] 绑定的标识符，主体必须为 @racket[export] 子句中
+每个 @racket[sig-spec] 的标识符包含一个定义。
+导出的标识符不能在定义单元或导入单元中被 @racket[set!]，
+尽管初始化变量的隐式赋值可能被视为一种变更。
 
-Each import or export @racket[sig-spec] ultimately refers to a
-@racket[sig-id], which is an identifier that is bound to a signature
-by @racket[define-signature]. The @tech{lexical information} of each
-identifier imported through a @racket[sig-id] starts with the lexical
-information of the @racket[sig-id]; see @racket[define-signature] form
-more information.
+每个导入或导出 @racket[sig-spec] 最终引用一个
+@racket[sig-id]，该标识符由 @racket[define-signature] 绑定到签名。
+通过 @racket[sig-id] 导入的每个标识符的 @tech{词法信息}
+以 @racket[sig-id] 的词法信息为基础；
+参见 @racket[define-signature] 形式了解更多信息。
 
-In a specific import or export position, the set of identifiers bound
-or required by a particular @racket[sig-id] can be adjusted in a few
-ways:
+在特定的导入或导出位置，某个 @racket[sig-id]
+绑定或要求的标识符集合可以通过以下几种方式调整：
 
 @itemize[
 
- @item{@racket[(prefix id sig-spec)] as an import binds the same as
- @racket[sig-spec], except that each binding is prefixed with @racket[id].
- As an export, this form causes definitions using the @racket[id]
- prefix to satisfy the exports required by @racket[sig-spec].}
+ @item{@racket[(prefix id sig-spec)] 作为导入时，绑定与
+ @racket[sig-spec] 相同，但每个绑定都加上 @racket[id] 前缀。
+ 作为导出时，此形式使使用 @racket[id] 前缀的定义
+ 满足 @racket[sig-spec] 所需的导出。}
 
- @item{@racket[(rename sig-spec (id id) ...)] as an import binds the
- same as @racket[sig-spec], except that the first @racket[id] is used
- for the binding instead of the second @racket[id] (where
- @racket[sig-spec] by itself must imply a binding that is
- @racket[bound-identifier=?] to second @racket[id]).  As an export,
- this form causes a definition for the first @racket[id] to satisfy
- the export named by the second @racket[id] in @racket[sig-spec].}
+ @item{@racket[(rename sig-spec (id id) ...)] 作为导入时，绑定
+ 与 @racket[sig-spec] 相同，但使用第一个 @racket[id] 作为绑定，
+ 而非第二个 @racket[id]（其中 @racket[sig-spec]
+ 本身必须隐含一个与第二个 @racket[id]
+ @racket[bound-identifier=?] 的绑定）。作为导出时，
+ 此形式使对第一个 @racket[id] 的定义满足
+ @racket[sig-spec] 中由第二个 @racket[id] 命名的导出。}
 
- @item{@racket[(only sig-spec id ...)] as an import binds the same as
- @racket[sig-spec], but restricted to just the listed @racket[id]s
- (where @racket[sig-spec] by itself must imply a binding that is
- @racket[bound-identifier=?] to each @racket[id]).  This form is not
- allowed for an export.}
+ @item{@racket[(only sig-spec id ...)] 作为导入时，绑定与
+ @racket[sig-spec] 相同，但仅限于列出的 @racket[id]
+（其中 @racket[sig-spec] 本身必须隐含与每个 @racket[id]
+ @racket[bound-identifier=?] 的绑定）。此形式不允许用于导出。}
 
- @item{@racket[(except sig-spec id ...)] as an import binds the same
- as @racket[sig-spec], but excluding all listed @racket[id]s (where
- @racket[sig-spec] by itself must imply a binding that is
- @racket[bound-identifier=?] to each @racket[id]).  This form is not
- allowed for an export.}
+ @item{@racket[(except sig-spec id ...)] 作为导入时，绑定
+ 与 @racket[sig-spec] 相同，但排除所有列出的 @racket[id]
+（其中 @racket[sig-spec] 本身必须隐含与每个 @racket[id]
+ @racket[bound-identifier=?] 的绑定）。此形式不允许用于导出。}
 
 ]
 
-As suggested by the grammar, these adjustments to a signature can be
-nested arbitrarily.
+正如语法所示，这些对签名的调整可以任意嵌套。
 
-A unit's declared imports are matched with actual supplied imports by
-signature. That is, the order in which imports are supplied to a unit
-when linking is irrelevant; all that matters is the signature
-implemented by each supplied import. One actual import must be
-provided for each declared import. Similarly, when a unit implements
-multiple signatures, the order of the export signatures does not
-matter.
+单元声明的导入按签名与实际提供的导入匹配。
+也就是说，链接时向单元提供导入的顺序无关紧要；
+重要的是每个提供的导入所实现的签名。
+每个声明的导入必须提供一个实际的导入。同样，
+当一个单元实现多个签名时，导出签名的顺序也无关紧要。
 
-To support multiple imports or exports for the same signature, an
-import or export can be tagged using the form @racket[(tag
-  id sig-spec)]. When an import declaration of a unit is
-tagged, then one actual import must be given the same tag (with the
-same signature) when the unit is linked. Similarly, when an export
-declaration is tagged for a unit, then references to that particular
-export must explicitly use the tag.
+为了支持同一签名的多个导入或导出，
+导入或导出可以使用 @racket[(tag
+  id sig-spec)] 形式进行标记。当单元的导入声明被标记时，
+链接该单元时必须为实际导入提供相同的标记（及相同的签名）。
+类似地，当单元的导出声明被标记时，对该特定导出的引用
+必须显式使用该标记。
 
-A unit is prohibited syntactically from importing two signatures that
-are not distinct, unless they have different tags; two signatures are
-@defterm{distinct} only if they share no ancestor through
-@racket[extends]. The same syntactic constraint applies to exported
-signatures. In addition, a unit is prohibited syntactically from
-importing the same identifier twice (after renaming and other
-transformations on a @racket[sig-spec]), exporting the same identifier
-twice (again, after renaming), or exporting an identifier that is
-imported.
+语法上禁止一个单元导入两个不 @defterm{distinct} 的签名，
+除非它们具有不同的标记；两个签名只有在
+通过 @racket[extends] 没有共同祖先时才是 @defterm{distinct}。
+同样的语法约束适用于导出签名。此外，语法上禁止一个单元
+两次导入同一标识符（经过 @racket[sig-spec] 上的重命名等变换后）、
+两次导出同一标识符（同样，在重命名后），
+或导出已导入的标识符。
 
-When units are linked, the bodies of the linked units are
-executed in an order that is specified at the linking site. An
-optional @racket[(init-depend tagged-sig-id ...)]
-declaration constrains the allowed orders of linking by specifying
-that the current unit must be initialized after the unit that supplies
-the corresponding import. Each @racket[tagged-sig-id] in an
-@racket[init-depend] declaration must have a corresponding import in the
-@racket[import] clause.}
+当单元被链接时，链接单元的主体按链接位置指定的顺序
+执行。可选的 @racket[(init-depend tagged-sig-id ...)]
+声明通过指定当前单元必须在提供相应导入的单元之后
+初始化来约束允许的链接顺序。
+@racket[init-depend] 声明中的每个 @racket[tagged-sig-id]
+必须在 @racket[import] 子句中有对应的导入。}
 
 @defform/subs[
 #:literals (define-syntaxes define-values define-values-for-export
@@ -182,73 +169,68 @@ the corresponding import. Each @racket[tagged-sig-id] in an
                 #:omit-define-syntaxes
                 #:omit-define-values])]{
 
-Binds an identifier @racket[sig-id] to a signature that specifies a group
-of bindings for import or export:
+将标识符 @racket[sig-id] 绑定到指定一组用于导入或导出的绑定的签名：
 
 @itemize[
 
- @item{Each @racket[id] in a signature declaration means that a unit
- implementing the signature must supply a variable definition for the
- @racket[id]. That is, @racket[id] is available for use in units
- importing the signature, and @racket[id] must be defined by units
- exporting the signature.}
+ @item{签名声明中的每个 @racket[id] 表示实现该签名的单元
+ 必须为 @racket[id] 提供变量定义。也就是说，
+ @racket[id] 可在导入该签名的单元中使用，并且
+ @racket[id] 必须由导出该签名的单元定义。}
 
- @item{Each @racket[define-syntaxes] form in a signature declaration
- introduces a macro that is available for use in any unit that
- imports the signature.  Free variables in the definition's
- @racket[expr] refer to other identifiers in the signature first, or
- the context of the @racket[define-signature] form if the signature
- does not include the identifier.}
+ @item{签名声明中的每个 @racket[define-syntaxes] 形式
+ 引入一个宏，该宏可在任何导入该签名的单元中使用。
+ 定义中 @racket[expr] 的自由变量首先引用签名中的其他标识符，
+ 如果签名不包含该标识符，则引用
+ @racket[define-signature] 形式的上下文。}
 
- @item{Each @racket[define-values] form in a signature declaration
- introduces code that effectively prefixes every unit that imports the
- signature.  Free variables in the definition's @racket[expr] are
- treated the same as for @racket[define-syntaxes].}
+ @item{签名声明中的每个 @racket[define-values] 形式
+ 引入的代码有效地放在每个导入该签名的单元前面。
+ 定义中 @racket[expr] 的自由变量处理方式
+ 与 @racket[define-syntaxes] 相同。}
 
- @item{Each @racket[define-values-for-export] form in a signature
- declaration introduces code that effectively suffixes every unit that
- exports the signature.  Free variables in the definition's
- @racket[expr] are treated the same as for @racket[define-syntaxes].}
+ @item{签名声明中的每个 @racket[define-values-for-export] 形式
+ 引入的代码有效地放在每个导出该签名的单元后面。
+ 定义中 @racket[expr] 的自由变量处理方式
+ 与 @racket[define-syntaxes] 相同。}
 
- @item{Each @racket[contracted] form in a signature declaration means
- that a unit exporting the signature must supply a variable definition
- for each @racket[id] in that form.  If the signature is imported, then
- uses of @racket[id] inside the unit are protected by the appropriate
- contracts using the unit as the negative blame.  If the signature is
- exported, then the exported values are protected by the appropriate
- contracts which use the unit as the positive blame, but internal uses
- of the exported identifiers are not protected.  Variables in the
- @racket[contract] expressions are treated the same as for
- @racket[define-syntaxes].}
+ @item{签名声明中的每个 @racket[contracted] 形式表示
+ 导出该签名的单元必须为该形式中的每个 @racket[id]
+ 提供变量定义。如果签名被导入，则单元内部对
+ @racket[id] 的使用由相应的合约保护，
+ 以该单元作为负面责任方。如果签名被
+ 导出，则导出的值由相应的合约保护，
+ 以该单元作为正面责任方，但导出标识符的内部使用不受保护。
+ @racket[contract] 表达式中的变量处理方式与
+ @racket[define-syntaxes] 相同。}
 
  @item{Each @racket[(open sig-spec)] adds to the signature everything
  specified by @racket[sig-spec].}
 
- @item{Each @racket[(struct id (field ...) struct-option ...)]  adds
- all of the identifiers that would be bound by the @racket[struct]
- form, where the extra option
- @racket[#:omit-constructor] omits the constructor identifier.}
+ @item{每个 @racket[(struct id (field ...) struct-option ...)] 添加
+ @racket[struct] 形式会绑定的所有标识符，
+ 其中额外选项 @racket[#:omit-constructor]
+ 省略构造函数标识符。}
 
- @item{Each @racket[(sig-form-id . datum)] extends the signature in a
- way that is defined by @racket[sig-form-id], which must be bound by
- @racket[define-signature-form].  One such binding is for
- @racket[struct/ctc].}
+ @item{每个 @racket[(sig-form-id . datum)] 以
+ @racket[sig-form-id] 定义的方式扩展签名，
+ @racket[sig-form-id] 必须由 @racket[define-signature-form] 绑定。
+ 其中一个绑定是 @racket[struct/ctc]。}
 
 ]
 
-When a @racket[define-signature] form includes an @racket[extends]
-clause, then the define signature automatically includes everything in
-the extended signature. Furthermore, any implementation of the new
-signature can be used as an implementation of the extended signature.
+当 @racket[define-signature] 形式包含 @racket[extends]
+子句时，定义的签名自动包含扩展签名中的所有内容。
+此外，新签名的任何实现都可以用作扩展签名的实现。
 
-The @tech{lexical information} of each @racket[id] within a signature is
-compared to the lexical information of @racket[sig-id]. The extra scopes
-of @racket[id] relative to @racket[sig-id] are recorded for the
-@racket[id]. When the @racket[sig-id] is used as a reference (e.g., in
-the @racket[import] clause of @racket[unit]), a variant of @racket[id]
-is created for the referencing context by starting with the lexical
-information of the referencing @racket[sig-id], and then adding the extra
-scopes for @racket[id].}
+签名中每个 @racket[id] 的 @tech{词法信息}
+与 @racket[sig-id] 的词法信息进行比较。@racket[id]
+相对于 @racket[sig-id] 的额外作用域被记录下来。
+当 @racket[sig-id] 被用作引用时（例如在
+@racket[unit] 的 @racket[import] 子句中），
+通过从引用 @racket[sig-id] 的词法信息开始，
+然后添加 @racket[id] 的额外作用域，
+为引用上下文创建 @racket[id] 的变体。}
 
 @defkeywords[[(open sig-spec) _sig-elem define-signature]
              [(define-values-for-export (id ...) expr) _sig-elem define-signature]
@@ -270,34 +252,33 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "invokingunits"]{Invoking Units}
+@section[#:tag "invokingunits"]{调用单元}
 
 @defform*[#:literals (import)
           [(invoke-unit unit-expr)
            (invoke-unit unit-expr (import tagged-sig-spec ...))]]{
 
-Invokes the unit produced by @racket[unit-expr]. For each of the
-unit's imports, the @racket[invoke-unit] expression must contain a
-@racket[tagged-sig-spec] in the @racket[import] clause; see
-@racket[unit] for the grammar of @racket[tagged-sig-spec]. If the unit
-has no imports, the @racket[import] clause can be omitted.
+调用 @racket[unit-expr] 产生的单元。对于单元的每个导入，
+@racket[invoke-unit] 表达式必须在 @racket[import] 子句中包含
+一个 @racket[tagged-sig-spec]；
+参见 @racket[unit] 了解 @racket[tagged-sig-spec] 的语法。如果单元
+没有导入，则可以省略 @racket[import] 子句。
 
-When no @racket[tagged-sig-spec]s are provided, @racket[unit-expr]
-must produce a unit that expects no imports. To invoke the unit, all
-bindings are first initialized to the @|undefined-const| value. Next,
-the unit's body definitions and expressions are evaluated in order; in
-the case of a definition, evaluation sets the value of the
-corresponding variable(s). Finally, the result of the last expression
-in the unit is the result of the @racket[invoke-unit] expression.
+当未提供 @racket[tagged-sig-spec] 时，@racket[unit-expr]
+必须产生一个不期望任何导入的单元。要调用该单元，
+所有绑定首先初始化为 @|undefined-const| 值。然后，
+单元的主体定义和表达式按顺序求值；
+对于定义，求值设置相应变量的值。
+最后，单元中最后一个表达式的结果就是
+@racket[invoke-unit] 表达式的结果。
 
-Each supplied @racket[tagged-sig-spec] takes bindings from the
-surrounding context and turns them into imports for the invoked unit.
-The unit need not declare an import for every provided
-@racket[tagged-sig-spec], but one @racket[tagged-sig-spec] must be
-provided for each declared import of the unit. For each variable
-identifier in each provided @racket[tagged-sig-spec], the value of the
-identifier's binding in the surrounding context is used for the
-corresponding import in the invoked unit.}
+每个提供的 @racket[tagged-sig-spec] 从周围上下文中获取绑定，
+并将其转换为被调用单元的导入。单元不需要为
+每个提供的 @racket[tagged-sig-spec] 声明导入，
+但必须为单元的每个声明导入提供一个 @racket[tagged-sig-spec]。
+对于每个提供的 @racket[tagged-sig-spec] 中的每个变量标识符，
+该标识符在周围上下文中的绑定值用于被调用单元中
+相应的导入。}
 
 @defform[
 #:literals (import export values)
@@ -310,30 +291,28 @@ corresponding import in the invoked unit.}
                         (values result-id ...)
                         (values result-id ... . rest-results-id)])]{
 
-Like @racket[invoke-unit], but the values of the unit's exports are
-copied to new bindings.
+类似于 @racket[invoke-unit]，但单元导出的值被复制到新的绑定中。
 
-The unit produced by @racket[unit-expr] is linked and invoked as for
-@racket[invoke-unit]. In addition, the @racket[export] clause is
-treated as a kind of import into the local definition context. That
-is, for every binding that would be available in a unit that used the
-@racket[export] clause's @racket[tagged-sig-spec] as an import, a
-definition is generated for the context of the
-@racket[define-values/invoke-unit] form.
+@racket[unit-expr] 产生的单元与 @racket[invoke-unit] 一样
+进行链接和调用。此外，@racket[export] 子句被视为
+对局部定义上下文的一种导入。也就是说，对于在
+使用 @racket[export] 子句的 @racket[tagged-sig-spec] 作为导入的单元中
+可用的每个绑定，会为
+@racket[define-values/invoke-unit] 形式的上下文生成一个定义。
 
-If no @racket[maybe-results-clause] is provided, the unit body may return
-any number of values, all of which are ignored. Otherwise, the values
-returned from the unit body are bound to the given @racket[result-id]s,
-in order. If no @racket[rest-results-id] is provided, the body must return
-exactly as many values as there are @racket[result-id]s, but if it is
-provided, the body may return arbitrarily many more, and
-@racket[rest-results-id] is bound to a list containing the extra results.
+如果未提供 @racket[maybe-results-clause]，单元主体可以返回
+任意数量的值，所有值都会被忽略。否则，从单元主体返回的值
+按顺序绑定到给定的 @racket[result-id]。如果未提供
+@racket[rest-results-id]，主体必须返回恰好与
+@racket[result-id] 数量一样多的值，但如果提供了，
+主体可以返回任意多的额外值，@racket[rest-results-id]
+被绑定到包含额外结果的列表。
 
 @history[#:changed "8.8.0.7" @elem{Added @racket[maybe-results-clause].}]}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "compoundunits"]{Linking Units and Creating Compound Units}
+@section[#:tag "compoundunits"]{链接单元与创建复合单元}
 
 @defform/subs[
 #:literals (: import export link tag)
@@ -352,65 +331,57 @@ provided, the body may return arbitrarily many more, and
  [linkage-decl
   ((link-binding ...) unit-expr tagged-link-id ...)])]{
 
-Links several units into one new compound unit without immediately
-invoking any of the linked units.  The @racket[unit-expr]s in the
-@racket[link] clause determine the units to be linked in creating the
-compound unit. The @racket[unit-expr]s are evaluated when the
-@racket[compound-unit] form is evaluated.
+将多个单元链接为一个新的复合单元，而不立即
+调用任何被链接的单元。@racket[link] 子句中的
+@racket[unit-expr] 确定在创建复合单元时要链接的单元。
+@racket[unit-expr] 在 @racket[compound-unit] 形式
+求值时进行求值。
 
-The @racket[import] clause determines the imports of the compound
-unit. Outside the compound unit, these imports behave as for a plain
-unit; inside the compound unit, they are propagated to some of the
-linked units. The @racket[export] clause determines the exports of the
-compound unit.  Again, outside the compound unit, these exports are
-treated the same as for a plain unit; inside the compound unit, they
-are drawn from the exports of the linked units. Finally, the left-hand
-and right-hand parts of each declaration in the @racket[link] clause
-specify how the compound unit's imports and exports are propagated to
-the linked units.
+@racket[import] 子句确定复合单元的导入。
+在复合单元外部，这些导入的行为与普通单元相同；
+在复合单元内部，它们被传播到某些被链接的单元。
+@racket[export] 子句确定复合单元的导出。
+同样，在复合单元外部，这些导出与普通单元的处理方式相同；
+在复合单元内部，它们从被链接单元的导出中获取。
+最后，@racket[link] 子句中每个声明的左侧和右侧部分
+指定了复合单元的导入和导出如何传播到
+被链接的单元。
 
-Individual elements of an imported or exported signature are not
-available within the compound unit. Instead, imports and exports are
-connected at the level of whole signatures. Each specific import or
-export (i.e., an instance of some signature, possibly tagged) is given
-a @racket[link-id] name. Specifically, a @racket[link-id] is bound by
-the @racket[import] clause or the left-hand part of a declaration in
-the @racket[link] clause. A bound @racket[link-id] is referenced in
-the right-hand part of a declaration in the @racket[link] clause or by
-the @racket[export] clause.
+导入或导出签名的各个元素在复合单元内部不可用。
+相反，导入和导出在完整签名的级别上连接。
+每个特定的导入或导出（即某个签名的实例，可能带有标记）
+被赋予一个 @racket[link-id] 名称。具体来说，
+@racket[link-id] 由 @racket[import] 子句或
+@racket[link] 子句中声明的左侧部分绑定。绑定的
+@racket[link-id] 在 @racket[link] 子句中声明的右侧部分
+或 @racket[export] 子句中引用。
 
-The left-hand side of a @racket[link] declaration gives names to each
-expected export of the unit produced by the corresponding
-@racket[unit-expr]. The actual unit may export additional signatures,
-and it may export an extension of a specific signature instead of just
-the specified one. If the unit does not export one of the specified
-signatures (with the specified tag, if any), the
-@exnraise[exn:fail:contract] when the @racket[compound-unit] form is
-evaluated.
+@racket[link] 声明的左侧为相应 @racket[unit-expr] 产生的单元的
+每个预期导出命名。实际单元可能导出额外的签名，
+并且可能导出特定签名的扩展，而不仅仅是
+指定的签名。如果单元未导出指定的某个签名
+（带指定的标记，如有），则在 @racket[compound-unit] 形式求值时
+@exnraise[exn:fail:contract]。
 
-The right-hand side of a @racket[link] declaration specifies the
-imports to be supplied to the unit produced by the corresponding
-@racket[unit-expr]. The actual unit may import fewer signatures, and
-it may import a signature that is extended by the specified one.  If
-the unit imports a signature (with a particular tag) that is not
-included in the supplied imports, the @exnraise[exn:fail:contract]
-when the @racket[compound-unit] form is evaluated. Each
-@racket[link-id] supplied as an import must be bound either in the
-@racket[import] clause or in some declaration within the @racket[link]
-clause.
+@racket[link] 声明的右侧指定要提供给相应
+@racket[unit-expr] 产生的单元的导入。实际单元可能导入
+更少的签名，并且可能导入由指定签名扩展的签名。
+如果单元导入了一个（带有特定标记的）签名，但该签名
+未包含在提供的导入中，则在 @racket[compound-unit] 形式
+求值时 @exnraise[exn:fail:contract]。每个作为导入提供的
+@racket[link-id] 必须在 @racket[import] 子句或
+@racket[link] 子句中的某个声明中绑定。
 
-The order of declarations in the @racket[link] clause determines the
-order of invocation of the linked units. When the compound unit is
-invoked, the unit produced by the first @racket[unit-expr] is invoked
-first, then the second, and so on. If the order specified in the
-@racket[link] clause is inconsistent with @racket[init-depend]
-declarations of the actual units, then the
-@exnraise[exn:fail:contract] when the @racket[compound-unit] form is
-evaluated.}
+@racket[link] 子句中声明的顺序决定了被链接单元的调用顺序。
+当复合单元被调用时，第一个 @racket[unit-expr] 产生的单元首先被调用，
+然后是第二个，依此类推。如果 @racket[link] 子句中指定的顺序与
+实际单元的 @racket[init-depend] 声明不一致，则在
+@racket[compound-unit] 形式求值时
+@exnraise[exn:fail:contract]。}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "linkinference"]{Inferred Linking}
+@section[#:tag "linkinference"]{推断链接}
 
 @defform[
 #:literals (import export)
@@ -422,15 +393,14 @@ evaluated.}
   ...)
 ]{
 
-Binds @racket[unit-id] to both a unit and static information about the
-unit.
+将 @racket[unit-id] 绑定到一个单元以及关于该单元的静态信息。
 
-Evaluating a reference to a @racket[unit-id] bound by
-@racket[define-unit] produces a unit, just like evaluating an
-@racket[_id] bound by @racket[(define _id (unit ...))]. In addition,
-however, @racket[unit-id] can be used in @racket[compound-unit/infer].
-See @racket[unit] for information on @racket[tagged-sig-spec],
-@racket[init-depends-decl], and @racket[unit-body-expr-or-defn].}
+对由 @racket[define-unit] 绑定的 @racket[unit-id] 的引用进行求值
+会产生一个单元，就像对由
+@racket[(define _id (unit ...))] 绑定的 @racket[_id] 求值一样。然而，
+@racket[unit-id] 还可以在 @racket[compound-unit/infer] 中使用。
+关于 @racket[tagged-sig-spec]、@racket[init-depends-decl]
+和 @racket[unit-body-expr-or-defn] 的信息，请参见 @racket[unit]。}
 
 @defform/subs[
 #:literals (import export link tag :)
@@ -456,48 +426,42 @@ See @racket[unit] for information on @racket[tagged-sig-spec],
                       tagged-link-id ...)
   unit-id])]{
 
-Like @racket[compound-unit]. Syntactically, the difference between
-@racket[compound-unit] and @racket[compound-unit/infer] is that the
-@racket[_unit-expr] for a linked unit is replaced with a
-@racket[unit-id], where a @racket[unit-id] is bound by
-@racket[define-unit] (or one of the other unit-binding forms that we
-introduce later in this section). Furthermore, an import can name just
-a @racket[sig-id] without locally binding a @racket[link-id], and an
-export can be based on a @racket[sig-id] instead of a
-@racket[link-id], and a declaration in the @racket[link] clause can be
-simply a @racket[unit-id] with no specified exports or imports.
+类似于 @racket[compound-unit]。语法上，
+@racket[compound-unit] 和 @racket[compound-unit/infer] 的区别在于
+被链接单元的 @racket[_unit-expr] 被替换为
+@racket[unit-id]，其中 @racket[unit-id] 由
+@racket[define-unit]（或本节后面介绍的其他单元绑定形式）绑定。
+此外，导入可以仅命名一个 @racket[sig-id] 而无需局部绑定
+@racket[link-id]，导出可以基于 @racket[sig-id] 而非
+@racket[link-id]，@racket[link] 子句中的声明可以仅仅是
+一个 @racket[unit-id]，不指定导出或导入。
 
-The @racket[compound-unit/infer] form expands to
-@racket[compound-unit] by adding @racket[sig-id]s as needed to
-the @racket[import] clause, by replacing @racket[sig-id]s in the
-@racket[export] clause by @racket[link-id]s, and by completing
-the declarations of the @racket[link] clause. This completion is based
-on static information associated with each
-@racket[unit-id]. Links and exports can be inferred when all
-signatures exported by the linked units are distinct from each other
-and from all imported signatures, and when all imported signatures are
-distinct. Two signatures are @defterm{distinct} only if they
-share no ancestor through @racket[extends].
+@racket[compound-unit/infer] 形式通过根据需要向
+@racket[import] 子句添加 @racket[sig-id]、
+将 @racket[export] 子句中的 @racket[sig-id] 替换为 @racket[link-id]、
+以及完善 @racket[link] 子句的声明，展开为
+@racket[compound-unit]。此完善基于与每个 @racket[unit-id] 关联的
+静态信息。当被链接单元导出的所有签名彼此不同且与所有
+导入的签名不同，并且所有导入的签名都不同时，
+可以推断链接和导出。两个签名仅在
+通过 @racket[extends] 没有共同祖先时才是 @defterm{distinct}。
 
-The long form of a @racket[link] declaration can be used to resolve
-ambiguity by giving names to some of a unit's exports and supplying
-specific bindings for some of a unit's imports. The long form need not
-name all of a unit's exports or supply all of a unit's imports if the
-remaining parts can be inferred.
+@racket[link] 声明的长形式可用于解决歧义，
+通过为单元的某些导出命名并为单元的某些导入提供特定绑定。
+如果剩余部分可以推断，长形式无需命名单元的所有导出或
+提供单元的所有导入。
 
-When a unit declares initialization dependencies,
-@racket[compound-unit/infer] checks that the @racket[link] declaration
-is consistent with those dependencies, and it reports a syntax error if
-not.
+当单元声明初始化依赖时，
+@racket[compound-unit/infer] 检查 @racket[link] 声明是否
+与这些依赖一致，如果不一致则报告语法错误。
 
-Like @racket[compound-unit], the @racket[compound-unit/infer] form
-produces a (compound) unit without statically binding information
-about the result unit's imports and exports. That is,
-@racket[compound-unit/infer] consumes static information, but it does
-not generate it. Two additional forms,
-@racket[define-compound-unit] and
-@racket[define-compound-unit/infer], generate static information
-(where the former does not consume static information).
+与 @racket[compound-unit] 一样，@racket[compound-unit/infer] 形式
+产生一个 (compound) 单元，而不静态绑定关于结果单元的导入和导出的信息。
+也就是说，@racket[compound-unit/infer] 消费静态信息，但
+不生成静态信息。另外两种形式
+@racket[define-compound-unit] 和
+@racket[define-compound-unit/infer] 生成静态信息
+（前者不消费静态信息）。
 
 @history[#:changed "6.1.1.8" @elem{Added static checking of the @racket[link]
                                    clause with respect to declared
@@ -512,10 +476,9 @@ not generate it. Two additional forms,
   (link linkage-decl ...))
 ]{
 
-Like @racket[compound-unit], but binds static information about the
-compound unit like @racket[define-unit], including the propagation of
-initialization-dependency information (on remaining imports) from the
-linked units.}
+类似于 @racket[compound-unit]，但像 @racket[define-unit] 一样
+绑定关于复合单元的静态信息，包括从被链接单元传播
+初始化依赖信息（关于剩余导入）。}
 
 
 @defform[
@@ -526,8 +489,8 @@ linked units.}
   (link infer-linkage-decl ...))
 ]{
 
-Like @racket[compound-unit/infer], but binds static information about
-the compound unit like @racket[define-compound-unit].}
+类似于 @racket[compound-unit/infer]，但像
+@racket[define-compound-unit] 一样绑定关于复合单元的静态信息。}
 
 @defform[
 #:literals (import export)
@@ -538,29 +501,27 @@ the compound unit like @racket[define-compound-unit].}
   init-depends-decl)
 ]{
 
-Like @racket[define-unit], but the unit implementation is determined
-from an existing unit produced by @racket[unit-expr]. The imports and
-exports of the unit produced by @racket[unit-expr] must be consistent
-with the declared imports and exports, otherwise the
-@exnraise[exn:fail:contract] when the @racket[define-unit-binding]
-form is evaluated.}
+类似于 @racket[define-unit]，但单元实现由
+@racket[unit-expr] 产生的现有单元确定。
+@racket[unit-expr] 产生的单元的导入和导出必须与
+声明的导入和导出一致，否则在
+@racket[define-unit-binding] 形式求值时
+@exnraise[exn:fail:contract]。}
 
 @defform/subs[
 #:literals (link)
 (invoke-unit/infer unit-spec)
 [(unit-spec unit-id (link link-unit-id ...))]]{
 
-Like @racket[invoke-unit], but uses static information associated with
-@racket[unit-id] to infer which imports must be assembled from the
-current context.  If given a link form containing multiple
-@racket[link-unit-id]s, then the units are first linked via
-@racket[define-compound-unit/infer].
+类似于 @racket[invoke-unit]，但使用与 @racket[unit-id] 关联的
+静态信息来推断必须从当前上下文组装哪些导入。
+如果给出了包含多个 @racket[link-unit-id] 的 link 形式，
+则首先通过 @racket[define-compound-unit/infer] 链接这些单元。
 
-When assembling imports from the current context, the @tech{lexical
-information} of a @racket[unit-id] is used for constructing the lexical
-information of the signatures for the unit's imports (i.e., the lexical
-information that would normally be derived from the signature reference).
-See @racket[define-signature] for more information.}
+当从当前上下文组装导入时，@racket[unit-id] 的
+@tech{词法信息} 用于构造单元导入签名的词法信息
+（即通常从签名引用派生的词法信息）。
+参见 @racket[define-signature] 了解更多信息。}
 
 @defform*[
  #:literals (export link values)
@@ -578,27 +539,25 @@ See @racket[define-signature] for more information.}
                         (values result-id ...)
                         (values result-id ... . rest-results-id)])]{
 
-Like @racket[define-values/invoke-unit], but uses static information
-associated with @racket[unit-id] to infer which imports must be
-assembled from the current context and, if no @racket[export] clause
-is present, which exports should be bound by the definition. If given
-a link form containing multiple @racket[link-unit-id]s, then the units
-are first linked via @racket[define-compound-unit/infer].
+类似于 @racket[define-values/invoke-unit]，但使用与
+@racket[unit-id] 关联的静态信息来推断必须从当前上下文组装
+哪些导入，以及如果没有 @racket[export] 子句，
+哪些导出应由定义绑定。如果给出了包含多个
+@racket[link-unit-id] 的 link 形式，则首先通过
+@racket[define-compound-unit/infer] 链接这些单元。
 
-Similar to @racket[invoke-unit/infer], the @tech{lexical information}
-of a @racket[unit-id] is used for constructing the lexical information
-of the signatures for the unit's inferred imports and inferred exports
-(i.e., the lexical information that would normally be derived from a
-signature reference). See @racket[define-signature] for more
-information.
+与 @racket[invoke-unit/infer] 类似，@racket[unit-id] 的
+@tech{词法信息} 用于构造单元推断导入和推断导出的签名的
+词法信息（即通常从签名引用派生的词法信息）。
+参见 @racket[define-signature] 了解更多信息。
 
-If @racket[maybe-results-clause] is provided, the values returned by
-the unit body are bound in the same way as @racket[define-values/invoke-unit].
+如果提供了 @racket[maybe-results-clause]，
+单元主体返回的值以与 @racket[define-values/invoke-unit] 相同的方式绑定。
 
-For backwards compatibility, an @racket[export] clause is allowed to
-appear before @racket[unit-spec] (in which case no @racket[maybe-results-clause]
-may be provided). New programs should provide @racket[unit-spec] first
-(which is consistent with @racket[define-values/invoke-unit]).
+为了向后兼容，允许 @racket[export] 子句出现在
+@racket[unit-spec] 之前（在这种情况下不能提供
+@racket[maybe-results-clause]）。新程序应首先提供 @racket[unit-spec]
+（这与 @racket[define-values/invoke-unit] 一致）。
 
 @history[
  #:changed "8.8.0.7" @elem{Allowed @racket[unit-spec] to appear before
@@ -607,14 +566,14 @@ may be provided). New programs should provide @racket[unit-spec] first
 
 @; ------------------------------------------------------------------------
 
-@section{Generating A Unit from Context}
+@section{从上下文生成单元}
 
 @defform[
 (unit-from-context tagged-sig-spec)
 ]{
 
-Creates a unit that implements an interface using bindings in the
-enclosing environment.  The generated unit is essentially the same as
+创建一个单元，使用外围环境中的绑定来实现接口。
+生成的单元本质上等同于
 
 @racketblock[
 (unit
@@ -623,25 +582,25 @@ enclosing environment.  The generated unit is essentially the same as
   (define _id _expr) ...)
 ]
 
-for each @racket[_id] that must be defined to satisfy the exports, and
-each corresponding @racket[_expr] produces the value of @racket[_id] in
-the environment of the @racket[unit-from-context] expression. (The unit
-cannot be written as above, however, since each @racket[_id] definition
-within the unit shadows the binding outside the @racket[unit] form.)
+对于每个为满足导出而必须定义的 @racket[_id]，
+每个相应的 @racket[_expr] 产生 @racket[_id] 在
+@racket[unit-from-context] 表达式环境中的值。（然而，
+不能按上述方式编写单元，因为单元内部的每个 @racket[_id] 定义
+会遮蔽 @racket[unit] 形式外部的绑定。）
 
-See @racket[unit] for the grammar of @racket[tagged-sig-spec].}
+参见 @racket[unit] 了解 @racket[tagged-sig-spec] 的语法。}
 
 @defform[
 (define-unit-from-context id tagged-sig-spec)
 ]{
 
-Like @racket[unit-from-context], in that a unit is constructed from
-the enclosing environment, and like @racket[define-unit], in that
-@racket[id] is bound to static information to be used later with inference.}
+类似于 @racket[unit-from-context]，单元从外围环境构造，
+类似于 @racket[define-unit]，@racket[id] 被绑定到
+稍后用于推断的静态信息。}
 
 @; ------------------------------------------------------------------------
 
-@section{Structural Matching}
+@section{结构匹配}
 
 @defform[
 #:literals (import export)
@@ -652,27 +611,25 @@ the enclosing environment, and like @racket[define-unit], in that
   ((tagged-sig-spec ...) unit-expr tagged-sig-spec))
 ]{
 
-Similar to @racket[unit], except the body of the unit is determined by
-an existing unit produced by @racket[unit-expr]. The result is a unit
-whose implementation is @racket[unit-expr], but whose imports,
-exports, and initialization dependencies are as in the
-@racket[unit/new-import-export] form (instead of as in the unit
-produced by @racket[unit-expr]).
+类似于 @racket[unit]，但单元的主体由
+@racket[unit-expr] 产生的现有单元确定。结果是一个
+实现为 @racket[unit-expr] 的单元，但其导入、
+导出和初始化依赖如
+@racket[unit/new-import-export] 形式中所示（而非
+@racket[unit-expr] 产生的单元中所示）。
 
-The final clause of the @racket[unit/new-import-export] form
-determines the connection between the old and new imports and exports.
-The connection is similar to the way that @racket[compound-unit]
-propagates imports and exports; the difference is that the connection
-between @racket[import] and the right-hand side of the link clause is
-based on the names of elements in signatures, rather than the names of
-the signatures. That is, a @racket[tagged-sig-spec] on the right-hand
-side of the link clause need not appear as a @racket[tagged-sig-spec]
-in the @racket[import] clause, but each of the bindings implied by the
-linking @racket[tagged-sig-spec] must be implied by some
-@racket[tagged-sig-spec] in the @racket[import] clause. Similarly,
-each of the bindings implied by an @racket[export]
-@racket[tagged-sig-spec] must be implied by some left-hand-side
-@racket[tagged-sig-spec] in the linking clause.}
+@racket[unit/new-import-export] 形式的最后一个子句
+确定新旧导入和导出之间的连接。
+这种连接类似于 @racket[compound-unit] 传播导入和导出的方式；
+区别在于 @racket[import] 与 link 子句右侧之间的连接
+基于签名中元素的名称，而非签名的名称。
+也就是说，link 子句右侧的 @racket[tagged-sig-spec]
+不需要作为 @racket[tagged-sig-spec] 出现在 @racket[import] 子句中，
+但链接 @racket[tagged-sig-spec] 隐含的每个绑定必须由
+@racket[import] 子句中的某个 @racket[tagged-sig-spec] 隐含。
+类似地，@racket[export] @racket[tagged-sig-spec] 隐含的
+每个绑定必须由链接子句中某个左侧
+@racket[tagged-sig-spec] 隐含。}
 
 @defform[
 #:literals (import export)
@@ -683,8 +640,8 @@ each of the bindings implied by an @racket[export]
   ((tagged-sig-spec ...) unit-expr tagged-sig-spec))
 ]{
 
-Like @racket[unit/new-import-export], but binds static information to
-@racket[unit-id] like @racket[define-unit].}
+类似于 @racket[unit/new-import-export]，但像
+@racket[define-unit] 一样将静态信息绑定到 @racket[unit-id]。}
 
 @defform[
 #:literals (import export)
@@ -694,9 +651,8 @@ Like @racket[unit/new-import-export], but binds static information to
   init-depends-decl
   unit-id)]{
 
-Like @racket[unit/new-import-export], but the linking clause is
-inferred, so @racket[unit-id] must have the appropriate static
-information.}
+类似于 @racket[unit/new-import-export]，但链接子句是推断的，
+因此 @racket[unit-id] 必须具有适当的静态信息。}
 @defform[
 #:literals (import export)
 (define-unit/s name-id
@@ -705,12 +661,12 @@ information.}
   init-depends-decl
   unit-id)]{
 
-Like @racket[unit/s], but binds static information to @racket[name-id]
-like @racket[define-unit].}
+类似于 @racket[unit/s]，但像 @racket[define-unit] 一样
+将静态信息绑定到 @racket[name-id]。}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "define-sig-form"]{Extending the Syntax of Signatures}
+@section[#:tag "define-sig-form"]{扩展签名的语法}
 
 @defform*[
 [(define-signature-form sig-form-id expr)
@@ -718,22 +674,20 @@ like @racket[define-unit].}
  (define-signature-form (sig-form-id id intro-id) body ...+)]
 ]{
 
-Binds @racket[sig-form-id] for use within a @racket[define-signature]
-form.
+绑定 @racket[sig-form-id] 以便在 @racket[define-signature] 形式中使用。
 
-In the first form, the result of @racket[expr] must be a transformer
-procedure that accepts one argument.  In the second form, @racket[sig-form-id] is bound to a
-transformer procedure whose argument is @racket[id] and whose body is
-the @racket[body]s. The third form is like the second one, but
-@racket[intro-id] is bound to a procedure that is analogous to @racket[syntax-local-introduce]
-for the signature-form expansion.
+在第一种形式中，@racket[expr] 的结果必须是一个接受一个参数的
+变换器过程。在第二种形式中，@racket[sig-form-id] 被绑定到一个
+变换器过程，其参数是 @racket[id]，主体是 @racket[body]。
+第三种形式类似于第二种，但 @racket[intro-id] 被绑定到一个过程，
+该过程类似于用于签名形式展开的
+@racket[syntax-local-introduce]。
 
-The result of the transformer procedure must be a list of
-syntax objects, which are substituted for a use of
-@racket[sig-form-id] in a @racket[define-signature] expansion. (The
-result is a list so that the transformer can produce multiple
-declarations; @racket[define-signature] has no splicing @racket[begin]
-form.)
+变换器过程的结果必须是一个语法对象列表，
+这些对象会替换 @racket[define-signature] 展开中
+@racket[sig-form-id] 的使用。（结果是列表，以便
+变换器可以产生多个声明；
+@racket[define-signature] 没有拼接用的 @racket[begin] 形式。）
 
 @history[#:changed "8.1.0.7" @elem{Added support for the form with a transformer
                                    @racket[expr].}]}
@@ -748,28 +702,27 @@ form.)
                 #:omit-define-syntaxes
                 #:omit-define-values])]{
 
-For use with @racket[define-signature]. The @racket[struct/ctc] form works
-similarly to @racket[struct], but the constructor, predicate, field
-accessors, and field mutators are contracted appropriately.}
+与 @racket[define-signature] 一起使用。
+@racket[struct/ctc] 形式的工作方式类似于 @racket[struct]，
+但构造函数、谓词、字段访问器和字段修改器都有适当的合约。}
 
 @; ------------------------------------------------------------------------
 
-@section{Unit Utilities}
+@section{单元工具}
 
 @defproc[(unit? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a unit, @racket[#f] otherwise.}
+如果 @racket[v] 是单元则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defform[(provide-signature-elements sig-spec ...)]{
 
-Expands to a @racket[provide] of all identifiers implied by the
-@racket[sig-spec]s. See @racket[unit] for the grammar of
-@racket[sig-spec].}
+展开为 @racket[sig-spec] 隐含的所有标识符的 @racket[provide]。
+参见 @racket[unit] 了解 @racket[sig-spec] 的语法。}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unitcontracts"]{Unit Contracts}
+@section[#:tag "unitcontracts"]{单元合约}
 
 @defform/subs[#:literals (import export values init-depend)
               (unit/c
@@ -787,20 +740,19 @@ Expands to a @racket[provide] of all identifiers implied by the
 		 contract
 		 (values contract ...)])]{
 
-A @deftech{unit contract} wraps a unit and checks both its imported and
-exported identifiers to ensure that they match the appropriate contracts.
-This allows the programmer to add contract checks to a single unit value
-without adding contracts to the imported and exported signatures.
+@deftech{单元合约} 包装一个单元并检查其导入和
+导出的标识符，确保它们匹配适当的合约。
+这允许程序员向单个单元值添加合约检查，
+而无需向导入和导出的签名添加合约。
 
-The unit value must import a subset of the import signatures and export a
-superset of the export signatures listed in the unit contract. Additionally,
-the unit value must declare initialization dependencies that are a subset of
-those specified in the unit contract. Any identifier which is not listed
-for a given signature is left alone. Variables used in a given
-@racket[contract] expression first refer to other variables in any of the
-listed signatures, and then to the context of the @racket[unit/c] expression.
-If a body contract is specified then the result of invoking the unit value
-is wrapped with the given contract, otherwise the values are returned as-is.
+单元值必须导入单元合约中列出的导入签名的子集，
+并导出列出的导出签名的超集。此外，单元值必须声明
+初始化依赖，这些依赖是单元合约中指定的依赖的子集。
+未在给定签名中列出的任何标识符保持不变。给定
+@racket[contract] 表达式中使用的变量首先引用任何列出签名中的
+其他变量，然后引用 @racket[unit/c] 表达式的上下文。
+如果指定了主体合约，则调用单元值的结果用给定合约包装，
+否则值按原样返回。
 
 @history[
  #:changed "8.8.0.7" @elem{Changed @racket[sig-spec-block] to allow arbitrary
@@ -824,9 +776,9 @@ is wrapped with the given contract, otherwise the values are returned as-is.
 	         code:blank
 		 (code:line #:invoke/contract contract)
 		 (code:line #:invoke/contract (values contract ...))])]{
-The @racket[define-unit/contract] form defines a unit compatible with
-link inference whose imports and exports are contracted with a unit
-contract.  The unit name is used for the positive blame of the contract.
+@racket[define-unit/contract] 形式定义一个与链接推断兼容的单元，
+其导入和导出通过单元合约进行合约化。
+单元名称用于合约的正面责任方。
 
 @history[
  #:changed "8.8.0.7" @elem{Made bindings from @emph{all} signatures visible in
@@ -837,12 +789,13 @@ contract.  The unit name is used for the positive blame of the contract.
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "single-unit"]{Single-Unit Modules}
+@section[#:tag "single-unit"]{单单元模块}
 
-As a language name with @hash-lang[], @racketmodname[racket/unit] provides all
-bindings of @racketmodname[racket/unit] and @racketmodname[racket/base] except
-for @racket[%#module-begin], and the @racketmodname[racket/unit] module body is
-treated as a unit body. The body must match the following @racket[_module-body]
+作为与 @hash-lang[] 一起使用的语言名，
+@racketmodname[racket/unit] 提供 @racketmodname[racket/unit] 和
+@racketmodname[racket/base] 的所有绑定，
+除了 @racket[%#module-begin]，并且 @racketmodname[racket/unit] 模块主体
+被视为单元主体。 The body must match the following @racket[_module-body]
 grammar:
 
 @racketgrammar*[
@@ -858,26 +811,25 @@ grammar:
               (begin require-decl ...)
               derived-require-form]]
 
-After any number of @racket[_require-decl]s, the content of the module
-is the same as a @racket[unit] body with access to @racketmodname[racket/base].
+在任意数量的 @racket[_require-decl] 之后，模块的内容
+与 @racket[unit] 主体相同，可以访问 @racketmodname[racket/base]。
 
-The resulting unit is exported as @racket[_base]@racketidfont["@"],
-where @racket[_base] is derived from the enclosing module's name
-(i.e., its symbolic name, or its path without the directory and file
-suffix). If the module name ends in @racketidfont{-unit}, then
-@racket[_base] corresponds to the module name before
-@racketidfont{-unit}. Otherwise, the module name serves as
-@racket[_base].
+生成的单元导出为 @racket[_base]@racketidfont["@"],
+其中 @racket[_base] 从外围模块的名称派生
+（即其符号名，或去掉目录和文件后缀的路径）。
+如果模块名以 @racketidfont{-unit} 结尾，则
+@racket[_base] 对应于 @racketidfont{-unit} 之前的模块名。
+否则，模块名用作 @racket[_base]。
 
 @; ------------------------------------------------------------------------
 
-@section{Single-Signature Modules}
+@section{单签名模块}
 
-@defmodulelang[racket/signature]{The @racketmodname[racket/signature] language
-treats a module body as a unit signature in the same way that
-@racketmodname[racket/unit] treats @seclink["single-unit"]{a module body as unit
-body}: it provides all bindings of @racketmodname[racket/signature] and
-@racketmodname[racket/base] except for @racket[%#module-begin].}
+@defmodulelang[racket/signature]{@racketmodname[racket/signature] 语言以与
+@racketmodname[racket/unit] 将 @seclink["single-unit"]{模块主体视为单元主体}
+相同的方式将模块主体视为单元签名：
+它提供 @racketmodname[racket/signature] 和
+@racketmodname[racket/base] 的所有绑定，除了 @racket[%#module-begin]。}
 
 The body must match the following @racket[_module-body] grammar:
 
@@ -886,34 +838,32 @@ The body must match the following @racket[_module-body] grammar:
 [module-body (code:line (require require-spec ...) ... sig-elem ...)]
 ]
 
-See @racket[define-signature] for the grammar of @racket[_sig-elem].
-Unlike the body of a @racketmodname[racket/unit] module, a
-@racket[require] in a @racketmodname[racket/signature] module must be
-a literal use of @racket[require].
+参见 @racket[define-signature] 了解 @racket[_sig-elem] 的语法。
+与 @racketmodname[racket/unit] 模块的主体不同，
+@racketmodname[racket/signature] 模块中的 @racket[require]
+必须是 @racket[require] 的字面使用。
 
-The resulting signature is exported as
-@racket[_base]@racketidfont["^"], where @racket[_base] is derived from
-the enclosing module's name (i.e., its symbolic name, or its path
-without the directory and file suffix). If the module name ends in
-@racketidfont{-sig}, then @racket[_base] corresponds to the module
-name before @racketidfont{-sig}. Otherwise, the module name serves as
-@racket[_base].
+生成的签名导出为 @racket[_base]@racketidfont["^"],
+其中 @racket[_base] 从外围模块的名称派生
+（即其符号名，或去掉目录和文件后缀的路径）。
+如果模块名以 @racketidfont{-sig} 结尾，则
+@racket[_base] 对应于 @racketidfont{-sig} 之前的模块名。
+否则，模块名用作 @racket[_base]。
 
-A @racket[struct] form as a @racket[_sig-elem] is consistent with the
-definitions introduced by @racket[define-struct], as opposed to
-definitions introduced by @racket[struct]. (That behavior was originally
-a bug, but it is preserved for compatibility.)
+作为 @racket[_sig-elem] 的 @racket[struct] 形式与
+@racket[define-struct] 引入的定义一致，而非
+@racket[struct] 引入的定义。
+(That behavior was originally a bug, but it is preserved for compatibility.)
 
 @; ----------------------------------------------------------------------
 
-@section{Transformer Helpers}
+@section{变换器辅助工具}
 
 @defmodule[racket/unit-exptime #:use-sources (racket/unit-exptime)]
 
-The @racketmodname[racket/unit-exptime] library provides procedures
-that are intended for use by macro transformers. In particular, the
-library is typically imported using @racket[for-syntax] into a module
-that defines macro with @racket[define-syntax].
+@racketmodname[racket/unit-exptime] 库提供了
+供宏变换器使用的过程。特别是，该库通常
+使用 @racket[for-syntax] 导入到用 @racket[define-syntax] 定义宏的模块中。
 
 @defproc[(unit-static-signatures [unit-identifier identifier?]
                                  [err-syntax syntax?])
@@ -922,19 +872,18 @@ that defines macro with @racket[define-syntax].
                  (list/c (cons/c (or/c symbol? #f)
                                  identifier?)))]{
 
-If @racket[unit-identifier] is bound to static unit information via
-@racket[define-unit] (or other such forms), the result is two
-values. The first value is for the unit's imports, and the second is
-for the unit's exports. Each result value is a list, where each list
-element pairs a symbol or @racket[#f] with an identifier. The symbol
-or @racket[#f] indicates the import's or export's tag (where
-@racket[#f] indicates no tag), and the identifier indicates the
-binding of the corresponding signature.
+如果 @racket[unit-identifier] 通过 @racket[define-unit]
+（或其他类似形式）绑定到静态单元信息，则结果是两个
+值。第一个值用于单元的导入，第二个用于单元的导出。
+每个结果值是一个列表，其中每个列表元素将符号或
+@racket[#f] 与标识符配对。符号或 @racket[#f] 指示导入或
+导出的标记（其中 @racket[#f] 表示无标记），标识符指示
+相应签名的绑定。
 
-If @racket[unit-identifier] is not bound to static unit information,
-then the @exnraise[exn:fail:syntax]. In that case, the given
-@racket[err-syntax] argument is used as the source of the error, where
-@racket[unit-identifier] is used as the detail source location.}
+如果 @racket[unit-identifier] 未绑定到静态单元信息，
+则 @exnraise[exn:fail:syntax]。在这种情况下，给定的
+@racket[err-syntax] 参数用作错误的来源，
+@racket[unit-identifier] 用作详细来源位置。}
 
 
 @defproc[(signature-members [sig-identifier identifier?]
@@ -944,36 +893,32 @@ then the @exnraise[exn:fail:syntax]. In that case, the given
                  (listof identifier?)
                  (listof identifier?))]{
 
-If @racket[sig-identifier] is bound to static unit information via
-@racket[define-signature] (or other such forms), the result is four
-values:
+如果 @racket[sig-identifier] 通过 @racket[define-signature]
+（或其他类似形式）绑定到静态单元信息，则结果是四个值：
 
 @itemize[
 
-  @item{an identifier or @racket[#f] indicating the signature (of any)
-        that is extended by the @racket[sig-identifier] binding;}
+  @item{一个标识符或 @racket[#f]，指示被
+        @racket[sig-identifier] 绑定扩展的签名（如有）；}
 
-  @item{a list of identifiers representing the variables
-        supplied/required by the signature;}
+  @item{一个标识符列表，表示签名提供/要求的变量；}
 
-  @item{a list of identifiers for variable definitions in the
-        signature (i.e., variable bindings that are provided on
-        import, but not defined by units that implement the
-        signature); and}
+  @item{一个标识符列表，表示签名中的变量定义
+        （即在导入时提供，但不由实现签名的单元定义的
+        变量绑定）；以及}
 
-  @item{a list of identifiers with syntax definitions in the signature.}
+  @item{一个标识符列表，表示签名中的语法定义。}
 
 ]
 
-Each of the result identifiers is given lexical information that is
-based on @racket[sig-identifier], so the names are suitable for
-reference or binding in the context of @racket[sig-identifier].
-See @racket[define-signature] for more information.
+每个结果标识符都被赋予基于 @racket[sig-identifier] 的词法信息，
+因此这些名称适合在 @racket[sig-identifier] 的上下文中
+引用或绑定。参见 @racket[define-signature] 了解更多信息。
 
-If @racket[sig-identifier] is not bound to a signature, then the
-@exnraise[exn:fail:syntax]. In that case, the given
-@racket[err-syntax] argument is used as the source of the error, where
-@racket[sig-identifier] is used as the detail source location.}
+如果 @racket[sig-identifier] 未绑定到签名，则
+@exnraise[exn:fail:syntax]。在这种情况下，给定的
+@racket[err-syntax] 参数用作错误的来源，
+@racket[sig-identifier] 用作详细来源位置。}
 
 
 @defproc[(unit-static-init-dependencies [unit-identifier identifier?]
@@ -981,16 +926,15 @@ If @racket[sig-identifier] is not bound to a signature, then the
          (list/c (cons/c (or/c symbol? #f)
                          identifier?))]{
 
-If @racket[unit-identifier] is bound to static unit information via
-@racket[define-unit] (or other such forms), the result is a list of
-pairs. Each pair combines a tag (or @racket[#f] for no tag) and a
-signature name, indicating an initialization dependency of the unit on
-the specified import (i.e., the same tag and signature are included in
-the first result from @racket[unit-static-signatures]).
+如果 @racket[unit-identifier] 通过 @racket[define-unit]
+（或其他类似形式）绑定到静态单元信息，则结果是一个对的列表。
+每个对组合了一个标记（或无标记的 @racket[#f]）和一个签名名，
+指示单元对指定导入的初始化依赖
+（即同一标记和签名包含在 @racket[unit-static-signatures] 的第一个结果中）。
 
-If @racket[unit-identifier] is not bound to static unit information,
-then the @exnraise[exn:fail:syntax]. In that case, the given
-@racket[err-syntax] argument is used as the source of the error, where
-@racket[unit-identifier] is used as the detail source location.
+如果 @racket[unit-identifier] 未绑定到静态单元信息，
+则 @exnraise[exn:fail:syntax]。在这种情况下，给定的
+@racket[err-syntax] 参数用作错误的来源，
+@racket[unit-identifier] 用作详细来源位置。
 
 @history[#:added "6.1.1.8"]}
