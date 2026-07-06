@@ -11,15 +11,11 @@
   (define the-eval (make-base-eval))
   (the-eval '(require racket/math racket/format)))
 
-@title[#:tag "format"]{Converting Values to Strings}
+@title[#:tag "format"]{将值转换为字符串}
 
 @note-lib[racket/format]
 
-The @racketmodname[racket/format] library provides functions for
-converting Racket values to strings. In addition to features like
-padding and numeric formatting, the functions have the virtue of being
-shorter than @racket[format] (with format string),
-@racket[number->string], or @racket[string-append].
+@racketmodname[racket/format] 库提供将 Racket 值转换为字符串的函数。除了填充和数字格式化等特性外，这些函数的优点在于比 @racket[format]（带格式字符串）、@racket[number->string] 或 @racket[string-append] 更简短。
 
 @defproc[(~a [v any/c] ...
              [#:separator separator string? ""]
@@ -34,11 +30,7 @@ shorter than @racket[format] (with format string),
              [#:right-pad-string right-pad-string non-empty-string? pad-string])
          string?]{
 
-Converts each @racket[v] to a string in @racket[display] mode---that
-is, like @racket[(format "~a" v)]---then concatenates the results
-with @racket[separator] between consecutive items, and then pads or
-truncates the string to be at least @racket[min-width] characters and
-at most @racket[max-width] characters.
+将每个 @racket[v] 以 @racket[display] 模式转换为字符串——即类似于 @racket[(format "~a" v)]——然后用 @racket[separator] 连接连续项的结果，最后将字符串填充或截断为至少 @racket[min-width] 个字符、至多 @racket[max-width] 个字符。
 
 @examples[#:eval the-eval
 (~a "north")
@@ -52,25 +44,11 @@ at most @racket[max-width] characters.
 (~a (expt 6.1 87))
 ]
 
-The @racket[~a] function is primarily useful for strings, numbers, and other
-atomic data. The @racket[~v] and @racket[~s] functions are better suited to
-compound data.
+@racket[~a] 函数主要适用于字符串、数字和其他原子数据。@racket[~v] 和 @racket[~s] 函数更适合复合数据。
 
-Let @racket[_s] be the concatenated string forms of the @racket[v]s
-plus separators. If @racket[_s] is longer than @racket[max-width]
-characters, it is truncated to exactly @racket[max-width]
-characters. If @racket[_s] is shorter than @racket[min-width]
-characters, it is padded to exactly @racket[min-width]
-characters. Otherwise @racket[_s] is returned unchanged. If
-@racket[min-width] is greater than @racket[max-width], an exception is
-raised.
+设 @racket[_s] 为各 @racket[v] 加上分隔符后的连接字符串形式。若 @racket[_s] 长于 @racket[max-width] 个字符，则它被精确截断为 @racket[max-width] 个字符。若 @racket[_s] 短于 @racket[min-width] 个字符，则它被精确填充为 @racket[min-width] 个字符。否则原样返回 @racket[_s]。若 @racket[min-width] 大于 @racket[max-width]，则引发异常。
 
-If @racket[_s] is longer than @racket[max-width] characters, it is
-truncated and the end of the string is replaced with
-@racket[limit-marker]. If @racket[limit-marker] is longer than
-@racket[max-width], an exception is raised.
-If @racket[limit-prefix?] is @racket[#t], the beginning of the string
-is truncated instead of the end.
+若 @racket[_s] 长于 @racket[max-width] 个字符，它会被截断，字符串末尾被替换为 @racket[limit-marker]。若 @racket[limit-marker] 长于 @racket[max-width]，则引发异常。若 @racket[limit-prefix?] 为 @racket[#t]，则截断字符串开头而非末尾。
 
 @examples[#:eval the-eval
 (~a "abcde" #:max-width 5)
@@ -82,21 +60,9 @@ is truncated instead of the end.
 (~a "The quick brown fox" #:max-width 15 #:limit-marker "..." #:limit-prefix? #f)
 ]
 
-If @racket[_s] is shorter than @racket[min-width], it is padded to at
-least @racket[min-width] characters. If @racket[align] is
-@racket['left], then only right padding is added; if @racket[align]
-is @racket['right], then only left padding is added; and if
-@racket[align] is @racket['center], then roughly equal amounts of
-left padding and right padding are added.
+若 @racket[_s] 短于 @racket[min-width]，则将其填充为至少 @racket[min-width] 个字符。若 @racket[align] 为 @racket['left]，则只添加右填充；若 @racket[align] 为 @racket['right]，则只添加左填充；若 @racket[align] 为 @racket['center]，则添加大致等量的左填充和右填充。
 
-Padding is specified as a non-empty string. Left padding consists of
-@racket[left-pad-string] repeated in its entirety as many times as
-possible followed by a @emph{prefix} of @racket[left-pad-string] to fill
-the remaining space. In contrast, right padding consists of a
-@emph{suffix} of @racket[right-pad-string] followed by a number of copies
-of @racket[right-pad-string] in its entirety. Thus left padding starts
-with the start of @racket[left-pad-string] and right padding ends with
-the end of @racket[right-pad-string].
+填充指定为非空字符串。左填充由 @racket[left-pad-string] 的完整重复组成，后跟 @racket[left-pad-string] 的一个 @emph{前缀} 来填充剩余空间。相反，右填充由一个 @racket[right-pad-string] 的 @emph{后缀} 组成，后跟若干完整的 @racket[right-pad-string] 副本。因此左填充以 @racket[left-pad-string] 开头，右填充以 @racket[right-pad-string] 结尾。
 
 @examples[#:eval the-eval
 (~a "apple" #:min-width 20 #:align 'left)
@@ -106,15 +72,12 @@ the end of @racket[right-pad-string].
               #:left-pad-string "- " #:right-pad-string " -")
 ]
 
-Use @racket[width] to set both @racket[max-width] and @racket[min-width]
-simultaneously, ensuring that the resulting string is exactly
-@racket[width] characters long:
+用 @racket[width] 同时设置 @racket[max-width] 和 @racket[min-width]，确保结果字符串精确为 @racket[width] 个字符长：
 
 @examples[#:label #f #:eval the-eval
 (~a "terse" #:width 6)
 (~a "loquacious" #:width 6)
-]
-}
+]}
 
 @;{----------------------------------------}
 
@@ -131,9 +94,7 @@ simultaneously, ensuring that the resulting string is exactly
              [#:right-pad-string right-pad-string non-empty-string? pad-string])
          string?]{
 
-Like @racket[~a], but each value is converted like @racket[(format
-"~v" v)], the default separator is @racket[" "], and the default limit
-marker is @racket["..."].
+类似 @racket[~a]，但每个值像 @racket[(format "~v" v)] 一样转换，默认分隔符为 @racket[" "]，默认定界标记为 @racket["..."]。
 
 @examples[#:eval the-eval
 (~v "north")
@@ -143,7 +104,7 @@ marker is @racket["..."].
 (~v (list "red" 'green #"blue"))
 ]
 
-Use @racket[~v] to produce text that talks about Racket values.
+用 @racket[~v] 产生讨论文本中的 Racket 的值。
 
 @examples[#:eval the-eval
 (let ([nums (for/list ([i 10]) i)])
@@ -166,9 +127,7 @@ Use @racket[~v] to produce text that talks about Racket values.
              [#:right-pad-string right-pad-string non-empty-string? pad-string])
          string?]{
 
-Like @racket[~a], but each value is converted like @racket[(format
-"~s" v)], the default separator is @racket[" "], and the default limit
-marker is @racket["..."].
+类似 @racket[~a]，但每个值像 @racket[(format "~s" v)] 一样转换，默认分隔符为 @racket[" "]，默认定界标记为 @racket["..."]。
 
 @examples[#:eval the-eval
 (~s "north")
@@ -176,8 +135,7 @@ marker is @racket["..."].
 (~s #"east")
 (~s #\w)
 (~s (list "red" 'green #"blue"))
-]
-}
+]}
 
 @;{----------------------------------------}
 
@@ -194,9 +152,7 @@ marker is @racket["..."].
              [#:right-pad-string right-pad-string non-empty-string? pad-string])
          string?]{
 
-Like @racket[~a], but each value is converted like @racket[(format
-"~e" v)], the default separator is @racket[" "], and the default limit
-marker is @racket["..."].
+类似 @racket[~a]，但每个值像 @racket[(format "~e" v)] 一样转换，默认分隔符为 @racket[" "]，默认定界标记为 @racket["..."]。
 
 @examples[#:eval the-eval
 (~e "north")
@@ -234,21 +190,16 @@ marker is @racket["..."].
                [#:pad-string pad-string non-empty-string? " "]
                [#:groups groups (non-empty-listof exact-positive-integer?) '(3)]
                [#:group-sep group-sep string? ""]
-               [#:decimal-sep decimal-sep string? "."])
+               [#:decimal-sep decimal-sep string? ".")
          string?]{
 
-Converts the rational number @racket[x] to a string in either
-positional or exponential notation, depending on
-@racket[notation]. The exactness or inexactness of @racket[x] does not
-affect its formatting.
+将理数 @racket[x] 转换为位置记数法或指数记数法的字符串，具体取决于 @racket[notation]。@racket[x] 的确切性或不确性不影响其格式。
 
-The optional arguments control number formatting:
+可选参数控制数字格式化：
 
 @itemize[
 
-@item{@racket[notation] --- determines whether the number is printed
-in positional or exponential notation. If @racket[notation] is a
-function, it is applied to @racket[x] to get the notation to be used.
+@item{@racket[notation] —— 确定数字以位置记数法还是指数记数法打印。若 @racket[notation] 是函数，则将其应用于 @racket[x] 以获取使用的记数法。
 
 @examples[#:eval the-eval
 (~r 12345)
@@ -260,20 +211,11 @@ function, it is applied to @racket[x] to get the notation to be used.
              'positional))])
   (for/list ([i (in-range 1 5)])
     (~r (expt 17 i) #:notation pick-notation)))
-]
-}
+]}
 
-@item{@racket[precision] --- controls the number of digits after the
-decimal point (or more accurately, the
-@hyperlink["http://en.wikipedia.org/wiki/Radix_point"]{radix point}).
-When @racket[x] is formatted in exponential form, @racket[precision]
-applies to the significand.
+@item{@racket[precision] —— 控制小数点后的位数（或更准确地说，@hyperlink["http://en.wikipedia.org/wiki/Radix_point"]{十进制小数点} 后的位数）。当 @racket[x] 以指数形式格式化时，@racket[precision] 应用于有效数字。
 
-If @racket[precision] is a natural number, then up to @racket[precision] digits are
-displayed, but trailing zeroes are dropped, and if all digits after the decimal
-point are dropped the decimal point is also dropped. If @racket[precision] is
-@racket[(list '= _digits)], then exactly @racket[_digits] digits after the
-decimal point are used, and the decimal point is never dropped.
+若 @racket[precision] 是自然数，则最多显示 @racket[precision] 位数字，但末尾的零会被丢弃；若小数点后的所有数字都被丢弃，则小数点也会被丢弃。若 @racket[precision] 为 @racket[(list '= _digits)]，则精确使用 @racket[_digits] 位小数，且小数点从不被丢弃。
 
 @examples[#:eval the-eval
 (~r pi)
@@ -286,18 +228,17 @@ decimal point are used, and the decimal point is never dropped.
 (~r 50 #:precision '(= 0))
 ]}
 
-@item{@racket[decimal-sep] specifies what decimal separator is printed.
+@item{@racket[decimal-sep] 指定打印什么十进制分隔符。
 
 @examples[#:eval the-eval
 (~r 123.456)
 (~r 123.456 #:decimal-sep ",")
 ]}
 
-@item{@racket[groups] controls how digits of the integral part of the number
-   are separated into groups.
-   Rightmost numbers of @racket[groups] are used to group rightmost digits of the integral part.
-   The leftmost number of @racket[groups] is used repeatedly to group leftmost digits.
-   The @racket[group-sep] argument specifies which separator to use between digit groups.
+@item{@racket[groups] 控制数字整数部分的数位如何分组。
+   @racket[groups] 中最右边的数字用于分组整数部分最右边的数位。
+   @racket[groups] 中最左边的数字被重复用于分组最左边的数位。
+   @racket[group-sep] 参数指定数位组之间使用的分隔符。
 
 
    @examples[#:eval the-eval
@@ -306,10 +247,7 @@ decimal point are used, and the decimal point is never dropped.
 (~r 1234567890 #:groups '(1 3 2) #:group-sep "_")
 ]}
 
-@item{@racket[min-width] --- if @racket[x] would normally be printed
-with fewer than @racket[min-width] digits (including the decimal
-point but not including the sign indicator), the digits are left-padded
-using @racket[pad-string].
+@item{@racket[min-width] —— 若 @racket[x] 的打印位数（包括小数点但不包括符号指示符）通常少于 @racket[min-width] 位，则使用 @racket[pad-string] 对数字进行左填充。
 
 @examples[#:eval the-eval
 (~r 17)
@@ -322,71 +260,52 @@ using @racket[pad-string].
            (~r #e1e10 #:min-width 6))
 ]}
 
-@item{@racket[pad-string] --- specifies the string used to pad the
-number to at least @racket[min-width] characters (not including the
-sign indicator). The padding is placed between the sign and the normal
-digits of @racket[x].
+@item{@racket[pad-string] —— 指定用于填充数字到至少 @racket[min-width] 个字符的字符串（不包括符号指示符）。填充被放置在符号和 @racket[x] 的正常数字之间。
 
 @examples[#:eval the-eval
 (~r 17 #:min-width 4 #:pad-string "0")
 (~r -42 #:min-width 4 #:pad-string "0")
 ]}
 
-@item{@racket[sign] --- controls how the sign of the number is
-indicated:
+@item{@racket[sign] —— 控制数字符号的表示方式：
   @itemlist[
 
-  @item{If @racket[sign] is @racket[#f] (the default), no sign output is
-  generated if @racket[x] is either positive or zero, and a minus sign is
-  prefixed if @racket[x] is negative.
+  @item{若 @racket[sign] 为 @racket[#f]（默认值），当 @racket[x] 为正数或零时不生成符号输出，当 @racket[x] 为负数时前缀加负号。
 
   @examples[#:eval the-eval
   (for/list ([x '(17 0 -42)]) (~r x))
   ]}
 
-  @item{If @racket[sign] is @racket['+], no sign output is generated if
-  @racket[x] is zero, a plus sign is prefixed if @racket[x] is positive, and a
-  minus sign is prefixed if @racket[x] is negative.
+  @item{若 @racket[sign] 为 @racket['+]，当 @racket[x] 为零时不生成符号输出，当 @racket[x] 为正数时前缀加加号，当 @racket[x] 为负数时前缀加负号。
 
   @examples[#:eval the-eval
   (for/list ([x '(17 0 -42)]) (~r x #:sign '+))
   ]}
 
-  @item{If @racket[sign] is @racket['++], a plus sign is prefixed if @racket[x]
-  is zero or positive, and a minus sign is prefixed if @racket[x] is negative.
+  @item{若 @racket[sign] 为 @racket['++]，当 @racket[x] 为零或正数时前缀加加号，当 @racket[x] 为负数时前缀加负号。
 
   @examples[#:eval the-eval
   (for/list ([x '(17 0 -42)]) (~r x #:sign '++))
   ]}
 
-  @item{If @racket[sign] is @racket['parens], no sign output is generated if
-  @racket[x] is zero or positive, and the number is enclosed in parentheses if
-  @racket[x] is negative.
+  @item{若 @racket[sign] 为 @racket['parens]，当 @racket[x] 为零或正数时不生成符号输出，当 @racket[x] 为负数时将数字用括号括起来。
 
   @examples[#:eval the-eval
   (for/list ([x '(17 0 -42)]) (~r x #:sign 'parens))
   ]}
 
-  @item{If @racket[sign] is @racket[(list _pos-ind _zero-ind _neg-ind)], then
-  @racket[_pos-ind], @racket[_zero-ind], and @racket[_neg-ind] are used to
-  indicate positive, zero, and negative numbers, respectively. Each indicator is
-  either a string to be used as a prefix or a list containing two strings: a
-  prefix and a suffix.
+  @item{若 @racket[sign] 为 @racket[(list _pos-ind _zero-ind _neg-ind)]，则 @racket[_pos-ind]、@racket[_zero-ind] 和 @racket[_neg-ind] 分别用于指示正数、零和负数。每个指示符要么是用作前缀的字符串，要么是包含两个字符串的列表：一个前缀和一个后缀。
 
   @examples[#:eval the-eval
-  (let ([sign-table '(("" " up") "an even " ("" " down"))])
+  (let ([sign-table '(("" " up") "an even " (""" down"))])
     (for/list ([x '(17 0 -42)]) (~r x #:sign sign-table)))
   ]
 
-  The default behavior is equivalent to @racket['("" "" "-")]; the
-  @racket['parens] mode is equivalent to @racket['("" "" ("(" ")"))].
+  默认行为等价于 @racket['("" "" "-")]；@racket['parens] 模式等价于 @racket['("" "" ("(" ")"))]。
   }
 ]}
 
-@item{@racket[base] --- controls the base that @racket[x] is formatted in. If
-@racket[base] is a number greater than @racket[10], then lower-case letters are
-used. If @racket[base] is @racket[(list 'up _base*)] and @racket[_base*] is
-greater than @racket[10], then upper-case letters are used.
+@item{@racket[base] —— 控制 @racket[x] 格式化所使用的进制。若 @racket[base] 是大于 @racket[10] 的数字，则使用小写字母。若 @racket[base] 为 @racket[(list 'up _base*)] 且 @racket[_base*] 大于 @racket[10]，则使用大写字母。
 
 @examples[#:eval the-eval
 (~r 100 #:base 7)
@@ -396,37 +315,31 @@ greater than @racket[10], then upper-case letters are used.
 (~r 3735928559 #:base '(up 16) #:notation 'exponential)
 ]}
 
-@item{@racket[format-exponent] --- determines how the exponent is displayed.
+@item{@racket[format-exponent] —— 确定指数的显示方式。
 
-If @racket[format-exponent] is a string, the exponent is displayed with an
-explicit sign (as with a @racket[sign] of @racket['++]) and at least two
-digits, separated from the significand by the ``exponent marker''
-@racket[format-exponent]:
+若 @racket[format-exponent] 是字符串，则指数以显式符号（如 @racket[sign] 为 @racket['++] 时）和至少两位数字显示，通过 "指数标记" @racket[format-exponent] 与有效数字分隔：
 
 @examples[#:label #f #:eval the-eval
 (~r 1234 #:notation 'exponential #:format-exponent "E")
 ]
 
-If @racket[format-exponent] is @racket[#f], the ``exponent marker'' is
-@racket["e"] if @racket[base] is @racket[10] and a string involving
-@racket[base] otherwise:
+若 @racket[format-exponent] 为 @racket[#f]，则 "指数标记" 为 @racket["e"]（当 @racket[base] 为 @racket[10] 时）或一个涉及 @racket[base] 的字符串：
 
 @examples[#:label #f #:eval the-eval
 (~r 1234 #:notation 'exponential)
 (~r 1234 #:notation 'exponential #:base 8)
 ]
 
-If @racket[format-exponent] is a procedure, it is applied to the exponent and
-the resulting string is appended to the significand:
+若 @racket[format-exponent] 是过程，则将其应用于指数并将结果字符串附加到有效数字：
 
 @examples[#:label #f #:eval the-eval
 (~r 1234 #:notation 'exponential
          #:format-exponent (lambda (e) (format "E~a" e)))
-]}
+]
 
 ]
 @history[#:changed "8.5.0.5"
-         @elem{Added @racket[#:groups], @racket[#:group-sep] and @racket[#:decimal-sep].}]
+         @elem{添加了 @racket[#:groups]、@racket[#:group-sep] 和 @racket[#:decimal-sep]。}]
 }
 
 @; ----------------------------------------
@@ -470,9 +383,7 @@ the resulting string is appended to the significand:
          string?]
 )]{
 
-Like @racket[~a], @racket[~v], and @racket[~s], but each @racket[v] is
-formatted like @racket[(format "~.a" v)], @racket[(format "~.v" v)],
-and @racket[(format "~.s" v)], respectively.}
+类似 @racket[~a]、@racket[~v] 和 @racket[~s]，但每个 @racket[v] 分别像 @racket[(format "~.a" v)]、@racket[(format "~.v" v)] 和 @racket[(format "~.s" v)] 一样格式化。}
 
 
 @; ----------------------------------------
