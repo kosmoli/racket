@@ -7,7 +7,7 @@
 @examples[#:hidden #:eval posn-eval
   (require racket/match racket/stream (for-syntax racket/base))]
 
-@title[#:tag "define-struct"]{Defining Structure Types: @racket[struct]}
+@title[#:tag "define-struct"]{定义结构体类型：@racket[struct]}
 
 @guideintro["define-struct"]{@racket[struct]}
 
@@ -40,73 +40,55 @@
                              #:auto]
                [method-defs (definition ...)])]{
 
-Creates a new @techlink{structure type} (or uses a pre-existing
-structure type if @racket[#:prefab] is specified), and binds
-transformers and variables related to the @tech{structure type}.
+创建一个新的 @techlink{structure type}（如果指定了 @racket[#:prefab] 则使用已有的结构体类型），
+并绑定与 @tech{structure type} 相关的 transformer 和变量。
 
-A @racket[struct] form with @math{n} @racket[field]s defines up
-to @math{4+2n} names:
+包含 @math{n} 个 @racket[field] 的 @racket[struct] 形式最多定义 @math{4+2n} 个名称：
 
 @itemize[
 
- @item{@racketidfont{struct:}@racket[id], a @deftech{structure type
-       descriptor} value that represents the @tech{structure type}.}
+ @item{@racketidfont{struct:}@racket[id]，表示 @tech{structure type} 的
+       @deftech{structure type descriptor} 值。}
 
- @item{@racket[constructor-id] (which defaults to @racket[id]), a
-       @deftech{constructor} procedure that takes @math{m} arguments
-       and returns a new instance of the @tech{structure type}, where
-       @math{m} is the number of @racket[field]s that do not include
-       an @racket[#:auto] option.}
+ @item{@racket[constructor-id]（默认为 @racket[id]），
+       一个接受 @math{m} 个参数并返回 @tech{structure type} 新实例的
+       @deftech{constructor} 过程，其中 @math{m} 是不包含 @racket[#:auto] 选项的
+       @racket[field] 的数量。}
 
- @item{@racket[name-id] (which defaults to @racket[id]),
-       a @tech{transformer} binding that encapsulates
-       information about the structure type declaration. This binding
-       is used to define subtypes, and it also works with the
-       @racket[shared] and @racket[match] forms. For detailed
-       information about the binding of @racket[name-id], see
-       @secref["structinfo"].
+ @item{@racket[name-id]（默认为 @racket[id]），
+       一个封装结构体类型声明信息的 @tech{transformer} 绑定。
+       此绑定用于定义子类型，也可与 @racket[shared] 和 @racket[match] 形式配合使用。
+       关于 @racket[name-id] 绑定的详细信息，参见 @secref["structinfo"]。
        
-       The @racket[constructor-id] and @racket[name-id] can be the same, in
-       which case @racket[name-id] performs both roles. In that case, the
-       expansion of @racket[name-id] as an expression produces an otherwise
-       inaccessible identifier that is bound to the constructor
-       procedure; the expanded identifier has a
-       @racket['constructor-for] property whose value is an identifier
-       that is @racket[free-identifier=?] to @racket[name-id] as well as 
-       a syntax property accessible via 
-       @racket[syntax-procedure-alias-property] with an identifier
-       that is @racket[free-identifier=?] to @racket[name-id].}
+       @racket[constructor-id] 和 @racket[name-id] 可以相同，
+       此时 @racket[name-id] 同时扮演两种角色。在这种情况下，
+       @racket[name-id] 作为表达式展开会产生一个原本不可访问的标识符，
+       该标识符绑定到 constructor 过程；展开后的标识符具有
+       @racket['constructor-for] 属性，其值是一个与 @racket[name-id]
+       @racket[free-identifier=?] 的标识符，
+       以及一个可通过 @racket[syntax-procedure-alias-property] 访问的 syntax 属性，
+       该属性的标识符与 @racket[name-id] @racket[free-identifier=?]。}
 
- @item{@racket[id]@racketidfont{?}, a @deftech{predicate} procedure
-       that returns @racket[#t] for instances of the @tech{structure
-       type} (constructed by @racket[constructor-id] or the
-       @tech{constructor} for a subtype) and @racket[#f] for any other
-       value.}
+ @item{@racket[id]@racketidfont{?}，一个 @deftech{predicate} 过程，
+       对于 @tech{structure type} 的实例（由 @racket[constructor-id] 或子类型的
+       @tech{constructor} 构造）返回 @racket[#t]，对于其他任何值返回 @racket[#f]。}
 
- @item{@racket[id]@racketidfont{-}@racket[field-id], for each
-       @racket[field]; an @deftech{accessor} procedure that takes an
-       instance of the @tech{structure type} and extracts the value
-       for the corresponding field.}
+ @item{对于每个 @racket[field]，@racket[id]@racketidfont{-}@racket[field-id]；
+       一个 @deftech{accessor} 过程，接受 @tech{structure type} 的实例并提取对应字段的值。}
 
- @item{@racketidfont{set-}@racket[id]@racketidfont{-}@racket[field-id]@racketidfont{!},
-       for each @racket[field] that includes a
-       @racket[#:mutable] option, or when the
-       @racket[#:mutable] option is specified as a
-       @racket[struct-option]; a @deftech{mutator} procedure that
-       takes an instance of the @tech{structure type} and a new field
-       value. The structure is destructively updated with the new
-       value, and @|void-const| is returned.}
+ @item{对于包含 @racket[#:mutable] 选项的每个 @racket[field]，
+       或当 @racket[#:mutable] 选项作为 @racket[struct-option] 指定时，
+       @racketidfont{set-}@racket[id]@racketidfont{-}@racket[field-id]@racketidfont{!}；
+       一个 @deftech{mutator} 过程，接受 @tech{structure type} 的实例和新字段值。
+       结构体被破坏性地更新为新值，并返回 @|void-const|。}
 
 ]
 
-If @racket[super-id] is provided, it must have a transformer binding
-of the same sort bound to @racket[name-id] (see @secref["structinfo"]),
-and it specifies a supertype for the structure type. Alternately,
-the @racket[#:super] option can be used to specify an expression that
-must produce a @tech{structure type descriptor}. See
-@secref["structures"] for more information on structure subtypes
-and supertypes. If both @racket[super-id] and @racket[#:super] are
-provided, a syntax error is reported.
+如果提供了 @racket[super-id]，它必须具有绑定到 @racket[name-id] 的同类 transformer 绑定
+（参见 @secref["structinfo"]），并且它为结构体类型指定超类型。
+或者，可以使用 @racket[#:super] 选项来指定必须产生 @tech{structure type descriptor} 的表达式。
+关于结构体子类型和超类型的更多信息，参见 @secref["structures"]。
+如果同时提供了 @racket[super-id] 和 @racket[#:super]，将报告语法错误。
 
 @examples[#:eval posn-eval
   (struct document (author title content))
@@ -114,13 +96,12 @@ provided, a syntax error is reported.
   (struct paper (journal) #:super struct:document)
 ]
 
-If the @racket[#:mutable] option is specified for an individual
-field, then the field can be mutated in instances of the structure
-type, and a @tech{mutator} procedure is bound. Supplying
-@racket[#:mutable] as a @racket[struct-option] is the same as
-supplying it for all @racket[field]s. If @racket[#:mutable] is
-specified as both a @racket[field-option] and @racket[struct-option],
-a syntax error is reported.
+如果为单个字段指定了 @racket[#:mutable] 选项，
+则该字段可以在结构体类型的实例中被修改，并且会绑定一个 @tech{mutator} 过程。
+将 @racket[#:mutable] 作为 @racket[struct-option] 提供，
+等同于为所有 @racket[field] 提供该选项。
+如果同时作为 @racket[field-option] 和 @racket[struct-option] 指定了 @racket[#:mutable]，
+将报告语法错误。
 
 @examples[#:eval posn-eval
   (struct cell ([content #:mutable]) #:transparent)
@@ -128,16 +109,13 @@ a syntax error is reported.
   (set-cell-content! a-cell 1)
 ]
 
-The @racket[#:inspector], @racket[#:auto-value], and @racket[#:guard]
-options specify an inspector, value for automatic fields, and guard
-procedure, respectively. See @racket[make-struct-type] for more
-information on these attributes of a structure type.  The
-@racket[#:property] option, which can be supplied
-multiple times, attaches a property value to the structure type; see
-@secref["structprops"] for more information on properties.
-The @racket[#:properties] option, which can be supplied multiple times,
-accepts multiple properties and their values as an association list.
-The @racket[#:transparent] option is a shorthand for @racket[#:inspector #f].
+@racket[#:inspector]、@racket[#:auto-value] 和 @racket[#:guard] 选项
+分别指定 inspector、自动字段的值和 guard 过程。
+关于结构体类型这些属性的更多信息，参见 @racket[make-struct-type]。
+@racket[#:property] 选项可以多次提供，用于向结构体类型附加属性值；
+关于属性的更多信息，参见 @secref["structprops"]。
+@racket[#:properties] 选项可以多次提供，接受多个属性及其值作为关联列表。
+@racket[#:transparent] 选项是 @racket[#:inspector #f] 的简写。
 
 @examples[#:eval posn-eval
   (struct point (x y) #:inspector #f)
@@ -150,19 +128,17 @@ The @racket[#:transparent] option is a shorthand for @racket[#:inspector #f].
   (eval:error (celsius -275))
 ]
 
-@margin-note{Use the @racket[prop:procedure] property to implement an
-@as-index{applicable structure}, use @racket[prop:evt] to create a
-structure type whose instances are @tech{synchronizable events}, and
-so on. By convention, property names start with @racketidfont{prop:}.}
+@margin-note{使用 @racket[prop:procedure] 属性来实现 @as-index{applicable structure}，
+使用 @racket[prop:evt] 来创建其实例为 @tech{synchronizable event} 的结构体类型，等等。
+按照惯例，属性名称以 @racketidfont{prop:} 开头。}
 
-The @racket[#:prefab] option obtains a @techlink{prefab} (pre-defined,
-globally shared) structure type, as opposed to creating a new
-structure type. Such a structure type is inherently transparent and
-non-sealed, and it cannot have a guard or properties, so using @racket[#:prefab] with
-@racket[#:transparent], @racket[#:inspector], @racket[#:guard],
-@racket[#:property], @racket[#:sealed], @racket[#:authentic],
-or @racket[#:methods] is a syntax error.
-If a supertype is specified, it must also be a @tech{prefab} structure type.
+@racket[#:prefab] 选项获取 @techlink{prefab}（预定义、全局共享）结构体类型，
+而不是创建新的结构体类型。这种结构体类型本质上是透明且非密封的，
+不能具有 guard 或属性，因此将 @racket[#:prefab] 与
+@racket[#:transparent]、@racket[#:inspector]、@racket[#:guard]、
+@racket[#:property]、@racket[#:sealed]、@racket[#:authentic] 或
+@racket[#:methods] 一起使用是语法错误。
+如果指定了超类型，它也必须是 @tech{prefab} 结构体类型。
 
 @examples[#:eval posn-eval
   (struct prefab-point (x y) #:prefab)
@@ -170,25 +146,20 @@ If a supertype is specified, it must also be a @tech{prefab} structure type.
   (prefab-point? #s(prefab-point 1 2))
 ]
 
-The @racket[#:sealed] option is a shorthand for @racket[#:property
-prop:sealed #t], which prevents the structure type from being
-used as the supertype of another structure type. See
-@racket[prop:sealed] for more information.
+@racket[#:sealed] 选项是 @racket[#:property prop:sealed #t] 的简写，
+防止结构体类型被用作另一个结构体类型的超类型。
+更多信息参见 @racket[prop:sealed]。
 
-The @racket[#:authentic] option is a shorthand for @racket[#:property
-prop:authentic #t], which prevents instances of the structure type
-from being impersonated (see @racket[impersonate-struct]), chaperoned
-(see @racket[chaperone-struct]), or acquiring a non-@tech{flat
-contract} (see @racket[struct/c]). See @racket[prop:authentic] for
-more information. If a supertype is specified, it must also have the
-@racket[prop:authentic] property.
+@racket[#:authentic] 选项是 @racket[#:property prop:authentic #t] 的简写，
+防止结构体类型的实例被 impersonate（参见 @racket[impersonate-struct]）、
+chaperone（参见 @racket[chaperone-struct]）或获取非 @tech{flat contract}
+（参见 @racket[struct/c]）。更多信息参见 @racket[prop:authentic]。
+如果指定了超类型，它也必须具有 @racket[prop:authentic] 属性。
 
-If @racket[name-id] is supplied via @racket[#:extra-name] and it is
-not @racket[id], then both @racket[name-id] and @racket[id] are bound
-to information about the structure type. Only one of
-@racket[#:extra-name] and @racket[#:name] can be provided within a
-@racket[struct] form, and @racket[#:extra-name] cannot be combined
-with @racket[#:omit-define-syntaxes].
+如果通过 @racket[#:extra-name] 提供了 @racket[name-id] 且它不是 @racket[id]，
+则 @racket[name-id] 和 @racket[id] 都绑定到结构体类型的信息。
+在 @racket[struct] 形式中只能提供 @racket[#:extra-name] 和 @racket[#:name] 中的一个，
+且 @racket[#:extra-name] 不能与 @racket[#:omit-define-syntaxes] 组合使用。
 
 @examples[#:eval posn-eval
   (struct ghost (color name) #:prefab #:extra-name GHOST)
@@ -196,20 +167,17 @@ with @racket[#:omit-define-syntaxes].
     [(GHOST c n) c])
 ]
 
-If @racket[constructor-id] is supplied, then the @tech{transformer}
-binding of @racket[name-id] records @racket[constructor-id] as the
-constructor binding; as a result, for example, @racket[struct-out]
-includes @racket[constructor-id] as an export. If
-@racket[constructor-id] is supplied via
-@racket[#:extra-constructor-name] and it is not @racket[id], applying
-@racket[object-name] on the constructor produces the symbolic form of
-@racket[id] rather than @racket[constructor-id]. If
-@racket[constructor-id] is supplied via @racket[#:constructor-name]
-and it is not the same as @racket[name-id], then @racket[name-id] does not serve
-as a constructor, and @racket[object-name] on the constructor produces
-the symbolic form of @racket[constructor-id]. Only one of 
-@racket[#:extra-constructor-name] and @racket[#:constructor-name]
-can be provided within a @racket[struct] form.
+如果提供了 @racket[constructor-id]，则 @racket[name-id] 的 @tech{transformer} 绑定
+会将 @racket[constructor-id] 记录为 constructor 绑定；因此，例如，
+@racket[struct-out] 会将 @racket[constructor-id] 作为导出包含。
+如果通过 @racket[#:extra-constructor-name] 提供了 @racket[constructor-id] 且它不是 @racket[id]，
+则对 constructor 应用 @racket[object-name] 会产生 @racket[id] 的符号形式，
+而不是 @racket[constructor-id] 的。
+如果通过 @racket[#:constructor-name] 提供了 @racket[constructor-id] 且它与 @racket[name-id] 不同，
+则 @racket[name-id] 不充当 constructor，
+对 constructor 应用 @racket[object-name] 会产生 @racket[constructor-id] 的符号形式。
+在 @racket[struct] 形式中只能提供 @racket[#:extra-constructor-name] 和
+@racket[#:constructor-name] 中的一个。
 
 @examples[#:eval posn-eval
   (struct color (r g b) #:constructor-name -color)
@@ -218,12 +186,11 @@ can be provided within a @racket[struct] form.
   (rect 50 37 (-color 35 183 252))
 ]
 
-If @racket[#:reflection-name symbol-expr] is provided, then
-@racket[symbol-expr] must produce a symbol that is used to identify
-the structure type in reflective operations such as
-@racket[struct-type-info]. It corresponds to the first argument of
-@racket[make-struct-type]. Structure printing uses the reflective
-name, as do the various procedures that are bound by @racket[struct].
+如果提供了 @racket[#:reflection-name symbol-expr]，
+则 @racket[symbol-expr] 必须产生一个 symbol，
+用于在 @racket[struct-type-info] 等反射操作中标识结构体类型。
+它对应于 @racket[make-struct-type] 的第一个参数。
+结构体打印使用反射名称，@racket[struct] 绑定的各种过程也使用反射名称。
 
 @examples[#:eval posn-eval
   (struct circle (radius) #:reflection-name '<circle>)
@@ -231,12 +198,11 @@ name, as do the various procedures that are bound by @racket[struct].
   (eval:error (circle-radius "bad"))
 ]
 
-If @racket[#:methods gen:name-id method-defs] is provided (potentially multiple times), then
-@racket[gen:name-id] must be a transformer binding for the static
-information about a generic interface produced by @racket[define-generics].
-The @racket[method-defs] define the methods of the @racket[gen:name-id]
-interface. A @racket[define/generic] form or auxiliary definitions
-and expressions may also appear in @racket[method-defs].
+如果提供了 @racket[#:methods gen:name-id method-defs]（可能多次），
+则 @racket[gen:name-id] 必须是由 @racket[define-generics] 产生的
+关于 generic interface 的静态信息的 transformer 绑定。
+@racket[method-defs] 定义 @racket[gen:name-id] 接口的方法。
+@racket[method-defs] 中也可以出现 @racket[define/generic] 形式或辅助定义和表达式。
 
 @examples[#:eval posn-eval
   (struct constant-stream (val)
@@ -249,13 +215,12 @@ and expressions may also appear in @racket[method-defs].
   (stream-ref (constant-stream 'forever) 50)
 ]
 
-If the @racket[#:omit-define-syntaxes] option is supplied, then
-@racket[name-id] (and @racket[id], if @racket[#:extra-name] is specified)
-is not bound as a transformer. If the
-@racket[#:omit-define-values] option is supplied, then none of the
-usual variables are bound, but @racket[id] is bound. If both are
-supplied, then the @racket[struct] form is equivalent to
-@racket[(begin)].
+如果提供了 @racket[#:omit-define-syntaxes] 选项，
+则 @racket[name-id]（以及 @racket[id]，如果指定了 @racket[#:extra-name]）
+不作为 transformer 绑定。
+如果提供了 @racket[#:omit-define-values] 选项，
+则不绑定任何常规变量，但绑定 @racket[id]。
+如果两者都提供，则 @racket[struct] 形式等价于 @racket[(begin)]。
 
 @examples[#:eval posn-eval
   (struct square (side) #:omit-define-syntaxes)
@@ -268,24 +233,21 @@ supplied, then the @racket[struct] form is equivalent to
 ]
 
 @margin-note{
-  Expressions supplied to @racket[#:auto-value] are evaluated once and shared
-  between every instance of the structure type. In particular, updates to
-  a mutable @racket[#:auto-value] affect all current and future instances.
+  提供给 @racket[#:auto-value] 的表达式只求值一次，
+  并在结构体类型的所有实例之间共享。
+  特别地，对可变 @racket[#:auto-value] 的更新会影响所有当前和未来的实例。
 }
-If @racket[#:auto] is supplied as a @racket[field-option], then the
-@tech{constructor} procedure for the structure type does not accept an
-argument corresponding to the field. Instead, the structure type's
-automatic value is used for the field, as specified by the
-@racket[#:auto-value] option, or as defaults to @racket[#f] when
-@racket[#:auto-value] is not supplied. The field is mutable (e.g.,
-through reflective operations), but a mutator procedure is bound only
-if @racket[#:mutable] is specified.
+如果提供了 @racket[#:auto] 作为 @racket[field-option]，
+则结构体类型的 @tech{constructor} 过程不接受对应于该字段的参数。
+相反，使用结构体类型的自动值作为该字段的值，
+如 @racket[#:auto-value] 选项所指定的，
+或者当未提供 @racket[#:auto-value] 时默认为 @racket[#f]。
+该字段是可变的（例如，通过反射操作），但仅在指定了 @racket[#:mutable] 时才绑定 mutator 过程。
 
-If a @racket[field] includes the @racket[#:auto] option, then all
-fields after it must also include @racket[#:auto], otherwise a syntax
-error is reported. If any @racket[field-option] or
-@racket[struct-option] keyword is repeated, other than
-@racket[#:property], a syntax error is reported.
+如果 @racket[field] 包含 @racket[#:auto] 选项，
+则其后的所有字段也必须包含 @racket[#:auto]，否则将报告语法错误。
+如果除 @racket[#:property] 之外的任何 @racket[field-option] 或
+@racket[struct-option] 关键字被重复，将报告语法错误。
 
 @examples[
 #:eval posn-eval
@@ -306,7 +268,7 @@ cp
 (set-posn-z! cp 3)
 ]
 
-For serialization, see @racket[define-serializable-struct].
+关于序列化，参见 @racket[define-serializable-struct]。
 
 @history[#:changed "6.9.0.4" @elem{Added @racket[#:authentic].}
          #:changed "8.0.0.7" @elem{Added @racket[#:sealed].}
@@ -315,13 +277,10 @@ For serialization, see @racket[define-serializable-struct].
 
 @defform[(struct-field-index field-id)]{
 
-This form can only appear as an expression within a
-@racket[struct] form; normally, it is used with
-@racket[#:property], especially for a property like
-@racket[prop:procedure]. The result of a @racket[struct-field-index]
-expression is an exact, non-negative integer that corresponds to the
-position within the structure declaration of the field named by
-@racket[field-id].
+此形式只能作为表达式出现在 @racket[struct] 形式内；
+通常与 @racket[#:property] 一起使用，特别是用于 @racket[prop:procedure] 等属性。
+@racket[struct-field-index] 表达式的结果是一个精确的非负整数，
+对应于 @racket[field-id] 命名的字段在结构体声明中的位置。
 
 @examples[
 #:eval posn-eval
@@ -339,15 +298,12 @@ position within the structure declaration of the field named by
               ([id-maybe-super id
                                (id super-id)])]{
 
-Like @racket[struct], except that the syntax for supplying a
-@racket[super-id] is different, and a @racket[_constructor-id] that
-has a @racketidfont{make-} prefix on @racket[id] is implicitly
-supplied via @racket[#:extra-constructor-name] if neither
-@racket[#:extra-constructor-name] nor @racket[#:constructor-name] is
-provided.
+类似于 @racket[struct]，但提供 @racket[super-id] 的语法不同，
+并且如果既未提供 @racket[#:extra-constructor-name] 也未提供 @racket[#:constructor-name]，
+则会通过 @racket[#:extra-constructor-name] 隐式提供
+在 @racket[id] 前添加 @racketidfont{make-} 前缀的 @racket[_constructor-id]。
 
-This form is provided for backwards compatibility; @racket[struct] is
-preferred.
+此形式为了向后兼容而提供；推荐使用 @racket[struct]。
 
 @examples[
 #:eval posn-eval
@@ -393,13 +349,11 @@ that expand to @racket[struct].
 @defform[(define-struct/derived (id . rest-form) 
            id-maybe-super (field ...) struct-option ...)]{
 
-Like @racket[struct/derived], except that the syntax for supplying a
-@racket[super-id] is different, and a @racket[_constructor-id] that
-has a @racketidfont{make-} prefix on @racket[id] is implicitly
-supplied via @racket[#:extra-constructor-name] if neither
-@racket[#:extra-constructor-name] nor @racket[#:constructor-name] is
-provided. The @racket[define-struct/derived] form is intended for use by macros
-that expand to @racket[define-struct].
+类似于 @racket[struct/derived]，但提供 @racket[super-id] 的语法不同，
+并且如果既未提供 @racket[#:extra-constructor-name] 也未提供 @racket[#:constructor-name]，
+则会通过 @racket[#:extra-constructor-name] 隐式提供
+在 @racket[id] 前添加 @racketidfont{make-} 前缀的 @racket[_constructor-id]。
+@racket[define-struct/derived] 形式旨在供展开为 @racket[define-struct] 的宏使用。
 
 @examples[
 #:eval posn-eval
