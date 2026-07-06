@@ -96,136 +96,84 @@ Emacs 长期以来一直是 Lispers 和 Schemers 的最爱，在 Racketeers 中�
 
 @section{Vim}
 
-Many distributions of Vim ship with support for Scheme, which will mostly work
-for Racket. Vim also ships with some special support for Racket.
+许多 Vim 发行版附带了对 Scheme 的支持，这些支持大多适用于 Racket。Vim 还附带了一些对 Racket 的特殊支持。
 
-The @tt{racket} filetype comes with
+@tt{racket} filetype 包含
 @itemlist[
-  @item{syntax highlighting}
-  @item{custom indentation for Racket forms}
-  @item{and other support including comments and @tt{raco fmt}}
+  @item{语法高亮}
+  @item{为 Racket 形式自定义缩进}
+  @item{以及其他支持，包括注释和 @tt{raco fmt}}
 ]
 
-There is also support for several @seclink["top" #:doc '(lib "scribblings/raco/raco.scrbl")]{raco commands}
-in the form of builtin @tt{compiler} plugins; see @tt{:help compiler} for more
-information.
+还有以内置 @tt{compiler} 插件形式提供的对多个 @seclink["top" #:doc '(lib "scribblings/raco/raco.scrbl")]{raco 命令} 的支持；详见 @tt{:help compiler}。
 
-For information about older Vim versions, see @secref{vim-versions}.
+关于旧版 Vim 的信息，请参见 @secref{vim-versions}。
 
-@subsection[#:tag "vim-racket"]{Enhanced Racket Support}
+@subsection[#:tag "vim-racket"]{增强的 Racket 支持}
 
-Vim will detect your Racket files as Scheme out of the box. To get the
-additional features of the Racket filetype, consider installing the
-@tt{vim-racket} plugin from
-@hyperlink["https://github.com/benknoble/vim-racket"]{benknoble/vim-racket}. It
-enables auto-detection of Racket files on top of enhanced indentation and syntax
-highlighting. Vim's default support comes from a subset of this plugin;
-installing it yourself provides additional features.
+Vim 开箱即用会将 Racket 文件检测为 Scheme。要获取 Racket filetype 的附加功能，请考虑安装来自 @hyperlink["https://github.com/benknoble/vim-racket"]{benknoble/vim-racket} 的 @tt{vim-racket} 插件。它在增强的缩进和语法高亮之上启用 Racket 文件的自动检测。Vim 的默认支持来自此插件的一个子集；自行安装可提供附加功能。
 
-The @tt{vim-racket} plugin detects the @tt{filetype} option based on the @(hash-lang)
-line. For example:@itemlist[
-    @item{A file starting with @code{#lang racket} or @code{#lang racket/base} has @tt{filetype} equal to @tt{racket}.}
-    @item{A file starting with @code{#lang scribble/base} or @code{#lang scribble/manual} has @tt{filetype} equal to @tt{scribble}.}
+@tt{vim-racket} 插件基于 @(hash-lang) 行检测 @tt{filetype} 选项。例如：@itemlist[
+    @item{以 @code{#lang racket} 或 @code{#lang racket/base} 开头的文件，其 @tt{filetype} 等于 @tt{racket}。}
+    @item{以 @code{#lang scribble/base} 或 @code{#lang scribble/manual} 开头的文件，其 @tt{filetype} 等于 @tt{scribble}。}
 ]
 
-The @tt{vim-racket} plugin comes with configuration for Racket and some other
-standard Racket languages.
+@tt{vim-racket} 插件附带 Racket 和其他一些标准 Racket 语言的配置。
 
-Many Racket languages still need syntax and indent support. If you create Vim
-support for other Racket languages, please consider contributing them to
-@hyperlink["https://github.com/benknoble/vim-racket"]{benknoble/vim-racket} so
-other Vim users will benefit.
+许多 Racket 语言仍然需要语法和缩进支持。如果你为其他 Racket 语言创建 Vim 支持，请考虑将其贡献给 @hyperlink["https://github.com/benknoble/vim-racket"]{benknoble/vim-racket}，以便其他 Vim 用户受益。
 
-@subsection{Indentation}
+@subsection{缩进}
 
-If you use @secref{vim-racket} and Vim version 9 or greater, improved
-indentation for the @tt{racket} filetype is configured out of the box.
+如果你使用 @secref{vim-racket} 且 Vim 版本为 9 或更高，开箱即用即为 @tt{racket} filetype 配置了改进的缩进。
 
-Otherwise, you can manually enable indentation for Racket by setting both the
-@tt{lisp} and @tt{autoindent} options in Vim. You will want to customize the
-buffer-local @tt{lispwords} option to control how special forms are indented.
-See @tt{:help 'lispwords'}. However, using @tt{lispwords} for indentation can be
-limited and may not be as complete as what you can get in Emacs. You can also
-use Dorai Sitaram's
-@hyperlink["https://github.com/ds26gte/scmindent"]{scmindent} for better
-indentation of Racket code. The instructions on how to use the indenter are
-available on the website.
+否则，你可以通过在 Vim 中设置 @tt{lisp} 和 @tt{autoindent} 选项来手动启用 Racket 的缩进。你可能需要自定义 buffer-local 的 @tt{lispwords} 选项来控制特殊形式的缩进方式。参见 @tt{:help 'lispwords'}。但是，使用 @tt{lispwords} 进行缩进可能有限，可能不如在 Emacs 中获得的完整。你也可以使用 Dorai Sitaram 的 @hyperlink["https://github.com/ds26gte/scmindent"]{scmindent} 来获得更好的 Racket 代码缩进。有关如何使用缩进器的说明可在网站上找到。
 
-@subsection{Highlighting}
+@subsection{高亮}
 
-Syntax highlighting for Scheme and Racket is shipped with Vim on many platforms.
-You will want to use the @tt{racket} filetype for the best syntax experience;
-see @secref{vim-racket} for enhanced syntax highlighting for Racket languages.
+许多平台上 Vim 附带了 Scheme 和 Racket 的语法高亮。要获得最佳的语法体验，请使用 @tt{racket} filetype；有关 Racket 语言的增强语法高亮，请参见 @secref{vim-racket}。
 
-The @hyperlink["http://www.vim.org/scripts/script.php?script_id=1230"]{Rainbow
-Parenthesis} script for Vim can be useful for more visible parenthesis
-matching.
+Vim 的 @hyperlink["http://www.vim.org/scripts/script.php?script_id=1230"]{Rainbow Parenthesis} 脚本可用于更明显的括号匹配。
 
-@subsection{Structured Editing}
+@subsection{结构化编辑}
 
-The @hyperlink["http://www.vim.org/scripts/script.php?script_id=2531"]{Slimv}
-plugin has a paredit mode that works like paredit in Emacs. However, the plugin
-is not aware of Racket. You can either set Vim to treat Racket as Scheme files
-or you can modify the paredit script to load on @filepath{.rkt} files.
+@hyperlink["http://www.vim.org/scripts/script.php?script_id=2531"]{Slimv} 插件有一个 paredit 模式，其工作方式类似于 Emacs 中的 paredit。但是，该插件不了解 Racket。你可以将 Vim 设置为将 Racket 视为 Scheme 文件，也可以修改 paredit 脚本以在 @filepath{.rkt} 文件上加载。
 
-For a more Vim-like set of key-mappings, pair either of @itemlist[
+对于更像 Vim 的键映射组合，将以下任一 @itemlist[
     @item{@hyperlink["https://github.com/guns/vim-sexp"]{guns/vim-sexp}}
     @item{@hyperlink["https://github.com/benknoble/vim-sexp"]{benknoble/vim-sexp}}
-]@margin-note{The @tt{benknoble/vim-sexp} fork is slightly more modern vimscript.}
-with @hyperlink["https://github.com/tpope/vim-sexp-mappings-for-regular-people"]{tpope/vim-sexp-mappings-for-regular-people}.
-The experience is on par with paredit, but more comfortable for the fingers.
+]@margin-note{@tt{benknoble/vim-sexp} fork 使用了稍微更现代的 vimscript。}
+与 @hyperlink["https://github.com/tpope/vim-sexp-mappings-for-regular-people"]{tpope/vim-sexp-mappings-for-regular-people} 配对。
+体验与 paredit 相当，但对手指更舒适。
 
-@subsection{REPLs}
+@subsection{REPL}
 
-There are many general-purpose Vim + REPL plugins out there. Here are a few that
-support Racket out of the box: @itemlist[
+有许多通用的 Vim + REPL 插件。以下是几个开箱即用支持 Racket 的：@itemlist[
     @item{@hyperlink["https://github.com/rhysd/reply.vim"]{rhysd/reply.vim}}
-    @item{@hyperlink["https://github.com/kovisoft/slimv"]{kovisoft/slimv}, if you are using the @tt{scheme} filetype}
+    @item{@hyperlink["https://github.com/kovisoft/slimv"]{kovisoft/slimv}，如果你使用的是 @tt{scheme} filetype}
     @item{@hyperlink["https://github.com/benknoble/vim-simpl"]{benknoble/vim-simpl}}
 ]
 
 @subsection{Scribble}
 
-Vim support for writing scribble documents is provided by
-@hyperlink["https://github.com/benknoble/scribble.vim"]{benknoble/scribble.vim}.
+用于编写 scribble 文档的 Vim 支持由 @hyperlink["https://github.com/benknoble/scribble.vim"]{benknoble/scribble.vim} 提供。
 
-@subsection{Miscellaneous}
+@subsection{杂项}
 
-If you are installing many Vim plugins (not necessary specific to Racket), we
-recommend using a plugin that will make loading other plugins easier. There are
-many plugin managers.
+如果你要安装许多 Vim 插件（不一定特定于 Racket），我们推荐使用一个使加载其他插件更轻松的插件。有许多插件管理器。
 
-@hyperlink["https://github.com/tpope/vim-pathogen"]{Pathogen} is one plugin that
-does this; using it, you can install new plugins by extracting them to
-subdirectories in the @filepath{bundle} folder of your personal Vim files
-(@filepath{~/.vim} on Unix, @filepath{$HOME/vimfiles} on MS-Windows).
+@hyperlink["https://github.com/tpope/vim-pathogen"]{Pathogen} 就是这样一个插件；使用它，你可以通过将新插件解压到个人 Vim 文件的 @filepath{bundle} 文件夹的子目录中来安装新插件（Unix 上为 @filepath{~/.vim}，MS-Windows 上为 @filepath{$HOME/vimfiles}）。
 
-With newer Vim versions, you can use the package system (@tt{:help packages}).
+对于较新的 Vim 版本，你可以使用 package 系统（@tt{:help packages}）。
 
-One relatively up-to-date reference on the various managers is
-@hyperlink["https://vi.stackexchange.com/q/388/10604"]{What are the differences between the vim plugin managers?}.
-The same site, @hyperlink["https://vi.stackexchange.com"]{Vi & Vim} is a great
-place to get help from Vimmers.
+关于各种管理器的一个相对最新的参考资料是 @hyperlink["https://vi.stackexchange.com/q/388/10604"]{vim plugin managers 之间有什么区别？}。同一站点 @hyperlink["https://vi.stackexchange.com"]{Vi & Vim} 是获得 Vimmers 帮助的好地方。
 
-@subsection[#:tag "vim-versions"]{Older Versions of Vim}
+@subsection[#:tag "vim-versions"]{旧版 Vim}
 
-As of
-@hyperlink["https://github.com/vim/vim/commit/9b03d3e75b4274493bbe76772d7b92238791964c"]{Version 9.0.0336},
-Vim ships with runtime files from @secref{vim-racket}, but these exclude
-filetype detection for the @tt{racket} filetype. If you are using this version
-or versions newer than this you probably want to tweak the suggestions in this
-document to use the @tt{racket} filetype instead of @tt{scheme}. You should also
-consider installing the plugin yourself to get the latest changes, since Ben is
-slow to sync changes upstream to Vim and since the plugin contains improved
-filetype detection.
+截至 @hyperlink["https://github.com/vim/vim/commit/9b03d3e75b4274493bbe76772d7b92238791964c"]{Version 9.0.0336}，Vim 附带了来自 @secref{vim-racket} 的运行时文件，但这些文件排除了 @tt{racket} filetype 的 filetype 检测。如果你使用的是此版本或更新的版本，你可能需要调整本文档中的建议以使用 @tt{racket} filetype 而不是 @tt{scheme}。你还应该考虑自行安装插件以获取最新更改，因为 Ben 同步更改到 Vim 上游的速度较慢，并且插件包含改进的 filetype 检测。
 
-As of @hyperlink["https://github.com/vim/vim/commit/1aeaf8c0e0421f34e51ef674f0c9a182debe77ae"]{version 7.3.518},
-Vim detects files with the extension @tt{.rkt} as having the
-@tt{scheme} filetype. @hyperlink["https://github.com/vim/vim/commit/9cd91a1e8816d727fbdbf0b3062288e15abc5f4d"]{Version 8.2.3368}
-added support for @tt{.rktd} and @tt{.rktl}.
+截至 @hyperlink["https://github.com/vim/vim/commit/1aeaf8c0e0421f34e51ef674f0c9a182debe77ae"]{version 7.3.518}，Vim 将扩展名为 @tt{.rkt} 的文件检测为具有 @tt{scheme} filetype。@hyperlink["https://github.com/vim/vim/commit/9cd91a1e8816d727fbdbf0b3062288e15abc5f4d"]{Version 8.2.3368} 添加了对 @tt{.rktd} 和 @tt{.rktl} 的支持。
 
-In older versions, you can enable filetype detection of Racket
-files as Scheme with the following:
+在旧版本中，你可以使用以下命令启用 Racket 文件作为 Scheme 的 filetype 检测：
 
 @verbatim[#:indent 2]|{
 if has("autocmd")
@@ -233,16 +181,13 @@ if has("autocmd")
 endif
 }|
 
-If your Vim supports the ftdetect system, in which case it's likely new enough
-to support Racket already, you can nevertheless put the following in
-@filepath{~/.vim/ftdetect/racket.vim}
-(@filepath{$HOME/vimfiles/ftdetect/racket.vim} on MS-Windows; see @tt{:help runtimepath}).
+如果你的 Vim 支持 ftdetect 系统，在这种情况下它可能已经足够新以支持 Racket，你仍然可以将以下内容放在 @filepath{~/.vim/ftdetect/racket.vim} 中（MS-Windows 上为 @filepath{$HOME/vimfiles/ftdetect/racket.vim}；参见 @tt{:help runtimepath}）。
 
 @verbatim[#:indent 2]|{
 " :help ftdetect
-" If you want to change the filetype only if one has not been set
+" 如果只想在尚未设置 filetype 时更改
 autocmd BufRead,BufNewFile *.rkt,*.rktl,*.rktd setfiletype scheme
-" If you always want to set this filetype
+" 如果始终要设置此 filetype
 autocmd BufRead,BufNewFile *.rkt,*.rktl,*.rktd set filetype=scheme
 }|
 
@@ -250,11 +195,9 @@ autocmd BufRead,BufNewFile *.rkt,*.rktl,*.rktd set filetype=scheme
 
 @section{Sublime Text}
 
-The @hyperlink["https://sublime.wbond.net/packages/Racket"]{Racket package}
-provides support for syntax highlighting and building for Sublime Text.
+@hyperlink["https://sublime.wbond.net/packages/Racket"]{Racket package} 为 Sublime Text 提供语法高亮和构建支持。
 @; ------------------------------------------------------------
 
 @section{Visual Studio Code}
 
-The @hyperlink["https://marketplace.visualstudio.com/items?itemName=evzen-wybitul.magic-racket"]{Magic Racket}
-extension provides Racket support including REPL integration and syntax highlighting in Visual Studio Code.
+@hyperlink["https://marketplace.visualstudio.com/items?itemName=evzen-wybitul.magic-racket"]{Magic Racket} 扩展在 Visual Studio Code 中提供包括 REPL 集成和语法高亮在内的 Racket 支持。
