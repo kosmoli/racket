@@ -29,57 +29,32 @@
                     (or/c (and/c output-port? file-stream-port?) #f)
                     (or/c (and/c input-port? file-stream-port?) #f))])]{
 
-Creates a new process in the underlying operating system to execute
-@racket[command] asynchronously, providing the new process with
-environment variables @racket[current-environment-variables]. See also
-@racket[system] and @racket[process] from
-@racketmodname[racket/system].
+在底层操作系统中创建一个新进程以异步执行 @racket[command], 为新进程提供环境变量 @racket[current-environment-variables]. 另请参见 @racketmodname[racket/system] 中的 @racket[system] 和 @racket[process]。
 
-@margin-note{On Unix and Mac OS, subprocess creation is separate
-from starting the program indicated by @racket[command]. In
-particular, if @racket[command] refers to a non-existent or
-non-executable file, an error will be reported (via standard error and
-a non-0 exit code) in the subprocess, not in the creating
-process.}
+@margin-note{在 Unix 和 Mac OS 上，子进程创建与 @racket[command] 所指示程序的启动是分开的。
+特别是，如果 @racket[command] 引用了不存在或不可执行的文件，
+错误会报告（通过标准错误和非 0 退出码）在子进程中，而不是在创建
+进程中。}
 
-The @racket[command] argument is a path to a program executable, and
-the @racket[arg]s are command-line arguments for the program. See
-@racket[find-executable-path] for locating an executable based on
-the @envvar{PATH} environment variable. On
-Unix and Mac OS, command-line arguments are passed as byte strings,
-and string @racket[arg]s are converted using the current locale's
-encoding (see @secref["encodings"]). On Windows, command-line
-arguments are passed as strings, and byte strings are converted using
-UTF-8.
+@racket[command] 参数是程序可执行文件的路径，@racket[arg]s 是程序的命令行参数。 请参阅 @racket[find-executable-path]，了解如何基于 @envvar{PATH} 环境变量定位可执行文件。 在
+Unix 和 Mac OS 上，命令行参数作为 byte string 传递，
+string @racket[arg]s 使用当前 locale 的编码进行转换
+（参见 @secref["encodings"]）。 在 Windows 上，命令行参数作为 string 传递，byte string 使用 UTF-8 进行转换。
 
-On Windows, a process natively receives a single command-line argument
-string, unlike Unix and Mac OS processes that natively receive an
-array of arguments. A Windows command-line string is constructed from
-@racket[command] and @racket[arg]s following a Windows convention so
-that a typical application can parse it back to an array of arguments,
+在 Windows 上，进程在本地接收单个命令行参数字符串，
+不像 Unix 和 Mac OS 进程那样在本地接收参数数组。 Windows 命令行字符串按照 Windows 约定从 @racket[command] 和 @racket[arg]s 构建，
+使得典型应用程序可以将其解析回参数数组，
 @margin-note*{For information on the Windows command-line conventions,
 see @microsoft-argument-doc-src or search for ``command line parsing'' at
-@tt{http://msdn.microsoft.com/}.} but beware that an application may
-parse the command line in a different way. In particular, @emph{take
-special care when supplying a @racket[command] that refers to a
-@filepath{.bat} or @filepath{.cmd} file}, because the command-line
-string delivered to the process will be parsed as a @exec{cmd.exe}
-command, which is effectively a different syntax than the convention
+@tt{http://msdn.microsoft.com/}.} 但请注意，应用程序可能以不同的方式解析命令行。 特别是，@emph{提供引用 @filepath{.bat} 或 @filepath{.cmd} 文件的 @racket[command] 时要格外小心}，
+因为传递给进程的命令行字符串将被解析为 @exec{cmd.exe} 的
+命令, which is effectively a different syntax than the convention
 that @racket[subprocess] uses to encode command-line arguments;
-supplying unsanitized @racket[arg]s could enable parsing of arguments
-as commands. To enable more control over the command-line string that
-is delivered to a process, the first @racket[arg] can be replaced with
-@indexed-racket['exact], which triggers a Windows-specific behavior:
-the sole @racket[arg] is used exactly as the command-line for the
-subprocess. If @racket['exact] is provided on a non-Windows platform,
-the @exnraise[exn:fail:contract].
+提供未经清理的 @racket[arg]s 可能会导致将参数解析为命令。 为了对所传递的命令行字符串有更多控制，可以使用 @indexed-racket['exact] 替换第一个 @racket[arg], which triggers a Windows-specific behavior:
+唯一的 @racket[arg] 将直接作为子进程的命令行使用。 如果在非 Windows 平台上提供 @racket['exact]，则 @exnraise[exn:fail:contract]。
 
-When provided as a port, @racket[stdout] is used for the launched
-process's standard output, @racket[stdin] is used for the process's
-standard input, and @racket[stderr] is used for the process's standard
-error.  All provided ports must be file-stream ports. Any of the ports
-can be @racket[#f], in which case a system pipe is created and
-returned by @racket[subprocess]. The @racket[stderr] argument can be 
+当作为 port 提供时，@racket[stdout] 用作启动进程的标准输出，
+@racket[stdin] 用作进程的标准输入，@racket[stderr] 用作进程的标准错误。  所有提供的 port 必须是 file-stream port。 其中任一 port 都可以是 @racket[#f]，在这种情况下，系统管道被创建并由 @racket[subprocess] 返回。 The @racket[stderr] argument can be 
 @racket['stdout], in which case the same file-stream port or system pipe
 that is supplied as standard output is also used for standard error.
 For each port or @racket['stdout] that is provided, no
@@ -103,7 +78,7 @@ the same cases that @racket[subprocess-kill] would have an effect
 (i.e., the subprocess is not known to have terminated), otherwise it
 will fail silently.
 
-The @racket[subprocess] procedure returns four values:
+@racket[subprocess] 过程返回四个值：
 
 @itemize[
 
@@ -124,26 +99,21 @@ The @racket[subprocess] procedure returns four values:
 explicitly closed, usually with @racket[close-input-port] or
 @racket[close-output-port].
 
-@margin-note{A @tech{file-stream port} for communicating with a
-subprocess is normally a pipe with a limited capacity. Beware of
-creating deadlock by serializing a write to a subprocess followed by a
-read, while the subprocess does the same, so that both processes end
-up blocking on a write because the other end must first read to make
-room in the pipe. Beware also of waiting for a subprocess to finish
-without reading its output, because the subprocess may be blocked attempting
-to write output into a full pipe.}
+@margin-note{用于与子进程通信的 @tech{file-stream port} 通常是容量有限的管道。
+注意避免因对子进程写入序列化后接着读而创建死锁，
+而子进程做同样的操作，导致两个进程都因另一端必须首先读取以在管道中腾出空间
+而阻塞在写入上。还要注意等待子进程完成而不读取其输出，
+因为子进程可能因试图写入已满的管道而被阻塞。}
 
-The returned ports are @tech{file-stream ports} (see
-@secref["file-ports"]), and they are placed into the management of
-the current custodian (see @secref["custodians"]).  The
+返回的 port 是 @tech{file-stream ports}（参见
+@secref["file-ports"]），它们被纳入当前 custodian 的管理中（参见 @secref["custodians"]）。  The
 @exnraise[exn:fail] when a low-level error prevents the spawning of a
 process or the creation of operating system pipes for process
 communication.
 
-The @racket[current-subprocess-custodian-mode] parameter determines
-whether the subprocess itself is registered with the current
-@tech{custodian} so that a custodian shutdown calls
-@racket[subprocess-kill] for the subprocess.
+@racket[current-subprocess-custodian-mode] 参数确定子进程本身
+是否注册到当前 @tech{custodian} 上，以便 custodian 关闭时调用
+@racket[subprocess-kill] 终止子进程。
 
 The @racket[current-subprocess-keep-file-descriptors] parameter
 determines how file descriptors and handles in the current process are
@@ -175,8 +145,8 @@ descriptors and handles depends on the parameter value:
 ]
 
 A subprocess can be used as a @tech{synchronizable event} (see @secref["sync"]).
-A subprocess value is @tech{ready for synchronization} when
-@racket[subprocess-wait] would not block; @resultItself{subprocess value}.
+子进程值的 @tech{ready for synchronization}（准备同步）时机
+是当 @racket[subprocess-wait] 不会阻塞时；@resultItself{subprocess value}。
 
 Example:
 
@@ -211,20 +181,15 @@ terminates. The @racket[subproc] value also can be used with
          (or/c 'running
                exact-nonnegative-integer?)]{
 
-Returns @indexed-racket['running] if the process represented by
-@racket[subproc] is still running, or its exit code otherwise. The
-exit code is an exact integer, and @racket[0] typically indicates
-success. If the process terminated due to a fault or signal, the exit
-code is non-zero.}
+如果 @racket[subproc] 表示的进程仍在运行，返回 @indexed-racket['running]，
+否则返回其退出码。 退出码是精确整数，@racket[0] 通常表示成功。
+如果进程因故障或信号而终止，退出码为非零。}
 
 
 @defproc[(subprocess-kill [subproc subprocess?] [force? any/c]) void?]{
 
-Terminates the subprocess represented by @racket[subproc]. The precise
-action depends on whether @racket[force?] is true, whether the process
-was created in its own group by setting the
-@racket[subprocess-group-enabled] parameter to a true value, and the
-current platform:
+Terminates the subprocess represented by @racket[subproc]. 具体操作取决于 @racket[force?] 是否为真、该进程是否在其自己的进程组中创建
+（通过将 @racket[subprocess-group-enabled] 参数设置为真值）以及当前平台：
 
 @itemlist[
 
@@ -267,15 +232,13 @@ If an error occurs during termination, the @exnraise[exn:fail].}
 
 @defproc[(subprocess-pid [subproc subprocess?]) exact-nonnegative-integer?]{
 
-Returns the operating system's numerical ID (if any) for the process
-represented by @racket[subproc]. The result is valid only as long as
+返回 @racket[subproc] 表示的进程的操作系统数字 ID（如果有）。 The result is valid only as long as
 the process is running.}
 
 
 @defproc[(subprocess? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a subprocess value, @racket[#f]
-otherwise.}
+如果 @racket[v] 是子进程值，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defparam[current-subprocess-custodian-mode mode (or/c #f 'kill 'interrupt)]{
@@ -428,31 +391,22 @@ real process ID).}
                  [#:set-pwd? set-pwd? any/c (member (system-type) '(unix macosx))])
          boolean?]{
 
-Executes a shell command synchronously (i.e., the call to
-@racket[system] does not return until the subprocess has ended). On
-Unix and Mac OS, @exec{/bin/sh} is used as the shell, while
-@exec{cmd.exe} or @exec{command.com} (if @exec{cmd.exe} is not found)
-is used on Windows. The @racket[command] argument is a string or
-byte string containing no nul characters. If the command succeeds, the
-return value is @racket[#t], @racket[#f] otherwise.
+同步执行 shell 命令（即，对 @racket[system] 的调用直到子进程结束后才返回）。 在 Unix 和 Mac OS 上，@exec{/bin/sh} 用作 shell，
+而在 Windows 上则使用 @exec{cmd.exe} 或 @exec{command.com} （如果找不到 @exec{cmd.exe}）。 @racket[command] 参数是一个不含 nul 字符的 string 或 byte string。
+如果命令成功，返回值为 @racket[#t]，否则为 @racket[#f]。
 
 @margin-note{See also @racket[subprocess] for notes about error
 handling and the limited buffer capacity of subprocess pipes.}
 
-If @racket[set-pwd?] is true, then the @envvar{PWD} environment
-variable is set to the value of @racket[(current-directory)] when
-starting the shell process.
+如果 @racket[set-pwd?] 为真，则 @envvar{PWD} 环境变量将设置为
+启动 shell 进程时 @racket[(current-directory)] 的值。
 
-See also @racket[current-subprocess-custodian-mode] and
-@racket[subprocess-group-enabled], which affect the subprocess used to
-implement @racket[system].
+另请参见 @racket[current-subprocess-custodian-mode] 和
+@racket[subprocess-group-enabled]，它们影响用于实现 @racket[system] 的子进程。
 
-The resulting process writes to @racket[(current-output-port)], reads
-from @racket[(current-input-port)], and logs errors to
-@racket[(current-error-port)]. To gather the process's non-error
-output to a string, for example, use @racket[with-output-to-string],
-which sets @racket[current-output-port] while calling the given
-function:
+生成的进程写入 @racket[(current-output-port)]，
+从 @racket[(current-input-port)] 读取，并将错误记录到 @racket[(current-error-port)]。 例如，要将进程的非错误输出收集为 string，请使用 @racket[with-output-to-string]，
+它在调用给定函数时配置 @racket[current-output-port]：
 
 @racketblock[
 (with-output-to-string (lambda () (system "date")))
@@ -499,8 +453,7 @@ by the subprocess. A @racket[0] result normally indicates success.}
                                [#:set-pwd? set-pwd? any/c (member (system-type) '(unix macosx))])
             byte?])]{
 
-Like @racket[system*], but returns the exit code like
-@racket[system/exit-code].}
+类似于 @racket[system*]，但像 @racket[system/exit-code] 那样返回退出码。}
 
 
 @defproc[(process [command (or/c string-no-nuls? bytes-no-nuls?)]
