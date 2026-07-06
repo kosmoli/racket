@@ -7,29 +7,17 @@
 
 @guideintro["exns"]{exceptions}
 
-See @secref["exn-model"] for information on the Racket exception
-model. It is based on a proposal by Friedman, Haynes, and Dybvig
-@cite["Friedman95"].
+关于 Racket 异常模型的信息，请参见 @secref["exn-model"]。它基于 Friedman、Haynes 和 Dybvig 的提议 @cite["Friedman95"]。
 
-Whenever a primitive error occurs in Racket, an exception is
-raised.  The value that is passed to the current @tech{exception
-handler} for a primitive error is always an instance of the
-@racket[exn] structure type. Every @racket[exn] structure value has a
-@racket[message] field that is a string, the primitive error message.
-The default exception handler recognizes exception values with the
-@racket[exn?] predicate and passes the error message to the current
-@tech{error display handler} (see @racket[error-display-handler]).
+每当 Racket 中发生原始错误时，就会引发异常。传递给当前 @tech{exception handler} 的原始错误值始终是 @racket[exn] 结构类型的实例。每个 @racket[exn] 结构值都有一个 @racket[message] 字段，该字段是一个字符串，即原始错误消息。
+默认异常处理器通过 @racket[exn?] 谓词识别异常值，并将错误消息传递给当前的 @tech{error display handler}（参见 @racket[error-display-handler]）。
 
-Primitive procedures that accept a procedure argument with a
-particular required arity (e.g., @racket[call-with-input-file],
-@racket[call/cc]) check the argument's arity immediately, raising
-@racket[exn:fail:contract] if the arity is incorrect.
+接受具有特定必需元数的过程参数的原始过程（例如 @racket[call-with-input-file]、@racket[call/cc]）会立即检查参数的元数，如果元数不正确则引发 @racket[exn:fail:contract]。
 
 @;----------------------------------------------------------------------
 @section[#:tag "err-msg-conventions"]{Error Message Conventions}
 
-Racket's @deftech{error message convention} is to produce error
-messages with the following shape:
+Racket 的 @deftech{error message convention} 是生成形状如下的错误消息：
 
 @racketblock[
   @#,nonterm{srcloc}: @#,nonterm{name}: @#,nonterm{message}@#,tt{;}
@@ -38,62 +26,26 @@ messages with the following shape:
     ...
 ]
 
-The message starts with an optional source location, @nonterm{srcloc},
-which is followed by a colon and space when present. The message
-continues with an optional @nonterm{name} that usually identifies the
-complaining function, syntactic form, or other entity, but may also
-refer to an entity being complained about; the @nonterm{name} is also
-followed by a colon and space when present.
+消息以可选的源位置 @nonterm{srcloc} 开头，当存在时后面跟冒号和空格。消息接着是可选的 @nonterm{name}，它通常标识投诉的函数、语法形式或其他实体，但也可能指代被投诉的实体；@nonterm{name} 存在时后面也跟冒号和空格。
 
-The @nonterm{message} should be relatively short, and it should be
-largely independent of specific values that triggered the error. More
-detailed explanation that requires multiple lines should continue with
-each line indented by a single space, in which case @nonterm{message}
-should end in a semi-colon (but the semi-colon should be omitted if
-@nonterm{continued-message} is not present). Message text should be
-lowercase---using semi-colons to separate sentences if needed,
-although long explanations may be better deferred to extra fields.
+@nonterm{message} 应该相对简短，并且应该很大程度上独立于触发错误的特定值。需要多行的更详细解释应该继续，每行缩进一个空格，在这种情况下 @nonterm{message} 应以分号结尾（但如果 @nonterm{continued-message} 不存在，则应省略分号）。消息文本应为小写——如果需要，使用分号分隔句子，尽管长解释可能更好地推迟到额外字段。
 
-Specific values that triggered the error or other helpful information
-should appear in separate @nonterm{field} lines, each of which is
-indented by two spaces. If a @nonterm{detail} is especially long or
-takes multiple lines, it should start on its own line after the
-@nonterm{field} label, and each of its lines should be indented by
-three spaces. Field names should be all lowercase.
+触发错误的特定值或其他有帮助的信息应出现在单独的 @nonterm{field} 行中，每行缩进两个空格。如果 @nonterm{detail} 特别长或跨越多行，它应在 @nonterm{field} 标签后的独立行上开始，并且其每行应缩进三个空格。字段名称应全部小写。
 
-A @nonterm{field} name should end with @litchar{...} if the field
-provides relatively detailed information that might be distracting in
-common cases but useful in others. For example, when a contract
-failure is reported for a particular argument of a function, other
-arguments to the function might be shown in an ``other arguments...''
-field. The intent is that fields whose names end in @litchar{...}
-might be hidden by default in an environment such as DrRacket.
+如果字段提供相对详细的信息，在常见情况下可能分散注意力但在其他情况下有用，则 @nonterm{field} 名称应以 @litchar{...} 结尾。例如，当报告函数特定参数的 contract 失败时，函数的其他参数可能显示在 ``other arguments...'' 字段中。意图是名称以 @litchar{...} 结尾的字段在 DrRacket 等环境中可能默认隐藏。
 
-Make @nonterm{field} names as short as possible, relying on
-@nonterm{message} or @nonterm{continued message} text to clarify the
-meaning for a field. For example, prefer ``given'' to ``given turtle''
-as a field name, where @nonterm{message} is something like ``given
-turtle is too sleepy'' to clarify that ``given'' refers to a turtle.
+尽可能使 @nonterm{field} 名称简短，依赖 @nonterm{message} 或 @nonterm{continued message} 文本来阐明字段的含义。例如，优先使用 ``given'' 而不是 ``given turtle'' 作为字段名称，其中 @nonterm{message} 类似于 ``given turtle is too sleepy'' 来阐明 ``given'' 指代 turtle。
 
 @;------------------------------------------------------------------------
 @section[#:tag "errorproc"]{Raising Exceptions}
 
 @defproc[(raise [v any/c] [barrier? any/c #t]) any]{
 
-Raises an exception, where @racket[v] represents the exception being
-raised. The @racket[v] argument can be anything; it is passed to the
-current @tech{exception handler}.
+引发异常，其中 @racket[v] 表示正在引发的异常。@racket[v] 参数可以是任何值；它被传递给当前的 @tech{exception handler}。
 
-If @racket[barrier?] is true, then the call to the @tech{exception
-handler} is protected by a @tech{continuation barrier}, so that
-multiple returns/escapes are impossible. All exceptions raised by
-@racketmodname[racket] functions effectively use @racket[raise] with a
-@racket[#t] value for @racket[barrier?].
+如果 @racket[barrier?] 为 true，则对 @tech{exception handler} 的调用受到 @tech{continuation barrier} 的保护，因此多次返回/转义是不可能的。@racketmodname[racket] 函数引发的所有异常都有效地使用 @racket[raise]，且 @racket[barrier?] 值为 @racket[#t]。
 
-Breaks are disabled from the time the exception is raised until the
-exception handler obtains control, and the handler itself is
-@racket[parameterize-break]ed to disable breaks initially; see
-@secref["breakhandler"] for more information on breaks.
+从异常引发到异常处理器获得控制权期间，break 被禁用，并且处理器本身被 @racket[parameterize-break] 以初始禁用 break；有关 break 的更多信息，请参见 @secref["breakhandler"]。
 
 @examples[
 (with-handlers ([number? (lambda (n)
@@ -242,9 +194,7 @@ as a ``result'' instead of an ``argument.''}
 当错误值转换处理器生成的字符串或 unquoted-printing string 中包含换行符
 但不以换行符开头时，该字符串将另起一行，
 并在每行前添加额外空格来缩进字符串内容。
-The error message generated by @racket[raise-arguments-error] is adjusted
-via @racket[error-message->adjusted-string] using the default
-@racket['racket] realm.
+@racket[raise-arguments-error] 生成的错误消息通过 @racket[error-message->adjusted-string] 进行调整，使用默认的 @racket['racket] realm。
 
 @examples[
  (eval:error
@@ -564,69 +514,28 @@ via @racket[error-message->adjusted-string] using the default
 @section{处理异常}
 @defproc[(call-with-exception-handler [f (any/c . -> . any)] [thunk (-> any)]) any]{
 
-Installs @racket[f] as the @tech{exception handler} for the
-@tech{dynamic extent} of the call to @racket[thunk]. If an exception
-is raised during the evaluation of @racket[thunk] (in an extension of
-the current continuation that does not have its own exception
-handler), then @racket[f] is applied to the @racket[raise]d value in
-the continuation of the @racket[raise] call (but the continuation is 
-normally extended
-with a @tech{continuation barrier}; see @secref["prompt-model"] and
-@racket[raise]).
+将 @racket[f] 安装为 @racket[thunk] 调用的 @tech{dynamic extent} 的 @tech{exception handler}。如果在 @racket[thunk] 求值过程中引发异常（在当前 continuation 的扩展中，该扩展没有自己的异常处理器），则 @racket[f] 在 @racket[raise] 调用的 continuation 中被应用于 @racket[raise] 的值（但 continuation 通常通过 @tech{continuation barrier} 扩展；参见 @secref["prompt-model"] 和 @racket[raise]）。
 
-Any procedure that takes one argument can be an exception handler.
-Normally, an exception handler escapes from the context of the
-@racket[raise] call via @racket[abort-current-continuation] or some other escape
-mechanism. To propagate an exception to the ``previous'' exception
-handler---that is, the exception handler associated with the rest of
-the continuation after the point where the called exception handler
-was associated with the continuation---an exception handler can simply
-return a result instead of escaping, in which case the @racket[raise] call
-propagates the value to the previous exception handler (still in the
-dynamic extent of the call to @racket[raise], and under the same
-barrier, if any). If an exception handler returns a result and no
-previous handler is available, the @tech{uncaught-exception handler}
-is used.
+任何接受一个参数的 procedure 都可以作为异常处理器。
+通常，异常处理器通过 @racket[abort-current-continuation] 或其他 escape 机制
+逃离 @racket[raise] 调用的上下文。要将异常传播到"前一个"
+异常处理器——即在被调用的异常处理器与该 continuation 关联之后、
+与该 continuation 其余部分关联的异常处理器——异常处理器可以简单地
+返回一个值而不是 escape，此时 @racket[raise] 调用
+将值传播到前一个异常处理器（仍在 @racket[raise] 调用的
+dynamic extent 内，并在相同的 barrier 下，如果有的话）。如果异常处理器
+返回一个值但没有前一个处理器可用，则使用 @tech{uncaught-exception handler}。
 
-A call to an exception handler is @racket[parameterize-break]ed to
-disable breaks, and it is wrapped with
-@racket[call-with-exception-handler] to install an exception handler
-that reports both the original and newly raised exceptions via the
-@tech{error display handler} and then escapes via the @tech{error
-escape handler}.}
+对异常处理器的调用被 @racket[parameterize-break] 以禁用 break，并且它被 @racket[call-with-exception-handler] 包装以安装一个异常处理器，该处理器通过 @tech{error display handler} 报告原始和新引发的异常，然后通过 @tech{error escape handler} 转义。}
 
 
 @defparam[uncaught-exception-handler f (any/c . -> . any)]{
 
-A @tech{parameter} that determines an @deftech{uncaught-exception handler} used by
-@racket[raise] when the relevant continuation has no exception handler
-installed with @racket[call-with-exception-handler] or
-@racket[with-handlers]. Unlike exception handlers installed with
-@racket[call-with-exception-handler], the uncaught-exception
-handler must not return a value when called by @racket[raise]; if
-it returns, an exception is raised (to be handled by an exception
-handler that reports both the original and newly raised exception).
+一个 @tech{parameter}，确定 @racket[raise] 在相关 continuation 没有通过 @racket[call-with-exception-handler] 或 @racket[with-handlers] 安装异常处理器时使用的 @deftech{uncaught-exception handler}。与通过 @racket[call-with-exception-handler] 安装的异常处理器不同，uncaught-exception handler 在被 @racket[raise] 调用时不得返回值；如果它返回，则引发异常（由报告原始和新引发异常的异常处理器处理）。
 
-The default uncaught-exception handler prints an error message using
-the current @tech{error display handler} (see @racket[error-display-handler]),
-unless the argument to the handler is an instance of @racket[exn:break:hang-up].
-If the argument to the handler is an instance of @racket[exn:break:hang-up]
-or @racket[exn:break:terminate], the default uncaught-exception handler
-then calls the @tech{exit handler} with @racket[1], which normally exits
-or escapes. For any argument, the default uncaught-exception handler
-then escapes by calling the current @tech{error escape handler} (see
-@racket[error-escape-handler]). The call to each handler is
-@racket[parameterize]d to set @racket[error-display-handler] to the
-default @tech{error display handler}, and it is @racket[parameterize-break]ed
-to disable breaks. The call to the @tech{error escape handler} is further
-parameterized to set @racket[error-escape-handler] to the default
-@tech{error escape handler}; if the @tech{error escape handler} returns, then
-the default @tech{error escape handler} is called.
+默认 uncaught-exception handler 使用当前 @tech{error display handler}（参见 @racket[error-display-handler]）打印错误消息，除非处理器的参数是 @racket[exn:break:hang-up] 的实例。如果处理器的参数是 @racket[exn:break:hang-up] 或 @racket[exn:break:terminate] 的实例，则默认 uncaught-exception handler 然后以 @racket[1] 调用 @tech{exit handler}，通常会退出或转义。对于任何参数，默认 uncaught-exception handler 然后通过调用当前 @tech{error escape handler}（参见 @racket[error-escape-handler]）转义。对每个处理器的调用被 @racket[parameterize] 以将 @racket[error-display-handler] 设置为默认 @tech{error display handler}，并且被 @racket[parameterize-break] 以禁用 break。对 @tech{error escape handler} 的调用进一步被 parameterize 以将 @racket[error-escape-handler] 设置为默认 @tech{error escape handler}；如果 @tech{error escape handler} 返回，则调用默认 @tech{error escape handler}。
 
-When the current @tech{error display handler} is the default handler, then the
-error-display call is parameterized to install an emergency error
-display handler that logs an error (see @racket[log-error]) and never
-fails.}
+当当前 @tech{error display handler} 是默认处理器时，错误显示调用被 parameterize 以安装一个紧急错误显示处理器，该处理器记录错误（参见 @racket[log-error]）且永不失败。}
 
 
 @defform[(with-handlers ([pred-expr handler-expr] ...)
@@ -674,83 +583,44 @@ fails.}
 @defform[(with-handlers* ([pred-expr handler-expr] ...)
            body ...+)]{
 
-Like @racket[with-handlers], but if a @racket[handler-expr] procedure
-is called, breaks are not explicitly disabled, and the handler call is
-in tail position with respect to the @racket[with-handlers*] form.}
+类似于 @racket[with-handlers]，但如果调用了 @racket[handler-expr] 过程，break 不会被显式禁用，且处理器调用相对于 @racket[with-handlers*] 形式处于尾位置。}
 
 @;------------------------------------------------------------------------
 
 @section{配置默认处理}
 @defparam[error-escape-handler proc (-> any)]{
 
-A parameter for the @deftech{error escape handler}, which takes no
-arguments and escapes from the dynamic context of an exception.  The
-default error escape handler escapes using
-@racket[(abort-current-continuation (default-continuation-prompt-tag)
-void)].
+@deftech{error escape handler} 的参数，它不接受参数并从异常的动态上下文中转义。默认 error escape handler 使用 @racket[(abort-current-continuation (default-continuation-prompt-tag) void)] 转义。
 
-The error escape handler is normally called directly by an exception
-handler, in a @tech{parameterization} that sets the @tech{error
-display handler} and @tech{error escape handler} to the default
-handlers, and it is normally @racket[parameterize-break]ed to disable
-breaks. To escape from a run-time error in a different context, use
-@racket[raise] or @racket[error].
+error escape handler 通常由异常处理器直接调用，在一个 @tech{parameterization} 中，该参数化将 @tech{error display handler} 和 @tech{error escape handler} 设置为默认处理器，并且通常被 @racket[parameterize-break] 以禁用 break。要在不同上下文中从运行时错误中转义，请使用 @racket[raise] 或 @racket[error]。
 
-Due to a @tech{continuation barrier} around exception-handling calls,
-an error escape handler cannot invoke a full continuation that was
-created prior to the exception, but it can abort to a prompt (see
-@racket[call-with-continuation-prompt]) or invoke an escape
-continuation (see @racket[call-with-escape-continuation]).}
+由于异常处理调用周围的 @tech{continuation barrier}，error escape handler 无法调用在异常之前创建的完整 continuation，但它可以 abort 到一个 prompt（参见 @racket[call-with-continuation-prompt]）或调用 escape continuation（参见 @racket[call-with-escape-continuation]）。}
 
 @defparam[error-display-handler proc (string? any/c . -> . any)]{
 
-A parameter for the @deftech{error display handler}, which is called
-by the default exception handler with an error message and the
-exception value. More generally, the handler's first argument is a
-string to print as an error message, and the second is a value
-representing a raised exception. An error display handler can
-print errors in different ways, but it should always print to the
-current error port.
+@deftech{error display handler} 的参数，由默认异常处理器以错误消息和异常值调用。更一般地，处理器的第一个参数是要打印为错误消息的字符串，第二个是表示引发的异常的值。error display handler 可以以不同方式打印错误，但应始终打印到当前错误端口。
 
-The default error display handler @racket[display]s its first argument
-to the current error port (determined by the
-@racket[current-error-port] parameter) and extracts a stack trace (see
-@racket[continuation-mark-set->context]) to display from the second
-argument if it is an @racket[exn] value but not an
-@racket[exn:fail:user] value.
+默认 error display handler 将其第一个参数 @racket[display] 到当前错误端口（由 @racket[current-error-port] 参数确定），并从第二个参数中提取堆栈跟踪（参见 @racket[continuation-mark-set->context]）以显示，如果它是 @racket[exn] 值但不是 @racket[exn:fail:user] 值。
 
-@margin-note{The default error display handler in DrRacket also uses
-the second argument to highlight source locations.}
+@margin-note{DrRacket 中的默认 error display handler 也使用第二个参数来高亮源位置。}
 
-To report a run-time error, use @racket[raise] or procedures like
-@racket[error], instead of calling the error display handler
-directly.}
+要报告运行时错误，请使用 @racket[raise] 或 @racket[error] 等过程，而不是直接调用 error display handler。}
 
 @defparam[error-print-width width (and/c exact-integer? (>=/c 3))]{
 
-A parameter whose value is used as the maximum number of characters
-used to print a Racket value that is embedded in a primitive error
-message.}
+一个参数，其值用作打印嵌入在原始错误消息中的 Racket 值所用的最大字符数。}
 
 @defparam[error-print-context-length cnt exact-nonnegative-integer?]{
 
-A parameter whose value is used by the default @tech{error display handler}
-as the maximum number of lines of context (or ``stack trace'') to
-print; a single ``...'' line is printed if more lines are available
-after the first @racket[cnt] lines. A @racket[0] value for
-@racket[cnt] disables context printing entirely.}
+一个参数，其值被默认的 @tech{error display handler} 用作
+打印上下文（或"stack trace"）的最大行数；
+如果在第一个 @racket[cnt] 行之后还有更多行可用，则打印一行 ``...''。
+@racket[cnt] 值为 @racket[0] 则完全禁用上下文打印。}
 
 
 @defboolparam[error-print-source-location include?]{
 
-A @tech{parameter} that controls whether read and syntax error messages
-include source information, such as the source line and column or the
-expression.  This parameter also controls the error message when a
-module-defined variable is accessed before its definition is executed;
-the parameter determines whether the message includes a module
-name. Only the message field of an @racket[exn:fail:read],
-@racket[exn:fail:syntax], or @racket[exn:fail:contract:variable]
-structure is affected by the parameter. The default is @racket[#t].}
+一个 @tech{parameter}，控制读取和语法错误消息是否包含源信息，如源行号、列号或表达式。此参数还控制当模块定义的变量在其定义执行前被访问时的错误消息；该参数确定消息是否包含模块名称。只有 @racket[exn:fail:read]、@racket[exn:fail:syntax] 或 @racket[exn:fail:contract:variable] 结构的 message 字段受此参数影响。默认值为 @racket[#t]。}
 
 
 @defparam[error-value->string-handler proc (any/c exact-nonnegative-integer?
@@ -882,86 +752,69 @@ exn
 @defstruct[(exn:fail exn) ()
            #:inspector #f]{
 
-Raised for exceptions that represent errors, as opposed to
-@racket[exn:break].}
+针对表示错误的异常（相对于 @racket[exn:break]）而引发。}
 
 
 @defstruct[(exn:fail:contract exn:fail) ()
            #:inspector #f]{
 
-Raised for errors from the inappropriate run-time use of a function or
-syntactic form.}
+针对函数或语法形式的不当运行时使用导致的错误而引发。}
 
 @defstruct[(exn:fail:contract:arity exn:fail:contract) ()
            #:inspector #f]{
 
-Raised when a procedure is applied to the wrong number of arguments.}
+当过程应用于错误数量的参数时引发。}
 
 @defstruct[(exn:fail:contract:divide-by-zero exn:fail:contract) ()
            #:inspector #f]{
 
-Raised for division by exact zero.}
+针对除以精确零而引发。}
 
 @defstruct[(exn:fail:contract:non-fixnum-result exn:fail:contract) ()
            #:inspector #f]{
 
-Raised by functions like @racket[fx+] when the result would not be a fixnum.}
+当结果不是 fixnum 时，由 @racket[fx+] 等函数引发。}
 
 @defstruct[(exn:fail:contract:continuation exn:fail:contract) ()
            #:inspector #f]{
 
-Raised when a continuation is applied where the jump would cross a
-continuation barrier.}
+当 continuation 被应用但跳转会跨越 continuation barrier 时引发。}
 
 @defstruct[(exn:fail:contract:variable exn:fail:contract) ([id symbol?])
            #:inspector #f]{
 
-Raised for a reference to a not-yet-defined @tech{top-level variable}
-or @tech{module-level variable}.}
+针对引用尚未定义的 @tech{top-level variable} 或 @tech{module-level variable} 而引发。}
 
 @defstruct[(exn:fail:syntax exn:fail) ([exprs (listof syntax?)])
            #:inspector #f]{
 
-Raised for a syntax error that is not a @racket[read] error. The
-@racket[exprs] indicate the relevant source expressions,
-least-specific to most-specific.
+针对不是 @racket[read] 错误的语法错误而引发。@racket[exprs] 指示相关的源表达式，从最不具体到最具体。
 
-This structure type implements the @racket[prop:exn:srclocs] property.}
+此结构类型实现了 @racket[prop:exn:srclocs] 属性。}
 
 @defstruct[(exn:fail:syntax:unbound exn:fail:syntax) ()
            #:inspector #f]{
 
-Raised by @racket[#%top] or @racket[set!] for an
-unbound identifier within a module.}
+针对模块内未绑定的标识符，由 @racket[#%top] 或 @racket[set!] 引发。}
 
 @defstruct[(exn:fail:syntax:missing-module exn:fail:syntax) ([path module-path?])
            #:inspector #f]{
 
-Raised by the default @tech{module name resolver} or default
-@tech{load handler} to report a module path---a reported in the
-@racket[path] field---whose implementation file cannot be
-found.
+由默认 @tech{module name resolver} 或默认 @tech{load handler} 引发，以报告一个模块路径——在 @racket[path] 字段中报告——其实现文件无法找到。
 
-The default @tech{module name resolver} raises this exception only
-when it is given a syntax object as its second argument, and the
-default @tech{load handler} raises this exception only when the value
-of @racket[current-module-path-for-load] is a syntax object (in which
-case both the @racket[exprs] field and the @racket[path] field
-are determined by the syntax object).
+默认 @tech{module name resolver} 仅在给定语法对象作为其第二个参数时引发此异常，默认 @tech{load handler} 仅在 @racket[current-module-path-for-load] 的值是语法对象时引发此异常（在这种情况下，@racket[exprs] 字段和 @racket[path] 字段都由语法对象确定）。
 
-This structure type implements the @racket[prop:exn:missing-module] property.}
+此结构类型实现了 @racket[prop:exn:missing-module] 属性。}
 
 @defstruct[(exn:fail:read exn:fail) ([srclocs (listof srcloc?)])
            #:inspector #f]{
 
-Raised for a @racket[read] error. The @racket[srclocs] indicate the
-relevant source expressions.}
+针对 @racket[read] 错误而引发。@racket[srclocs] 指示相关的源表达式。}
 
 @defstruct[(exn:fail:read:eof exn:fail:read) ()
            #:inspector #f]{
 
-Raised for a @racket[read] error, specifically when the error is due
-to an unexpected end-of-file.}
+针对 @racket[read] 错误而引发，特别是当错误是由于意外的文件结束时。}
 
 @defstruct[(exn:fail:read:non-char exn:fail:read) ()
            #:inspector #f]{
@@ -973,119 +826,79 @@ input stream.}
 @defstruct[(exn:fail:filesystem exn:fail) ()
            #:inspector #f]{
 
-Raised for an error related to the filesystem (such as a file not
-found).}
+针对与文件系统相关的错误（如文件未找到）而引发。}
 
 @defstruct[(exn:fail:filesystem:exists exn:fail:filesystem) ()
            #:inspector #f]{
 
-Raised for an error when attempting to create a file that exists
-already.}
+针对尝试创建已存在文件时的错误而引发。}
 
 @defstruct[(exn:fail:filesystem:version exn:fail:filesystem) ()
            #:inspector #f]{
 
-Raised for a version-mismatch error when loading an extension.}
+针对加载扩展时的版本不匹配错误而引发。}
 
 @defstruct[(exn:fail:filesystem:errno exn:fail:filesystem) ([errno (cons/c exact-integer? (or/c 'posix 'windows 'gai))])
            #:inspector #f]{
 
-Raised for a filesystem error for which a system error code is
-available. The symbol part of an @racket[errno] field indicates the
-category of the error code: @racket['posix] indicates a C/Posix
-@tt{errno} value, @racket['windows] indicates a Windows system error
-code (under Windows, only), and @racket['gai] indicates a
-@tt{getaddrinfo} error code (which shows up only in
-@racket[exn:fail:network:errno] exceptions for operations that resolve
-hostnames, but is allowed in @racket[exn:fail:filesystem:errno]
-instances for consistency).
+针对有系统错误码可用的文件系统错误而引发。@racket[errno] 字段的符号部分指示错误码的类别：@racket['posix] 表示 C/Posix @tt{errno} 值，@racket['windows] 表示 Windows 系统错误码（仅在 Windows 下），@racket['gai] 表示 @tt{getaddrinfo} 错误码（仅出现在解析主机名的操作的 @racket[exn:fail:network:errno] 异常中，但为了一致性也允许在 @racket[exn:fail:filesystem:errno] 实例中出现）。
 
-See also @racket[exn-classify-errno].}
+另请参见 @racket[exn-classify-errno]。}
 
 @defstruct[(exn:fail:filesystem:missing-module exn:fail:filesystem) ([path module-path?])
            #:inspector #f]{
 
-Raised by the default @tech{module name resolver} or default
-@tech{load handler} to report a module path---a reported in the
-@racket[path] field---whose implementation file cannot be
-found.
-
-The default @tech{module name resolver} raises this exception only
-when it is @emph{not} given a syntax object as its second argument, and the
-default @tech{load handler} raises this exception only when the value
-of @racket[current-module-path-for-load] is @emph{not} a syntax object.
-
-This structure type implements the @racket[prop:exn:missing-module] property.}
+由默认 @tech{module name resolver} 或默认 @tech{load handler} 引发，以报告一个模块路径——在 @racket[path] 字段中报告——其实现文件无法找到。默认 @tech{module name resolver} 仅在 @emph{未} 给定语法对象作为其第二个参数时引发此异常，默认 @tech{load handler} 仅在 @racket[current-module-path-for-load] 的值 @emph{不是} 语法对象时引发此异常。此结构类型实现了 @racket[prop:exn:missing-module] 属性。}
 
 @defstruct[(exn:fail:network exn:fail) ()
            #:inspector #f]{
 
-Raised for TCP and UDP errors.}
+针对 TCP 和 UDP 错误而引发。}
 
 @defstruct[(exn:fail:network:errno exn:fail:network) ([errno (cons/c exact-integer? (or/c 'posix 'windows 'gai))])
            #:inspector #f]{
 
-Raised for a TCP or UDP error for which a system error code is
-available, where the @racket[errno] field is as for
-@racket[exn:fail:filesystem:errno].
+针对有系统错误码可用的 TCP 或 UDP 错误而引发，其中 @racket[errno] 字段与 @racket[exn:fail:filesystem:errno] 相同。
 
-See also @racket[exn-classify-errno].}
+另请参见 @racket[exn-classify-errno]。}
 
 
 @defstruct[(exn:fail:out-of-memory exn:fail) ()
            #:inspector #f]{
 
-Raised for an error due to insufficient memory, in cases where sufficient
-memory is at least available for raising the exception.}
+针对因内存不足导致的错误而引发，在这种情况下至少有足够的内存用于引发异常。}
 
 @defstruct[(exn:fail:unsupported exn:fail) ()
            #:inspector #f]{
 
-Raised for an error due to an unsupported feature on the current
-platform or configuration.}
+针对因当前平台或配置上不支持的功能导致的错误而引发。}
 
 @defstruct[(exn:fail:user exn:fail) ()
            #:inspector #f]{
 
-Raised for errors that are intended to be seen by end users. In
-particular, the default error printer does not show the program
-context when printing the error message.}
+针对预期给最终用户查看的错误而引发。特别是，默认错误打印机在打印错误消息时不显示程序上下文。}
 
 @defstruct[(exn:break exn) ([continuation continuation?])
            #:inspector #f]{
 
-Raised asynchronously (when enabled) in response to a break request.
-The @racket[continuation] field can be used to resume the interrupted
-computation in the @tech{uncaught-exception handler} or
-@racket[call-with-exception-handler] (but @emph{not}
-@racket[with-handlers] because it escapes from the exception context
-before evaluating any predicates or handlers).}
+异步引发（当启用时）以响应 break 请求。@racket[continuation] 字段可用于在 @tech{uncaught-exception handler} 或 @racket[call-with-exception-handler] 中恢复被中断的计算（但 @emph{不是} @racket[with-handlers]，因为它在求值任何谓词或处理器之前从异常上下文中转义）。}
 
 @defstruct[(exn:break:hang-up exn:break) ()
            #:inspector #f]{
 
-Raised asynchronously for hang-up breaks. The default
- @tech{uncaught-exception handler} reacts to this exception type by
- calling the @tech{exit handler}.}
+针对挂断 break 异步引发。默认 @tech{uncaught-exception handler} 通过调用 @tech{exit handler} 来响应此异常类型。}
 
 @defstruct[(exn:break:terminate exn:break) ()
            #:inspector #f]{
 
-Raised asynchronously for termination-request breaks. The default
- @tech{uncaught-exception handler} reacts to this exception type by
- calling the @tech{exit handler}.}
+针对终止请求 break 异步引发。默认 @tech{uncaught-exception handler} 通过调用 @tech{exit handler} 来响应此异常类型。}
 
 
 @defthing[prop:exn:srclocs struct-type-property?]{
 
-A property that identifies structure types that provide a list of
-@racket[srcloc] values. The property is normally attached to structure
-types used to represent exception information.
+一个属性，标识提供 @racket[srcloc] 值列表的结构类型。该属性通常附加到用于表示异常信息的结构类型上。
 
-The property value must be a procedure that accepts a single
-value---the structure type instance from which to extract source
-locations---and returns a list of @racket[srcloc]s. Some @tech{error
-display handlers} use only the first returned location.}
+属性值必须是一个过程，该过程接受单个值——从中提取源位置的结构类型实例——并返回 @racket[srcloc] 的列表。一些 @tech{error display handlers} 只使用第一个返回的位置。}
 
 As an example,
 @codeblock|{
@@ -1139,14 +952,13 @@ As an example,
 
 @defproc[(exn:srclocs? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] has the @racket[prop:exn:srclocs]
-property, @racket[#f] otherwise.}
+如果 @racket[v] 具有 @racket[prop:exn:srclocs] 属性则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(exn:srclocs-accessor [v exn:srclocs?])
          (exn:srclocs? . -> . (listof srcloc))]{
 
-Returns the @racket[srcloc]-getting procedure associated with @racket[v].}
+返回与 @racket[v] 关联的 @racket[srcloc] 获取过程。}
 
 
 @defstruct[srcloc ([source any/c]
@@ -1180,38 +992,29 @@ Returns the @racket[srcloc]-getting procedure associated with @racket[v].}
  @item{@racket[span] --- 覆盖的位置数 (从 0 开始计数) 或 @racket[#f] (未知)。}
 ]
 
-See @secref["print-compiled"] for information about the treatment of
-@racket[srcloc] values that are embedded in compiled code.}
+关于嵌入在编译代码中的 @racket[srcloc] 值的处理，请参见 @secref["print-compiled"]。}
 
 
 @defproc[(srcloc->string [srcloc srcloc?]) (or/c string? #f)]{
 
-Formats @racket[srcloc] as a string suitable for error reporting.  A
-path source in @racket[srcloc] is shown relative to the value of
-@racket[current-directory-for-user]. The result is @racket[#f] if
-@racket[srcloc] does not contain enough information to format a
-string.}
+将 @racket[srcloc] 格式化为适合错误报告的字符串。@racket[srcloc] 中的路径源相对于 @racket[current-directory-for-user] 的值显示。如果 @racket[srcloc] 没有包含足够的信息来格式化字符串，则结果为 @racket[#f]。}
 
 
 @defthing[prop:exn:missing-module struct-type-property?]{
 
-A property that identifies structure types that provide a module path
-for a load that fails because a module is not found.
+一个属性，标识为因模块未找到而失败的加载提供模块路径的结构类型。
 
-The property value must be a procedure that accepts a single
-value---the structure type instance from which to extract source
-locations---and returns a @tech{module path}.}
+属性值必须是一个过程，该过程接受单个值——从中提取源位置的结构类型实例——并返回一个 @tech{module path}。}
 
 @defproc[(exn:missing-module? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] has the @racket[prop:exn:missing-module]
-property, @racket[#f] otherwise.}
+如果 @racket[v] 具有 @racket[prop:exn:missing-module] 属性则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(exn:missing-module-accessor [v exn:srclocs?])
          (exn:missing-module? . -> . module-path?)]{
 
-Returns the @tech{module path}-getting procedure associated with @racket[v].}
+返回与 @racket[v] 关联的 @tech{module path} 获取过程。}
 
 @defproc[(exn-classify-errno [exn/errno (or/c exn? (cons/c exact-integer? (or/c 'posix 'windows 'gai)))])
          (or/c symbol? #f)]{
@@ -1240,10 +1043,7 @@ Returns the @tech{module path}-getting procedure associated with @racket[v].}
 
 @defproc[(exn->string [exn (or/c exn? any/c)]) string?]{
 
-Formats @racket[exn] as a string. If @racket[exn] is an @racket[exn?],
-collects and returns the output from the current
-@racket[(error-display-handler)]; otherwise, simply converts
-@racket[exn] to a string using @racket[(format "~s\n" exn)].}
+将 @racket[exn] 格式化为字符串。如果 @racket[exn] 是 @racket[exn?]，则收集并返回当前 @racket[(error-display-handler)] 的输出；否则，使用 @racket[(format "~s\n" exn)] 将 @racket[exn] 简单地转换为字符串。}
 
 @;----------------------------------------------------------------------
 
