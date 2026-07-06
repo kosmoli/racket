@@ -10,9 +10,7 @@
 
 @defproc[(serializable? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] appears to be serializable, without
-checking the content of compound values, and @racket[#f] otherwise.
-See @racket[serialize] for an enumeration of serializable values.}
+ 如果 @racket[v] 看起来是可序列化的（不检查复合值的内容）则返回 @racket[#t]，否则返回 @racket[#f]。参见 @racket[serialize] 了解可序列化值的枚举。}
 
 @; ----------------------------------------------------------------------
 
@@ -31,163 +29,80 @@ See @racket[serialize] for an enumeration of serializable values.}
                      relative-to])
          any]{
 
-Returns a value that encapsulates the value @racket[v]. This value
-includes only readable values, so it can be written to a stream with
-@racket[write] or @racket[s-exp->fasl], later read from a stream using
-@racket[read] or @racket[fasl->s-exp], and then converted to a value
-like the original using @racket[deserialize]. Serialization followed
-by deserialization produces a value with the same graph structure and
-mutability as the original value, but the serialized value is a plain
-tree (i.e., no sharing).
+ 返回封装 @racket[v] 值的一个值。该值仅包含可读值，因此可以使用 @racket[write] 或 @racket[s-exp->fasl] 写入流，然后在之后使用 @racket[read] 或 @racket[fasl->s-exp] 从流中读取，再使用 @racket[deserialize] 转换为类似的值。序列化后反序列化产生的值与原值具有相同的图结构和可变性，但序列化的值是普通树（即无共享）。
 
-The following kinds of values are @deftech{serializable}:
+ 以下类型的值是 @deftech{可序列化} 的：
 
 @itemize[
 
- @item{structures created through @racket[serializable-struct] or
-       @racket[serializable-struct/versions], or more generally
-       structures with the @racket[prop:serializable] property (see
-       @racket[prop:serializable] for more information);}
+ @item{通过 @racket[serializable-struct] 或 @racket[serializable-struct/versions] 创建的结构，或更一般性地，具有 @racket[prop:serializable] 属性的结构（参见 @racket[prop:serializable] 了解更多信息）；}
 
- @item{@techlink{prefab} structures;}
+ @item{@techlink{prefab} 结构；}
 
- @item{instances of classes defined with @racket[define-serializable-class]
-       or @racket[define-serializable-class*];}
+ @item{使用 @racket[define-serializable-class] 或 @racket[define-serializable-class*] 定义的类的实例；}
 
- @item{@tech{booleans}, @tech{numbers}, @tech{characters}, @tech{interned} symbols,
-       @tech{unreadable symbols}, @tech{keywords}, @tech{strings}, @tech{byte strings}, @tech{paths} (for a
-       specific convention), @tech{regexp values}, @|void-const|, and the empty list;}
+ @item{@tech{booleans}、@tech{numbers}、@tech{characters}、@tech{interned} symbols、@tech{unreadable symbols}、@tech{keywords}、@tech{strings}、@tech{byte strings}、@tech{paths}（对于特定约定）、@tech{regexp values}、@|void-const| 和空列表；}
 
- @item{@tech{pairs}, @tech{mutable pairs}, @tech{vectors}, @tech{flvectors}, @tech{fxvectors},
-       @tech{box}es, @tech{hash tables}, @tech{sets}, and @tech{treelists};}
+ @item{@tech{pairs}、@tech{mutable pairs}、@tech{vectors}、@tech{flvectors}、@tech{fxvectors}、@tech{box}es、@tech{hash tables}、@tech{sets} 和 @tech{treelists}；}
 
- @item{@racket[date], @racket[date*], @racket[arity-at-least] and @racket[srcloc]
-       structures; and}
- 
- @item{@tech{module path index} values.}
+ @item{@racket[date]、@racket[date*]、@racket[arity-at-least] 和 @racket[srcloc] 结构；和}
+
+ @item{@tech{module path index} 值。}
 
 ]
 
-Serialization succeeds for a compound value, such as a pair, only if
-all content of the value is serializable.  If a value given to
-@racket[serialize] is not completely serializable, the
-@exnraise[exn:fail:contract].
+ 对于复合值（如 pair），仅当值的所有内容都可序列化时，序列化才能成功。如果完全序列化 @racket[serialize] 的值不完全可序列化，将引发 @exnraise[exn:fail:contract]。
 
-If @racket[v] contains a cycle (i.e., a collection of objects that
-are all reachable from each other), then @racket[v] can be serialized
-only if the cycle includes a mutable value, where a @tech{prefab}
-structure counts as mutable only if all of its fields are mutable.
+ 如果 @racket[v] 包含循环（即彼此可达的对象集合），则只有在循环包含可变值时，@racket[v] 才能被序列化，其中 @tech{prefab} 结构仅在其所有字段都可变时才被视为可变。
 
-If @racket[relative-to] is not @racket[#f], then paths to serialize
-that extend the path in @racket[relative-to] are recorded in relative
-and platform-independent form. The possible values and treatment of
-@racket[relative-to] are the same as for @racket[current-write-relative-directory].
+ 如果 @racket[relative-to] 不为 @racket[#f]，则将扩展 @racket[relative-to] 中路径的路径序列化为相对且平台独立的形式。@racket[relative-to] 的可能值和对待方式与 @racket[current-write-relative-directory] 相同。
 
-If @racket[deserialize-relative-to] is not @racket[#f], then any paths
-to deserializers as extracted via @racket[prop:serializable] are
-recorded in relative form. Note that @racket[relative-to] and
-@racket[deserialize-relative-to] are independent, but
-@racket[deserialize-relative-to] defaults to @racket[relative-to].
+ 如果 @racket[deserialize-relative-to] 不为 @racket[#f]，则通过 @racket[prop:serializable] 提取的任何反序列化器路径均以相对形式记录。注意，@racket[relative-to] 和 @racket[deserialize-relative-to] 是独立的，但 @racket[deserialize-relative-to] 默认为 @racket[relative-to]。
 
-@margin-note{The @racket[serialize] and @racket[deserialize] functions
-currently do not handle certain cyclic values that @racket[read] and
-@racket[write] can handle, such as @racket['@#,read[(open-input-string "#0=(#0#)")]].}
+@margin-note{@racket[serialize] 和 @racket[deserialize] 函数目前不处理 @racket[read] 和 @racket[write] 可以处理的某些循环值，例如 @racket['@#,read[(open-input-string "#0=(#0#)")]]。}
 
-See @racket[deserialize] for information on the format of serialized
-data.
+ 参见 @racket[deserialize] 了解序列化数据的格式。
 
-@history[#:changed "6.5.0.4" @elem{Added keywords and regexp values as serializable.}
-         #:changed "7.0.0.6" @elem{Added the @racket[#:relative-directory] and
-                                   @racket[#:deserialize-relative-directory] arguments.}]}
+@history[#:changed "6.5.0.4" @elem{添加 keywords 和 regexp values 作为可序列化。}
+         #:changed "7.0.0.6" @elem{添加了 @racket[#:relative-directory] 和 @racket[#:deserialize-relative-directory] 参数。}]}
 
 @; ----------------------------------------------------------------------
 
 @defproc[(deserialize [v any/c]) any]{
 
-Given a value @racket[v] that was produced by @racket[serialize],
-produces a value like the one given to @racket[serialize], including
-the same graph structure and mutability.
+ 给定 @racket[serialize] 生成的值 @racket[v]，产生类似于传递给 @racket[serialize] 的值，包括相同的图结构和可变性。
 
-A serialized representation @racket[v] is a list of six or seven
-elements:
+ 序列化表示 @racket[v] 是包含六或七个元素的列表：
 
 @itemize[
 
- @item{An optional list @racket['(1)], @racket['(2)], @racket['(3)],
-       or  @racket['(4)] that represents
-       the version of the serialization format. If the first element
-       of a representation is not a list, then the version is
-       @racket[0]. Version 1 adds support for mutable pairs,
-       version 2 adds support for @tech{unreadable symbols},
-       version 3 adds support for @racket[date*] structures,
-       and version 4 adds support for paths that are meant to
-       be relative to the deserialization directory.}
+ @item{可选列表 @racket['(1)]、@racket['(2)]、@racket['(3)] 或 @racket['(4)]，表示序列化格式的版本。如果表示的第一个元素不是列表，则版本为 @racket[0]。版本 1 添加对可变对的支持，版本 2 添加对 @tech{unreadable symbols} 的支持，版本 3 添加对 @racket[date*] 结构的支持，版本 4 添加对相对于反序列化目录的路径的支持。}
 
- @item{A non-negative exact integer @racket[_s-count] that represents the
-       number of distinct structure types represented in the
-       serialized data.}
+ @item{一个表示序列化数据结构中表示的不同结构类型数量的非负精确整数 @racket[_s-count]。}
 
- @item{A list @racket[_s-types] of length @racket[_s-count],
-   where each element represents a structure type. Each
-   structure type is encoded as a pair. The @racket[car] of the
-   pair is @racket[#f] for a structure whose deserialization
-   information is defined at the top level, otherwise it is a
-   quoted @tech{module path}, a byte string (to be converted
-   into a platform-specific path using @racket[bytes->path])
-   for a module that exports the structure's deserialization
-   information, or a relative path element list for a module to
-   be resolved with respect to
-   @racket[current-load-relative-directory] or (as a fallback)
-   @racket[current-directory]; the list-of-relative-elements
-   form is produced by @racket[serialize] when
-   the @racket[#:deserialize-relative-directory] argument is
-   not @racket[#f]. The @racket[cdr] of the pair is the
-   name of a binding (at the top level or exported from a
-   module) for deserialization information, either a symbol or
-   a string representing an @tech{unreadable symbol}. These two
-   are used with either @racket[namespace-variable-binding] or
-   @racket[dynamic-require] to obtain deserialization
-   information. See @racket[make-deserialize-info] for more
-   information on the binding's value. See also
-   @racket[deserialize-module-guard].}
+ @item{一个 @racket[_count] 长度的列表 @racket[_s-types]，其中每个元素表示一个结构类型。每个结构类型编码为一个 pair。该 pair 的 @racket[car] 是 @racket[#f]（如果结构的反序列化信息在顶层定义），否则为引用的 @tech{module path}、字节串（将使用 @racket[bytes->path] 转换为平台相关路径）用于导出结构反序列化信息的模块，或相对路径元素列表用于相对于 @racket[current-load-relative-directory] 或（作为备选）@racket[current-directory] 解析的模块；list-of-relative-elements 形式由 @racket[serialize] 在 @racket[#:deserialize-relative-directory] 参数不为 @racket[#f] 时生成。该 pair 的 @racket[cdr] 是用于反序列化信息的绑定名称（在顶层或从模块导出），可以是表示 @tech{unreadable symbol} 的符号或字符串。这两者与 @racket[namespace-variable-binding] 或 @racket[dynamic-require] 一起使用以获得反序列化信息。参见 @racket[make-deserialize-info] 了解绑定值的更多信息。另参见 @racket[deserialize-module-guard]。}
 
- @item{A non-negative exact integer, @racket[_g-count] that represents the
-       number of graph points contained in the following list.}
+ @item{列表中包含的图点数量的非负精确整数 @racket[_g-count]。}
 
- @item{A list @racket[_graph] of length @racket[_g-count], where each element
-       represents a serialized value to be referenced during the
-       construction of other serialized values. Each list element is
-       either a box or not:
+ @item{一个长度 @racket[_g-count] 的列表 @racket[_graph]，其中每个元素表示序列化值，在构建其他序列化值时引用。每个列表元素要么是 box，要么不是：
 
       @itemize[
 
-       @item{A box represents a value that is part of a cycle, and for
-            deserialization, it must be allocated with @racket[#f] for
-            each of its fields. The content of the box indicates the
-            shape of the value:
+       @item{box 表示作为循环一部分的值，对于反序列化，其字段必须用 @racket[#f] 分配。box 的内容指示值的形状：
 
             @itemize[
 
-            @item{a non-negative exact integer @racket[_i] for an instance
-                  of a structure type that is represented by the
-                  @racket[_i]th element of the @racket[_s-types] list;}
+            @item{一个非负精确整数 @racket[_i]，表示由 @racket[_s-types] 列表的第 @racket[_i] 个元素表示的结构类型的实例；}
 
-            @item{@racket['c] for a pair, which fails on
-                  deserialization (since pairs are immutable; this
-                  case does not appear in output generated by
-                  @racket[serialize]);}
- 
-            @item{@racket['m] for a mutable pair;}
- 
-            @item{@racket['b] for a box;}
+            @item{@racket['c] 对 pair，反序列化时将失败（因为 pair 不可变此情况不会出现在 @racket[serialize] 的输出中）；}
 
-            @item{a pair whose @racket[car] is @racket['v] and whose
-                  @racket[cdr] is a non-negative exact integer @racket[_s]
-                  for a vector of length @racket[_s];}
+            @item{@racket['m] 对可变 pair；}
 
-            @item{a list whose first element is @racket['h] and whose
-                  remaining elements are symbols that determine the
-                  hash-table type:
+            @item{@racket['b] 对 box；}
+
+            @item{@racket[car] 为 @racket['v]、@racket[cdr] 为非负精确整数 @racket[_s] 的 pair，表示长度为 @racket[_s] 的向量；}
+
+            @item{第一个元素为 @racket['h]、其余元素为确定 hash table 类型的符号的列表：
 
                   @itemize[
                     @item{@racket['equal] --- @racket[(make-hash)]}
@@ -196,215 +111,106 @@ elements:
                     @item{no symbols --- @racket[(make-hasheq)]}
                   ]}
 
-            @item{@racket['date*] for a @racket[date*] structure, which
-                  fails on deserialization (since dates are immutable;
-                  this case does not appear in output generated by
-                  @racket[serialize]);}
+            @item{@racket['date*] 对 @racket[date*] 结构，反序列化时将失败（因为 dates 不可变此情况不会出现在 @racket[serialize] 的输出中）；}
 
-            @item{@racket['date] for a @racket[date] structure, which
-                  fails on deserialization (since dates are immutable;
-                  this case does not appear in output generated by
-                  @racket[serialize]);}
+            @item{@racket['date] 对 @racket[date] 结构，反序列化时将失败（因为 dates 不可变此情况不会出现在 @racket[serialize] 的输出中）；}
 
-            @item{@racket['arity-at-least] for an
-                  @racket[arity-at-least] structure, which fails on
-                  deserialization (since arity-at-least are immutable; this
-                  case does not appear in output generated by
-                  @racket[serialize]); or}
+            @item{@racket['arity-at-least] 对 @racket[arity-at-least] 结构，反序列化时将失败（因为 arity-at-least 不可变此情况不会出现在 @racket[serialize] 的输出中）；或}
 
-            @item{@racket['mpi] for a @tech{module path index}, which
-                  fails on deserialization (since a module path index is immutable;
-                  this case does not appear in output generated by
-                  @racket[serialize]).}
+            @item{@racket['mpi] 对 @tech{module path index}，反序列化时将失败（因为 module path index 不可变此情况不会出现在 @racket[serialize] 的输出中）。}
 
-            @item{@racket['srcloc] for a @racket[srcloc] structure, which
-                  fails on deserialization (since srclocs are immutable;
-                  this case does not appear in output generated by
-                  @racket[serialize]).}
+            @item{@racket['srcloc] 对 @racket[srcloc] 结构，反序列化时将失败（因为 srclocs 不可变此情况不会出现在 @racket[serialize] 的输出中）。}
             ]
 
-            The @racket[#f]-filled value will be updated with content specified
-            by the fifth element of the serialization list @racket[v].}
+            使用 @racket[#f] 填充的值将由序列化列表 @racket[v] 的第五个元素指定的内容更新。}
 
-       @item{A non-box represents a @defterm{serial} value to be
-             constructed immediately, and it is one of the following:
+       @item{非 box 表示立即构建的 @defterm{serial} 值，它是以下之一：
 
             @itemize[
 
-            @item{a boolean, number, character, interned symbol, or empty list,
-                  representing itself.}
+            @item{boolean、number、character、interned symbol 或空列表，表示自身。}
 
-            @item{a string, representing an immutable string.}
+            @item{string，表示不可变字符串。}
 
-            @item{a byte string, representing an immutable byte
-                  string.}
+            @item{byte string，表示不可变字节串。}
 
-            @item{a pair whose @racket[car] is @racket['?] and whose
-                  @racket[cdr] is a non-negative exact integer
-                  @racket[_i]; it represents the value constructed for the
-                  @racket[_i]th element of @racket[_graph], where @racket[_i] is
-                  less than the position of this element within
-                  @racket[_graph].}
+            @item{@racket[car] 为 @racket['?]、@racket[cdr] 为非负精确整数 @racket[_i] 的 pair；表示 @racket[_graph] 的第 @racket[_i] 个元素构建的值，其中 @racket[_i] 小于该元素在 @racket[_graph] 中的位置。}
 
-            @item{a pair whose @racket[car] is a number @racket[_i]; it
-                  represents an instance of a structure type that is
-                  described by the @racket[_i]th element of the
-                  @racket[_s-types] list. The @racket[cdr] of the pair is
-                  a list of serials representing arguments to be
-                  provided to the structure type's deserializer.}
+            @item{@racket[car] 为数字 @racket[_i] 的 pair；表示由 @racket[_s-types] 列表的第 @racket[_i] 个元素描述的结构类型实例。该 pair 的 @racket[cdr] 是 serial 列表，表示提供给结构类型反序列化器的参数。}
 
-            @item{a pair whose @racket[car] is @racket['q] and whose
-                  @racket[cdr] is an immutable value; it represents
-                  the quoted value.}
+            @item{@racket[car] 为 @racket['q]、@racket[cdr] 为不可变值的 pair；表示引用的值。}
 
-            @item{a pair whose @racket[car] is @racket['f]; it
-                  represents an instance of a @tech{prefab} structure
-                  type. The @racket[cadr] of the pair is a @tech{prefab}
-                  structure type key, and the @racket[cddr] is a list of
-                  serials representing the field values.}
+            @item{@racket[car] 为 @racket['f] 的 pair；表示 @tech{prefab} 结构类型的实例。该 pair 的 @racket[cadr] 是 @tech{prefab} 结构类型键，@racket[cddr] 是 serial 列表，表示字段值。}
 
-            @item{a pair whose @racket[car] is @racket['void],
-                  representing @|void-const|.}
+            @item{@racket[car] 为 @racket['void] 的 pair，表示 @|void-const|。}
 
-            @item{a pair whose @racket[car] is @racket['su] and whose
-                  @racket[cdr] is a character string; it represents an
-                  @tech{unreadable symbol}.}
+            @item{@racket[car] 为 @racket['su]、@racket[cdr] 为字符 string 的 pair；表示 @tech{unreadable symbol}。}
 
-            @item{a pair whose @racket[car] is @racket['u] and whose
-                  @racket[cdr] is either a byte string or character
-                  string; it represents a mutable byte or character
-                  string.}
+            @item{@racket[car] 为 @racket['u]、@racket[cdr] 为 byte string 或字符 string 的 pair；表示可变 byte 或 character string。}
 
-            @item{a pair whose @racket[car] is @racket['p] and whose
-                  @racket[cdr] is a byte string; it represents a 
-                  path using the serializer's path convention 
-                  (deprecated in favor of @racket['p+]).}
+            @item{@racket[car] 为 @racket['p]、@racket[cdr] 为 byte string 的 pair；表示使用序列化器路径约定的路径（已弃用，推荐使用 @racket['p+]）。}
 
-            @item{a pair whose @racket[car] is @racket['p+], whose
-                  @racket[cadr] is a byte string, and whose @racket[cddr]
-                  is one of the possible symbol results of 
-                  @racket[system-path-convention-type]; it represents a 
-                  path using the specified convention.}
+            @item{@racket[car] 为 @racket['p+]、@racket[cadr] 为 byte string、@racket[cddr] 为 @racket[system-path-convention-type] 的可能符号结果之一的 pair；表示使用指定约定的路径。}
 
-            @item{a pair whose @racket[car] is @racket['p*] and whose
-                  @racket[cdr] is a list of byte strings represents a 
-                  relative path; it will be converted by deserialization
-                  based on @racket[current-load-relative-directory],
-                  falling back to @racket[current-directory].}
+            @item{@racket[car] 为 @racket['p*]、@racket[cdr] 为 byte string 列表的 pair 表示相对路径；它将由反序列化基于 @racket[current-load-relative-directory] 转换，备选使用 @racket[current-directory]。}
 
-            @item{a pair whose @racket[car] is @racket['c] and whose
-                  @racket[cdr] is a pair of serials; it represents an
-                  immutable pair.}
+            @item{@racket[car] 为 @racket['c]、@racket[cdr] 为 serial 对的 pair；表示不可变 pair。}
 
-            @item{a pair whose @racket[car] is @racket['c!] and whose
-                  @racket[cdr] is a pair of serials; it represents a
-                  pair (but formerly represented a mutable pair), and
-                  does not appear in output generated by
-                  @racket[serialize].}
+            @item{@racket[car] 为 @racket['c!]、@racket[cdr] 为 serial 对的 pair；表示 pair（但原先表示可变 pair），不出现在 @racket[serialize] 生成的输出中。}
 
-            @item{a pair whose @racket[car] is @racket['m] and whose
-                  @racket[cdr] is a pair of serials; it represents a
-                  mutable pair.}
+            @item{@racket[car] 为 @racket['m]、@racket[cdr] 为 serial 对的 pair；表示可变 pair。}
 
-            @item{a pair whose @racket[car] is @racket['v] and whose
-                  @racket[cdr] is a list of serials; it represents an
-                  immutable vector.}
+            @item{@racket[car] 为 @racket['v]、@racket[cdr] 为 serial 列表的 pair；表示不可变向量。}
 
-            @item{a pair whose @racket[car] is @racket['v!] and whose
-                  @racket[cdr] is a list of serials; it represents a
-                  mutable vector.}
+            @item{@racket[car] 为 @racket['v!]、@racket[cdr] 为 serial 列表的 pair；表示可变向量。}
 
-            @item{a pair whose @racket[car] is @racket['vl] and whose
-                  @racket[cdr] is a list of serials; it represents a
-                  @tech{flvector}.}
+            @item{@racket[car] 为 @racket['vl]、@racket[cdr] 为 serial 列表的 pair；表示 @tech{flvector}。}
 
-            @item{a pair whose @racket[car] is @racket['vx] and whose
-                  @racket[cdr] is a list of serials; it represents a
-                  @tech{fxvector}.}
+            @item{@racket[car] 为 @racket['vx]、@racket[cdr] 为 serial 列表的 pair；表示 @tech{fxvector}。}
 
-            @item{a pair whose @racket[car] is @racket['b] and whose
-                  @racket[cdr] is a serial; it represents an immutable
-                  box.}
+            @item{@racket[car] 为 @racket['b]、@racket[cdr] 为 serial 的 pair；表示不可变 box。}
 
-            @item{a pair whose @racket[car] is @racket['b!] and whose
-                  @racket[cdr] is a serial; it represents a mutable
-                  box.}
+            @item{@racket[car] 为 @racket['b!]、@racket[cdr] 为 serial 的 pair；表示可变 box。}
 
-            @item{a pair whose @racket[car] is @racket['h], whose
-                  @racket[cadr] is either @racket['!] or @racket['-]
-                  (mutable or immutable, respectively), whose
-                  @racket[caddr] is a list of symbols (containing
-                  @racket['equal], @racket['weak], both, or neither)
-                  that determines the hash table type, and whose
-                  @racket[cdddr] is a list of pairs, where the
-                  @racket[car] of each pair is a serial for a
-                  hash-table key and the @racket[cdr] is a serial for
-                  the corresponding value.}
+            @item{@racket[car] 为 @racket['h]、@racket[cadr] 为 @racket['!] 或 @racket['-]（分别表示可变或不可变）、@racket[caddr] 为符号列表（包含 @racket['equal]、@racket['weak]、两者或都不含）以确定 hash table 类型、@racket[cddr] 为 pair 列表的 pair，其中每个 pair 的 @racket[car] 是 hash-table key 的 serial，@racket[cdr] 是对应 value 的 serial。}
 
-            @item{a pair whose @racket[car] is @racket['date*] and whose
-                  @racket[cdr] is a list of serials; it represents a
-                  @racket[date*] structure.}
+            @item{@racket[car] 为 @racket['date*]、@racket[cdr] 为 serial 列表的 pair；表示 @racket[date*] 结构。}
 
-            @item{a pair whose @racket[car] is @racket['date] and whose
-                  @racket[cdr] is a list of serials; it represents a
-                  @racket[date] structure.}
+            @item{@racket[car] 为 @racket['date]、@racket[cdr] 为 serial 列表的 pair；表示 @racket[date] 结构。}
 
-            @item{a pair whose @racket[car] is @racket['arity-at-least]
-                  and whose @racket[cdr] is a serial; it represents an
-                  @racket[arity-at-least] structure.}
+            @item{@racket[car] 为 @racket['arity-at-least]、@racket[cdr] 为 serial 的 pair；表示 @racket[arity-at-least] 结构。}
 
-            @item{a pair whose @racket[car] is @racket['mpi] and whose
-                  @racket[cdr] is a pair; it represents a
-                  @tech{module path index} that joins the paired
-                  values.}
+            @item{@racket[car] 为 @racket['mpi]、@racket[cdr] 为 pair 的 pair；表示加入配对值的 @tech{module path index}。}
 
-            @item{a pair whose @racket[car] is @racket['srcloc] and whose
-                  @racket[cdr] is a list of serials; it represents a
-		  @racket[srcloc] structure.}
+            @item{@racket[car] 为 @racket['srcloc]、@racket[cdr] 为 serial 列表的 pair；表示 @racket[srcloc] 结构。}
             ]}
-
        ]}
 
- @item{A list of pairs, where the @racket[car] of each pair is a
-       non-negative exact integer @racket[_i] and the @racket[cdr] is a
-       serial (as defined in the previous bullet). Each element
-       represents an update to an @racket[_i]th element of @racket[_graph]
-       that was specified as a box, and the serial describes how to
-       construct a new value with the same shape as specified by the
-       box. The content of this new value must be transferred into the
-       value created for the box in @racket[_graph].}
+ @item{pair 列表，其中每个 pair 的 @racket[car] 是非负精确整数 @racket[_i]，@racket[cdr] 是 serial（如前一项所定义）。每个元素表示对指定为 box 的 @racket[_graph] 的第 @racket[_i] 个元素的更新，serial 描述了如何构建与 box 指定形状相同的新值。此新值的内容必须转移到 @racket[_graph] 中为 box 创建的值中。}
 
- @item{A final serial (as defined in the two bullets back)
-       representing the result of @racket[deserialize].}
-       
+ @item{最后的 serial（如两项前定义），表示 @racket[deserialize] 的结果。}
+
 ]
 
-The result of @racket[deserialize] shares no mutable values with the
-argument to @racket[deserialize].
+ @racket[deserialize] 的结果与 @racket[deserialize] 的参数不共享任何可变值。
 
-If a value provided to @racket[serialize] is a simple tree (i.e., no
-sharing), then the fourth and fifth elements in the serialized
-representation will be empty.}
+ 如果提供给 @racket[serialize] 的值是简单树（即无共享），则序列化表示的第四和第五个元素将为空。}
 
 @; ----------------------------------------------------------------------
 
 @defproc[(serialized=? [v1 any/c] [v2 any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v1] and @racket[v2] represent the same
-serialization information.
+ 如果 @racket[v1] 和 @racket[v2] 表示相同的序列化信息则返回 @racket[#t]。
 
-More precisely, it returns the same value that @racket[(equal?
-(deserialize v1) (deserialize v2))] would return if
+ 更精确地，如果满足以下条件，则返回与 @racket[(equal? (deserialize v1) (deserialize v2))] 相同的值：
 
 @itemize[
 
- @item{all structure types whose deserializers are accessed with
-       distinct module paths are actually distinct types;}
+ @item{所有反序列化器使用不同 module paths 访问的结构类型实际上是不同类型；}
 
- @item{all structure types are transparent; and}
+ @item{所有结构类型都是透明的；和}
 
- @item{all structure instances contain only the constituent values
-       recorded in each of @racket[v1] and @racket[v2].}
+ @item{所有结构实例仅包含 @racket[v1] 和 @racket[v2] 中每个记录的构成值。}
 
 ]}
 
@@ -413,16 +219,9 @@ More precisely, it returns the same value that @racket[(equal?
 @defparam[deserialize-module-guard guard (-> module-path? symbol?
                                              (or/c void? (cons/c module-path? symbol?)))]{
 
-A parameter whose value is called by @racket[deserialize] before
-dynamically loading a module via @racket[dynamic-require]. The two
-arguments provided to the procedure are the same as the arguments to
-be passed to @racket[dynamic-require]. The procedure can raise an
-exception to disallow the @racket[dynamic-require].
+@racket[deserialize] 在通过 @racket[dynamic-require] 动态加载模块之前调用的参数过程值。提供给过程的两个参数与要传递给 @racket[dynamic-require] 的参数相同。该过程可以引发异常以禁止 @racket[dynamic-require]。
 
-The procedure can optionally return a pair containing a
-@tech{module-path} and @tech{symbol}. If returned,
-@racket[deserialize] will use them as arguments to
-@racket[dynamic-require] instead.
+ 该过程可以选择性地返回包含 @tech{module-path} 和 @tech{symbol} 的 pair。如果返回，@racket[deserialize] 将使用它们作为 @racket[dynamic-require] 的参数。
 
 @history[#:changed "6.90.0.30" "Adds optional return values for bindings."]}
 
@@ -431,46 +230,19 @@ The procedure can optionally return a pair containing a
 @defform[(serializable-struct id maybe-super (field ...)
                               struct-option ...)]{
 
-Like @racket[struct], but instances of the structure type are
-serializable with @racket[serialize].  This form is allowed only at
-the top level or in a module's top level (so that deserialization
-information can be found later).
+ 类似于 @racket[struct]，但结构类型的实例可通过 @racket[serialize] 序列化。此形式仅允许在顶层或模块顶层（以便之后找到反序列化信息）。
 
-Serialization supports cycles involving the created structure
-type only when all fields are mutable (or when the cycle can be broken
-through some other mutable value).
+ 仅在将所有字段都可变（或可通过其他可变值打破循环）时才支持涉及创建结构类型的循环。
 
-In addition to the bindings generated by @racket[struct],
-@racket[serializable-struct] binds
-@racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v0} to
-deserialization information. Furthermore, in a module context, it
-automatically @racket[provide]s this binding in a @racket[deserialize-info]
-submodule using @racket[module+].
+ 除了 @racket[struct] 生成的绑定外，@racket[serializable-struct] 还绑定 @racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v0} 到反序列化信息。此外，在模块上下文中，它使用 @racket[module+] 自动在 @racket[deserialize-info] 子模块中 @racket[provide] 此绑定。
 
-The @racket[serializable-struct] form enables the construction of
-structure instances from places where @racket[id] is not accessible,
-since deserialization must construct instances. Furthermore,
-@racket[serializable-struct] provides limited access to field
-mutation, but only for instances generated through the deserialization
-information bound to
-@racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v0}. See
-@racket[make-deserialize-info] for more information.
+ @racket[serializable-struct] 形式使得能够在 @racket[id] 不可用的地方构建结构实例，因为反序列化必须构建实例。此外，@racket[serializable-struct] 提供对字段修改的有限访问，但仅针对通过反序列化信息生成的实例，该信息绑定到 @racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v0}。参见 @racket[make-deserialize-info] 了解更多信息。
 
-Beware that the previous paragraph means that if a serializable struct
-is exported via @racket[contract-out], for example, the contracts are not
-checked during deserialization. Consider using @racket[struct-guard/c]
-instead.
+ 请注意，前一段意味着如果可序列化结构体通过 @racket[contract-out] 导出，则在反序列化期间不会检查合约。请考虑使用 @racket[struct-guard/c]。
 
-The @racket[-v0] suffix on the deserialization enables future
-versioning on the structure type through
-@racket[serializable-struct/versions].
+反序列化上的 @racket[-v0] 后缀使得将来可以通过 @racket[serializable-struct/versions] 对结构类型进行版本控制。
 
-When a supertype is supplied as @racket[maybe-super],
-compile-time information bound to the supertype identifier must
-include all of the supertype's field accessors. If any field mutator
-is missing, the structure type will be treated as immutable for the
-purposes of marshaling (so cycles involving only instances of the
-structure type cannot be handled by the deserializer).
+ 当提供超类型作为 @racket[maybe-super] 时，绑定到超类型标识符的编译时信息必须包含超类型所有字段的访问器。如果缺少任何字段变更器，则该结构类型在编组（marshaling）方面将被视为不可变（因此反序列化器无法处理仅涉及该结构类型实例的循环）。
 
 @examples[
 #:eval ser-eval
@@ -483,8 +255,7 @@ structure type cannot be handled by the deserializer).
 @defform[(define-serializable-struct id-maybe-super (field ...)
                                       struct-option ...)]{
 
-Like @racket[serializable-struct], but with the supertype syntax and
-default constructor name of @racket[define-struct].}
+ 类似于 @racket[serializable-struct]，但具有 @racket[define-struct] 的超类型语法和默认构造函数名。}
 
 @; ----------------------------------------------------------------------
 
@@ -494,22 +265,9 @@ default constructor name of @racket[define-struct].}
               ([other-version-clause (other-vers make-proc-expr 
                                                  cycle-make-proc-expr)])]{
 
-Like @racket[serializable-struct], but the generated deserializer
-binding is
-@racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v}@racket[vers]. In
-addition,
-@racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v}@racket[other-vers]
-is bound for each @racket[other-vers]. The @racket[vers] and each
-@racket[other-vers] must be a literal, exact, nonnegative integer.
+ 类似于 @racket[serializable-struct]，但生成的反序列化器绑定是 @racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v}@racket[vers]。此外，@racketidfont{deserialize-info:}@racket[_id]@racketidfont{-v}@racket[other-vers] 为每个 @racket[other-vers] 绑定。@racket[vers] 和每个 @racket[other-vers] 必须是字面精确非负整数。
 
-Each @racket[make-proc-expr] should produce a procedure, and the
-procedure should accept as many argument as fields in the
-corresponding version of the structure type, and it produces an
-instance of @racket[id]. Each @racket[cycle-make-proc-expr] should
-produce a procedure of no arguments; this procedure should return two
-values: an instance @racket[x] of @racket[id] (typically with
-@racket[#f] for all fields) and a procedure that accepts another
-instance of @racket[id] and copies its field values into @racket[x].
+ 每个 @racket[make-proc-expr] 应生成一个过程，该过程接受与对应版本结构类型字段数量相同的参数，并生成 @racket[id] 的实例。每个 @racket[cycle-make-proc-expr] 应生成一个无参数过程；此过程应返回两个值：@racket[id] 的实例 @racket[x]（通常字段为 @racket[#f]）和一个接受另一个 @racket[id] 实例并将其字段值复制到 @racket[x] 的过程。
 
 @examples[
 #:eval ser-eval
@@ -545,9 +303,8 @@ instance of @racket[id] and copies its field values into @racket[x].
 @defform[(define-serializable-struct/versions id-maybe-super vers (field ...)
                                               (other-version-clause ...)
                                               struct-option ...)]{
-Like @racket[serializable-struct/versions], but with the supertype syntax and
-default constructor name of @racket[define-struct].
-}
+
+ 类似于 @racket[serializable-struct/versions]，但具有 @racket[define-struct] 的超类型语法和默认构造函数名。}
 
 @; ----------------------------------------------------------------------
 
@@ -555,31 +312,17 @@ default constructor name of @racket[define-struct].
                                 [cycle-make (-> (values any/c procedure?))])
          any]{
 
-Produces a deserialization information record to be used by
-@racket[deserialize]. This information is normally tied to a
-particular structure because the structure has a
-@racket[prop:serializable] property value that points to a top-level
-variable or module-exported variable that is bound to deserialization
-information.
+ 生成由 @racket[deserialize] 使用的反序列化信息记录。此信息通常绑定到特定结构，因为结构具有 @racket[prop:serializable] 属性值，该值指向顶层变量或模块导出变量，该变量绑定到反序列化信息。
 
-The @racket[make] procedure should accept as many arguments as the
-structure's serializer put into a vector; normally, this is the number
-of fields in the structure. It should return an instance of the
-structure.
+ @racket[make] 过程应接受与结构序列化器放入向量中一样多的参数；通常，这是结构中的字段数。它应返回结构的实例。
 
-The @racket[cycle-make] procedure should accept no arguments, and it
-should return two values: a structure instance @racket[x] (with dummy
-field values) and an update procedure. The update procedure takes
-another structure instance generated by the @racket[make], and it
-transfers the field values of this instance into @racket[x].}
+ @racket[cycle-make] 过程应不接受参数，并返回两个值：结构实例 @racket[x]（字段值为虚拟值）和更新过程。更新过程接受由 @racket[make] 生成的另一个结构实例，并将其字段值转移到 @racket[x] 中。}
 
 @; ----------------------------------------------------------------------
 
 @defthing[prop:serializable struct-type-property?]{
 
-This property identifies structures and structure types that are
-@tech{serializable}. The property value should be constructed with
-@racket[make-serialize-info].}
+ 此属性标识可 @tech{序列化} 的结构和结构类型。属性值应使用 @racket[make-serialize-info] 构造。}
 
 @; ----------------------------------------------------------------------
 
@@ -593,55 +336,29 @@ This property identifies structures and structure types that are
                               [dir path-string?])
          any]{
 
-Produces a value to be associated with a structure type through the
-@racket[prop:serializable] property. This value is used by
-@racket[serialize].
+ 生成通过 @racket[prop:serializable] 属性与结构类型关联的值。此值由 @racket[serialize] 使用。
 
-The @racket[to-vector] procedure should accept a structure instance
-and produce a vector for the instance's content.
+ @racket[to-vector] 过程应接受结构实例并生成实例内容的向量。
 
-The @racket[deserialize-id] value indicates a binding for deserialize
-information, to either a module export or a top-level definition. It
-must be one of the following:
+ @racket[deserialize-id] 值指示反序列化信息的绑定，指向模块导出或顶层定义。它必须是以下之一：
 
 @itemize[
 
- @item{If @racket[deserialize-id] is an identifier, and if
- @racket[(identifier-binding deserialize-id)] produces a list, then
- the third element is used for the exporting module, otherwise the
- top-level is assumed. Before trying an exporting module directly,
- its @racket[deserialize-info] submodule is tried; the module
- itself is tried if no @racket[deserialize-info]
- submodule is available or if the export is not found. In either case, @racket[syntax-e] is used to
- obtain the name of an exported identifier or top-level definition.}
+ @item{如果 @racket[deserialize-id] 是标识符，且 @racket[(identifier-binding deserialize-id)] 生成列表，则第三个元素用于导出模块，否则假定为顶层。在直接尝试导出模块之前，会尝试其 @racket[deserialize-info] 子模块；如果没有可用的 @racket[deserialize-info] 子模块或未找到导出项，则尝试模块本身。无论哪种情况，都使用 @racket[syntax-e] 获取导出标识符或顶层定义的名称。}
 
- @item{If @racket[deserialize-id] is a symbol, it indicates a
- top-level variable that is named by the symbol.}
+ @item{如果 @racket[deserialize-id] 是符号，它指示由符号命名的顶层变量。}
 
- @item{If @racket[deserialize-id] is a pair, the @racket[car] must be
- a symbol to name an exported identifier, and the @racket[cdr] must be
- a module path index to specify the exporting module.}
+ @item{如果 @racket[deserialize-id] 是 pair，@racket[car] 必须是命名导出标识符的符号，@racket[cdr] 必须是指定导出模块的 module path index。}
 
- @item{If @racket[deserialize-id] is a procedure, then it is
- applied during serialization and its result is used for
- @racket[deserialize-id].}
+ @item{如果 @racket[deserialize-id] 是过程，则在序列化期间应用它并将其结果用于 @racket[deserialize-id]。}
                                                       
 ]
 
-See @racket[make-deserialize-info] and @racket[deserialize] for more
-information.
+ 参见 @racket[make-deserialize-info] 和 @racket[deserialize] 了解更多信息。
 
-The @racket[can-cycle?] argument should be false if instances should
-not be serialized in such a way that deserialization requires creating
-a structure instance with dummy field values and then updating the
-instance later.
+ 如果实例不应序列化（反序列化需要创建具有虚拟字段值的结构实例，然后稍后更新实例），则 @racket[can-cycle?] 参数应为 false。
 
-The @racket[dir] argument should be a directory path that is used to
-resolve a module reference for the binding of @racket[deserialize-id].
-This directory path is used as a last resort when
-@racket[deserialize-id] indicates a module that was loaded through a
-relative path with respect to the top level. Usually, it should be
-@racket[(or (current-load-relative-directory) (current-directory))].
+ @racket[dir] 参数应为用于解析 @racket[deserialize-id] 绑定的模块引用的目录路径。当 @racket[deserialize-id] 指示通过相对于顶层的相对路径加载的模块时，此目录路径被用作最后手段。通常，应为 @racket[(or (current-load-relative-directory) (current-directory))]。
 
 @history[#:changed "7.0.0.6" @elem{Allow @racket[deserialize-id] to be a procedure.}]}
 
@@ -681,11 +398,7 @@ relative path with respect to the top level. Usually, it should be
 
 @section{Serialization Structures}
 
-@defmodule[racket/serialize-structs]{The
-@racketmodname[racket/serialize-structs] module provides only
-@racket[prop:serializable], @racket[make-serialize-info],
-@racket[make-deserialize-info], which is useful for minimizing
-dependencies with supporting serialization.}
+@defmodule[racket/serialize-structs]{@racketmodname[racket/serialize-structs] 模块仅提供 @racket[prop:serializable]、@racket[make-serialize-info]、@racket[make-deserialize-info]，这对最小化支持序列化的依赖有用。}
 
 @history[#:added "8.15.0.3"]
 
