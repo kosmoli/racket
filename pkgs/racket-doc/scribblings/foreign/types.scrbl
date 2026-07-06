@@ -36,7 +36,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "ctype"]{Type Constructors}
+@section[#:tag "ctype"]{类型构造函数}
 
 @defproc[(make-ctype [type ctype?]
                      [racket-to-c (or/c #f (any/c . -> . any))]
@@ -122,7 +122,7 @@ callback 期间的 garbage collection 可能会移动或回收原本未被引用
 
 @; ----------------------------------------------------------------------
 
-@section{Numeric Types}
+@section{数值类型}
 
 @defthing*[([_int8 ctype?]
             [_sint8 ctype?]
@@ -227,7 +227,7 @@ callback 期间的 garbage collection 可能会移动或回收原本未被引用
 
 @; ------------------------------------------------------------
 
-@section{Other Atomic Types}
+@section{其他原子类型}
 
 @defthing[_stdbool ctype?]{
 
@@ -249,9 +249,9 @@ callback 期间的 garbage collection 可能会移动或回收原本未被引用
 
 @; ------------------------------------------------------------
 
-@section{String Types}
+@section{字符串类型}
 
-@subsection{Primitive String Types}
+@subsection{原始字符串类型}
 
 另请参见 @racket[_bytes/nul-terminated] 和 @racket[_bytes]，用于在字节字符串和 C 的 @cpp{char*} 类型之间转换。
 
@@ -308,7 +308,7 @@ OS 级当前目录。Path 通常应在传递给外部函数之前
 不能在 garbage collection 期间使用。}
 
 
-@subsection{Fixed Auto-Converting String Types}
+@subsection{固定自动转换字符串类型}
 
 @defthing*[([_string/utf-8 ctype?]
             [_string/latin-1 ctype?]
@@ -326,7 +326,7 @@ OS 级当前目录。Path 通常应在传递给外部函数之前
 Racket path 使用 @racket[path->bytes] 进行转换。}
 
 
-@subsection{Variable Auto-Converting String Type}
+@subsection{可变自动转换字符串类型}
 
 @racket[_string/ucs-4] 类型在与外部代码交互时很少有用，而使用 @racket[_bytes/nul-terminated]
 则有些不太自然，因为它迫使 Racket 程序员使用字节字符串。使用
@@ -350,7 +350,7 @@ Racket path 使用 @racket[path->bytes] 进行转换。}
 如果你要更改它，请在定义接口@italic{之前}进行。}
 
 
-@subsection{Other String Types}
+@subsection{其他字符串类型}
 
 @defthing[_file ctype?]{
 
@@ -367,7 +367,7 @@ Racket path 使用 @racket[path->bytes] 进行转换。}
 
 @; ------------------------------------------------------------
 
-@section{Pointer Types}
+@section{指针类型}
 
 @defthing[_pointer ctype?]{
 
@@ -443,7 +443,7 @@ Racket path 使用 @racket[path->bytes] 进行转换。}
 
 @; ------------------------------------------------------------
 
-@section[#:tag "foreign:procedures"]{Function Types}
+@section[#:tag "foreign:procedures"]{函数类型}
 
 @defproc[(_cprocedure [input-types (list ctype?)]
                       [output-type ctype?]
@@ -806,7 +806,7 @@ C 函数类型没有 varargs。如果 @racket[varargs-after] 是一个数字，
 
 @; ----------------------------------------------------------------------
 
-@subsection[#:tag "foreign:custom-types"]{Custom Function Types}
+@subsection[#:tag "foreign:custom-types"]{自定义函数类型}
 
 @racket[_fun] 类型的行为可以通过 @deftech{custom function type} 自定义，
 它们是可以表现为 C 类型和 C 类型构造函数的语法片段，
@@ -1082,7 +1082,7 @@ nul 终止符，并且会为结果字符串创建一个副本。
 
 @; ------------------------------------------------------------
 
-@section{C Struct Types}
+@section{C 结构体类型}
 
 @defproc[(make-cstruct-type [types (non-empty-listof ctype?)]
                             [abi (or/c #f 'default 'stdcall 'sysv) #f]
@@ -1392,7 +1392,7 @@ Struct 使用 @racket[malloc] 分配，使用 @racket[malloc-mode-expr] 的结�
 
 @; ------------------------------------------------------------
 
-@section{C Array Types}
+@section{C 数组类型}
 
 @defproc[(make-array-type [type ctype?]
                           [count exact-nonnegative-integer?])
@@ -1486,7 +1486,7 @@ array 可以具有额外的元素，并且可以具有不同的元素类型，
 
 @; ------------------------------------------------------------
 
-@section{C Union Types}
+@section{C 联合体类型}
 
 @defproc[(make-union-type [type ctype?] ...+)
          ctype?]{
@@ -1567,7 +1567,7 @@ a-union-val
 
 @; ------------------------------------------------------------
 
-@section{Enumerations and Masks}
+@section{枚举与位掩码}
 
 虽然下面的构造函数被描述为 procedure，但它们以语法形式实现，
 以便错误消息可以在语法上下文暗示时报告类型名称。

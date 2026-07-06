@@ -53,340 +53,168 @@
 @(define raco-pkg-install
    @seclink["raco-pkg-install" #:doc '(lib "pkg/scribblings/pkg.scrbl")]{@exec{raco pkg install}})
 
-@title[#:tag "setup" #:style 'toc]{@exec{raco setup}: Installation Management}
+@title[#:tag "setup" #:style 'toc]{@exec{raco setup}：安装管理}
 
-The @exec{raco setup} command builds bytecode, documentation,
-executables, and metadata indexes for all installed collections.
+@exec{raco setup} 命令为所有已安装的集合构建字节码、文档、可执行文件和元数据索引。
 
-The collections that are built by @exec{raco setup} can be part of the
-original Racket distribution, installed via the package manager (see
-@other-manual[pkg-doc]), installed via
-@|PLaneT| (see @other-manual['(lib "planet/planet.scrbl")]), linked
-via @exec{raco link}, in a directory that is listed in the
-@envvar{PLTCOLLECTS} environment variable, or placed into one of the
-default collection directories.
+由 @exec{raco setup} 构建的集合可以来自原始 Racket 发行版、通过包管理器安装（参见 @other-manual[pkg-doc]）、通过 @|PLaneT| 安装（参见 @other-manual['(lib "planet/planet.scrbl")]）、通过 @exec{raco link} 链接、位于 @envvar{PLTCOLLECTS} 环境变量列出的目录中，或放置在默认集合目录中。
 
-The @exec{raco setup} tool itself does not directly support the
-installation of collections, except through the now-discouraged
-@Flag{A} flag (see @secref["raco-setup-A"]). The @exec{raco setup} command is
-used by installation tools such as the package manager or @|PLaneT|.
-Programmers who modify installed collections may find it useful to run
-@exec{raco setup} as an alternative to un-installing and re-installing
-a set of collections.
+@exec{raco setup} 工具本身不直接支持集合的安装，除非通过现在已不推荐的 @Flag{A} 标志（参见 @secref["raco-setup-A"]）。@exec{raco setup} 命令由安装工具（如包管理器或 @|PLaneT|）使用。修改已安装集合的程序员可能会发现运行 @exec{raco setup} 作为卸载和重新安装一组集合的替代方案很有用。
 
 @local-table-of-contents[]
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "running"]{Running @exec{raco setup}}
+@section[#:tag "running"]{运行 @exec{raco setup}}
 
-With no command-line arguments, @exec{raco setup} finds all of the
-current collections---see @secref[#:doc ref-src]{collects}---and
-compiles libraries in each collection.  (Directories that are named
-@filepath{.git} or @filepath{.svn} are not treated as collections.)
+在没有命令行参数的情况下，@exec{raco setup} 查找所有当前集合——参见 @secref[#:doc ref-src]{collects}——并编译每个集合中的库。（名为 @filepath{.git} 或 @filepath{.svn} 的目录不被视为集合。）
 
-To restrict @exec{raco setup} to a set of collections, provide the
-collection names as arguments. For example, @exec{raco setup
-scribblings/raco} would only compile and render the documentation for
-@exec{raco}, which is implemented in a @filepath{scribblings/raco}
-collection.
+要将 @exec{raco setup} 限制在一组集合中，请将集合名称作为参数提供。例如，@exec{raco setup scribblings/raco} 将仅编译和渲染 @exec{raco} 的文档，该文档实现在 @filepath{scribblings/raco} 集合中。
 
-An optional @filepath{info.rkt} within the collection can indicate
-specifically how the collection's files are to be compiled and other
-actions to take in setting up a collection, such as creating
-executables or building documentation. See @secref["setup-info"] for
-more information.
+集合中的可选 @filepath{info.rkt} 可以具体指示如何编译集合的文件以及在设置集合时要执行的其他操作，例如创建可执行文件或构建文档。更多信息请参见 @secref["setup-info"]。
 
-The @exec{raco setup} command accepts the following command-line
-flags:
+@exec{raco setup} 命令接受以下命令行标志：
 
 @itemize[
 
-@item{Constraining to specified collections or @|PLaneT| packages:
+@item{限制到指定的集合或 @|PLaneT| 包：
 @itemize[
 
- @item{@DFlag{only} --- restrict setup to specified collections and
-   @|PLaneT| packages, even if none are specified. This mode is the
-   default if any collection is specified as a command-line argument
-   or through the @Flag{l}, @DFlag{pkgs}, or @Flag{P} flag.}
+ @item{@DFlag{only} --- 将 setup 限制到指定的集合和 @|PLaneT| 包，即使未指定任何内容。如果任何集合通过命令行参数或 @Flag{l}、@DFlag{pkgs} 或 @Flag{P} 标志指定，则此模式为默认模式。}
 
- @item{@Flag{l} @nonterm{collection} @racket[...] --- constrain setup
-  actions to the specified @nonterm{collection}s (i.e., the same as
-  providing @nonterm{collections}s without a flag, but with no
-  possibility that a @nonterm{collection} is interpreted as a flag).}
+ @item{@Flag{l} @nonterm{collection} @racket[...] --- 将 setup 操作限制到指定的 @nonterm{collection}（即与不通过标志提供 @nonterm{collections} 相同，但不会有 @nonterm{collection} 被解释为标志的可能性）。}
 
- @item{@DFlag{pkgs} @nonterm{pkg} @racket[...] --- constrain setup
-  actions to collections that are within (or partially within) the
-  named @nonterm{pkg}s.}
+ @item{@DFlag{pkgs} @nonterm{pkg} @racket[...] --- 将 setup 操作限制到位于（或部分位于）指定 @nonterm{pkg} 中的集合。}
 
- @item{@Flag{P} @nonterm{owner} @nonterm{package-name} @nonterm{maj}
-  @nonterm{min} --- constrain setup actions to the specified @|PLaneT|
-  package, in addition to any other specified @|PLaneT| packages or
-  collections.}
+ @item{@Flag{P} @nonterm{owner} @nonterm{package-name} @nonterm{maj} @nonterm{min} --- 将 setup 操作限制到指定的 @|PLaneT| 包，以及任何其他指定的 @|PLaneT| 包或集合。}
 
- @item{@DFlag{doc-index} --- build collections that implement
-  documentation indexes (when documentation building is enabled), in
-  addition to specified collections.}
+ @item{@DFlag{doc-index} --- 构建实现文档索引的集合（当启用文档构建时），除了指定的集合。}
 
- @item{@DFlag{tidy} --- remove metadata cache information and
-  documentation for non-existent collections or documentation to
-  clean up after removal, even when setup actions are otherwise
-  confined to specified collections. Although tidying is not confined
-  to specified collections, it can be constrained with @DFlag{avoid-main}
-  or @DFlag{no-user}.}
+ @item{@DFlag{tidy} --- 删除不存在集合的元数据缓存信息和文档以清理移除后的残留，即使 setup 操作已经限制到指定集合。虽然整理不限于指定集合，但可以通过 @DFlag{avoid-main} 或 @DFlag{no-user} 进行约束。}
 
 ]}
-@item{Constraining to specific tasks:
+@item{限制到特定任务：
 @itemize[
 
- @item{@DFlag{clean} or @Flag{c} --- delete existing @filepath{.zo}
-   files, thus ensuring a clean build from the source files. The exact
-   set of deleted files can be controlled by @filepath{info.rkt}; see
-   @elemref["clean"]{@racket[clean]} for more information. Unless
-   @DFlag{no-info-domain} or @Flag{d} is also specified, the @filepath{info.rkt}
-   cache is cleared. Unless @DFlag{no-docs} or @Flag{D} is also
-   specified, the documentation-index database is reset.}
+ @item{@DFlag{clean} 或 @Flag{c} --- 删除现有的 @filepath{.zo} 文件，从而确保从源文件进行干净的构建。要删除的确切文件集可以通过 @filepath{info.rkt} 控制；更多信息请参见 @elemref["clean"]{@racket[clean]}。除非同时指定 @DFlag{no-info-domain} 或 @Flag{d}，否则 @filepath{info.rkt} 缓存会被清除。除非同时指定 @DFlag{no-docs} 或 @Flag{D}，否则文档索引数据库会被重置。}
 
- @item{@DFlag{fast-clean} --- like @DFlag{clean}, but
-   without forcing a bootstrap of @exec{raco setup} from source (which
-   means that @DFlag{fast-clean} cannot clean corruption that affects
-   @exec{raco setup} itself).}
+ @item{@DFlag{fast-clean} --- 类似于 @DFlag{clean}，但不会强制从源码引导 @exec{raco setup}（这意味着 @DFlag{fast-clean} 无法清理影响 @exec{raco setup} 本身的损坏）。}
 
- @item{@DFlag{no-zo} or @Flag{n} --- refrain from compiling source
-   files to @filepath{.zo} files.}
+ @item{@DFlag{no-zo} 或 @Flag{n} --- 不将源文件编译为 @filepath{.zo} 文件。}
 
- @item{@DFlag{trust-zos} --- fix timestamps on @filepath{.zo} files on
-   the assumption that they are already up-to-date (unless the
-   @envvar{PLT_COMPILED_FILE_CHECK} environment variable is set to
-   @litchar{exists}, in which case timestamps are ignored).}
+ @item{@DFlag{trust-zos} --- 基于 @filepath{.zo} 文件已是最新的假设来修复其时间戳（除非 @envvar{PLT_COMPILED_FILE_CHECK} 环境变量设置为 @litchar{exists}，此时时间戳将被忽略）。}
 
- @item{@DFlag{recompile-only} --- disallow recompilation of modules
-  from source, imposing the constraint that each @filepath{.zo} file
-  is up-to-date, needs only a timestamp adjustment, or can be
-  recompiled from an existing @filepath{.zo} in machine-independent
-  format (when compiling to a machine-dependent format).}
+ @item{@DFlag{recompile-only} --- 禁止从源码重新编译模块，强制要求每个 @filepath{.zo} 文件是最新的、仅需时间戳调整，或可以从现有的机器无关格式的 @filepath{.zo} 重新编译（当编译为机器相关格式时）。}
 
- @item{@DFlag{recompile-cache} @nonterm{dir} --- cache module
-  recompilations (from machine-independent format to machine-dependent
-  format) in @nonterm{dir}.}
+ @item{@DFlag{recompile-cache} @nonterm{dir} --- 在 @nonterm{dir} 中缓存模块重新编译（从机器无关格式到机器相关格式）。}
 
- @item{@DFlag{sync-docs-only} --- synchronize or move documentation
-   into place to ``build'' it, but do not run or render documentation
-   sources.}
+ @item{@DFlag{sync-docs-only} --- 同步或移动文档到适当位置以“构建”它，但不运行或渲染文档源。}
 
- @item{@DFlag{no-launcher} or @Flag{x} --- refrain from creating
-   executables or installing @tt{man} pages (as specified in
-   @filepath{info.rkt}; see @secref["setup-info"]).}
+ @item{@DFlag{no-launcher} 或 @Flag{x} --- 不创建可执行文件或安装 @tt{man} 页面（如 @filepath{info.rkt} 中指定的；参见 @secref["setup-info"]）。}
 
- @item{@DFlag{no-foreign-libs} or @Flag{F} --- refrain from installing foreign
-   libraries (as specified in @filepath{info.rkt}; see
-   @secref["setup-info"]).}
+ @item{@DFlag{no-foreign-libs} 或 @Flag{F} --- 不安装外部库（如 @filepath{info.rkt} 中指定的；参见 @secref["setup-info"]）。}
 
- @item{@DFlag{only-foreign-libs} --- disable actions other than
-   installing foreign libraries; equivalent to @Flag{nxiIdD}, except
-   that @DFlag{only-foreign-libs} doesn't reject (redundant)
-   specification of those individual flags.}
+ @item{@DFlag{only-foreign-libs} --- 禁用除安装外部库之外的操作；等效于 @Flag{nxiIdD}，但 @DFlag{only-foreign-libs} 不会拒绝（冗余的）这些单独标志的指定。}
 
- @item{@DFlag{no-install} or @Flag{i} --- refrain from running
-   pre-install actions (as specified in @filepath{info.rkt} files; see
-   @secref["setup-info"]).}
+ @item{@DFlag{no-install} 或 @Flag{i} --- 不运行预安装操作（如 @filepath{info.rkt} 文件中指定的；参见 @secref["setup-info"]）。}
 
- @item{@DFlag{no-post-install} or @Flag{I} --- refrain from running
-   post-install actions (as specified in @filepath{info.rkt} files; see
-   @secref["setup-info"]).}
+ @item{@DFlag{no-post-install} 或 @Flag{I} --- 不运行安装后操作（如 @filepath{info.rkt} 文件中指定的；参见 @secref["setup-info"]）。}
 
- @item{@DFlag{no-info-domain} or @Flag{d} --- refrain from building
-   a cache of metadata information from @filepath{info.rkt}
-   files. This cache is needed by other tools. For example,
-   @exec{raco} itself uses the cache to locate plug-in tools.}
+ @item{@DFlag{no-info-domain} 或 @Flag{d} --- 不从 @filepath{info.rkt} 文件构建元数据信息缓存。其他工具需要此缓存。例如，@exec{raco} 本身使用该缓存来定位插件工具。}
 
- @item{@DFlag{no-docs} or @Flag{D} --- refrain from building
-   documentation.}
+ @item{@DFlag{no-docs} 或 @Flag{D} --- 不构建文档。}
 
- @item{@DFlag{only-extra-docs} --- disable actions other than
-   rendering for @DFlag{doc-pdf} or @DFlag{doc-markdown}.}
+ @item{@DFlag{only-extra-docs} --- 禁用在 @DFlag{doc-pdf} 或 @DFlag{doc-markdown} 渲染之外的操作。}
 
- @item{@DFlag{doc-pdf} @nonterm{dir} --- in addition to building HTML
-   documentation, render documentation to PDF and place files in
-   @nonterm{dir}.}
+ @item{@DFlag{doc-pdf} @nonterm{dir} --- 除了构建 HTML 文档外，还将文档渲染为 PDF 并将文件放置在 @nonterm{dir} 中。}
 
- @item{@DFlag{doc-markdown} @nonterm{dir} --- in addition to building
-   HTML documentation, render documentation to Markdown (using
-   Scribble's Markdown backend) and place files in @nonterm{dir}.}
+ @item{@DFlag{doc-markdown} @nonterm{dir} --- 除了构建 HTML 文档外，还将文档渲染为 Markdown（使用 Scribble 的 Markdown 后端）并将文件放置在 @nonterm{dir} 中。}
 
- @item{@DFlag{no-pkg-deps} or @Flag{K} --- refrain from checking
-  whether dependencies among libraries are properly reflected by
-  package-level dependency declarations, whether modules are declared
-  by multiple packages, and whether package version dependencies are
-  satisfied. See @secref["setup-check-deps"] for more information.}
+ @item{@DFlag{no-pkg-deps} 或 @Flag{K} --- 不检查库之间的依赖关系是否正确地由包级依赖声明反映，模块是否由多个包声明，以及包版本依赖是否满足。更多信息请参见 @secref["setup-check-deps"]。}
 
- @item{@DFlag{check-pkg-deps} --- checks package dependencies (unless
-  explicitly disabled) even when specific collections are provided to
-  @exec{raco setup}, and even for packages that have no dependency
-  declarations. See @secref["setup-check-deps"] for more information.}
+ @item{@DFlag{check-pkg-deps} --- 即使向 @exec{raco setup} 提供了特定集合，也检查包依赖关系（除非显式禁用），即使对于没有依赖声明的包也是如此。更多信息请参见 @secref["setup-check-deps"]。}
 
- @item{@DFlag{fix-pkg-deps} --- attempt to correct dependency
-  mismatches by adjusting package @filepath{info.rkt} files (which
-  makes sense only for packages that are installed as links). See
-  @secref["setup-check-deps"] for more information.}
+ @item{@DFlag{fix-pkg-deps} --- 尝试通过调整包的 @filepath{info.rkt} 文件来纠正依赖不匹配（仅对作为链接安装的包有意义）。更多信息请参见 @secref["setup-check-deps"]。}
 
- @item{@DFlag{unused-pkg-deps} --- attempt to report dependencies that
-  are declared but are unused. Beware that some package dependencies
-  may be intentionally unused (e.g., declared to force installation of
-  other packages as a convenience), and beware that package
-  dependencies may be reported as unused only because compilation of
-  relevant modules has been suppressed.  See
-  @secref["setup-check-deps"] for more information.}
+ @item{@DFlag{unused-pkg-deps} --- 尝试报告已声明但未使用的依赖关系。请注意，某些包依赖可能是有意未使用的（例如，为了方便而声明以强制安装其他包），并且请注意，包依赖可能仅因为相关模块的编译被抑制而被报告为未使用。更多信息请参见 @secref["setup-check-deps"]。}
 
 ]}
-@item{Constraining user versus installation setup:
+@item{限制用户与安装设置：
 @itemize[
 
- @item{@DFlag{no-user} or @Flag{U} --- refrain from any user-specific
-  (as opposed to installation-specific) setup actions.}
+ @item{@DFlag{no-user} 或 @Flag{U} --- 不执行任何用户特定的（相对于安装特定的）setup 操作。}
 
- @item{@DFlag{no-planet} --- refrain from any setup actions for
-  @|PLaneT| actions; this flag is implied by @DFlag{no-user}.}
+ @item{@DFlag{no-planet} --- 不执行任何 @|PLaneT| 的 setup 操作；此标志由 @DFlag{no-user} 隐含。}
 
- @item{@DFlag{avoid-main} --- refrain from any setup actions that
-  affect the installation, as opposed to user-specific actions.}
+ @item{@DFlag{avoid-main} --- 不执行任何影响安装的 setup 操作，相对于用户特定操作。}
 
- @item{@DFlag{force-user-docs} --- when building documentation, create
-  a user-specific documentation entry point even if it has the same
-  content as the main installation.}
+ @item{@DFlag{force-user-docs} --- 构建文档时，创建用户特定的文档入口点，即使其内容与主安装相同。}
 
 ]}
-@item{Selecting parallelism and other build modes:
+@item{选择并行性和其他构建模式：
 @itemize[
 
- @item{@DFlag{jobs} @nonterm{n}, @DFlag{workers} @nonterm{n},
-   or @Flag{j} @nonterm{n} --- use up
-   to @nonterm{n} parallel processes.  By default, @exec{raco setup}
-   uses @racket[(processor-count)] jobs, which typically uses
-   all of the machine's processing cores.}
+ @item{@DFlag{jobs} @nonterm{n}、@DFlag{workers} @nonterm{n} 或 @Flag{j} @nonterm{n} --- 使用最多 @nonterm{n} 个并行进程。默认情况下，@exec{raco setup} 使用 @racket[(processor-count)] 个作业，这通常会使用机器的所有处理核心。}
 
- @item{@DFlag{places} --- use Racket places for parallel jobs; this
-   mode is the default if Racket places run in parallel.}
+ @item{@DFlag{places} --- 对并行作业使用 Racket place；如果 Racket place 可以并行运行，则此模式为默认模式。}
 
- @item{@DFlag{processes} --- use separate processes for parallel jobs;
-   this mode is the default if Racket places cannot run in parallel.}
+ @item{@DFlag{processes} --- 对并行作业使用单独的进程；如果 Racket place 不能并行运行，则此模式为默认模式。}
 
- @item{@DFlag{verbose} or @Flag{v} --- more verbose output about
-   @exec{raco setup} actions.}
+ @item{@DFlag{verbose} 或 @Flag{v} --- 对 @exec{raco setup} 操作输出更详细的信息。}
 
- @item{@DFlag{make-verbose} or @Flag{m} --- more verbose output about
-   dependency checks.}
+ @item{@DFlag{make-verbose} 或 @Flag{m} --- 对依赖检查输出更详细的信息。}
 
- @item{@DFlag{compiler-verbose} or @Flag{r} --- even more verbose
-   output about dependency checks and compilation.}
+ @item{@DFlag{compiler-verbose} 或 @Flag{r} --- 对依赖检查和编译输出更详细的信息。}
 
- @item{@DFlag{mode} @nonterm{mode} --- use a @filepath{.zo} compiler
-   other than the default compiler, and put the resulting
-   @filepath{.zo} files in a subdirectory (of the usual place) named
-   by @nonterm{mode}. The compiler is obtained by using @nonterm{mode}
-   as a collection name, finding a @filepath{zo-compile.rkt} module in
-   that collection, and extracting its @racket[zo-compile] export. The
-   @racket[zo-compile] export should be a function like
-   @racket[compile]; see the @filepath{errortrace} collection for an
-   example.}
+ @item{@DFlag{mode} @nonterm{mode} --- 使用非默认的 @filepath{.zo} 编译器，并将生成的 @filepath{.zo} 文件放在以 @nonterm{mode} 命名的子目录（相对于通常位置）中。编译器通过将 @nonterm{mode} 用作集合名称、在该集合中查找 @filepath{zo-compile.rkt} 模块并提取其 @racket[zo-compile] 导出获得。@racket[zo-compile] 导出应该是一个类似于 @racket[compile] 的函数；示例请参见 @filepath{errortrace} 集合。}
 
- @item{@DFlag{fail-fast} --- attempt to break as soon as any error is
-  discovered.}
+ @item{@DFlag{fail-fast} --- 一旦发现任何错误，尝试立即中断。}
 
- @item{@DFlag{error-out} @nonterm{file} --- handle survivable errors
-  by writing @nonterm{file} and exiting as successful, which
-  facilitates chaining multiple @exec{raco setup} invocations in
-  combination with @DFlag{error-in}. If there are no errors and
-  @nonterm{file} already exists, it is deleted.}
+ @item{@DFlag{error-out} @nonterm{file} --- 通过写入 @nonterm{file} 并作为成功退出来处理可生存的错误，这有助于结合 @DFlag{error-in} 链接多个 @exec{raco setup} 调用。如果没有错误且 @nonterm{file} 已存在，则删除它。}
 
- @item{@DFlag{error-in} @nonterm{file} --- treat the existence of
-  @nonterm{file} as a ``errors were reported by a previous process''
-  error. Typically, @nonterm{file} is created by previous @exec{raco
-  setup} run using @DFlag{error-out}. A file for @DFlag{error-in} is
-  detected before creating a file via @DFlag{error-out}, so the same
-  file can be used to chain a sequence of @exec{raco setup} steps.}
+ @item{@DFlag{error-in} @nonterm{file} --- 将 @nonterm{file} 的存在视为“前一个进程报告了错误”错误。通常，@nonterm{file} 是由前一个使用 @DFlag{error-out} 运行的 @exec{raco setup} 创建的。在通过 @DFlag{error-out} 创建文件之前检测到 @DFlag{error-in} 的文件，因此同一文件可用于链接一系列 @exec{raco setup} 步骤。}
 
- @item{@DFlag{pause} or @Flag{p} --- pause for user input if any
-  errors are reported (so that a user has time to inspect output that
-  might otherwise disappear when the @exec{raco setup} process ends).}
+ @item{@DFlag{pause} 或 @Flag{p} --- 如果报告了任何错误，暂停等待用户输入（以便用户有时间检查可能在 @exec{raco setup} 进程结束时消失的输出）。}
 
 ]}
-@item{Unpacking @filepath{.plt} archives:
+@item{解包 @filepath{.plt} 归档文件：
 @itemize[
 
- @item{@Flag{A} @nonterm{archive} @racket[...] --- Install each
-  @nonterm{archive}; see @secref["raco-setup-A"].}
+ @item{@Flag{A} @nonterm{archive} @racket[...] --- 安装每个 @nonterm{archive}；参见 @secref["raco-setup-A"]。}
 
- @item{@DFlag{force} --- for use with @Flag{A}, treat version
-  mismatches for archives as mere warnings.}
+ @item{@DFlag{force} --- 与 @Flag{A} 一起使用，将归档文件的版本不匹配视为警告。}
 
- @item{@DFlag{all-users} or @Flag{a} --- for use with @Flag{A},
-  install archive into the installation instead of a user-specific
-  location.}
+ @item{@DFlag{all-users} 或 @Flag{a} --- 与 @Flag{A} 一起使用，将归档文件安装到安装位置而非用户特定位置。}
 
 ]}
-@item{Bootstrapping:
+@item{引导启动：
 @itemize[
 
- @item{@DFlag{boot} @nonterm{module-file} @nonterm{build-dir} --- For
-       use by directly running @racketmodname[setup] instead of
-       through @exec{raco setup}, loads @nonterm{module-file} in the
-       same way that @exec{raco setup} normally loads itself,
-       auto-detecting the need to start from sources and rebuild the
-       compiled files---even for the compilation manager itself. The
-       @nonterm{build-dir} path is installed as the only path in
-       @racket[current-compiled-file-roots], so all compiled files
-       go there.}
+ @item{@DFlag{boot} @nonterm{module-file} @nonterm{build-dir} --- 供直接运行 @racketmodname[setup] 而非通过 @exec{raco setup} 时使用，以与 @exec{raco setup} 通常加载自身相同的方式加载 @nonterm{module-file}，自动检测需要从源码启动并重建编译文件——甚至包括编译管理器本身。@nonterm{build-dir} 路径被安装为 @racket[current-compiled-file-roots] 中的唯一路径，因此所有编译文件都放在那里。}
 
- @item{@DFlag{chain} @nonterm{module-file} @nonterm{build-dir} ---
-       Like @DFlag{boot}, but adds @nonterm{build-dir} to the start of
-       @racket[current-compiled-file-roots] instead of replacing the
-       current value, which means that libraries already built in the
-       normal location (including the compilation manager itself) will
-       be used instead of rebuilt. This mode makes sense for
-       cross-compilation.}
+ @item{@DFlag{chain} @nonterm{module-file} @nonterm{build-dir} --- 类似于 @DFlag{boot}，但将 @nonterm{build-dir} 添加到 @racket[current-compiled-file-roots] 的开头而不是替换当前值，这意味着已在正常位置构建的库（包括编译管理器本身）将被使用而非重建。此模式适用于交叉编译。}
 
 ]}
 
 ]
 
-When building @exec{racket}, flags can be provided to @exec{raco
-setup} as run by @exec{make install} by setting the
-@as-index{@envvar{PLT_SETUP_OPTIONS}} makefile variable. For
-example, the following command line uses a single process to build
-collections during an install:
+构建 @exec{racket} 时，可以通过设置 @as-index{@envvar{PLT_SETUP_OPTIONS}} Makefile 变量将标志传递给由 @exec{make install} 运行的 @exec{raco setup}。例如，以下命令行在安装期间使用单个进程构建集合：
 
    @commandline{make install PLT_SETUP_OPTIONS="-j 1"}
 
-Running @exec{raco setup} is sensitive to the
-@envvar{PLT_COMPILED_FILE_CHECK} environment variable in the same way
-as @exec{raco make}. Specifically, if @envvar{PLT_COMPILED_FILE_CHECK}
-is set to @litchar{exists}, then @exec{raco make} does not attempt to
-update a compiled file's timestamp if the file is not recompiled.
+运行 @exec{raco setup} 对 @envvar{PLT_COMPILED_FILE_CHECK} 环境变量敏感，方式与 @exec{raco make} 相同。具体来说，如果 @envvar{PLT_COMPILED_FILE_CHECK} 设置为 @litchar{exists}，则 @exec{raco make} 不会尝试更新未重新编译的编译文件的时间戳。
 
-Some additional environment variables are useful for performance
-debugging:
+一些额外的环境变量对性能调试很有用：
 
 @itemlist[
 
- @item{@indexed-envvar{PLT_SETUP_DMS_ARGS} triggers a call to
-       @racket[dump-memory-stats] after each collection is compiled,
-       where the environment variable's value is parsed with
-       @racket[read] to obtain a list of arguments to
-       @racket[dump-memory-stats].}
+ @item{@indexed-envvar{PLT_SETUP_DMS_ARGS} 在每个集合编译后触发对 @racket[dump-memory-stats] 的调用，其中环境变量的值通过 @racket[read] 解析以获得传递给 @racket[dump-memory-stats] 的参数列表。}
 
- @item{@indexed-envvar{PLT_SETUP_LIMIT_CACHE} (set to anything) avoids
-       caching compiled-file information across different collections,
-       which is useful to reduce noise when looking for memory leaks.}
+ @item{@indexed-envvar{PLT_SETUP_LIMIT_CACHE}（设置为任何值）避免跨不同集合缓存编译文件信息，这在查找内存泄漏时有助于减少噪音。}
 
- @item{@indexed-envvar{PLT_SETUP_NO_FORCE_GC} (set to anything)
-       suppresses a call to @racket[collect-garbage] that is issued by
-       default for non-parallel builds after each collection is
-       compiled and after each document is run or rendered.}
+ @item{@indexed-envvar{PLT_SETUP_NO_FORCE_GC}（设置为任何值）抑制对 @racket[collect-garbage] 的调用，该调用默认在非并行构建中对每个集合编译后和每个文档运行或渲染后发出。}
 
- @item{@indexed-envvar{PLT_SETUP_SHOW_TIMESTAMPS} (set to anything)
-       appends the current process time after @litchar[" @ "] for each
-       status message printed by @exec{raco setup}.}
+ @item{@indexed-envvar{PLT_SETUP_SHOW_TIMESTAMPS}（设置为任何值）在 @exec{raco setup} 打印的每个状态消息后附加上当前进程时间，格式为 @litchar[" @ "]。}
 
 ]
 
@@ -408,26 +236,13 @@ debugging:
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "raco-setup-A"]{Installing @filepath{.plt} Archives}
+@section[#:tag "raco-setup-A"]{安装 @filepath{.plt} 归档文件}
 
-A @filepath{.plt} file is a platform-independent distribution archive
-for software based on Racket. A typical @filepath{.plt} file can be
-installed as a package using @exec{raco pkg} (see @other-manual['(lib
-"pkg/scribblings/pkg.scrbl")]), in which case @exec{raco pkg} supplies
-facilities for uninstalling the package and managing dependencies.
+@filepath{.plt} 文件是基于 Racket 的软件的平台无关分发归档。典型的 @filepath{.plt} 文件可以使用 @exec{raco pkg} 作为包安装（参见 @other-manual['(lib "pkg/scribblings/pkg.scrbl")]），在这种情况下 @exec{raco pkg} 提供卸载包和管理依赖关系的功能。
 
-An older approach is to supply a @filepath{.plt} file to @exec{raco
-setup} with the @Flag{A} flag; the files contained in the
-@filepath{.plt} archive are unpacked (according to specifications
-embedded in the @filepath{.plt} file) and only collections specified
-by the @filepath{.plt} file are compiled and setup. Archives processed
-in this way can include arbitrary code that is executed at install
-time, in addition to any actions triggered by the normal
-collection-setup part of @exec{raco setup}.
+一种较旧的方法是将 @filepath{.plt} 文件提供给 @exec{raco setup} 并使用 @Flag{A} 标志；@filepath{.plt} 归档中包含的文件被解包（根据 @filepath{.plt} 文件中嵌入的规范），并且仅编译和设置 @filepath{.plt} 文件指定的集合。以这种方式处理的归档可以包含在安装时执行的任意代码，以及 @exec{raco setup} 正常集合设置部分触发的任何操作。
 
-Finally, the @exec{raco unpack} (see @secref["unpack"]) command can
-list the content of a @filepath{.plt} archive or unpack the archive
-without installing it as a package or collection.
+最后，@exec{raco unpack}（参见 @secref["unpack"]）命令可以列出 @filepath{.plt} 归档的内容或解包归档而不将其安装为包或集合。
 
 @; ------------------------------------------------------------------------
 
@@ -439,79 +254,31 @@ without installing it as a package or collection.
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "setup-check-deps"]{Package Dependency Checking}
+@section[#:tag "setup-check-deps"]{包依赖检查}
 
-When @exec{raco setup} is run with no arguments,@margin-note*{Unless
-@DFlag{check-pkg-deps} is specified, dependency checking is disabled
-if any collection is specified for @exec{raco setup}.} after building
-all collections and documentation, @exec{raco setup} checks package
-dependencies. Specifically, it inspects compiled files and
-documentation to check that references across package boundaries are
-reflected by dependency declarations in each package-level
-@filepath{info.rkt} file (see @secref[#:doc pkg-doc "metadata"]).
+当 @exec{raco setup} 在没有参数的情况下运行时，@margin-note*{除非指定了 @DFlag{check-pkg-deps}，否则如果为 @exec{raco setup} 指定了任何集合，依赖检查将被禁用。}在构建所有集合和文档之后，@exec{raco setup} 检查包依赖关系。具体来说，它检查编译文件和文档，以验证跨包边界的引用是否由每个包级 @filepath{info.rkt} 文件中的依赖声明反映（参见 @secref[#:doc pkg-doc "metadata"]）。
 
-Dependency checking in @exec{raco setup} is intended as an aid to
-package developers to help them declare dependencies correctly. The
-@exec{raco setup} process itself does not depend on package dependency
-declarations. Similarly, a package with a missing dependency
-declaration may install successfully for other users, as long as they
-happen to have the dependencies installed already. A missing
-dependency creates trouble for others who install a package without
-having the dependency installed already.
+@exec{raco setup} 中的依赖检查旨在帮助包开发者正确声明依赖关系。@exec{raco setup} 进程本身不依赖于包依赖声明。同样，缺少依赖声明的包可能对其他用户成功安装，只要他们恰好已经安装了依赖项。缺失的依赖会给那些在没有安装依赖项的情况下安装包的用户带来麻烦。
 
-Practically every package depends on the @filepath{base} package,
-which includes the collections that are in a minimal variant of
-Racket. Declaring a dependency on @filepath{base} may seem
-unnecessary, since its collections are always installed. In a future
-version of Racket, however, the minimal collections may change, and
-the new set of minimal collections will then have a package name, such
-as @filepath{base2}. Declaring a dependency on @filepath{base} ensures
-forward compatibility, and @exec{raco setup} complains if the
-declaration is missing.
+几乎每个包都依赖 @filepath{base} 包，它包含 Racket 最小变体中的集合。在 @filepath{base} 上声明依赖可能看起来不必要，因为它的集合总是被安装。然而，在未来的 Racket 版本中，最小集合可能会变化，新的最小集合将有一个包名称，例如 @filepath{base2}。声明对 @filepath{base} 的依赖可确保向前兼容性，如果缺少该声明，@exec{raco setup} 会发出警告。
 
-To accommodate the early stages of package development, missing
-dependencies are not treated as an error for a package that has no
-dependency declarations.
+为了适应包开发的早期阶段，对于没有依赖声明的包，缺失的依赖不被视为错误。
 
-@subsection{Declaring Build-Time Dependencies}
+@subsection{声明构建时依赖}
 
-A build-time dependency is one that is not present in a package if it
-is converted to a @tech[#:doc pkg-doc]{binary package} (see
-@secref[#:doc pkg-doc "strip"]). For example, @filepath{tests} and
-@filepath{scribblings} directories are stripped away in a binary
-package by default, so cross-package references from directories with
-those names are treated as build dependencies. Similarly,
-@racketidfont{test} and @racketidfont{doc} submodules are stripped
-away, so references within those submodules create build dependencies.
+构建时依赖是指在包转换为 @tech[#:doc pkg-doc]{二进制包}（参见 @secref[#:doc pkg-doc "strip"]）时不存在的依赖。例如，@filepath{tests} 和 @filepath{scribblings} 目录在二进制包中默认被剥离，因此来自具有这些名称的目录的跨包引用被视为构建依赖。类似地，@racketidfont{test} 和 @racketidfont{doc} 子模块被剥离，因此这些子模块中的引用产生构建依赖。
 
-Build-time-only dependencies can be listed as @racket[build-deps]
-instead of @racket[deps] in a package's @filepath{info.rkt} file.
-Dependencies listed in @racket[deps], meanwhile, are treated as both
-run-time and build-time dependencies. The advantage of using
-@racket[build-deps], instead of listing all dependencies in
-@racket[deps], is that a binary version of the package can install
-with fewer dependencies.
+仅构建时的依赖可以在包的 @filepath{info.rkt} 文件中列为 @racket[build-deps] 而非 @racket[deps]。同时，@racket[deps] 中列出的依赖被视为运行时和构建时依赖。使用 @racket[build-deps] 而非将所有依赖列在 @racket[deps] 中的优点在于，包的二进制版本可以用更少的依赖进行安装。
 
-@subsection{How Dependency Checking Works}
+@subsection{依赖检查的工作原理}
 
-Dependency checking uses @filepath{.zo} files, associated
-@filepath{.dep} files (see @secref["Dependency Files"]), and the
-documentation index. Dynamic references, such as through
-@racket[dynamic-require], are not visible to the dependency checker;
-only dependencies via @racket[require],
-@racket[define-runtime-module-path-index], and other forms that
-cooperate with @racket[raco make] are visible for dependency checking.
+依赖检查使用 @filepath{.zo} 文件、关联的 @filepath{.dep} 文件（参见 @secref["Dependency Files"]）和文档索引。动态引用（例如通过 @racket[dynamic-require]）对依赖检查器不可见；只有通过 @racket[require]、@racket[define-runtime-module-path-index] 以及与 @racket[raco make] 协作的其他形式的依赖才对依赖检查可见。
 
-Dependency checking is sensitive to whether a dependency is needed
-only as a build-time dependency. If @exec{raco setup} detects that a
-missing dependency could be added as a build-time dependency, it will
-suggest the addition, but @exec{raco setup} will not suggest
-converting a normal dependency to a build-time dependency (since every
-normal dependency counts as a build-time dependency, too).
+依赖检查对依赖是否仅作为构建时依赖敏感。如果 @exec{raco setup} 检测到缺失的依赖可以添加为构建时依赖，它会建议添加，但 @exec{raco setup} 不会建议将普通依赖转换为构建时依赖（因为每个普通依赖也算作构建时依赖）。
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "setup-plt-plt"]{API for Setup}
+@section[#:tag "setup-plt-plt"]{Setup API}
 
 @defmodule[setup/setup]
 
@@ -540,83 +307,53 @@ normal dependency counts as a build-time dependency, too).
                 [#:fail-fast? fail-fast? any/c #f]
                 [#:get-target-dir get-target-dir (or/c #f (-> path-string?)) #f])
           boolean?]{
-Runs @exec{raco setup} with various options:
+使用各种选项运行 @exec{raco setup}：
 
 @itemlist[
 
- @item{@racket[file] --- if not @racket[#f], installs @racket[file] as
-       a @filepath{.plt} archive.}
+ @item{@racket[file] --- 如果不为 @racket[#f]，则将 @racket[file] 作为 @filepath{.plt} 归档安装。}
 
- @item{@racket[collections] --- if not @racket[#f], constrains setup to
-       the named collections (along with @racket[pkgs] and
-       @racket[planet-specs], if any)}
+ @item{@racket[collections] --- 如果不为 @racket[#f]，则将 setup 限制到命名的集合（以及 @racket[pkgs] 和 @racket[planet-specs]，如果有的话）}
 
- @item{@racket[pkgs] --- if not @racket[#f], constrains setup to the
-       named packages (along with @racket[collections] and
-       @racket[planet-specs], if any)}
+ @item{@racket[pkgs] --- 如果不为 @racket[#f]，则将 setup 限制到命名的包（以及 @racket[collections] 和 @racket[planet-specs]，如果有的话）}
 
- @item{@racket[planet-spec] --- if not @racket[#f], constrains setup to
-       the named @|PLaneT| packages (along with @racket[collections] and
-       @racket[pkgs], if any)}
+ @item{@racket[planet-spec] --- 如果不为 @racket[#f]，则将 setup 限制到命名的 @|PLaneT| 包（以及 @racket[collections] 和 @racket[pkgs]，如果有的话）}
 
- @item{@racket[make-user?] --- if @racket[#f], disables any
-       user-specific setup actions}
+ @item{@racket[make-user?] --- 如果为 @racket[#f]，则禁用任何用户特定的 setup 操作}
 
- @item{@racket[avoid-main?] --- if true, avoids setup actions that affect
-       the main installation, as opposed to user directories}
+ @item{@racket[avoid-main?] --- 如果为 true，则避免影响主安装的 setup 操作，相对于用户目录}
 
- @item{@racket[make-docs?] --- if @racket[#f], disables any
-       documentation-specific setup actions}
+ @item{@racket[make-docs?] --- 如果为 @racket[#f]，则禁用任何文档特定的 setup 操作}
 
- @item{@racket[make-doc-index?] --- if true, builds
-       documentation index collections in addition to @racket[collections],
-       assuming that documentation is built}
+ @item{@racket[make-doc-index?] --- 如果为 true，则除了 @racket[collections] 之外还构建文档索引集合，假设文档正在构建}
 
- @item{@racket[force-user-docs?] --- if true, then when building
-       documentation, creates a user-specific documentation entry point
-       even if it has the same content as the installation}
+ @item{@racket[force-user-docs?] --- 如果为 true，则在构建文档时创建用户特定的文档入口点，即使其内容与安装相同}
 
- @item{@racket[check-pkg-deps?] --- if true, enables
-       package-dependency checking even when @racket[collections],
-       @racket[pkgs], or @racket[planet-specs] is non-@racket[#f].}
+ @item{@racket[check-pkg-deps?] --- 如果为 true，则即使 @racket[collections]、@racket[pkgs] 或 @racket[planet-specs] 为非 @racket[#f]，也启用包依赖检查。}
 
- @item{@racket[fix-pkg-deps?] --- if true, implies
-       @racket[check-pkg-deps?] and attempts to automatically correct
-       discovered package-dependency problems}
+ @item{@racket[fix-pkg-deps?] --- 如果为 true，则隐含 @racket[check-pkg-deps?] 并尝试自动纠正发现的包依赖问题}
  
- @item{@racket[unused-pkg-deps?] --- if true, implies
-       @racket[check-pkg-deps?] and also reports dependencies that
-       appear to be unused}
+ @item{@racket[unused-pkg-deps?] --- 如果为 true，则隐含 @racket[check-pkg-deps?] 并报告看起来未使用的依赖}
 
- @item{@racket[clean?] --- if true, enables cleaning mode instead of setup mode}
+ @item{@racket[clean?] --- 如果为 true，则启用清理模式而非 setup 模式}
 
- @item{@racket[tidy?] --- if true, enables global tidying of
-       documentation and metadata indexes even when @racket[collections]
-       or @racket[planet-specs] is non-@racket[#f]}
+ @item{@racket[tidy?] --- 如果为 true，则即使 @racket[collections] 或 @racket[planet-specs] 为非 @racket[#f]，也启用全局文档和元数据索引清理}
 
- @item{@racket[recompile-only?] --- if true, disallows compilation
-       from source, allowing only timestamp adjustments and recompilation
-       from machine-independent form}
+ @item{@racket[recompile-only?] --- 如果为 true，则禁止从源码编译，仅允许时间戳调整和从机器无关格式重新编译}
 
- @item{@racket[recompile-cache] --- if not @racket[#f], a directory to cache recompilations
-       from machine-independent form to machine-dependent form}
+ @item{@racket[recompile-cache] --- 如果不为 @racket[#f]，则为缓存从机器无关格式到机器相关格式的重新编译的目录}
 
- @item{@racket[jobs] --- if not @racket[#f], determines the maximum number of parallel
-       tasks used for setup}
+ @item{@racket[jobs] --- 如果不为 @racket[#f]，则确定用于 setup 的最大并行任务数}
 
- @item{@racket[fail-fast?] --- if true, breaks the current thread as soon as an
-       error is discovered}
+ @item{@racket[fail-fast?] --- 如果为 true，则一旦发现错误就中断当前线程}
 
- @item{@racket[get-target-dir] --- if not @racket[#f], treated as a
-       value for @sigelem[setup-option^ current-target-directory-getter]}
+ @item{@racket[get-target-dir] --- 如果不为 @racket[#f]，则被视为 @sigelem[setup-option^ current-target-directory-getter] 的值}
 
 ]
 
-The result is @racket[#t] if @exec{raco setup} completes without error,
-@racket[#f] otherwise.
+如果 @exec{raco setup} 无错误完成，则结果为 @racket[#t]，否则为 @racket[#f]。
 
-Instead of using @envvar{PLT_COMPILED_FILE_CHECK}, @racket[setup] is
-sensitive to the @racket[use-compiled-file-check] parameter.
+@racket[setup] 不对 @envvar{PLT_COMPILED_FILE_CHECK} 敏感，而是对 @racket[use-compiled-file-check] 参数敏感。
 
 @history[#:changed "6.1" @elem{Added the @racket[fail-fast?] argument.}
          #:changed "6.1.1" @elem{Added the @racket[force-user-docs?] argument.}
@@ -627,22 +364,15 @@ sensitive to the @racket[use-compiled-file-check] parameter.
          #:changed "8.17.0.2" @elem{Added the @racket[recompile-cache] argument.}]}
 
 
-@subsection{@exec{raco setup} Unit}
+@subsection{@exec{raco setup} 单元}
 
 @defmodule[setup/setup-unit]
 
-The @racketmodname[setup/setup-unit] library provides @exec{raco setup} in unit
-form. The associated @racket[setup/option-sig] and
-@racket[setup/option-unit] libraries provides the interface for
-setting options for the run of @exec{raco setup}.
+@racketmodname[setup/setup-unit] 库以 unit 形式提供 @exec{raco setup}。关联的 @racket[setup/option-sig] 和 @racket[setup/option-unit] 库提供为运行 @exec{raco setup} 设置选项的接口。
 
-For example, to unpack a single @filepath{.plt} archive
-@filepath{x.plt}, set the @sigelem[setup-option^ archives] parameter
-to @racket[(list "x.plt")] and leave @sigelem[setup-option^
-specific-collections] as @racket[null].
+例如，要解包单个 @filepath{.plt} 归档 @filepath{x.plt}，将 @sigelem[setup-option^ archives] 参数设置为 @racket[(list "x.plt")] 并保持 @sigelem[setup-option^ specific-collections] 为 @racket[null]。
 
-Link the options and setup units so that your option-setting code is
-initialized between them, e.g.:
+将选项单元和 setup 单元链接起来，使选项设置代码在它们之间初始化，例如：
 
 @racketblock[
 (compound-unit
@@ -666,195 +396,159 @@ Imports
     @item{@racket[dynext:file^]}
   }
 
-and exports nothing. Invoking @racket[setup@] starts the setup process.}
+并且不导出任何内容。调用 @racket[setup@] 启动 setup 过程。}
 
 @; ----------------------------------------
 
-@subsection[#:tag "setup-plt-options"]{Options Unit}
+@subsection[#:tag "setup-plt-options"]{选项单元}
 
 @defmodule[setup/option-unit]
 
 @defthing[setup:option@ unit?]{
 
-Imports nothing and exports @racket[setup-option^].}
+不导入任何内容，导出 @racket[setup-option^]。}
 
 @; ----------------------------------------
 
-@subsection{Options Signature}
+@subsection{选项签名}
 
 @defmodule[setup/option-sig]
 
 @defsignature[setup-option^ ()]{
 
-@signature-desc{Provides parameters used to control @exec{raco setup} in unit
-form.}
+@signature-desc{提供用于以 unit 形式控制 @exec{raco setup} 的参数。}
 
   @defparam[setup-program-name name string?]{
-    The prefix used when printing status messages.
+    打印状态消息时使用的前缀。
     @defaults[@racket["raco setup"]]
   }
 
 @defparam[setup-compiled-file-paths paths (or/c #f (listof (and/c path? relative-path?)))]{
- If not @racket[#f], supplies a value like the one for @racket[use-compiled-file-paths]
- to control operations such as cleaning, where @racket[use-compiled-file-paths]
- may have been set to @racket[null] to avoid loading bytecode.
+ 如果不为 @racket[#f]，则提供类似于 @racket[use-compiled-file-paths] 的值来控制清理等操作，因为 @racket[use-compiled-file-paths] 可能已被设置为 @racket[null] 以避免加载字节码。
 
  @history[#:added "1.7"]}
 
 @defboolparam[verbose on?]{
-  If on, prints messages from @exec{make} to @envvar{stderr}.
+  如果开启，则从 @exec{make} 向 @envvar{stderr} 打印消息。
   @defaults[@racket[#f]]}
 
 @defboolparam[make-verbose on?]{
-  If on, verbose @exec{make}. @defaults[@racket[#f]]}
+  如果开启，则详细输出 @exec{make}。@defaults[@racket[#f]]}
 
 @defboolparam[compiler-verbose on?]{
-  If on, verbose @exec{compiler}. @defaults[@racket[#f]]}
+  如果开启，则详细输出 @exec{compiler}。@defaults[@racket[#f]]}
 
 @defboolparam[clean on?]{
- If on, delete @filepath{.zo} and
- @filepath{.so}/@filepath{.dll}/@filepath{.dylib} files in the
- specified collections. @defaults[@racket[#f]]}
+ 如果开启，则删除指定集合中的 @filepath{.zo} 和
+ @filepath{.so}/@filepath{.dll}/@filepath{.dylib} 文件。@defaults[@racket[#f]]}
 
 @defparam[compile-mode path (or/c path? #f)]{
-  If a @racket[path] is given, use a @filepath{.zo} compiler other than plain
-  @exec{compile}, and build to @racket[(build-path "compiled" (compile-mode))].
+  如果提供了 @racket[path]，则使用非普通 @exec{compile} 的 @filepath{.zo} 编译器，并构建到 @racket[(build-path "compiled" (compile-mode))]。
   @defaults[@racket[#f]]}
 
 @defboolparam[make-zo on?]{
-  If on, compile @filepath{.zo}. @defaults[@racket[#t]]}
+  如果开启，则编译 @filepath{.zo}。@defaults[@racket[#t]]}
 
 @defboolparam[make-info-domain on?]{
-  If on, update @filepath{info-domain/compiled/cache.rkt} for each
-  collection path. @defaults[@racket[#t]]}
+  如果开启，则为每个集合路径更新 @filepath{info-domain/compiled/cache.rkt}。@defaults[@racket[#t]]}
 
 @defboolparam[make-launchers on?]{
-  If on, make collection @filepath{info.rkt}-specified launchers and @tt{man} pages. @defaults[@racket[#t]]}
+  如果开启，则创建集合 @filepath{info.rkt} 指定的启动器和 @tt{man} 页面。@defaults[@racket[#t]]}
 
 @defboolparam[make-foreign-lib on?]{
-  If on, install collection @filepath{info.rkt}-specified libraries. @defaults[@racket[#t]]}
+  如果开启，则安装集合 @filepath{info.rkt} 指定的库。@defaults[@racket[#t]]}
 
   @defboolparam[make-docs on?]{
-    If on, build documentation.
+    如果开启，则构建文档。
     @defaults[@racket[#t]]
   }
   
   @defboolparam[make-user on?]{
-    If on, build the user-specific collection tree.
+    如果开启，则构建用户特定的集合树。
     @defaults[@racket[#t]]
   }
   
   @defboolparam[make-planet on?]{
-    If on, build the planet cache.
+    如果开启，则构建 planet 缓存。
     @defaults[@racket[#t]]
   }
   
 @defboolparam[avoid-main-installation on?]{
- If on, avoid building bytecode in the main installation tree when building
- other bytecode (e.g., in a user-specific collection). @defaults[@racket[#f]]}
+ 如果开启，则在构建其他字节码（例如在用户特定集合中）时避免在主安装树中构建字节码。@defaults[@racket[#f]]}
 
 @defboolparam[make-tidy on?]{
- If on, remove metadata cache information and
-  documentation for non-existent collections (to clean up after removal)
-  even when @racket[specific-collections] or @racket[specific-planet-dirs]
-  is non-@racket['()] or @racket[make-only] is true. @defaults[@racket[#f]]}
+ 如果开启，则即使 @racket[specific-collections] 或 @racket[specific-planet-dirs] 为非 @racket['()] 或 @racket[make-only] 为 true，也删除不存在集合的元数据缓存信息和文档（以清理移除后的残留）。@defaults[@racket[#f]]}
 
 @defboolparam[call-install on?]{
-  If on, call collection @filepath{info.rkt}-specified setup code.
+  如果开启，则调用集合 @filepath{info.rkt} 指定的 setup 代码。
   @defaults[@racket[#t]]}
 
 @defboolparam[call-post-install on?]{
-  If on, call collection @filepath{info.rkt}-specified post-install code.
+  如果开启，则调用集合 @filepath{info.rkt} 指定的安装后代码。
   @defaults[@racket[#t]]}
 
 @defboolparam[pause-on-errors on?]{
-  If on, in the event of an error, prints a summary error and waits for
-  @envvar{stdin} input before terminating. @defaults[@racket[#f]]}
+  如果开启，则在发生错误时打印摘要错误并等待 @envvar{stdin} 输入后再终止。@defaults[@racket[#f]]}
 
   @defparam[parallel-workers num exact-nonnegative-integer?]{
-    Determines the number of places to use for compiling bytecode
-    and for building the documentation.
+    确定用于编译字节码和构建文档的 place 数量。
     @defaults[@racket[(min (processor-count) 8)]]
   }
 
 @defboolparam[fail-fast on?]{
-  If on, breaks the original thread as soon as an error is discovered.
+  如果开启，则一旦发现错误就中断原始线程。
   @defaults[@racket[#f]]
 
   @history[#:added "1.2"]}
   
 @defboolparam[force-unpacks on?]{
-  If on, ignore version and already-installed errors when unpacking a
-  @filepath{.plt} archive. @defaults[@racket[#f]]}
+  如果开启，则在解包 @filepath{.plt} 归档时忽略版本和已安装错误。@defaults[@racket[#f]]}
   
 @defparam[specific-collections colls (listof (listof path-string?))]{
-  A list of collections to set up; the empty list means set-up all
-  collections if the archives list and @racket[specific-planet-dirs]
-  is also @racket['()]. @defaults[@racket['()]]}
+  要设置的集合列表；空列表意味着如果归档列表和 @racket[specific-planet-dirs] 也为 @racket['()]，则设置所有集合。@defaults[@racket['()]]}
 
   @defparam[specific-planet-dirs dir (listof (list/c string?
                                                      string?
                                                      exact-nonnegative-integer?
                                                      exact-nonnegative-integer?))]{
-    A list of planet package version specs to set up; the empty list means to
-    set-up all planet collections if the archives list and @racket[specific-collections]
-    is also @racket['()]. @defaults[@racket['()]]
+    要设置的 planet 包版本规格列表；空列表意味着如果归档列表和 @racket[specific-collections] 也为 @racket['()]，则设置所有 planet 集合。@defaults[@racket['()]]
   }
 
 @defboolparam[make-only on?]{
- If true, set up no collections if @racket[specific-collections]
- and @racket[specific-planet-dirs] are both @racket['()].}
+ 如果为 true，则如果 @racket[specific-collections] 和 @racket[specific-planet-dirs] 均为 @racket['()]，不设置任何集合。}
   
 @defparam[archives arch (listof path-string?)]{
-  A list of @filepath{.plt} archives to unpack; any collections specified
-  by the archives are set-up in addition to the collections listed in
-  specific-collections. @defaults[@racket[null]]}
+  要解包的 @filepath{.plt} 归档列表；归档指定的任何集合除了 @racket[specific-collections] 中列出的集合外也被设置。@defaults[@racket[null]]}
 
 @defboolparam[archive-implies-reindex on?]{
-  If on, when @racket[archives] has a non-empty list of packages, if any
-  documentation is built, then suitable documentation start pages, search pages,
-  and master index pages are rebuilt. @defaults[@racket[#t]]}
+  如果开启，当 @racket[archives] 具有非空包列表时，如果构建了任何文档，则重新构建合适的文档起始页、搜索页和主索引页。@defaults[@racket[#t]]}
 
 @defparam[current-target-directory-getter thunk (-> path-string?)]{
-  A thunk that returns the target directory for unpacking a relative
-  @filepath{.plt} archive; when unpacking an archive, either this or
-  the procedure in @racket[current-target-plt-directory-getter] will
-  be called. @defaults[@racket[current-directory]]}
+  一个返回解包相对 @filepath{.plt} 归档的目标目录的 thunk；解包归档时，将调用此过程或 @racket[current-target-plt-directory-getter] 中的过程。@defaults[@racket[current-directory]]}
 
 @defparam[current-target-plt-directory-getter
           proc (path-string?
                 path-string?
                 (listof path-string?) . -> . path-string?)]{
-  A procedure that takes a preferred path, a path to the parent of the main
-  @filepath{collects} directory, and a list of path choices; it returns
-  a path for a "plt-relative" install; when unpacking an archive, either
-  this or the procedure in @racket[current-target-directory-getter] will
-  be called, and in the former case, this procedure may be called
-  multiple times. @defaults[@racket[(lambda (preferred main-parent-dir choices) preferred)]]}
+  一个过程，接受首选路径、主 @filepath{collects} 目录的父目录路径以及路径选择列表；它返回用于“plt 相对”安装的路径；解包归档时，将调用此过程或 @racket[current-target-directory-getter] 中的过程，在前一种情况下，此过程可能被多次调用。@defaults[@racket[(lambda (preferred main-parent-dir choices) preferred)]]}
 
 }
 
 @; ----------------------------------------
 
-@subsection{Setup Start Module}
+@subsection{Setup 启动模块}
 
-@defmodule[setup]{The @racketmodname[setup] library implements
-@exec{raco setup}, including the part that bootstraps @exec{raco setup}
-if its own implementation needs to be compiled.}
+@defmodule[setup]{@racketmodname[setup] 库实现 @exec{raco setup}，包括在 @exec{raco setup} 自身实现需要编译时引导它的部分。}
 
-When running @racketmodname[setup] via @exec{racket}, supply the
-@exec{@Flag{N} raco} to ensure that command-line arguments are parsed
-the same way as for @exec{raco setup}, as opposed to a legacy
-command-line mode.
+当通过 @exec{racket} 运行 @racketmodname[setup] 时，提供 @exec{@Flag{N} raco} 以确保命令行参数解析方式与 @exec{raco setup} 相同，而非使用旧版命令行模式。
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag ".plt-archives"]{API for Installing @filepath{.plt} Archives}
+@section[#:tag ".plt-archives"]{安装 @filepath{.plt} 归档文件的 API}
 
-The @racketmodname[setup/plt-single-installer] module provides a
-function for installing a single @filepath{.plt} file.
+@racketmodname[setup/plt-single-installer] 模块提供了一个用于安装单个 @filepath{.plt} 文件的函数。
 
-@subsection{Non-GUI Installer}
+@subsection{非 GUI 安装器}
 
 @local-module[setup/plt-single-installer]{
 
@@ -865,22 +559,11 @@ function for installing a single @filepath{.plt} file.
           (get-dir-proc (-> (or/c path-string? #f)))
           [#:show-beginning-of-file? show-beginning-of-file? any/c #f])
          void?]{
-   Creates a separate thread and namespace, runs the installer in that
-   thread with the new namespace, and returns when the thread
-   completes or dies. It also creates a custodian
-   (see @secref[#:doc ref-src]{custodians}) to manage the
-   created thread, sets the exit handler for the thread to shut down
-   the custodian, and explicitly shuts down the custodian
-   when the created thread terminates or dies.
+   创建一个单独的线程和命名空间，在新命名空间的线程中运行安装器，并在线程完成或终止时返回。它还创建一个 custodian（参见 @secref[#:doc ref-src]{custodians}）来管理创建的线程，设置线程的退出处理程序以关闭 custodian，并在创建的线程终止或消亡时显式关闭 custodian。
 
-   The @racket[get-dir-proc] procedure is called if the installer needs a
-   target directory for installation, and a @racket[#f] result means that
-   the user canceled the installation. Typically, @racket[get-dir-proc] is
-   @racket[current-directory].
+   如果安装器需要安装的目标目录，则调用 @racket[get-dir-proc] 过程，@racket[#f] 结果表示用户取消了安装。通常，@racket[get-dir-proc] 是 @racket[current-directory]。
    
-   If @racket[show-beginning-of-file?] is a true value and the installation
-   fails, then @racket[run-single-installer] prints the first 1,000 characters
-   of the file (in an attempt to help debug the cause of failures).
+   如果 @racket[show-beginning-of-file?] 为真值且安装失败，则 @racket[run-single-installer] 打印文件的前 1,000 个字符（以帮助调试失败原因）。
 }
 
 @defproc[(install-planet-package [file path-string?] 
@@ -891,16 +574,10 @@ function for installing a single @filepath{.plt} file.
                                                exact-nonnegative-integer?)])
          void?]{
 
- Similar to @racket[run-single-installer], but runs the setup process
- to install the archive @racket[file] into @racket[directory] as the
- @|PLaneT| package described by @racket[spec]. The user-specific
- documentation index is not rebuilt, so @racket[reindex-user-documentation]
- should be run after a set of @|PLaneT| packages are installed.}
+ 类似于 @racket[run-single-installer]，但运行 setup 过程以将归档 @racket[file] 安装到 @racket[directory] 作为 @racket[spec] 描述的 @|PLaneT| 包。用户特定的文档索引不会被重建，因此在一组 @|PLaneT| 包安装后应运行 @racket[reindex-user-documentation]。}
 
 @defproc[(reindex-user-documentation) void?]{
-  Similar to @racket[run-single-installer], but runs only the part of
-  the setup process that rebuilds the user-specific documentation
-  start page, search page, and master index.}
+  类似于 @racket[run-single-installer]，但仅运行 setup 过程中重建用户特定文档起始页、搜索页和主索引的部分。}
 
 @defproc[(clean-planet-package [directory path-string?] 
                                [spec (list/c string? string? 
@@ -908,34 +585,22 @@ function for installing a single @filepath{.plt} file.
                                              exact-nonnegative-integer?
                                              exact-nonnegative-integer?)])
          void?]{
-  Undoes the work of @racket[install-planet-package]. The user-specific
- documentation index is not rebuilt, so @racket[reindex-user-documentation]
- should be run after a set of @|PLaneT| packages are removed.}}
+  撤销 @racket[install-planet-package] 的工作。用户特定的文档索引不会被重建，因此在一组 @|PLaneT| 包移除后应运行 @racket[reindex-user-documentation]。}}
 
 
 @; ----------------------------------------------------------
 
-@section[#:tag "dirs"]{API for Finding Installation Directories}
+@section[#:tag "dirs"]{查找安装目录的 API}
 
-@defmodule[setup/dirs]{ The @racketmodname[setup/dirs] library
-  provides several procedures for locating installation directories.
-  Many of these paths can be configured through the
-  @tech{configuration directory} (see @secref["config-file"]).}
+@defmodule[setup/dirs]{@racketmodname[setup/dirs] 库提供了几个用于定位安装目录的过程。其中许多路径可以通过 @tech{配置目录}（参见 @secref["config-file"]）进行配置。}
 
-In cross-platform build mode (see @secref["cross-system"]), the
-functions provided by @racketmodname[setup/dirs] generally report
-target-system paths, instead of current-system paths. The exceptions are
-@racket[get-lib-search-dirs] and @racket[find-dll-dir], which report
-current-system paths while @racket[get-cross-lib-search-dirs] and
-@racket[find-cross-dll-dir] report target-system paths.
+在跨平台构建模式下（参见 @secref["cross-system"]），@racketmodname[setup/dirs] 提供的函数通常报告目标系统路径而非当前系统路径。例外是 @racket[get-lib-search-dirs] 和 @racket[find-dll-dir]，它们报告当前系统路径，而 @racket[get-cross-lib-search-dirs] 和 @racket[find-cross-dll-dir] 报告目标系统路径。
 
 @(define-syntax-rule (see-config id)
    @elem{See also @racket['id] in @secref["config-file"].})
 
 @defproc[(find-collects-dir) (or/c path? #f)]{
-  Returns a path to the installation's main @filepath{collects} directory, or
-  @racket[#f] if none can be found. A @racket[#f] result is likely only
-  in a stand-alone executable that is distributed without libraries.}
+  返回安装的主 @filepath{collects} 目录的路径，如果找不到则返回 @racket[#f]。@racket[#f] 结果可能仅出现在不带有库分发的独立可执行文件中。}
 
 @(define-syntax user-path
    (syntax-rules ()
@@ -947,358 +612,239 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
       (user-path dir (get-installation-name))]))
 
 @defproc[(find-user-collects-dir) path?]{
-  Returns a path to the user-specific @filepath{collects} directory; the
-  directory indicated by the returned path may or may not exist.
+  返回用户特定 @filepath{collects} 目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path["collects"]}
 
 @defproc[(get-collects-search-dirs) (listof path?)]{
-  Returns the same result as @racket[(current-library-collection-paths)],
-  which means that this result is not sensitive to the value of the 
-  @racket[use-user-specific-search-paths] parameter.}
+  返回与 @racket[(current-library-collection-paths)] 相同的结果，这意味着此结果不对 @racket[use-user-specific-search-paths] 参数的值敏感。}
 
 @defproc[(get-main-collects-search-dirs) (listof path?)]{
-  Returns a list of paths to installation @filepath{collects}
-  directories, normally including the result of @racket[find-collects-dir].
-  These directories are normally included in the result of
-  @racket[(current-library-collection-paths)], but a
-  @envvar{PLTCOLLECTS} setting or change to the parameter may cause
-  them to be omitted. Any other path in
-  @racket[(current-library-collection-paths)] is treated as
-  user-specific. The directories indicated by the returned paths may
-  or may not exist.
+  返回安装 @filepath{collects} 目录的路径列表，通常包括 @racket[find-collects-dir] 的结果。这些目录通常包含在 @racket[(current-library-collection-paths)] 的结果中，但 @envvar{PLTCOLLECTS} 设置或对该参数的更改可能导致它们被忽略。@racket[(current-library-collection-paths)] 中的任何其他路径被视为用户特定的。返回路径指示的目录可能存在也可能不存在。
 
-  The main-collections search path can be configured via
-  @racket['collects-search-dirs] in @filepath{config.rktd} (see
-  @secref["config-file"]).}
+  主集合搜索路径可以通过 @filepath{config.rktd} 中的 @racket['collects-search-dirs] 配置（参见 @secref["config-file"]）。}
 
 @defproc[(find-config-dir) (or/c path? #f)]{
-  Returns a path to the installation's @filepath{etc} directory, which
-  contains configuration and package information---including
-  configuration of some of the other directories (see @secref["config-file"]).
-  A @racket[#f] result indicates that no configuration directory
-  is available.}
+  返回安装的 @filepath{etc} 目录的路径，该目录包含配置和包信息——包括其他一些目录的配置（参见 @secref["config-file"]）。@racket[#f] 结果表示没有可用的配置目录。}
 
 @defproc[(find-links-file) (or/c path? #f)]{
-  Returns a path to the installation's @tech[#:doc
-  reference-doc]{collection links file}.  The file indicated by the
-  returned path may or may not exist. A @racket[#f] result indicates
-  that no links file is available.
+  返回安装的 @tech[#:doc reference-doc]{集合链接文件}的路径。返回路径指示的文件可能存在也可能不存在。@racket[#f] 结果表示没有可用的链接文件。
 
   @see-config[links-file]}
 
 @defproc[(find-user-links-file [vers string? (get-installation-name)]) path?]{
-  Returns a path to the user's @tech[#:doc reference-doc]{collection
-  links file}.  The file indicated by the returned path may or may not
-  exist.
+  返回用户的 @tech[#:doc reference-doc]{集合链接文件}的路径。返回路径指示的文件可能存在也可能不存在。
 
   @user-path["links.rktd" vers]}
 
 @defproc[(get-links-search-files) (listof path?)]{
-  Returns a list of paths to installation @tech[#:doc
-  reference-doc]{collection links files} to search in
-  order. (Normally, the result includes the result of
-  @racket[(find-links-file)], which is where new installation-wide
-  links are installed by @exec{raco link} or @racket[links].) The
-  result of @racket[find-user-links-file]
-  is @emph{not} added to the returned list. The
-  files indicated by the returned paths may or may not exist.
+  返回安装的 @tech[#:doc reference-doc]{集合链接文件}的路径列表，按顺序搜索。（通常，结果包括 @racket[(find-links-file)] 的结果，@exec{raco link} 或 @racket[links] 将新安装范围的链接安装到该位置。）@racket[find-user-links-file] 的结果 @emph{不}添加到返回的列表中。返回路径指示的文件可能存在也可能不存在。
 
   @see-config[links-search-files]}
 
 @defproc[(find-pkgs-dir) (or/c path? #f)]{
-  Returns a path to the directory containing packages with
-  installation scope; the directory indicated by the returned path may
-  or may not exist. A @racket[#f] result indicates that no package-installation
-  directory is available.
+  返回包含安装范围的包的目录路径；返回路径指示的目录可能存在也可能不存在。@racket[#f] 结果表示没有可用的包安装目录。
 
   @see-config[pkgs-dir]}
 
 @defproc[(find-user-pkgs-dir [vers string? (get-installation-name)]) path?]{
-  Returns a path to the directory containing packages with
-  user-specific scope for installation name @racket[vers]; the directory indicated by
-  the returned path may or may not exist.
+  返回包含安装名称为 @racket[vers] 的用户特定范围的包的目录路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path["pkgs" vers]}
 
 @defproc[(get-pkgs-search-dirs) (listof path?)]{
-  Returns a list of paths to the directories containing packages in
-  installation scope.  (Normally, the result includes the result of
-  @racket[(find-pkgs-dir)], which is where new packages are installed
-  by @|raco-pkg-install|.) The result of @racket[find-user-pkgs-dir]
-  is @emph{not} added to the returned list. The directories indicated by the returned
-  paths may or may not exist.
+  返回包含安装范围的包的目录路径列表。（通常，结果包括 @racket[(find-pkgs-dir)] 的结果，@|raco-pkg-install| 将新包安装到该位置。）@racket[find-user-pkgs-dir] 的结果 @emph{不}添加到返回的列表中。返回路径指示的目录可能存在也可能不存在。
 
   @see-config[pkgs-search-dirs]}
 
 @defproc[(find-doc-dir) (or/c path? #f)]{
-  Returns a path to the installation's @filepath{doc} directory.
-  The result is @racket[#f] if no such directory is available.
+  返回安装的 @filepath{doc} 目录的路径。如果没有这样的目录可用，则结果为 @racket[#f]。
 
   @see-config[doc-dir]}
 
 @defproc[(find-user-doc-dir) path?]{
-  Returns a path to a user-specific @filepath{doc} directory. The directory
-  indicated by the returned path may or may not exist.
+  返回用户特定的 @filepath{doc} 目录的路径。返回路径指示的目录可能存在也可能不存在。
 
   @user-path["doc"]}
 
 @defproc[(get-doc-search-dirs) (listof path?)]{
-  Returns a list of paths to search for documentation, not including
-  documentation stored in individual collections. Unless it is
-  configured otherwise, the result includes any non-@racket[#f] result of
-  @racket[(find-doc-dir)] and @racket[(find-user-doc-dir)]---but the latter is
-  included only if the value of the @racket[use-user-specific-search-paths]
-  parameter is @racket[#t].
+  返回搜索文档的路径列表，不包括存储在各个集合中的文档。除非另有配置，结果包括 @racket[(find-doc-dir)] 和 @racket[(find-user-doc-dir)] 的任何非 @racket[#f] 结果——但后者仅在 @racket[use-user-specific-search-paths] 参数的值为 @racket[#t] 时包含。
 
   @see-config[doc-search-dirs]}
 
 @defproc[(get-doc-extra-search-dirs) (listof path?)]{
-  Like @racket[get-doc-search-dirs], but refrains from adding
-  @racket[(find-doc-dir)] and @racket[(find-user-doc-dir)] to the
-  underlying @racket['doc-search-dirs] configuration.
+  类似于 @racket[get-doc-search-dirs]，但不将 @racket[(find-doc-dir)] 和 @racket[(find-user-doc-dir)] 添加到底层 @racket['doc-search-dirs] 配置中。
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(find-lib-dir) (or/c path? #f)]{
-  Returns a path to the installation's @filepath{lib} directory, which contains
-  libraries and other build information. The result is @racket[#f] if no such
-  directory is available.
+  返回安装的 @filepath{lib} 目录的路径，该目录包含库和其他构建信息。如果没有这样的目录可用，则结果为 @racket[#f]。
 
   @see-config[lib-dir]}
 
 @defproc[(find-user-lib-dir) path?]{
-  Returns a path to a user-specific @filepath{lib} directory; the directory
-  indicated by the returned path may or may not exist.
+  返回用户特定的 @filepath{lib} 目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path["lib"]}
 
 @defproc[(get-lib-search-dirs) (listof path?)]{
-  Returns a list of paths to search for foreign libraries.
+  返回搜索外部库的路径列表。
 
-  Unless it is configured otherwise, and except in cross-platform
-  build mode, the result includes any non-@racket[#f] result of
-  @racket[(find-lib-dir)] and @racket[(find-user-lib-dir)]---but the
-  latter is included only if the value of the
-  @racket[use-user-specific-search-paths] parameter is @racket[#t].
+  除非另有配置，且除跨平台构建模式外，结果包括 @racket[(find-lib-dir)] 和 @racket[(find-user-lib-dir)] 的任何非 @racket[#f] 结果——但后者仅在 @racket[use-user-specific-search-paths] 参数的值为 @racket[#t] 时包含。
 
-  In cross-platform build mode (see @secref["cross-system"]),
-  @racket[get-lib-search-dirs] reports a result suitable for the
-  current system, instead of the target system. See also
-  @racket[get-cross-lib-search-dirs].
+  在跨平台构建模式下（参见 @secref["cross-system"]），@racket[get-lib-search-dirs] 报告适合当前系统而非目标系统的结果。另请参见 @racket[get-cross-lib-search-dirs]。
 
   @see-config[lib-search-dirs]
 
-  @history[#:changed "6.1.1.4" @elem{Dropped @racket[(find-dll-dir)]
-                                     from the set of paths to
-                                     explicitly include in the
-                                     default.}
-           #:changed "6.9.0.1" @elem{Changed behavior in cross-platform build mode.}]}
+  @history[#:changed "6.1.1.4" @elem{从默认显式包含的路径集中移除了 @racket[(find-dll-dir)]。}
+           #:changed "6.9.0.1" @elem{更改了跨平台构建模式下的行为。}]}
 
 @defproc[(get-cross-lib-search-dirs) (listof path?)]{
-  Like @racket[get-lib-search-dirs], but in cross-platform build mode,
-  reports directories for the target system (including any
-  non-@racket[#f] result of @racket[(find-lib-dir)], etc.)
-  instead of the current system.
+  类似于 @racket[get-lib-search-dirs]，但在跨平台构建模式下，报告目标系统而非当前系统的目录（包括 @racket[(find-lib-dir)] 等的任何非 @racket[#f] 结果）。
 
   @history[#:added "6.9.0.1"]}
 
 @defproc[(get-cross-lib-extra-search-dirs) (listof path?)]{
-  Like @racket[get-cross-lib-search-dirs], but refrains from adding
-  @racket[(find-lib-dir)] and @racket[(find-user-lib-dir)] to the
-  underlying @racket['lib-search-dirs] configuration.
+  类似于 @racket[get-cross-lib-search-dirs]，但不将 @racket[(find-lib-dir)] 和 @racket[(find-user-lib-dir)] 添加到底层 @racket['lib-search-dirs] 配置中。
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(find-dll-dir) (or/c path? #f)]{
-  Returns a path to the directory that contains DLLs for use with the
-  current executable (e.g., @filepath{libracket.dll} on Windows).
-  The result is @racket[#f] if no such directory is available, or if no
-  specific directory is available (i.e., other than the platform's normal
-  search path).
+  返回包含供当前可执行文件使用的 DLL 的目录路径（例如，Windows 上的 @filepath{libracket.dll}）。如果没有这样的目录可用，或没有特定目录可用（即，除平台正常搜索路径外），则结果为 @racket[#f]。
 
-  In cross-platform build mode (see @secref["cross-system"]),
-  @racket[find-dll-dir] reports a result suitable for the current
-  system, instead of the target system. See also
-  @racket[find-cross-dll-dir].
+  在跨平台构建模式下（参见 @secref["cross-system"]），@racket[find-dll-dir] 报告适合当前系统而非目标系统的结果。另请参见 @racket[find-cross-dll-dir]。
 
-  @history[#:changed "6.9.0.1" @elem{Changed behavior in cross-platform build mode.}]}
+  @history[#:changed "6.9.0.1" @elem{更改了跨平台构建模式下的行为。}]}
 
 @defproc[(find-cross-dll-dir) (or/c path? #f)]{
-  Like @racket[find-dll-dir], but in cross-platform build mode,
-  reports a directory for the target system
-  instead of the current system.
+  类似于 @racket[find-dll-dir]，但在跨平台构建模式下，报告目标系统而非当前系统的目录。
 
   @history[#:added "6.9.0.1"]}
 
-@defproc[(find-share-dir) (or/c path? #f)]{ Returns a path to the
-  installation's @filepath{share} directory, which contains installed
-  packages and other platform-independent files. The result is
-  @racket[#f] if no such directory is available.
+@defproc[(find-share-dir) (or/c path? #f)]{ 返回安装的 @filepath{share} 目录的路径，该目录包含已安装的包和其他平台无关文件。如果没有这样的目录可用，则结果为 @racket[#f]。
 
   @see-config[share-dir]}
 
 @defproc[(find-user-share-dir) path?]{
-  Returns a path to a user-specific @filepath{share} directory; the directory
-  indicated by the returned path may or may not exist.
+  返回用户特定的 @filepath{share} 目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path["share"]}
 
 @defproc[(get-share-search-dirs) (listof path?)]{
-  Returns a list of paths to search for files that are normally in a
-  @filepath{share} directory. 
+  返回搜索通常位于 @filepath{share} 目录中的文件的路径列表。
 
-  Unless it is configured otherwise, the result includes any
-  non-@racket[#f] result of @racket[(find-share-dir)] and
-  @racket[(find-user-share-dir)]---but the latter is included only if
-  the value of the @racket[use-user-specific-search-paths] parameter
-  is @racket[#t].
+  除非另有配置，结果包括 @racket[(find-share-dir)] 和 @racket[(find-user-share-dir)] 的任何非 @racket[#f] 结果——但后者仅在 @racket[use-user-specific-search-paths] 参数的值为 @racket[#t] 时包含。
 
   @see-config[share-search-dirs]
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(get-share-extra-search-dirs) (listof path?)]{
-  Like @racket[get-share-search-dirs], but refrains from adding
-  @racket[(find-share-dir)] and @racket[(find-user-share-dir)] to the
-  underlying @racket['share-search-dirs] configuration.
+  类似于 @racket[get-share-search-dirs]，但不将 @racket[(find-share-dir)] 和 @racket[(find-user-share-dir)] 添加到底层 @racket['share-search-dirs] 配置中。
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(find-include-dir) (or/c path? #f)]{
-  Returns a path to the installation's @filepath{include} directory, which
-  contains @filepath{.h} files for building Racket extensions and embedding
-  programs. The result is @racket[#f] if no such directory is available.
+  返回安装的 @filepath{include} 目录的路径，该目录包含用于构建 Racket 扩展和嵌入程序的 @filepath{.h} 文件。如果没有这样的目录可用，则结果为 @racket[#f]。
 
   @see-config[include-dir]}
 
 @defproc[(find-user-include-dir) path?]{
-  Returns a path to a user-specific @filepath{include} directory; the
-  directory indicated by the returned path may or may not exist.
+  返回用户特定的 @filepath{include} 目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path["include"]}
 
 @defproc[(get-include-search-dirs) (listof path?)]{
-  Returns a list of paths to search for @filepath{.h} files. Unless it is
-  configured otherwise, the result includes any non-@racket[#f] result of
-  @racket[(find-include-dir)] and @racket[(find-user-include-dir)]---but the
-  latter is included only if the value of the
-  @racket[use-user-specific-search-paths] parameter is @racket[#t].
+  返回搜索 @filepath{.h} 文件的路径列表。除非另有配置，结果包括 @racket[(find-include-dir)] 和 @racket[(find-user-include-dir)] 的任何非 @racket[#f] 结果——但后者仅在 @racket[use-user-specific-search-paths] 参数的值为 @racket[#t] 时包含。
 
   @see-config[include-search-dirs]}
 
 @defproc[(find-console-bin-dir) (or/c path? #f)]{
-  Returns a path to the installation's executable directory, where the
-  stand-alone Racket executable resides. The result is @racket[#f] if no
-  such directory is available.
+  返回安装的可执行文件目录的路径，独立 Racket 可执行文件位于该目录。如果没有这样的目录可用，则结果为 @racket[#f]。
 
   @see-config[bin-dir]}
 
 @defproc[(find-gui-bin-dir) (or/c path? #f)]{
-  Returns a path to the installation's executable directory, where the
-  stand-alone GRacket executable resides. The result is @racket[#f] if no such
-  directory is available.
+  返回安装的可执行文件目录的路径，独立 GRacket 可执行文件位于该目录。如果没有这样的目录可用，则结果为 @racket[#f]。
 
   @see-config[gui-bin-dir]}
 
 @defproc[(find-user-console-bin-dir) path?]{
-  Returns a path to the user's executable directory; the directory
-  indicated by the returned path may or may not exist.
+  返回用户可执行文件目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path[#f]}
 
 @defproc[(find-user-gui-bin-dir) path?]{
-  Returns a path to the user's executable directory for graphical
-  programs; the directory indicated by the returned path may or may
-  not exist.
+  返回用户图形程序可执行文件目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path[#f]}
 
 @defproc[(get-console-bin-search-dirs) (listof path?)]{
-  Analogous to @racket[get-share-search-dirs], but for paths to search
-  for executables such as @exec{racket}.
+  类似于 @racket[get-share-search-dirs]，但用于搜索可执行文件（如 @exec{racket}）的路径。
 
   @see-config[bin-search-dirs]
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(get-console-bin-extra-search-dirs) (listof path?)]{
-  Analogous to @racket[get-share-extra-search-dirs] for the underlying
-  @racket['bin-search-dirs] configuration.
+  类似于 @racket[get-share-extra-search-dirs]，针对底层 @racket['bin-search-dirs] 配置。
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(get-gui-bin-search-dirs) (listof path?)]{
-  Analogous to @racket[get-share-search-dirs], but for paths to search
-  for executables such as @exec{gracket}.
+  类似于 @racket[get-share-search-dirs]，但用于搜索可执行文件（如 @exec{gracket}）的路径。
 
   @see-config[gui-bin-search-dirs]
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(get-gui-bin-extra-search-dirs) (listof path?)]{
-  Analogous to @racket[get-share-extra-search-dirs] for the underlying
-  @racket['gui-bin-search-dirs] configuration.
+  类似于 @racket[get-share-extra-search-dirs]，针对底层 @racket['gui-bin-search-dirs] 配置。
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(find-apps-dir) (or/c path? #f)]{
-  Returns a path to the installation's directory @filepath{.desktop}
-  files (for Unix). The result is @racket[#f] if no such directory
-  exists.
+  返回安装的 @filepath{.desktop} 文件目录的路径（用于 Unix）。如果不存在这样的目录，则结果为 @racket[#f]。
 
   @see-config[apps-dir]}
 
 @defproc[(find-user-apps-dir) path?]{
-  Returns a path to the user's directory for @filepath{.desktop} files
-  (for Unix); the directory indicated by the returned path may or may
-  not exist.
+  返回用户 @filepath{.desktop} 文件目录的路径（用于 Unix）；返回路径指示的目录可能存在也可能不存在。
 
   @user-path[#f]}
 
 @defproc[(find-man-dir) (or/c path? #f)]{
-  Returns a path to the installation's man-page directory. The result is
-  @racket[#f] if no such directory exists. @see-config[man-dir]}
+  返回安装的 man 页面目录的路径。如果不存在这样的目录，则结果为 @racket[#f]。@see-config[man-dir]}
 
 @defproc[(find-user-man-dir) path?]{
-  Returns a path to the user's man-page directory; the directory
-  indicated by the returned path may or may not exist.
+  返回用户 man 页面目录的路径；返回路径指示的目录可能存在也可能不存在。
 
   @user-path["man"]}
 
 @defproc[(get-man-search-dirs) (listof path?)]{
-  Analogous to @racket[get-share-search-dirs], but for paths to search
-  for man pages.
+  类似于 @racket[get-share-search-dirs]，但用于搜索 man 页面的路径。
 
   @see-config[man-search-dirs]
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(get-man-extra-search-dirs) (listof path?)]{
-  Analogous to @racket[get-share-extra-search-dirs] for the underlying
-  @racket['man-search-dirs] configuration.
+  类似于 @racket[get-share-extra-search-dirs]，针对底层 @racket['man-search-dirs] 配置。
 
   @history[#:added "8.1.0.6"]}
 
 @defproc[(get-info-domain-root) (or/c #false path?)]{
-  Returns @racket[#f] or a path to be used as a prefix to redirect the paths
-  used for recording and finding @filepath{info.rkt} information via
-  @racket[find-relevant-directories].
+  返回 @racket[#f] 或一个用作前缀的路径，用于重定向通过 @racket[find-relevant-directories] 记录和查找 @filepath{info.rkt} 信息的路径。
 
   @history[#:added "8.10.0.4"]}
 
 @defproc[(get-doc-search-url) string?]{
-  Returns a string that is used by the documentation system, augmented
-  with a version and search-key query, for remote documentation links.
+  返回一个字符串，文档系统使用该字符串并附加版本和搜索关键词查询，用于远程文档链接。
 
   @see-config[doc-search-url]}
 
 @defproc[(get-doc-open-url) (or/c string? #f)]{
-  Returns @racket[#f] or a string for a root URL to be used as an
-  alternative to opening a local file for documentation. A
-  non-@racket[#f] configuration means that DrRacket, for example,
-  performs keyword searches for documentation via the specified URL
-  instead of from locally installed documentation.
+  返回 @racket[#f] 或一个根 URL 字符串，用作打开本地文档文件的替代方案。非 @racket[#f] 配置意味着例如 DrRacket 通过指定的 URL 而非本地安装的文档执行文档关键词搜索。
 
   @see-config[doc-open-url]
 
@@ -1306,37 +852,20 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
 
 @defproc[(get-installation-name [config (read-installation-configuration-table)]) string?]{
 
- Returns the current installation's name, which is often
- @racket[(version)], but an installation name can be set through a
- combination of a @racket['installation-name] value in @racket[config]
- plus a user-specific directory state if
- @racket[(use-user-specific-search-paths)] is @racket[#t].
+ 返回当前安装的名称，通常是 @racket[(version)]，但安装名称可以通过 @racket[config] 中的 @racket['installation-name] 值加上用户特定的目录状态来设置（如果 @racket[(use-user-specific-search-paths)] 为 @racket[#t]）。
 
- A user-specific result depends on whether a directory
- @as-index{@filepath{other-version}} exists within
- @racket[(find-system-path 'addon-dir)]. If that directory exists, and
- it no directory with the installation's configured name exists, then
- @racket["other-version"] is used as the installation name. So, by
- creating the @filepath{other-version} directory, a user can opt into
- sharing of packages and collections across installations/versions,
- while opting out for a specific installation/version by creating
- a directory with that installation's name.
+ 用户特定的结果取决于 @racket[(find-system-path 'addon-dir)] 中是否存在 @as-index{@filepath{other-version}} 目录。如果该目录存在，且不存在具有安装配置名称的目录，则使用 @racket["other-version"] 作为安装名称。因此，通过创建 @filepath{other-version} 目录，用户可以选择跨安装/版本共享包和集合，同时通过创建具有该安装名称的目录来选择退出特定安装/版本。
 
  @history[#:changed "8.4.0.3" @elem{Added the @racket[config] argument and support for a
                                     user-specific installation name.}]}
 
-@defproc[(get-build-stamp) (or/c #f string?)]{ Returns a string
-   that identifies an installation build, which can be used to augment
-   the Racket version number to more specifically identify the
-   build. An empty string is normally produced for a release build.
-   The result is @racket[#f] if no build stamp is available.
+@defproc[(get-build-stamp) (or/c #f string?)]{ 返回一个标识安装构建的字符串，可用于增强 Racket 版本号以更具体地标识构建。发布构建通常产生空字符串。如果没有可用的构建戳记，则结果为 @racket[#f]。
 
    @see-config[build-stamp]}
 
 @defproc[(get-main-language-family) string?]{
 
-  Returns a string that names the installation's main @tech{language
-  family}. The default is @racket["Racket"].
+  返回命名安装主 @tech{语言家族}的字符串。默认值为 @racket["Racket"]。
 
   @see-config[main-language-family]
 
@@ -1348,51 +877,25 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
 @defproc[(get-distribution-documentation-packages) (listof string?)]
 )]{
 
-   Returns a list of package names that represent a distribution's
-   base-language documentation and all of the documentation that is
-   part of the distribution, respectively. These lists are used to
-   classify and sort documentation search results. If a package is
-   part of the base documentation, that classification takes precedence
-   over distribution documentation.
+   返回分别表示发行版基础语言文档和发行版所有文档的包名称列表。这些列表用于对文档搜索结果进行分类和排序。如果包是基础文档的一部分，则该分类优先于发行版文档。
 
-   See also @racket['base-documentation-packages] and
-   @racket['distribution-documentation-packages] in
-   @secref["config-file"].
+   另请参见 @secref["config-file"] 中的 @racket['base-documentation-packages] 和 @racket['distribution-documentation-packages]。
 
    @history[#:added "8.14.0.5"]}
 
 @defproc[(get-absolute-installation?) boolean?]{
-  Returns @racket[#t] if this installation uses
-  absolute path names for executable and library references, 
-  @racket[#f] otherwise.}
+  如果此安装对可执行文件和库引用使用绝对路径名，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @deftogether[(
 @defproc[(find-addon-tethered-console-bin-dir) (or/c #f path?)]
 @defproc[(find-addon-tethered-gui-bin-dir) (or/c #f path?)]
 @defproc[(find-addon-tethered-apps-dir) (or/c #f path?)]
 )]{
-  Returns a path to a user-specific directory to hold an extra copy of
-  each installed executable and @filepath{.desktop}
-  file (for Unix), where the extra copy is created by
-  @exec{raco setup} and tethered to a particular result for
-  @racket[(find-system-path 'addon-dir)] and
-  @racket[(find-config-dir)].
+  返回一个用户特定目录的路径，用于存放每个已安装可执行文件和 @filepath{.desktop} 文件（用于 Unix）的额外副本，其中额外副本由 @exec{raco setup} 创建并绑定到 @racket[(find-system-path 'addon-dir)] 和 @racket[(find-config-dir)] 的特定结果。
 
-  Unlike other directories, which are configured via
-  @filepath{config.rktd} in the @racket[(find-config-dir)] directory
-  (see @secref["config-file"]), these paths are configured via
-  @racket['addon-tethered-console-bin-dir],
-  @racket['addon-tethered-gui-bin-dir], and
-  @racket['addon-tethered-apps-dir] entries in
-  @filepath{config.rktd} in @racket[(build-path (find-system-path
-  'addon-dir) "etc")]. If no configuration is present, the result from
-  the corresponding function,
-  @racket[find-addon-tethered-console-bin-dir],
-  @racket[find-addon-tethered-gui-bin-dir], or
-  @racket[find-addon-tethered-apps-dir], is @racket[#f] instead of
-  a path.
+  与其他通过 @racket[(find-config-dir)] 目录中的 @filepath{config.rktd} 配置的目录不同（参见 @secref["config-file"]），这些路径通过 @racket[(build-path (find-system-path 'addon-dir) "etc")] 中 @filepath{config.rktd} 的 @racket['addon-tethered-console-bin-dir]、@racket['addon-tethered-gui-bin-dir] 和 @racket['addon-tethered-apps-dir] 条目配置。如果不存在配置，则相应函数 @racket[find-addon-tethered-console-bin-dir]、@racket[find-addon-tethered-gui-bin-dir] 或 @racket[find-addon-tethered-apps-dir] 的结果为 @racket[#f] 而非路径。
 
-  See @secref["tethered-install"] for more information.
+  更多信息请参见 @secref["tethered-install"]。
 
   @history[#:added "6.5.0.2"
            #:changed "8.3.0.11" @elem{Added @racket[find-addon-tethered-apps-dir].}]]}
@@ -1403,26 +906,18 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
 @defproc[(find-config-tethered-gui-bin-dir) (or/c #f path?)]
 @defproc[(find-config-tethered-apps-dir) (or/c #f path?)]
 )]{
-  Similar to @racket[find-addon-tethered-console-bin-dir],
-  @racket[find-addon-tethered-gui-bin-dir], and
-  @racket[find-addon-tethered-apps-dir], but configured via
-  @filepath{config.rktd} in the @racket[(find-config-dir)] directory
-  (see @secref["config-file"]) and triggers executables that are
-  tethered only to a particular value of @racket[(find-config-dir)].
+  类似于 @racket[find-addon-tethered-console-bin-dir]、@racket[find-addon-tethered-gui-bin-dir] 和 @racket[find-addon-tethered-apps-dir]，但通过 @racket[(find-config-dir)] 目录中的 @filepath{config.rktd} 配置（参见 @secref["config-file"]），并触发仅绑定到 @racket[(find-config-dir)] 特定值的可执行文件。
 
-  See @secref["tethered-install"] for more information.
+  更多信息请参见 @secref["tethered-install"]。
 
   @history[#:added "6.5.0.2"
            #:changed "8.3.0.11" @elem{Added @racket[find-addon-tethered-apps-dir].}]}
  
 @; ------------------------------------------------------------------------
 
-@section[#:tag "getinfo"]{API for Reading @filepath{info.rkt} Files}
+@section[#:tag "getinfo"]{读取 @filepath{info.rkt} 文件的 API}
 
-@defmodule[setup/getinfo]{ The @racketmodname[setup/getinfo] library
-   provides functions for accessing fields in @filepath{info.rkt}
-   files. The file format for @filepath{info.rkt} files is documented
-   in @secref["info.rkt" #:doc '(lib "scribblings/raco/raco.scrbl")].
+@defmodule[setup/getinfo]{@racketmodname[setup/getinfo] 库提供了访问 @filepath{info.rkt} 文件中字段的函数。@filepath{info.rkt} 文件的格式文档见 @secref["info.rkt" #:doc '(lib "scribblings/raco/raco.scrbl")]。
 }
 
 @defproc[(get-info [collection-names (listof string?)]
@@ -1431,9 +926,7 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
          (or/c
           ((symbol?) ((-> any)) . ->* . any)
           #f)]{
-   Accepts a list of strings naming a collection or sub-collection,
-   and calls @racket[get-info/full] with the full path corresponding to the
-   named collection and the @racket[namespace] argument.}
+   接受一个命名集合或子集合的字符串列表，并使用与命名集合对应的完整路径和 @racket[namespace] 参数调用 @racket[get-info/full]。}
 
 @defproc[(get-info/full [path path-string?]
                         [#:namespace namespace (or/c namespace? #f) #f]
@@ -1442,112 +935,40 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
           ((symbol?) ((-> any)) . ->* . any)
           #f)]{
 
-   Accepts a path to a directory. If it finds either a well-formed
-   @filepath{info.rkt} file or an @filepath{info.ss} file (with
-   preference for the @filepath{info.rkt} file), 
-   it returns an info procedure that accepts either one
-   or two arguments. The first argument to the info procedure is
-   always a symbolic name, and the result is the value of the name in
-   the @filepath{info.rkt} file, if the name is defined. The optional
-   second argument, @racket[_thunk], is a procedure that takes no
-   arguments to be called when the name is not defined; the result of
-   the info procedure is the result of the @racket[_thunk] in that
-   case. If the name is not defined and no @racket[_thunk] is
-   provided, then an exception is raised.
+   接受一个目录路径。如果它找到格式正确的 @filepath{info.rkt} 文件或 @filepath{info.ss} 文件（优先使用 @filepath{info.rkt} 文件），则返回一个接受一个或两个参数的 info 过程。info 过程的第一个参数始终是符号名称，结果是 @filepath{info.rkt} 文件中该名称的值（如果该名称已定义）。可选的第二个参数 @racket[_thunk] 是一个不接受参数的过程，在名称未定义时调用；在这种情况下，info 过程的结果是 @racket[_thunk] 的结果。如果名称未定义且未提供 @racket[_thunk]，则引发异常。
 
-   The @racket[get-info/full] function returns @racket[#f] if there is
-   no @filepath{info.rkt} (or @filepath{info.ss}) file in the directory. If there is a
-   @filepath{info.rkt} (or @filepath{info.ss}) file that has the wrong shape (i.e., not a module
-   using @racketmodname[info] or @racketmodname[setup/infotab]),
-   or if the @filepath{info.rkt} file fails to load, then an exception
-   is raised. If the @filepath{info.rkt} file loaded, @racket[get-info/full]
-   returns the info procedure. If the @filepath{info.rkt} file does not exist, 
-   then @racket[get-info/full] does
-   the same checks for the @filepath{info.ss} file, either raising an exception
-   or returning the info procedure from the @filepath{info.ss} file.
+   如果目录中没有 @filepath{info.rkt}（或 @filepath{info.ss}）文件，@racket[get-info/full] 函数返回 @racket[#f]。如果存在格式不正确的 @filepath{info.rkt}（或 @filepath{info.ss}）文件（即，不是使用 @racketmodname[info] 或 @racketmodname[setup/infotab] 的模块），或者 @filepath{info.rkt} 文件加载失败，则引发异常。如果 @filepath{info.rkt} 文件已加载，@racket[get-info/full] 返回 info 过程。如果 @filepath{info.rkt} 文件不存在，则 @racket[get-info/full] 对 @filepath{info.ss} 文件执行相同的检查，要么引发异常，要么返回 @filepath{info.ss} 文件的 info 过程。
 
-   The @filepath{info.rkt} (or @filepath{info.ss}) module is loaded
-   into @racket[namespace] if it is not @racket[#f], or a private,
-   weakly-held namespace otherwise.
+   @filepath{info.rkt}（或 @filepath{info.ss}）模块被加载到 @racket[namespace] 中（如果它不为 @racket[#f]），否则加载到一个私有的弱持有命名空间中。
 
-   If @racket[bootstrap?] is true, then
-   @racket[use-compiled-file-paths] is set to @racket['()] while
-   reading @filepath{info.rkt} (or @filepath{info.ss}), in case an
-   existing compiled file is broken. Furthermore, the
-   @racketmodname[info] and @racketmodname[setup/infotab] modules are
-   attached to @racket[namespace] from the namespace of
-   @racket[get-info/full] before attempting to load
-   @filepath{info.rkt} (or @filepath{info.ss}).
+   如果 @racket[bootstrap?] 为 true，则在读取 @filepath{info.rkt}（或 @filepath{info.ss}）时将 @racket[use-compiled-file-paths] 设置为 @racket['()]，以防现有的编译文件损坏。此外，在尝试加载 @filepath{info.rkt}（或 @filepath{info.ss}）之前，@racketmodname[info] 和 @racketmodname[setup/infotab] 模块会从 @racket[get-info/full] 的命名空间附加到 @racket[namespace]。
 
-   As the module is loaded, the @tech[#:doc reference-doc]{environment variable set}
-   is pruned to contain only environment variables that are listed in the
-   @envvar{PLT_INFO_ALLOW_VARS} environment variable, which contains a
-   @litchar{;}-separated list of names. By default, the list of allowed
-   variable names is empty.
+   加载模块时，@tech[#:doc reference-doc]{环境变量集}被修剪为仅包含 @envvar{PLT_INFO_ALLOW_VARS} 环境变量中列出的环境变量，该变量包含以 @litchar{;} 分隔的名称列表。默认情况下，允许的变量名称列表为空。
 
-   @history[#:changed "6.5.0.2" @elem{Added environment-variable
-                                      pruning and @envvar{PLT_INFO_ALLOW_VARS} support.}]}
+   @history[#:changed "6.5.0.2" @elem{添加了环境变量修剪和 @envvar{PLT_INFO_ALLOW_VARS} 支持。}]}
 
 @defproc[(find-relevant-directories
           (syms (listof symbol?))
           (mode (or/c 'preferred 'all-available 'no-planet 'no-user) 'preferred)) 
          (listof path?)]{
 
-   Returns a list of paths identifying
-   collections and installed @|PLaneT| packages whose
-   @filepath{info.rkt} file defines one or more of the given
-   symbols. The result is based on a cache that is computed by
-   @exec{raco setup}.
+   返回一个路径列表，标识其 @filepath{info.rkt} 文件定义了一个或多个给定符号的集合和已安装的 @|PLaneT| 包。结果基于由 @exec{raco setup} 计算的缓存。
 
-   Note that the cache may be out of date by the time you call
-   @racket[get-info/full], so do not assume that every returned
-   directory's @filepath{info.rkt} file will supply one of the
-   requested symbols.
+   请注意，在调用 @racket[get-info/full] 时缓存可能已过时，因此不要假设每个返回目录的 @filepath{info.rkt} 文件都会提供所请求的符号之一。
 
-   The result is in a canonical order (sorted lexicographically by
-   directory name), and the paths it returns are suitable for
-   providing to @racket[get-info/full].
+   结果按规范顺序排列（按目录名字典序排序），返回的路径适用于提供给 @racket[get-info/full]。
 
-   If @racket[mode] is specified, it must be either
-   @racket['preferred] (the default), @racket['all-available],
-   @racket['no-planet], or @racket['no-user]. If @racket[mode] is
-   @racket['all-available], @racket[find-relevant-directories] returns
-   all installed directories whose info files contain the specified
-   symbols---for instance, all versions of all installed @|PLaneT|
-   packages will be searched if @racket['all-available] is
-   specified. If @racket[mode] is @racket['preferred], then only a
-   subset of ``preferred'' packages will be searched: only the
-   directory containing the most recent version of any @|PLaneT| package
-   will be returned. If @racket[mode] is @racket['no-planet], then
-   @|PLaneT| packages are not included in the search. If @racket[mode] is
-   @racket['no-user], then only installation-wide directories are
-   searched, which means omitting @|PLaneT| package directories.
+   如果指定了 @racket[mode]，它必须是 @racket['preferred]（默认值）、@racket['all-available]、@racket['no-planet] 或 @racket['no-user] 之一。如果 @racket[mode] 为 @racket['all-available]，@racket[find-relevant-directories] 返回所有已安装的、info 文件包含指定符号的目录——例如，如果指定了 @racket['all-available]，将搜索所有已安装 @|PLaneT| 包的所有版本。如果 @racket[mode] 为 @racket['preferred]，则仅搜索“首选”包的子集：仅返回包含任何 @|PLaneT| 包最新版本的目录。如果 @racket[mode] 为 @racket['no-planet]，则 @|PLaneT| 包不包含在搜索中。如果 @racket[mode] 为 @racket['no-user]，则仅搜索安装范围的目录，这意味着省略 @|PLaneT| 包目录。
 
-   Regardless of @racket[mode], note that @racket[find-relevant-directories]
-   will not consider package-level @filepath{info.rkt} files for
-   @tech[#:doc pkg-doc]{multi-collection packages},
-   since those files are not part of any collection or @|PLaneT| package.
-   In contrast, a @tech[#:doc pkg-doc]{single-collection package}'s
-   @filepath{info.rkt} file is part of a collection, and thus will be considered.
+   无论 @racket[mode] 如何，请注意 @racket[find-relevant-directories] 不会考虑 @tech[#:doc pkg-doc]{多集合包}的包级 @filepath{info.rkt} 文件，因为这些文件不属于任何集合或 @|PLaneT| 包。相反，@tech[#:doc pkg-doc]{单集合包}的 @filepath{info.rkt} 文件是集合的一部分，因此会被考虑。
 
-   Collection links from the installation-wide @tech[#:doc
-   reference-doc]{collection links file} or packages with installation
-   scope are cached with the installation's main @filepath{lib}
-   directory, and links from the user-specific @tech[#:doc
-   reference-doc]{collection links file} and packages are cached with
-   the user-specific directory @racket[(build-path (find-system-path
-   'addon-dir) "collects")] for all-version cases, and in @racket[(build-path
-   (find-system-path 'addon-dir) (version) "collects")] for
-   version-specific cases. These cache paths can be redirected
-   by an @racket['info-domain-root] entry in @filepath{config.rktd}
-   (see @secref["config-file"]).}
+   来自安装范围的 @tech[#:doc reference-doc]{集合链接文件}或具有安装范围的包的集合链接与安装的主 @filepath{lib} 目录一起缓存，来自用户特定的 @tech[#:doc reference-doc]{集合链接文件}和包的链接与用户特定目录 @racket[(build-path (find-system-path 'addon-dir) "collects")]（适用于所有版本情况）和 @racket[(build-path (find-system-path 'addon-dir) (version) "collects")]（适用于特定于版本的情况）一起缓存。这些缓存路径可以通过 @filepath{config.rktd} 中的 @racket['info-domain-root] 条目重定向（参见 @secref["config-file"]）。}
 
 @defproc[(find-relevant-directory-records
           [syms (listof symbol?)]
           [key (or/c 'preferred 'all-available 'no-planet 'no-user)])
          (listof directory-record?)]{
-  Like @racket[find-relevant-directories], but returns @racket[directory-record] structs
-  instead of @racket[path?]s.
+  类似于 @racket[find-relevant-directories]，但返回 @racket[directory-record] 结构体而不是 @racket[path?]。
 }
 
 @defstruct[directory-record ([maj integer?]
@@ -1555,27 +976,19 @@ current-system paths while @racket[get-cross-lib-search-dirs] and
                              [spec any/c]
                              [path path?]
                              [syms (listof symbol?)])]{
-  A struct that records information about a collection or a @PLaneT package that has been installed.
-  Collections will have the major version being @racket[1] and the minor version being @racket[0].
-  The @racket[spec] field is a quoted module spec; the @racket[path] field is where the @tt{info.rkt}
-  file for this collection or @PLaneT package exists on the filesystem; the @racket[syms] field holds the
-  identifiers defined in that file.
+  记录已安装集合或 @PLaneT 包信息的结构体。集合的主版本为 @racket[1]，次版本为 @racket[0]。@racket[spec] 字段是带引号的模块规格；@racket[path] 字段是此集合或 @PLaneT 包的 @tt{info.rkt} 文件在文件系统中的位置；@racket[syms] 字段包含该文件中定义的标识符。
 }
 
 @defproc[(reset-relevant-directories-state!) void?]{
-   Resets the cache used by @racket[find-relevant-directories].}
+   重置 @racket[find-relevant-directories] 使用的缓存。}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "relative-paths"]{API for Relative Paths}
+@section[#:tag "relative-paths"]{相对路径 API}
 
-The Racket installation tree can usually be moved around the filesystem.
-To support this, care must be taken to avoid absolute paths.  The
-following two APIs cover two aspects of this: a way to convert a path to
-a value that is relative to the @filepath{collects} tree, and a way to
-display such paths (e.g., in error messages).
+Racket 安装树通常可以在文件系统中移动。为了支持这一点，必须注意避免使用绝对路径。以下两个 API 涵盖了两个方面的内容：将路径转换为相对于 @filepath{collects} 树的值的办法，以及显示此类路径的办法（例如在错误消息中）。
 
-@subsection{Representing Collection-Based Paths}
+@subsection{基于集合的路径表示}
 
 @defmodule[setup/collects]
 
@@ -1585,14 +998,9 @@ display such paths (e.g., in error messages).
                (cons/c 'collects
                        (cons/c bytes? (non-empty-listof bytes?))))]{
 
-Checks whether @racket[path] (normalized by
-@racket[path->complete-path] and @racket[simplify-path] with
-@racket[#f] as its second argument) matches the result of
-@racket[collection-file-path]. If so, the result is a list starting
-with @racket['collects] and containing the relevant path elements as
-byte strings. If not, the path is returned as-is.
+检查 @racket[path]（通过 @racket[path->complete-path] 和 @racket[simplify-path] 归一化，第二个参数为 @racket[#f]）是否匹配 @racket[collection-file-path] 的结果。如果是，结果是一个以 @racket['collects] 开头并包含相关路径元素作为字节字符串的列表。如果不是，则原样返回路径。
 
-The @racket[cache] argument is used with @racket[path->pkg], if needed.}
+如果需要，@racket[cache] 参数与 @racket[path->pkg] 一起使用。}
 
 @defproc[(collects-relative->path
           [rel (or/c path-string?
@@ -1600,39 +1008,28 @@ The @racket[cache] argument is used with @racket[path->pkg], if needed.}
                              (cons/c bytes? (non-empty-listof bytes?))))])
          path-string?]{
 
-The inverse of @racket[path->collects-relative]: if @racket[rel]
-is a pair that starts with @racket['collects], then it is converted
-back to a path using @racket[collection-file-path].}
+@racket[path->collects-relative] 的逆操作：如果 @racket[rel] 是一个以 @racket['collects] 开头的 pair，则使用 @racket[collection-file-path] 将其转换回路径。}
 
 @defproc[(path->module-path [path path-string?]
                             [#:cache cache (or/c #f (and/c hash? (not/c immutable?))) #f])
          (or/c path-string? normalized-lib-module-path?)]{
 
-Like @racket[path->collects-relative], but the result is either
-@racket[path] or a normalized (in the sense of
-@racket[collapse-module-path]) module path.}
+类似于 @racket[path->collects-relative]，但结果要么是 @racket[path]，要么是归一化（在 @racket[collapse-module-path] 的意义上）的模块路径。}
 
-@subsection{Representing Paths Relative to @filepath{collects}}
+@subsection{相对于 @filepath{collects} 的路径表示}
 
 @defmodule[setup/main-collects]
 
 @defproc[(path->main-collects-relative [path (or/c bytes? path-string?)])
          (or/c path? (cons/c 'collects (non-empty-listof bytes?)))]{
 
-Checks whether @racket[path] has a prefix that matches the prefix to
-the main @filepath{collects} directory as determined by
-@racket[(find-collects-dir)]. If so, the result is a list starting
-with @racket['collects] and containing the remaining path elements as
-byte strings. If not, the path is returned as-is.
+检查 @racket[path] 是否具有匹配由 @racket[(find-collects-dir)] 确定的主 @filepath{collects} 目录前缀的前缀。如果是，结果是一个以 @racket['collects] 开头并包含剩余路径元素作为字节字符串的列表。如果不是，则原样返回路径。
 
-The @racket[path] argument should be a complete path. Applying
-@racket[simplify-path] before @racket[path->main-collects-relative] is
-usually a good idea.
+@racket[path] 参数应该是一个完整路径。在 @racket[path->main-collects-relative] 之前应用 @racket[simplify-path] 通常是个好主意。
 
-For historical reasons, @racket[path] can be a byte string, which is
-converted to a path using @racket[bytes->path].
+由于历史原因，@racket[path] 可以是字节字符串，使用 @racket[bytes->path] 转换为路径。
 
-See also @racket[collects-relative->path].}
+另请参见 @racket[collects-relative->path]。}
 
 @defproc[(main-collects-relative->path
           [rel (or/c bytes?
@@ -1640,19 +1037,15 @@ See also @racket[collects-relative->path].}
                      (cons/c 'collects (non-empty-listof bytes?)))])
          path?]{
 
-The inverse of @racket[path->main-collects-relative]: if @racket[rel]
-is a pair that starts with @racket['collects], then it is converted
-back to a path relative to @racket[(find-collects-dir)].}
+@racket[path->main-collects-relative] 的逆操作：如果 @racket[rel] 是一个以 @racket['collects] 开头的 pair，则将其转换回相对于 @racket[(find-collects-dir)] 的路径。}
 
-@subsection{Representing Paths Relative to the Documentation}
+@subsection{相对于文档的路径表示}
 
 @defmodule[setup/main-doc]
 
 @defproc[(path->main-doc-relative [path (or/c bytes? path-string?)])
          (or/c path? (cons/c 'doc (non-empty-listof bytes?)))]{
- Like @racket[path->main-collects-relative], except that it checks
- for a prefix relative to @racket[(find-doc-dir)] and returns a list
- starting with @racket['doc] if so.
+ 类似于 @racket[path->main-collects-relative]，但它检查相对于 @racket[(find-doc-dir)] 的前缀，如果是则返回以 @racket['doc] 开头的列表。
 }
 
 @defproc[(main-doc-relative->path
@@ -1661,12 +1054,11 @@ back to a path relative to @racket[(find-collects-dir)].}
                      (cons/c 'doc (non-empty-listof bytes?)))])
          path>]{
 
- Like @racket[path->main-collects-relative], except it is the inverse
- of @racket[path->main-doc-relative].
+ 类似于 @racket[path->main-collects-relative]，但它是 @racket[path->main-doc-relative] 的逆操作。
 }
 
 
-@subsection{Displaying Paths Relative to a Common Root}
+@subsection{相对于公共根目录显示路径}
 
 @defmodule[setup/path-to-relative]
 
@@ -1676,28 +1068,13 @@ back to a path relative to @racket[(find-collects-dir)].}
                    (lambda (x) (if (path? x) (path->string x) x))]
           [#:cache cache (or/c #f (and/c hash? (not/c immutable?))) #f])
          any/c]{
-  Produces a string suitable for display in error messages.  If the path
-  is an absolute one that is inside a package, the
-  result is a string that begins with @racket["<pkgs>/"]. If the path
-  is an absolute one that is inside the @filepath{collects} tree, the
-  result is a string that begins with @racket["<collects>/"].
-  Similarly, a path in the user-specific collects results in a prefix of
-  @racket["<user-collects>/"], a @PLaneT path results in
-  @racket["<planet>/"], and a path into documentation results in
-  @racket["<doc>/"] or @racket["<user-doc>/"].
+  生成适合在错误消息中显示的字符串。如果路径是包内的绝对路径，结果是以 @racket["<pkgs>/"] 开头的字符串。如果路径是 @filepath{collects} 树内的绝对路径，结果是以 @racket["<collects>/"] 开头的字符串。类似地，用户特定 collects 中的路径结果前缀为 @racket["<user-collects>/"]，@PLaneT 路径结果为 @racket["<planet>/"]，进入文档的路径结果为 @racket["<doc>/"] 或 @racket["<user-doc>/"].
 
-  If @racket[cache] is not @racket[#f], it is used as a cache argument
-  for @racket[path->pkg] to speed up detection and conversion of
-  package paths.
+  如果 @racket[cache] 不为 @racket[#f]，它被用作 @racket[path->pkg] 的缓存参数，以加速包路径的检测和转换。
 
-  If the path is not absolute, or if it is not in any of these, it is
-  returned as-is (converted to a string if needed).  If @racket[default]
-  is given, it specifies the return value instead: it can be a procedure
-  that is applied onto the path to get the result, or the result
-  itself.
+  如果路径不是绝对路径，或者不在以上任何类别中，则原样返回（如果需要则转换为字符串）。如果提供了 @racket[default]，则指定返回值：它可以是一个应用于路径以获取结果的过程，或结果本身。
 
-  Note that this function can return a non-string only if
-  @racket[default] is given and it does not return a string.
+  注意，此函数只有在提供了 @racket[default] 且它不返回字符串时才可能返回非字符串。
 }
 
 @defproc[(path->relative-string/setup
@@ -1707,8 +1084,7 @@ back to a path relative to @racket[(find-collects-dir)].}
           [#:cache cache (or/c #f (and/c hash? (not/c immutable?))) #f])
          any/c]{
 
-The same as @racket[path->relative-string/library], for backward
-compatibility.}
+与 @racket[path->relative-string/library] 相同，用于向后兼容。}
 
 
 @defproc[(make-path->relative-string
@@ -1716,48 +1092,32 @@ compatibility.}
           [default (or/c (-> path-string? any/c) any/c)
                    (lambda (x) (if (path? x) (path->string x) x))])
          (path-string? any/c . -> . any)]{
-  This function produces functions like
-  @racket[path->relative-string/library] and
-  @racket[path->relative-string/setup].
+  此函数生成类似于 @racket[path->relative-string/library] 和 @racket[path->relative-string/setup] 的函数。
 
-  The @racket[dirs] argument determines the prefix substitutions.  It must be an
-  association list mapping a path-producing thunk to a prefix string for
-  paths in the specified path.
+  @racket[dirs] 参数确定前缀替换。它必须是一个关联列表，将路径生成 thunk 映射到指定路径中路径的前缀字符串。
 
-  @racket[default] determines the default for the resulting function
-  (which can always be overridden by an additional argument to this
-  function).
+  @racket[default] 确定结果函数的默认值（始终可以通过此函数的附加参数覆盖）。
 }
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "collection-names"]{API for Collection Names}
+@section[#:tag "collection-names"]{集合名称 API}
 
 @defmodule[setup/collection-name]
 
 @defproc[(collection-name? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a string that is syntactically
-valid as a collection name, which means that it is one or more
-@litchar{/}-separated strings for which
-@racket[collection-name-element?] returns true.}
+如果 @racket[v] 是一个在语法上作为集合名称有效的字符串，则返回 @racket[#t]，这意味着它是一个或多个以 @litchar{/} 分隔的字符串，每个字符串都使 @racket[collection-name-element?] 返回 true。}
 
 
 @defproc[(collection-name-element? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a string that is syntactically
-valid as a top-level collection name or as a part of a collection
-name, which means that it is non-empty and contains only ASCII
-letters, ASCII digits, @litchar{-}, @litchar{+}, @litchar{_}, and
-@litchar{%}, where a @litchar{%} is allowed only when followed by two
-lowercase hexadecimal digits, and the digits must form a number that
-is not the ASCII value of a letter, digit, @litchar{-}, @litchar{+},
-or @litchar{_}.}
+如果 @racket[v] 是一个在语法上作为顶级集合名称或集合名称一部分有效的字符串，则返回 @racket[#t]，这意味着它是非空的且仅包含 ASCII 字母、ASCII 数字、@litchar{-}、@litchar{+}、@litchar{_} 和 @litchar{%}，其中 @litchar{%} 仅在后面跟随两个小写十六进制数字时允许，且这些数字必须形成不是字母、数字、@litchar{-}、@litchar{+} 或 @litchar{_} 的 ASCII 值的数字。}
 
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "collection-search"]{API for Collection Searches}
+@section[#:tag "collection-search"]{集合搜索 API}
 
 @defmodule[setup/collection-search]
 
@@ -1770,39 +1130,22 @@ or @litchar{_}.}
                             [#:all-possible-roots? all-possible-roots? any/c #f])
          any/c]{
 
-Generalizes @racket[collection-file-path] to support folding over all
-possible locations of a collection-based file in the current
-configuration. Unlike @racket[collection-file-path],
-@racket[collection-search] takes the file to location in module-path
-form, but always as a @racket['lib] path.
+泛化 @racket[collection-file-path] 以支持在当前配置中折叠基于集合文件的所有可能位置。与 @racket[collection-file-path] 不同，@racket[collection-search] 以模块路径形式接受文件位置，但始终作为 @racket['lib] 路径。
 
-Each possible path for the file (not counting a @filepath{.ss} to/from
-@filepath{.rkt} conversion) is provided as a second argument to the
-@racket[combine] function, where the first argument is the current
-result, and the value produced by @racket[combine] becomes the new
-result. The @racket[#:init] argument provides the initial result.
+文件的每个可能路径（不包括 @filepath{.ss} 与 @filepath{.rkt} 之间的转换）作为第二个参数提供给 @racket[combine] 函数，其中第一个参数是当前结果，@racket[combine] 产生的值成为新结果。@racket[#:init] 参数提供初始结果。
 
-The @racket[break?] function short-circuits a search based on the
-current value. For example, it could be used to short-circuit a search
-after a suitable path is found.
+@racket[break?] 函数基于当前值短路搜索。例如，它可以用于在找到合适路径后短路搜索。
 
-If @racket[all-possible-roots?] is @racket[#f], then @racket[combine]
-is called only on paths within @filepath{collects}-like directories
-(for the current configuration) where at least a matching collection
-directory exists.}
+如果 @racket[all-possible-roots?] 为 @racket[#f]，则仅在类 @filepath{collects} 目录（针对当前配置）中至少存在匹配集合目录的路径上调用 @racket[combine]。}
 
 
 @defproc[(normalized-lib-module-path? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a module path (in the sense of
-@racket[module-path?]) of the form @racket['(lib @#,racket[_str])] where
-@racket[_str] contains at least one slash. The
-@racket[collapse-module-path] function produces such module paths for
-collection-based module references.}
+如果 @racket[v] 是形式为 @racket['(lib @#,racket[_str])] 的模块路径（在 @racket[module-path?] 的意义上），其中 @racket[_str] 至少包含一个斜杠，则返回 @racket[#t]。@racket[collapse-module-path] 函数为基于集合的模块引用生成此类模块路径。}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "matching-platform"]{API for Platform Specifications}
+@section[#:tag "matching-platform"]{平台规格 API}
 
 @defmodule[setup/matching-platform]
 
@@ -1810,8 +1153,7 @@ collection-based module references.}
 
 @defproc[(platform-spec? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a symbol, string, or regexp value
-(in the sense of @racket[regexp?]), @racket[#f] otherwise.}
+如果 @racket[v] 是符号、字符串或正则表达式值（在 @racket[regexp?] 的意义上），则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(matching-platform? [spec platform-spec?]
                              [#:cross? cross? any/c #f]
@@ -1824,20 +1166,13 @@ Returns @racket[#t] if @racket[v] is a symbol, string, or regexp value
                                                            (system-library-subpath #f))])
          boolean?]{
 
-Reports whether @racket[spec] matches @racket[sys-type] or
-@racket[sys-lib-subpath], where @racket[#f] values for the latter are
-replaced with the default values.
+报告 @racket[spec] 是否匹配 @racket[sys-type] 或 @racket[sys-lib-subpath]，其中后者的 @racket[#f] 值被替换为默认值。
 
-If @racket[spec] is a symbol, then the result is @racket[#t] if
-@racket[sys-type] is the same symbol, @racket[#f] otherwise.
+如果 @racket[spec] 是符号，则如果 @racket[sys-type] 是相同的符号，结果为 @racket[#t]，否则为 @racket[#f]。
 
-If @racket[spec] is a string, then the result is @racket[#t] if
-@racket[(path->string sys-lib-subpath)] is the same string,
-@racket[#f] otherwise.
+如果 @racket[spec] 是字符串，则如果 @racket[(path->string sys-lib-subpath)] 是相同的字符串，结果为 @racket[#t]，否则为 @racket[#f]。
 
-If @racket[spec] is a regexp value, then the result is @racket[#t] if
-the regexp matches @racket[(path->string sys-lib-subpath)],
-@racket[#f] otherwise.
+如果 @racket[spec] 是正则表达式值，则如果正则表达式匹配 @racket[(path->string sys-lib-subpath)]，结果为 @racket[#t]，否则为 @racket[#f]。
 
 @history[#:changed "6.3" @elem{Added @racket[#:cross?] argument and
                                       changed the contract on @racket[sys-lib-subpath]
@@ -1846,71 +1181,35 @@ the regexp matches @racket[(path->string sys-lib-subpath)],
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "cross-system"]{API for Cross-Platform Configuration}
+@section[#:tag "cross-system"]{跨平台配置 API}
 
-See @other-doc[#:indirect @exec{raco cross} '(lib
-"raco/private/cross/raco-cross.scrbl")] for information about
-@exec{raco cross}, a tool that is provided by the
-@filepath{raco-cross} package as a convenient interface to
-cross-compilation for Racket. The underlying API documented here
-supports @exec{raco cross} and other tools.
+有关 @exec{raco cross} 的信息，请参见 @other-doc[#:indirect @exec{raco cross} '(lib "raco/private/cross/raco-cross.scrbl")]，这是 @filepath{raco-cross} 包提供的工具，作为 Racket 交叉编译的便捷接口。此处记录的底层 API 支持 @exec{raco cross} 及其他工具。
 
-@defmodule[setup/cross-system]{The @racketmodname[setup/cross-system]
-library provides functions for querying the system properties of a
-destination platform, which can be different than the current platform
-in cross-installation modes.}
+@defmodule[setup/cross-system]{@racketmodname[setup/cross-system] 库提供了查询目标平台系统属性的函数，在交叉安装模式下目标平台可能与当前平台不同。}
 
-A Racket installation includes a @filepath{system.rktd} file in the
-directory reported by @racket[(find-lib-dir)]. When the information in that file
-does not match the running Racket's information, then the
-@racketmodname[setup/cross-system] module infers that Racket is being
-run in cross-installation mode.
+Racket 安装在 @racket[(find-lib-dir)] 报告的目录中包含一个 @filepath{system.rktd} 文件。当该文件中的信息与运行的 Racket 信息不匹配时，@racketmodname[setup/cross-system] 模块推断 Racket 正在交叉安装模式下运行。
 
-For example, if an in-place Racket @BC
-installation for a different platform resides at @nonterm{cross-dir},
-then running Racket BC as
+例如，如果针对不同平台的原位 Racket @BC 安装位于 @nonterm{cross-dir}，则运行 Racket BC 如下：
 
 @commandline{racket -C -G @nonterm{cross-dir}/etc -X @nonterm{cross-dir}/collects -l- raco pkg}
 
-runs @exec{raco pkg} using the current platform's @exec{racket}
-executable, but using the collections and other configuration
-information of @nonterm{cross-dir}, as well as modifying the packages
-of @nonterm{cross-dir}. That can work as long as no platform-specific
-libraries need to run to perform the requested @exec{raco pkg} action
-(e.g., when installing built packages), or as long as the current
-platform's installation already includes those libraries.
+使用当前平台的 @exec{racket} 可执行文件运行 @exec{raco pkg}，但使用 @nonterm{cross-dir} 的集合和其他配置信息，并修改 @nonterm{cross-dir} 的包。只要不需要运行平台特定库来执行请求的 @exec{raco pkg} 操作（例如安装已构建的包时），或者只要当前平台安装已包含这些库，这就可以工作。
 
-For Racket @CS, cross compilation is more
-complicated, because Racket CS @filepath{.zo} files are
-platform-specific:
+对于 Racket @CS，交叉编译更加复杂，因为 Racket CS 的 @filepath{.zo} 文件是平台特定的：
 
 @itemlist[
 
- @item{A target installation @nonterm{cross-dir} is needed that
-       includes cross-compilation support for the host platform as
-       plug-in within the installation's
-       @filepath{@nonterm{cross-dir}/lib} directory. That installation
-       might be created by compiling from source on the host platform.
-       Only Racket CS can use a CS cross-compilation plug-in.
+ @item{需要目标安装 @nonterm{cross-dir}，其中包含主机平台的交叉编译支持，作为安装在 @filepath{@nonterm{cross-dir}/lib} 目录中的插件。该安装可能通过在主机平台上从源码编译创建。只有 Racket CS 可以使用 CS 交叉编译插件。
 
-       When running @exec{racket} in cross mode, use the
-       @DFlag{cross-compiler} flag to specify the target machine and
-       path to the @filepath{@nonterm{cross-dir}/lib} directory.}
+       在交叉模式下运行 @exec{racket} 时，使用 @DFlag{cross-compiler} 标志指定目标机器和 @filepath{@nonterm{cross-dir}/lib} 目录的路径。}
 
- @item{A flag combination @Flag{MCR} with argument
-       @filepath{@nonterm{absolute-zo-dir}:} is needed to enable
-       @filepath{.zo} file creation for both the host platform (which
-       uses the directory before a @litchar{:}) and the target
-       platform (which uses the normal compiled-file subdirectory when
-       the path after the @litchar{:} is empty).
+ @item{需要标志组合 @Flag{MCR} 带有参数 @filepath{@nonterm{absolute-zo-dir}:} 来启用主机平台（使用 @litchar{:} 前的目录）和目标平台（当 @litchar{:} 后的路径为空时使用正常的编译文件子目录）的 @filepath{.zo} 文件创建。
 
-       The @nonterm{absolute-zo-dir} can be any absolute path. It
-       generally should be populated by running @exec{raco setup} in
-       cross mode before commands like @exec{raco pkg}.}
+       @nonterm{absolute-zo-dir} 可以是任何绝对路径。通常应该在执行 @exec{raco pkg} 等命令之前通过在交叉模式下运行 @exec{raco setup} 来填充它。}
 
 ]
 
-For example, the @exec{raco pkg} example for Racket CS is
+例如，Racket CS 的 @exec{raco pkg} 示例如下：
 
 @verbatim[#:indent 2]{
   racket --cross-compiler @nonterm{target-machine} @nonterm{cross-dir}/lib \
@@ -1918,15 +1217,9 @@ For example, the @exec{raco pkg} example for Racket CS is
     -G @nonterm{cross-dir}/etc -X @nonterm{cross-dir}/collects -l- raco pkg
 }
 
-The @nonterm{target-machine} provided to @DFlag{cross-compiler} should
-be the same as the @racketidfont{target-machine} entry in
-@filepath{@nonterm{cross-dir}/lib/systemd.rktd}.
+提供给 @DFlag{cross-compiler} 的 @nonterm{target-machine} 应该与 @filepath{@nonterm{cross-dir}/lib/systemd.rktd} 中的 @racketidfont{target-machine} 条目相同。
 
-The @Flag{C} flag is shorthand for @DFlag{cross}, @Flag{M} is short
-for @DFlag{compile-any}, @Flag{R} is short for @DFlag{compiled},
-@Flag{G} is short for @DFlag{config}, @Flag{X} is short for
-@DFlag{collects}, and @Flag{MCR} is short for @exec{@Flag{M} @Flag{C}
-@Flag{R}}.
+@Flag{C} 标志是 @DFlag{cross} 的简写，@Flag{M} 是 @DFlag{compile-any} 的简写，@Flag{R} 是 @DFlag{compiled} 的简写，@Flag{G} 是 @DFlag{config} 的简写，@Flag{X} 是 @DFlag{collects} 的简写，@Flag{MCR} 是 @exec{@Flag{M} @Flag{C} @Flag{R}} 的简写。
 
 @history[#:added "6.3"]
 
@@ -1936,47 +1229,35 @@ for @DFlag{compile-any}, @Flag{R} is short for @DFlag{compiled},
                             'os])
          (or/c symbol? string? bytes? exact-positive-integer? vector?)]{
 
-Like @racket[system-type], but for the target platform instead of the
-current platform in cross-installation mode. When not in
-cross-installation mode, the results are the same as for
-@racket[system-type].
+类似于 @racket[system-type]，但在交叉安装模式下用于目标平台而非当前平台。当不在交叉安装模式下时，结果与 @racket[system-type] 相同。
 
-See also @racket['cross] mode for @racket[system-type].}
+另请参见 @racket[system-type] 的 @racket['cross] 模式。}
 
 
 @defproc[(cross-system-library-subpath [mode (or/c 'cgc '3m 'cs #f)
                                              (system-type 'gc)])
          path-for-some-system?]{
 
-Like @racket[system-library-subpath], but for the target platform
-instead of the current platform in cross-installation mode. When not
-in cross-installation mode, the results are the same as for
-@racket[system-library-subpath].
+类似于 @racket[system-library-subpath]，但在交叉安装模式下用于目标平台而非当前平台。当不在交叉安装模式下时，结果与 @racket[system-library-subpath] 相同。
 
-In cross-installation mode, the target platform may have a different
-path convention than the current platform, so the result is
-@racket[path-for-some-system?] instead of @racket[path?].}
+在交叉安装模式下，目标平台可能具有与当前平台不同的路径约定，因此结果是 @racket[path-for-some-system?] 而非 @racket[path?]。}
 
 
 @defproc[(cross-installation?) boolean?]{
 
-Returns @racket[#t] if cross-installation mode has been detected,
-@racket[#f] otherwise.}
+如果检测到交叉安装模式则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "xref"]{API for Cross-References for Installed Manuals}
+@section[#:tag "xref"]{已安装手册的交叉引用 API}
 
 @defmodule[setup/xref]
 
 @defproc[(load-collections-xref [on-load (-> any/c) (lambda () (void))])
          xref?]{
 
-Either creates and caches or returns a cached cross-reference record
-created with @racket[make-collections-xref]. The @racket[on-load]
-function is called only when a previously cached record is not
-returned.}
+要么创建并缓存，要么返回用 @racket[make-collections-xref] 创建的已缓存交叉引用记录。@racket[on-load] 函数仅在未返回先前缓存的记录时调用。}
 
 
 @defproc[(make-collections-xref [#:no-user? no-user? any/c #f]
@@ -1986,25 +1267,13 @@ returned.}
                                 [#:register-shutdown! register-shutdown! ((-> any) . -> . any) void])
          xref?]{
 
-Like @racket[load-xref], but automatically finds all cross-reference
-files for manuals that have been installed with @exec{raco setup}.
-The resulting cross-reference record takes advantage of a
-cross-reference database @racket[db-path], when support is available,
-to delay the loading of cross-reference details until needed.
+类似于 @racket[load-xref]，但自动查找使用 @exec{raco setup} 安装的所有手册的交叉引用文件。生成的交叉引用记录利用交叉引用数据库 @racket[db-path]（当支持可用时），将交叉引用详细信息的加载延迟到需要时。
 
-Cross-reference information is skipped when it is installed in the
-main installation or in a user-specific location, respectively, if
-@racket[no-main?] or @racket[no-user?] is @racket[#t].
+如果 @racket[no-main?] 或 @racket[no-user?] 为 @racket[#t]，则分别跳过安装在主安装或用户特定位置的交叉引用信息。
 
-If @racket[quiet-fail?] is true, then errors are suppressed while
-loading cross-reference information.
+如果 @racket[quiet-fail?] 为 true，则在加载交叉引用信息时抑制错误。
 
-The @racket[register-shutdown!] callback may be called to register a
-function that closes database connections when the result of
-@racket[make-collections-xref] is no longer needed. If
-@racket[register-shutdown!] is not supplied or if a function sent to
-@racket[register-shutdown!] is never called, database connections will
-be closed only though a @tech[#:doc reference-doc]{custodian}.}
+可以调用 @racket[register-shutdown!] 回调来注册一个函数，在不再需要 @racket[make-collections-xref] 的结果时关闭数据库连接。如果未提供 @racket[register-shutdown!] 或发送给 @racket[register-shutdown!] 的函数从未被调用，数据库连接将仅通过 @tech[#:doc reference-doc]{custodian} 关闭。}
 
 
 @defproc[(get-rendered-doc-directories [no-user? any/c]
@@ -2012,42 +1281,35 @@ be closed only though a @tech[#:doc reference-doc]{custodian}.}
                                        [#:keep-omit? keep-omit? any/c #f])
          (listof path?)]{
 
-Returns a list of directories for all documentation for all installed
-collections, omitting documentation that is installed in the main
-installation or in a user-specific location, respectively, if
-@racket[no-main?] or @racket[no-user?] is @racket[#t].
+返回所有已安装集合的所有文档的目录列表，如果 @racket[no-main?] 或 @racket[no-user?] 为 @racket[#t]，则分别省略安装在主安装或用户特定位置的文档。
 
-If @racket[keep-omit?] is true, then the result includes documentation
-that has the @racket['omit] category.
+如果 @racket[keep-omit?] 为 true，则结果包含具有 @racket['omit] 类别的文档。
 
 @history[#:changed "1.5" @elem{Added the @racket[#:keep-omit?] argument.}]}
 
 
 @defproc[(get-current-doc-state) doc-state?]{
- Records the time stamps of files that are touched whenever the
- documentation is changed.
+ 记录文档更改时被修改的文件的时间戳。
  
  @history[#:added "1.2"]
 }
 
 @defproc[(doc-state-changed? [doc-state doc-state?]) boolean?]{
- Returns @racket[#t] when the time stamps of the files in
- @racket[doc-state] changed (or new files appeared) and @racket[#f] otherwise.
+ 当 @racket[doc-state] 中文件的时间戳发生变化（或出现新文件）时返回 @racket[#t]，否则返回 @racket[#f]。
 
- If the result is @racket[#t], then the documentation in this installation of
- Racket has changed and otherwise it hasn't.
+ 如果结果为 @racket[#t]，则此 Racket 安装中的文档已更改，否则未更改。
 
  @history[#:added "1.2"]
 }
 @defproc[(doc-state? [v any/c]) boolean?]{
- A predicate to recognize the result of @racket[get-current-doc-state].
+ 识别 @racket[get-current-doc-state] 结果的谓词。
  
  @history[#:added "1.2"]
 }
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "materialize-user-docs"]{API for Materializing User-Specific Documentation}
+@section[#:tag "materialize-user-docs"]{物化用户特定文档的 API}
 
 @defmodule[setup/materialize-user-docs]
 
@@ -2057,36 +1319,22 @@ that has the @racket['omit] category.
                                 [#:skip-user-doc-check? skip-user-doc-check? any/c #f])
          void?]{
 
-Checks whether a user-specific documentation entry point already
-exists in @racket[(find-user-doc-dir)], and if not, runs @exec{raco
-setup} in a mode that will create the entry point (to have the same
-content as the installation's documentation entry point.) If
-@racket[skip-user-doc-check?] is not @racket[#f], then skips the
-check for the user-specific documentation entry point.
+检查 @racket[(find-user-doc-dir)] 中是否已存在用户特定的文档入口点，如果不存在，则以创建入口点的模式运行 @exec{raco setup}（使其内容与安装的文档入口点相同）。如果 @racket[skip-user-doc-check?] 不为 @racket[#f]，则跳过对用户特定文档入口点的检查。
 
-The run of @exec{raco setup} is packaged in a thunk that is provided to
-@racket[on-setup], which can adjust the current output and error ports
-as appropriate and check the thunk's result for success.
+@exec{raco setup} 的运行被包装在一个提供给 @racket[on-setup] 的 thunk 中，它可以适当地调整当前输出和错误端口并检查 thunk 的结果是否成功。
 
-The @racket[on-setup] argument is not called if the documentation entry
-point already exists in @racket[(find-user-doc-dir)].
+如果文档入口点已存在于 @racket[(find-user-doc-dir)] 中，则不调用 @racket[on-setup] 参数。
 
 @history[#:changed "1.1" @list{Added the @racket[skip-user-doc-check?] argument.}]
 }
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "doc-to-destdir"]{API for Staging Documentation Installs}
+@section[#:tag "doc-to-destdir"]{文档安装暂存 API}
 
-@defmodule[setup/doc-to-destdir]{The
-@racketmodname[setup/doc-to-destdir] module provides support for
-staging rendered documentation to better match the filesystem layout
-of a package installation.}
+@defmodule[setup/doc-to-destdir]{@racketmodname[setup/doc-to-destdir] 模块提供了暂存已渲染文档的支持，以更好地匹配包安装的文件系统布局。}
 
-When the @racketmodname[setup/doc-to-destdir] module is run directly,
-such as with @exec{racket -l}, it expects command-line arguments to
-pass along to @racket[move-rendered-docs-to-destdir]. Provide the
-@DFlag{help} flag for more information.
+当直接运行 @racketmodname[setup/doc-to-destdir] 模块时（例如使用 @exec{racket -l}），它期望传递命令行参数给 @racket[move-rendered-docs-to-destdir]。提供 @DFlag{help} 标志可获取更多信息。
 
 @history[#:added "9.2.0.6"]
 
@@ -2094,176 +1342,58 @@ pass along to @racket[move-rendered-docs-to-destdir]. Provide the
                                         [doc-destdir path-string?])
          void?]{
 
-Scans @racket[dir] for collections (typically within package
-implementations) that specify documentation through a
-@filepath{info.rkt} module, and where the specified documentation has
-been rendered to a local @filepath{doc} subdirectory. The rendered
-documentation is moved out of @filepath{doc} and into
-@racket[doc-destdir]. This movement imitates a @exec{raco setup} step
-of moving documentation that is already rendered within a collection
-into a centralized directory for installation-scoped packages.
+扫描 @racket[dir] 中通过 @filepath{info.rkt} 模块指定文档的集合（通常在包实现中），且指定的文档已被渲染到本地 @filepath{doc} 子目录中。已渲染的文档从 @filepath{doc} 移出并移入 @racket[doc-destdir]。此移动模拟了 @exec{raco setup} 的步骤，将已在集合中渲染的文档移入安装范围包的集中目录中。
 
-The @racket[move-rendered-docs-to-destdir] function is intended for
-use in combination with @exec{@|raco-pkg-install| @DFlag{destdir}}, where
-@racket[dir] is the same directory as provided after @DFlag{destdir},
-and @racket[doc-destdir] is an accompanying directory to be moved into
-place as rendered documentation instead of package implementation.
+@racket[move-rendered-docs-to-destdir] 函数旨在与 @exec{@|raco-pkg-install| @DFlag{destdir}} 结合使用，其中 @racket[dir] 与 @DFlag{destdir} 后提供的目录相同，@racket[doc-destdir] 是随附的目录，将被移入作为已渲染文档而非包实现。
 
 }
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "layered-install"]{Layered Installations}
+@section[#:tag "layered-install"]{分层安装}
 
-A typical Racket configuration includes two layers: an
-@defterm{installation} layer and a @defterm{user} layer. The intent is
-that the @defterm{installation} layer is read-only to all users of a
-system, while the @defterm{user} layer allows each individual user to
-install additional packages that extend the @defterm{installation}
-layer. The @defterm{installation} layer is intended not only to be
-read-only, but to not change after users start installing in their own
-layers.
+典型的 Racket 配置包括两层：@defterm{安装}层和 @defterm{用户}层。目的是 @defterm{安装}层对系统的所有用户是只读的，而 @defterm{用户}层允许每个用户安装额外的包来扩展 @defterm{安装}层。@defterm{安装}层不仅旨在是只读的，而且在用户开始在自己的层中安装后不应更改。
 
-In an environment where Racket itself is under development, the
-@defterm{installation} layer will change. In that setting, if the
-@defterm{user} layer is used at all, care must be taken to not create
-conflicts for the user layer when modifying the installation
-layer---or else the user layer must be repaired on occasion.
+在 Racket 本身正在开发的环境中，@defterm{安装}层会发生变化。在这种情况下，如果使用 @defterm{用户}层，则在修改安装层时必须注意不要为 @defterm{用户}层创建冲突——否则用户层有时必须被修复。
 
-By default, @exec{raco setup} updates both layers whenever it is run;
-if a user does not have write permission the installation, @exec{raco
-setup} with no arguments is all but certain to report permission
-errors. The actions of @exec{raco setup} can be constrained to the
-@defterm{user} layer by supplying the @DFlag{avoid-main} argument, or
-@exec{raco setup} can be constrained to the @defterm{installation}
-layer by using the @DFlag{no-user} argument. When @exec{raco pkg}
-performs setup actions, it effectively supplies one of the other of
-those based on the package's scope (and @exec{raco pkg} refuses to
-operate on both scopes/layers at once).
+默认情况下，@exec{raco setup} 每次运行时都会更新两个层；如果用户没有安装的写权限，不带参数的 @exec{raco setup} 几乎肯定会报告权限错误。通过提供 @DFlag{avoid-main} 参数，可以将 @exec{raco setup} 的操作限制在 @defterm{用户}层，或者通过使用 @DFlag{no-user} 参数限制在 @defterm{安装}层。当 @exec{raco pkg} 执行 setup 操作时，它根据包的范围有效地提供其中之一（并且 @exec{raco pkg} 拒绝同时操作两个范围/层）。
 
-The @defterm{user} layer is always both user- and version-specific.
-More precisely, it is specific to the user and an installation's name,
-where the installation's name is typically its version number.
-However, the name of an installation can be changed through the
-@racket['installation] setting in @filepath{config.rktd} (see
-@secref["config-file"]). Setting an installation name changes the
-directory where packages and executables reside within
-@racket[(find-system-path 'addon-dir)]. The result of
-@racket[(find-system-path 'addon-dir)] itself can be changed through
-@racket['addon-dir] in @filepath{config.rktd}.
+@defterm{用户}层始终既是用户特定的又是版本特定的。更准确地说，它特定于用户和安装名称，其中安装名称通常是其版本号。但是，安装名称可以通过 @filepath{config.rktd} 中的 @racket['installation] 设置更改（参见 @secref["config-file"]）。设置安装名称会更改包和可执行文件在 @racket[(find-system-path 'addon-dir)] 中的驻留目录。@racket[(find-system-path 'addon-dir)] 本身的结果可以通过 @filepath{config.rktd} 中的 @racket['addon-dir] 更改。
 
-The @defterm{installation} and @defterm{user} configuration layers can
-be generalized to multiple layers by setting search paths in
-@filepath{config.rktd}. These search paths essentially treat the layer
-closest to @defterm{user} as the @defterm{installation} layer that
-might be adjusted by @exec{raco setup} and @exec{raco pkg}, but search
-paths can chain to an existing (unchanging) implementation in much the
-same way that @defterm{user} chains to @defterm{installation}. To
-build a new layer, create new @filepath{config.rktd} that is like the
-underlying layer's @filepath{config.rktd}, but
+@defterm{安装}和 @defterm{用户}配置层可以通过在 @filepath{config.rktd} 中设置搜索路径来推广为多个层。这些搜索路径基本上将最接近 @defterm{用户}的层视为可能由 @exec{raco setup} 和 @exec{raco pkg} 调整的 @defterm{安装}层，但搜索路径可以以与 @defterm{用户}链接到 @defterm{安装}大致相同的方式链接到现有的（不变的）实现。要构建新层，创建新的 @filepath{config.rktd}，类似于底层层的 @filepath{config.rktd}，但
 @;
 @itemlist[
 
- @item{each of @racket['lib-dir], @racket['share-dir],
-       @racket['links-file], @racket['pkgs-dir], @racket['bin-dir],
-       @racket['gui-bin-dir], @racket['apps-dir], @racket['doc-dir],
-       and @racket['man-dir] is a new directory or file; and}
+ @item{@racket['lib-dir]、@racket['share-dir]、@racket['links-file]、@racket['pkgs-dir]、@racket['bin-dir]、@racket['gui-bin-dir]、@racket['apps-dir]、@racket['doc-dir] 和 @racket['man-dir] 中的每一个都是新目录或文件；}
 
- @item{the corresponding search lists @racket['lib-search-dirs],
-       @racket['share-search-dirs], @racket['links-search-files],
-       @racket['pkgs-search-dirs], @racket['bin-search-dirs],
-       @racket['gui-bin-search-dirs], (no @racket['apps-dir] search
-       needed), @racket['doc-search-dirs], and
-       @racket['man-search-dirs] each add the old directory or file to
-       the search list just after @racket[#f]; note that the default
-       for each search list is @racket[(list #f)].}
+ @item{相应的搜索列表 @racket['lib-search-dirs]、@racket['share-search-dirs]、@racket['links-search-files]、@racket['pkgs-search-dirs]、@racket['bin-search-dirs]、@racket['gui-bin-search-dirs]（不需要 @racket['apps-dir] 搜索）、@racket['doc-search-dirs] 和 @racket['man-search-dirs] 各自将旧的目录或文件添加到搜索列表中紧接 @racket[#f] 之后；请注意每个搜索列表的默认值是 @racket[(list #f)]。}
 
 ]
 @;
-There is no argument to @exec{raco setup} that is analogous to
-@DFlag{avoid-main} to avoid modifying nested layer; instead, nested
-layers are expected to be fully set up so that @exec{raco setup}
-need not change them. When @exec{raco setup} would otherwise install
-an executable into the directory configured as @racket['bin-dir], it
-consults the @racket['bin-search-dirs] list to check whether the
-executable is already installed in one of those directories, and if so,
-it will refrain from creating a copy in the new layer. The same
-search-list check also applies to native libraries, shared files, and
-man pages, but with the additional check that the file to install matches
-the one that is already installed.
+@exec{raco setup} 没有类似于 @DFlag{avoid-main} 的参数来避免修改嵌套层；相反，嵌套层应被完全设置，以便 @exec{raco setup} 无需更改它们。当 @exec{raco setup} 本来会将可执行文件安装到配置为 @racket['bin-dir] 的目录时，它会查询 @racket['bin-search-dirs] 列表以检查该可执行文件是否已安装在其中一个目录中，如果是，则不会在新层中创建副本。相同的搜索列表检查也适用于原生库、共享文件和 man 页面，但还附加检查要安装的文件是否与已安装的匹配。
 
-The default path to @filepath{config.rktd} is hardwired within a
-@exec{racket} executable. In some cases, it can make sense for the
-innermost layer's configuration to point to another layer, perhaps
-because the filesystem provides an indirection. For example, on Unix,
-a Racket installation in @filepath{/usr} might reasonably configure
-the @defterm{installation} layer's directories to be in
-@filepath{/usr/local} with @filepath{/usr} directories included in the
-search lists.
+@filepath{config.rktd} 的默认路径硬编码在 @exec{racket} 可执行文件中。在某些情况下，最内层的配置指向另一层可能是合理的，可能是因为文件系统提供了一层间接引用。例如，在 Unix 上，@filepath{/usr} 中的 Racket 安装可以合理地将 @defterm{安装}层的目录配置为位于 @filepath{/usr/local}，并将 @filepath{/usr} 目录包含在搜索列表中。
 
-To use @exec{racket} with a new @filepath{config.rktd}, you can supply
-the @DFlag{config} or @DFlag{G} flag to @exec{racket} or set the
-@envvar{PLTCONFIGDIR} environment variable to point to the directory
-containing @filepath{config.rktd}. Alternatively, you can create a
-@tech{tethered} layer that creates replacement executables like
-@exec{racket} that are hardwired to the layer's configuration
-directory.
+要使用带有新 @filepath{config.rktd} 的 @exec{racket}，可以向 @exec{racket} 提供 @DFlag{config} 或 @DFlag{G} 标志，或将 @envvar{PLTCONFIGDIR} 环境变量设置为指向包含 @filepath{config.rktd} 的目录。或者，可以创建一个 @tech{绑定}层，该层创建类似于 @exec{racket} 的替换可执行文件，这些可执行文件硬编码到层的配置目录。
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "tethered-install"]{Tethered Installations}
+@section[#:tag "tethered-install"]{绑定安装}
 
-A @deftech{tethered} installation of Racket is a layer (see
-@secref["layered-install"]) that includes a wrapper executable for
-every executable across the installation's layers. Each wrapper
-executable points back to the new layer's @filepath{config.rktd} (see
-@secref["config-file"]) without the use of a @envvar{PLTCONFIGDIR}
-environment variable or @DFlag{config} flag. In other words, a
-tethered installation provides executables such as @exec{racket},
-@exec{raco}, and @exec{drracket} that are tied to the layer. Tethering
-thus helps to create a layer of installation that behaves in a more
-self-contained way, but with minimal duplication of the underlying
-layers.
+Racket 的 @deftech{绑定}安装是一个层（参见 @secref["layered-install"]），它为安装各层中的每个可执行文件包含一个包装器可执行文件。每个包装器可执行文件指回新层的 @filepath{config.rktd}（参见 @secref["config-file"]），而不使用 @envvar{PLTCONFIGDIR} 环境变量或 @DFlag{config} 标志。换句话说，绑定安装提供了诸如 @exec{racket}、@exec{raco} 和 @exec{drracket} 等与该层绑定的可执行文件。因此，绑定有助于创建一个行为更加自包含的安装层，同时最小化底层层的重复。
 
-Tethering works at either a @defterm{user} or @defterm{installation}
-layer:
+绑定既可以在 @defterm{用户}层也可以在 @defterm{安装}层工作：
 
 @itemlist[
 
- @item{A @defterm{user} layer with tethering is represented by a fresh
-       directory @nonterm{addon-dir} and a
-       @filepath{@nonterm{addon-dir}/etc/config.rktd} file that maps
-       @racket['addon-tethered-console-bin-dir] to
-       @nonterm{tethered-bin-dir},
-       @racket['addon-tethered-gui-bin-dir] to
-       @nonterm{tethered-gui-bin-dir}, and (optionally)
-       @racket['addon-tethered-apps-dir] to
-       @nonterm{tethered-apps-dir}. Initialize the tethered layer
-       with
+ @item{带绑定的 @defterm{用户}层由一个新鲜目录 @nonterm{addon-dir} 和一个 @filepath{@nonterm{addon-dir}/etc/config.rktd} 文件表示，该文件将 @racket['addon-tethered-console-bin-dir] 映射到 @nonterm{tethered-bin-dir}，将 @racket['addon-tethered-gui-bin-dir] 映射到 @nonterm{tethered-gui-bin-dir}，并（可选）将 @racket['addon-tethered-apps-dir] 映射到 @nonterm{tethered-apps-dir}。使用以下命令初始化绑定层：
 
        @commandline{racket -A @nonterm{addon-dir} -l- raco setup --avoid-main}}
 
- @item{An @defterm{installation} layer with tethering is like a one
-       without tethering (see @secref["layered-install"]), but where
-       the layer's @filepath{@nonterm{layer-dir}/etc/config.rktd} file
-       maps @racket['config-tethered-console-bin-dir] to
-       @nonterm{tethered-bin-dir},
-       @racket['config-tethered-gui-bin-dir] to
-       @nonterm{tethered-gui-bin-dir}, and (optionally)
-       @racket['config-tethered-apps-dir] to
-       @nonterm{tethered-apps-dir}. The @racket['bin-dir] and
-       @racket['gui-bin-dir] configurations can point to the same
-       directories, but executables are not specifically created there by
-       @exec{raco setup}. Initialize the tethered layer with
+ @item{带绑定的 @defterm{安装}层类似于没有绑定的层（参见 @secref["layered-install"]），但该层的 @filepath{@nonterm{layer-dir}/etc/config.rktd} 文件将 @racket['config-tethered-console-bin-dir] 映射到 @nonterm{tethered-bin-dir}，将 @racket['config-tethered-gui-bin-dir] 映射到 @nonterm{tethered-gui-bin-dir}，并（可选）将 @racket['config-tethered-apps-dir] 映射到 @nonterm{tethered-apps-dir}。@racket['bin-dir] 和 @racket['gui-bin-dir] 配置可以指向相同的目录，但 @exec{raco setup} 不会专门在那里创建可执行文件。使用以下命令初始化绑定层：
 
        @commandline{racket -G @nonterm{layer-dir}/etc -l- raco setup}}
 
 ]
 
-In either case, initialization creates tethered executables in the
-directories @nonterm{tethered-bin-dir} and
-@nonterm{tethered-gui-bin-dir}, writing @filepath{.desktop} files
-(for Unix) in @nonterm{tethered-apps-dir} (if specified). Thereafter, tethered executables like
-@exec{@nonterm{tethered-bin-dir}/racket} and
-@exec{@nonterm{tethered-bin-dir}/raco} can be used to work with the
-tethered layer.
+无论哪种情况，初始化都会在 @nonterm{tethered-bin-dir} 和 @nonterm{tethered-gui-bin-dir} 目录中创建绑定可执行文件，并在 @nonterm{tethered-apps-dir} 中（如果指定）写入 @filepath{.desktop} 文件（用于 Unix）。此后，可以使用绑定可执行文件（如 @exec{@nonterm{tethered-bin-dir}/racket} 和 @exec{@nonterm{tethered-bin-dir}/raco}）来操作绑定层。
