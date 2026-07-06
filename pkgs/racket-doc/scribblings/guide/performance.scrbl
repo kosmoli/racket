@@ -10,18 +10,9 @@
 @section-index["benchmarking"]
 @section-index["speed"]
 
-Alan Perlis famously quipped ``Lisp programmers know the value of
-everything and the cost of nothing.'' A Racket programmer knows, for
-example, that a @racket[lambda] anywhere in a program produces a value
-that is closed over its lexical environment---but how much does
-allocating that value cost? While most programmers have a reasonable
-grasp of the cost of various operations and data structures at the
-machine level, the gap between the Racket language model and the
-underlying computing machinery can be quite large.
+Alan Perlis 曾有名言："Lisp 程序员知道一切的价值，却不知道任何东西的代价。"而 Racket 程序员知道，例如，程序中任何位置的 @racket[lambda] 都会产生一个封闭在其词法环境上的值——但分配这个值的代价是多少？虽然大多数程序员对机器层面各种操作和数据结构的代价有合理的把握，但 Racket 语言模型与底层计算引擎之间的鸿沟可能相当大。
 
-In this chapter, we narrow the gap by explaining details of the
-Racket compiler and runtime system and how they affect the runtime
-and memory performance of Racket code.
+在本章中，我们通过解释 Racket 编译器与运行时系统的细节，以及它们如何影响 Racket 代码的运行时性能与内存性能，来弥合这一鸿沟。
 
 @; ----------------------------------------------------------------------
 
