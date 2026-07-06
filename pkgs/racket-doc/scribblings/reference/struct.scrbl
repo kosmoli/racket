@@ -8,72 +8,59 @@
 
 @guideintro["define-struct"]{structure types via @racket[struct]}
 
-A @deftech{structure type} is a record datatype composing a number of
-@idefterm{fields}. A @deftech{structure}, an instance of a structure
-type, is a first-class value that contains a value for each field of
-the structure type. A structure instance is created with a
-type-specific @tech{constructor} procedure, and its field values are
-accessed and changed with type-specific @tech{accessor} and
-@tech{mutator} procedures. In addition, each structure type has a
-@tech{predicate} procedure that answers @racket[#t] for instances of
-the structure type and @racket[#f] for any other value.
+@deftech{结构类型}是一种记录数据类型，由若干
+@idefterm{字段}组成。@deftech{结构}是结构类型的一个实例，
+是一等值，其中包含结构类型每个字段的值。结构实例通过特定于类型的
+@tech{构造函数}过程创建，其字段值通过特定于类型的 @tech{访问器}和
+@tech{修改器}过程进行读取和更改。此外，每个结构类型都有一个
+@tech{谓词}过程，对于该结构类型的实例返回 @racket[#t]，对于任何
+其他值则返回 @racket[#f]。
 
-A structure type's fields are essentially unnamed, though names are
-supported for error-reporting purposes. The constructor procedure
-takes one value for each field of the structure type, except that some
-of the fields of a structure type can be @deftech{automatic fields};
-the @tech{automatic fields} are initialized to a constant that is
-associated with the structure type, and the corresponding arguments
-are omitted from the constructor procedure. All automatic fields in a
-structure type follow the non-automatic fields.
+结构类型的字段本质上是无名称的，尽管为了方便错误报告而支持名称。
+构造函数过程为结构类型的每个字段接受一个值，但结构类型中的某些
+字段可以是 @deftech{自动字段}；@tech{自动字段}被初始化为与
+该结构类型关联的常量，相应的参数从构造函数过程中省略。
+结构类型中的所有自动字段都排在非自动字段之后。
 
-A structure type can be created as a @deftech{structure subtype} of
-an existing base structure type. An instance of a structure subtype
-can always be used as an instance of the base structure type, but the
-subtype gets its own predicate procedure, and it may have its own
-fields in addition to the fields of the base type.
+一个结构类型可以作为现有基础结构类型的
+@deftech{结构子类型}来创建。结构子类型的实例始终可以作为
+基础结构类型的实例使用，但子类型有自己的谓词过程，
+并且除了基类型的字段之外，还可以有自己的字段。
 
-A structure subtype ``inherits'' the fields of its base type. If the
-base type has @math{m} fields, and if @math{n} fields are specified
-for the new structure subtype, then the resulting structure type has
-@math{m+n} fields. The value for automatic fields can be different in
-a subtype than in its base type.
+结构子类型会“继承”其基类型的字段。如果基类型有 @math{m} 个字段，
+并且为新结构子类型指定了 @math{n} 个字段，那么生成的结构类型
+有 @math{m+n} 个字段。子类型中自动字段的值可以与其基类型不同。
 
-If @math{m'} of the original @math{m} fields are non-automatic (where
-@math{m'<m}), and @math{n'} of the new fields are non-automatic (where
-@math{n'<n}), then @math{m'+n'} field values must be provided to the
-subtype's constructor procedure. Values for the first @math{m} fields
-of a subtype instance are accessed with selector procedures for the
-original base type (or its supertypes), and the last @math{n} are
-accessed with subtype-specific selectors. Subtype-specific
-@tech{accessors} and @tech{mutators} for the first @math{m} fields do
-not exist.
+如果原始 @math{m} 个字段中有 @math{m'} 个是非自动的（其中
+@math{m'<m}），且新字段中有 @math{n'} 个是非自动的（其中
+@math{n'<n}），那么必须向子类型的构造函数过程提供
+@math{m'+n'} 个字段值。子类型实例的前 @math{m} 个字段的值
+通过原始基类型（或其超类型）的选择器过程访问，后 @math{n} 个
+字段通过子类型特定的选择器访问。前 @math{m} 个字段的子类型特定
+@tech{访问器}和 @tech{修改器}不存在。
 
-The @racket[struct] form and @racket[make-struct-type]
-procedure typically create a new structure type, but they can also
-access @deftech{prefab} (i.e., previously fabricated) structure types
-that are globally shared, and whose instances can be parsed and
-written by the default reader (see @secref["reader"]) and printer (see
-@secref["printing"]). Prefab structure types can inherit only from
-other prefab structure types, and they cannot have guards (see
-@secref["creatingmorestructs"]) or properties (see
-@secref["structprops"]). Exactly one prefab structure type exists for
-each combination of name, supertype, field count, automatic field
-count, automatic field value (when there is at least one automatic
-field), and field mutability.
+@racket[struct] 形式和 @racket[make-struct-type] 过程
+通常创建一个新的结构类型，但它们也可以访问 @deftech{prefab}
+（即预制）结构类型，这些类型是全局共享的，其实例可以被默认的
+读取器（参见 @secref["reader"]）和打印器（参见
+@secref["printing"]）解析和写出。Prefab 结构类型只能从
+其他 prefab 结构类型继承，不能有守卫（参见
+@secref["creatingmorestructs"]）或属性（参见
+@secref["structprops"]）。对于名称、超类型、字段数、自动
+字段数、自动字段值（当至少有一个自动字段时）以及字段可变性的每种组合，
+恰好存在一个 prefab 结构类型。
 
-@refalso["serialization"]{reading and writing structures}
+@refalso["serialization"]{读写结构}
 
-@index['("structures" "equality")]{Two} structure values are
-@racket[eqv?] if and only if they are @racket[eq?]. Two structure
-values are @racket[equal?] if they are @racket[eq?]. By default, two
-structure values are also @racket[equal?] if they are instances of the
-same structure type, no fields are opaque, and the results of applying
-@racket[struct->vector] to the structs are
-@racket[equal?]. (Consequently, @racket[equal?]  testing for
-structures may depend on the current inspector.) A structure type can
-override the default @racket[equal?] definition through the
-@racket[gen:equal+hash] or @racket[gen:equal-mode+hash] @tech{generic interface}.
+@index['("structures" "equality")]{两个}结构值
+当且仅当它们是 @racket[eq?] 时才是 @racket[eqv?]。两个结构值
+当且仅当它们是 @racket[eq?] 时才是 @racket[equal?]。默认情况下，
+如果两个结构值是同一结构类型的实例、没有字段是不透明的、且对结构应用
+@racket[struct->vector] 的结果是 @racket[equal?]，那么它们也是
+@racket[equal?]。（因此，结构的 @racket[equal?] 测试可能依赖于
+当前的 inspector。）结构类型可以通过
+@racket[gen:equal+hash] 或 @racket[gen:equal-mode+hash] @tech{泛型接口}
+覆盖默认的 @racket[equal?] 定义。
 
 @local-table-of-contents[]
 
@@ -107,93 +94,83 @@ override the default @racket[equal?] definition through the
                   struct-accessor-procedure?
                   struct-mutator-procedure?)]{
 
-Creates a new structure type, unless @racket[inspector] is
-@racket['prefab], in which case @racket[make-struct-type] accesses a
-@techlink{prefab} structure type.  The @racket[name] argument is used
-as the type name. If @racket[super-type] is not @racket[#f], the
-resulting type is a subtype of the corresponding structure type.
+创建一个新的结构类型，除非 @racket[inspector] 是
+@racket['prefab]，此时 @racket[make-struct-type] 访问一个
+@techlink{prefab} 结构类型。@racket[name] 参数用作类型名称。
+如果 @racket[super-type] 不是 @racket[#f]，则生成的类型是对应
+结构类型的子类型。
 
-The resulting structure type has
-@math{@racket[init-field-cnt]+@racket[auto-field-cnt]} fields (in
-addition to any fields from @racket[super-type]), but only
-@racket[init-field-cnt] constructor arguments (in addition to any
-constructor arguments from @racket[super-type]). The remaining fields
-are initialized with @racket[auto-v]. The total field count (including
-@racket[super-type] fields) must be no more than 32768.
+生成的结构类型有
+@math{@racket[init-field-cnt]+@racket[auto-field-cnt]} 个字段
+（加上来自 @racket[super-type] 的任何字段），但只有
+@racket[init-field-cnt] 个构造函数参数（加上来自
+@racket[super-type] 的任何构造函数参数）。其余字段用
+@racket[auto-v] 初始化。总字段数（包括 @racket[super-type] 字段）
+不得超过 32768。
 
-The @racket[props] argument is a list of pairs, where the @racket[car]
-of each pair is a structure type property descriptor, and the
-@racket[cdr] is an arbitrary value. A property can be specified
-multiple times in @racket[props] (including properties that are
-automatically added by properties that are directly included in
-@racket[props]) only if the associated values are @racket[eq?],
-otherwise the @exnraise[exn:fail:contract]. See @secref["structprops"]
-for more information about properties. When @racket[inspector] is
-@racket['prefab], then @racket[props] must be @racket[null].
+@racket[props] 参数是一个配对列表，其中每个配对的 @racket[car]
+是一个结构类型属性描述符，@racket[cdr] 是一个任意值。只有在
+关联的值是 @racket[eq?] 时，才能在 @racket[props] 中多次指定
+同一属性（包括由 @racket[props] 中直接包含的属性自动添加的属性），
+否则 @exnraise[exn:fail:contract]。有关属性的更多信息，
+请参见 @secref["structprops"]。当 @racket[inspector] 是
+@racket['prefab] 时，@racket[props] 必须是 @racket[null]。
 
-The @racket[inspector] argument normally controls access to reflective
-information about the structure type and its instances; see
-@secref["inspectors"] for more information. If @racket[inspector] is
-@racket['prefab], then the resulting @tech{prefab} structure type and
-its instances are always transparent. If @racket[inspector] is
-@racket[#f], then the structure type's instances are transparent.
-If @racket[inspector] is @racket['current] (the default), then the
-@racket[(current-inspector)] is used.
+@racket[inspector] 参数通常控制对结构类型及其实例的反射信息
+的访问；有关更多信息，请参见 @secref["inspectors"]。如果
+@racket[inspector] 是 @racket['prefab]，则生成的 @tech{prefab}
+结构类型及其实例始终是透明的。如果 @racket[inspector] 是
+@racket[#f]，则结构类型的实例是透明的。如果
+@racket[inspector] 是 @racket['current]（默认值），则使用
+@racket[(current-inspector)]。
 
-If @racket[proc-spec] is an integer or procedure, instances of the
-structure type act as procedures. See @racket[prop:procedure] for
-further information.  Providing a non-@racket[#f] value for
-@racket[proc-spec] is the same as pairing the value with
-@racket[prop:procedure] at the end of @racket[props], plus including
-@racket[proc-spec] in @racket[immutables] when @racket[proc-spec] is
-an integer.
+如果 @racket[proc-spec] 是一个整数或过程，则该结构类型的实例
+可以作为过程使用。更多信息请参见 @racket[prop:procedure]。为
+@racket[proc-spec] 提供非 @racket[#f] 值等同于在
+@racket[props] 末尾将该值与 @racket[prop:procedure] 配对，
+并在 @racket[proc-spec] 是整数时将其包含在
+@racket[immutables] 中。
 
-The @racket[immutables] argument provides a list of field
-positions. Each element in the list must be unique, otherwise
-@exnraise[exn:fail:contract]. Each element must also fall in the range
-@racket[0] (inclusive) to @racket[init-field-cnt] (exclusive), otherwise
-@exnraise[exn:fail:contract].
+@racket[immutables] 参数提供一个字段位置列表。列表中的每个
+元素必须是唯一的，否则 @exnraise[exn:fail:contract]。每个
+元素还必须在 @racket[0]（包含）到 @racket[init-field-cnt]
+（不包含）的范围内，否则 @exnraise[exn:fail:contract]。
 
-The @racket[guard] argument is either a procedure of @math{n+1}
-arguments or @racket[#f], where @math{n} is the number of arguments
-for the new structure type's constructor (i.e.,
-@racket[init-field-cnt] plus constructor arguments implied by
-@racket[super-type], if any). If @racket[guard] is a procedure, then
-the procedure is called whenever an instance of the type is
-constructed, or whenever an instance of a subtype is created.  The
-arguments to @racket[guard] are the values provided for the
-structure's first @math{n} fields, followed by the name of the
-instantiated structure type (which is @racket[name], unless a subtype
-is instantiated). The @racket[guard] result must be @math{n} values,
-which become the actual values for the structure's fields. The
-@racket[guard] can raise an exception to prevent creation of a
-structure with the given field values. If a structure subtype has its
-own guard, the subtype guard is applied first, and the first @math{n}
-values produced by the subtype's guard procedure become the first
-@math{n} arguments to @racket[guard]. When @racket[inspector] is
-@racket['prefab], then @racket[guard] must be @racket[#f].
+@racket[guard] 参数要么是一个接受 @math{n+1} 个参数的过程，
+要么是 @racket[#f]，其中 @math{n} 是新结构类型构造函数的参数个数
+（即 @racket[init-field-cnt] 加上 @racket[super-type] 隐含的
+构造函数参数，如果有的话）。如果 @racket[guard] 是一个过程，
+那么每当构造该类型的实例或创建子类型的实例时，都会调用该过程。
+@racket[guard] 的参数是结构前 @math{n} 个字段的值，
+后跟被实例化的结构类型的名称（即 @racket[name]，除非实例化的是
+子类型）。@racket[guard] 的结果必须是 @math{n} 个值，这些值
+将成为结构字段的实际值。@racket[guard] 可以引发异常以阻止
+创建具有给定字段值的结构。如果结构子类型有自己的 guard，则先
+应用子类型的 guard，子类型 guard 过程生成的前 @math{n} 个值
+成为 @racket[guard] 的前 @math{n} 个参数。当 @racket[inspector]
+为 @racket['prefab] 时，@racket[guard] 必须为 @racket[#f]。
 
-If @racket[constructor-name] is not @racket[#f], it is used as the
-name of the generated @tech{constructor} procedure as returned by
-@racket[object-name] or in the printed form of the constructor value.
+如果 @racket[constructor-name] 不是 @racket[#f]，则它被用作
+生成的 @tech{constructor} 过程的名称，由 @racket[object-name]
+返回或在构造函数的打印形式中使用。
 
-The result of @racket[make-struct-type] is five values:
+@racket[make-struct-type] 的结果是五个值：
 
 @itemize[
 
- @item{a @tech{structure type descriptor},}
+ @item{一个 @tech{结构类型描述符},}
 
- @item{a @tech{constructor} procedure,}
+ @item{一个 @tech{构造函数}过程,}
 
- @item{a @tech{predicate} procedure,}
+ @item{一个 @tech{谓词}过程,}
 
- @item{an @tech{accessor} procedure, which consumes a structure and a field
- index between @math{0} (inclusive) and
- @math{@racket[init-field-cnt]+@racket[auto-field-cnt]} (exclusive),
- and}
+ @item{一个 @tech{访问器}过程，接受一个结构和一个
+ 介于 @math{0}（包含）和
+ @math{@racket[init-field-cnt]+@racket[auto-field-cnt]}（不包含）
+ 之间的字段索引，以及}
 
- @item{a @tech{mutator} procedure, which consumes a structure, a field
- index, and a field value.}
+ @item{一个 @tech{修改器}过程，接受一个结构、一个字段
+ 索引和一个字段值。}
 
 ]
 
@@ -256,34 +233,32 @@ The result of @racket[make-struct-type] is five values:
                                      [realm symbol? 'racket])
          procedure?]{
 
-Returns a field accessor that is equivalent to @racket[(lambda (s)
-(accessor-proc s field-pos))].  The @racket[accessor-proc] must be
-an @tech{accessor} returned by @racket[make-struct-type].
+返回一个字段访问器，等价于 @racket[(lambda (s)
+(accessor-proc s field-pos))]。@racket[accessor-proc] 必须是
+@racket[make-struct-type] 返回的 @tech{访问器}。
 
-The @racket[field/proc-name] argument determines the name of the
-resulting procedure for error reporting and debugging purposes. If
-@racket[field/proc-name] is a symbol and @racket[arg-contract-str] is not
-@racket[#f], then @racket[field/proc-name] is used as the procedure
-name. If @racket[field/proc-name] is a symbol and
-@racket[arg-contract-str] is @racket[#f], then @racket[field/proc-name] is
-combined with the name of @racket[accessor-proc]'s structure type to
-form the procedure name. If @racket[field/proc-name] is @racket[#f],
-then @racket['accessor] is used as the procedure name.
+@racket[field/proc-name] 参数确定生成过程的名称，用于错误报告
+和调试。如果 @racket[field/proc-name] 是一个符号且
+@racket[arg-contract-str] 不为 @racket[#f]，则
+@racket[field/proc-name] 被用作过程名称。如果
+@racket[field/proc-name] 是一个符号且
+@racket[arg-contract-str] 为 @racket[#f]，则
+@racket[field/proc-name] 与 @racket[accessor-proc] 的结构类型
+名称组合构成过程名称。如果 @racket[field/proc-name] 为
+@racket[#f]，则使用 @racket['accessor] 作为过程名称。
 
-The @racket[arg-contract-str] argument determines how the accessor
-procedure reports an error when it is applied to a value that is not
-an instance of the @racket[accessor-proc]'s structure type. If it is a
-string or symbol, the text of the string or symbol is used as a
-contract for error reporting. Otherwise, contract text is synthesized
-from the name of @racket[accessor-proc]'s structure type.
+@racket[arg-contract-str] 参数决定访问器过程在应用于不是
+@racket[accessor-proc] 的结构类型实例的值时如何报告错误。
+如果是字符串或符号，则字符串或符号的文本被用作错误报告的
+contract。否则，contract 文本由 @racket[accessor-proc] 的
+结构类型名称合成。
 
-The @racket[realm] argument is also used for error reporting. It
-specifies a @tech{realm} that an error-message adjuster may use to
-determine how to adjust an error message. The @racket[realm] argument
-also determines the result of @racket[procedure-realm] for the
-accessor procedure.
+@racket[realm] 参数也用于错误报告。它指定一个 @tech{realm}，
+错误消息调整器可以使用它来决定如何调整错误消息。
+@racket[realm] 参数还决定访问器过程的
+@racket[procedure-realm] 的结果。
 
-For examples, see @racket[make-struct-type].
+示例请参见 @racket[make-struct-type]。
 
 @history[#:changed "8.4.0.2" @elem{Added the @racket[arg-contract-str]
                                     and @racket[realm] arguments.}]}
@@ -296,15 +271,15 @@ For examples, see @racket[make-struct-type].
                                     [realm symbol? 'racket])
          procedure?]{
 
-Returns a field mutator that is equivalent to @racket[(lambda (s v)
-(mutator-proc s field-pos v))].  The @racket[mutator-proc] must be
-a @tech{mutator} returned by @racket[make-struct-type].
+返回一个字段修改器，等价于 @racket[(lambda (s v)
+(mutator-proc s field-pos v))]。@racket[mutator-proc] 必须是
+@racket[make-struct-type] 返回的 @tech{修改器}。
 
-The @racket[field-name], @racket[arg-contract-str], and @racket[realm]
-arguments are used for error and debugging purposes analogous to the
-same arguments to @racket[make-struct-field-accessor].
+@racket[field-name]、@racket[arg-contract-str] 和 @racket[realm]
+参数用于错误和调试目的，与 @racket[make-struct-field-accessor]
+中的同名参数类似。
 
-For examples, see @racket[make-struct-type].
+示例请参见 @racket[make-struct-type]。
 
 @history[#:changed "8.4.0.2" @elem{Added the @racket[arg-contract-str]
                                     and @racket[realm] arguments.}]}
@@ -312,16 +287,13 @@ For examples, see @racket[make-struct-type].
 
 @defthing[prop:sealed struct-type-property?]{
 
-A @tech{structure type property} that declares a structure type as
-@deftech{sealed}. The value associated with the property is ignored;
-the presence of the property itself makes the structure type
-sealed.
+一个 @tech{结构类型属性}，用于将结构类型声明为
+@deftech{密封}。与该属性关联的值被忽略；属性本身的存在
+就使结构类型成为密封的。
 
-A @tech{sealed} structure type cannot be used as the supertype of
-another structure type. Declaring a structure type as @tech{sealed} is
-typically just a performance hint, since checking for an instance of a
-sealed structure type can be slightly faster than checking for an
-instance of a structure type that might have subtypes.
+一个 @tech{密封}的结构类型不能用作另一个结构类型的超类型。
+将结构类型声明为 @tech{密封}通常只是一个性能提示，因为检查
+封闭结构类型的实例可能比检查可能有子类型的结构类型的实例稍快。
 
 @history[#:added "8.0.0.7"]}
 
@@ -329,18 +301,15 @@ instance of a structure type that might have subtypes.
 @;------------------------------------------------------------------------
 @section[#:tag "structprops"]{Structure Type Properties}
 
-@margin-note{@secref{struct-generics} provide a high-level API on top of
-structure type properties.}
+@margin-note{@secref{struct-generics} 在结构类型属性的基础上
+提供了高级 API。}
 
-A @deftech{structure type property} allows per-type information to be
- associated with a structure type (as opposed to per-instance
- information associated with a structure value). A property value is
- associated with a structure type through the
- @racket[make-struct-type] procedure (see
- @secref["creatingmorestructs"]) or through the @racket[#:property]
- option of @racket[struct].  Subtypes inherit the property
- values of their parent types, and subtypes can override an inherited
- property value with a new value.
+@deftech{结构类型属性}允许将每个类型的信息与结构类型关联
+（与结构值的每个实例信息相对）。属性值通过
+ @racket[make-struct-type] 过程（参见
+ @secref["creatingmorestructs"]）或 @racket[struct] 的
+ @racket[#:property] 选项与结构类型关联起来。子类型继承其
+ 父类型的属性值，并且子类型可以用新值覆盖继承的属性值。
 
 @defproc[(make-struct-type-property [name symbol?]
                                     [guard (or/c procedure? #f 'can-impersonate) #f]
@@ -355,84 +324,70 @@ A @deftech{structure type property} allows per-type information to be
                  (any/c . -> . boolean?)
                  procedure?)]{
 
-Creates a new structure type property and returns three values:
+创建一个新的结构类型属性并返回三个值：
 
 @itemize[
 
- @item{a @deftech{structure type property descriptor}, for use with
-       @racket[make-struct-type] and @racket[struct];}
+ @item{一个 @deftech{结构类型属性描述符}，用于
+       @racket[make-struct-type] 和 @racket[struct]；}
 
- @item{a @deftech{property predicate} procedure, which takes an
-       arbitrary value and returns @racket[#t] if the value is a
-       descriptor or instance of a structure type that has a value for
-       the property, @racket[#f] otherwise;}
+ @item{一个 @deftech{属性谓词}过程，接受任意值，如果该值是
+       具有该属性值的结构类型的描述符或实例，则返回
+       @racket[#t]，否则返回 @racket[#f]；}
 
- @item{a @deftech{property accessor} procedure, which returns the
-       value associated with the structure type given its descriptor or
-       one of its instances; if the structure type does not have a
-       value for the property, or if any other kind of value is
-       provided, the @exnraise[exn:fail:contract] unless a second
-       argument, @racket[_failure-result], is supplied to the
-       procedure. In that case, if @racket[_failure-result] is a
-       procedure, it is called (through a tail call) with no arguments
-       to produce the result of the property accessor procedure;
-       otherwise, @racket[_failure-result] is itself returned as the
-       result.}
+ @item{一个 @deftech{属性访问器}过程，给定结构类型的描述符
+       或其实例，返回与该结构类型关联的值；如果结构类型没有
+       该属性的值，或提供了任何其他类型的值，则
+       @exnraise[exn:fail:contract]，除非向该过程提供了第二个
+       参数 @racket[_failure-result]。在这种情况下，如果
+       @racket[_failure-result] 是一个过程，则不带参数调用它
+       （通过尾调用）以生成属性访问器过程的结果；否则，
+       @racket[_failure-result] 本身作为结果返回。}
 
 ]
 
-If the optional @racket[guard] is supplied as a procedure, it is
-called by @racket[make-struct-type] before attaching the property to a
-new structure type. The @racket[guard] must accept two arguments:
-a value for the property supplied to @racket[make-struct-type], and a
-list containing information about the new structure type. The list
-contains the values that @racket[struct-type-info] would return for
-the new structure type if it skipped the current-inspector
-control checks.
+如果可选的 @racket[guard] 以过程形式提供，则
+@racket[make-struct-type] 在将属性附加到新结构类型之前
+调用它。@racket[guard] 必须接受两个参数：提供给
+@racket[make-struct-type] 的属性值，以及一个包含新结构类型
+信息的列表。该列表包含 @racket[struct-type-info] 如果跳过
+current-inspector 控制检查时将为新结构类型返回的值。
 
-The result of calling @racket[guard] is associated with the property
-in the target structure type, instead of the value supplied to
-@racket[make-struct-type]. To reject a property association (e.g.,
-because the value supplied to @racket[make-struct-type] is
-inappropriate for the property), the @racket[guard] can raise an
-exception. Such an exception prevents @racket[make-struct-type] from
-returning a structure type descriptor.
+调用 @racket[guard] 的结果与目标结构类型中的属性关联，
+而不是提供给 @racket[make-struct-type] 的值。要拒绝属性关联
+（例如，因为提供给 @racket[make-struct-type] 的值不适合该属性），
+@racket[guard] 可以引发异常。这种异常会阻止
+@racket[make-struct-type] 返回结构类型描述符。
 
-If @racket[guard] is @racket['can-impersonate], then the property's
-accessor can be redirected through
-@racket[impersonate-struct]. This option is identical to supplying
-@racket[#t] as the @racket[can-impersonate?] argument and is provided
-for backwards compatibility.
+如果 @racket[guard] 是 @racket['can-impersonate]，则该属性
+的访问器可以通过 @racket[impersonate-struct] 重定向。此选项
+等同于将 @racket[#t] 作为 @racket[can-impersonate?] 参数提供，
+是为向后兼容而提供的。
 
-The optional @racket[supers] argument is a list of properties that are
-automatically associated with some structure type when the newly
-created property is associated to the structure type. Each property in
-@racket[supers] is paired with a procedure that receives the value
-supplied for the new property (after it is processed by
-@racket[guard]) and returns a value for the associated property (which
-is then sent to that property's guard, of any).
+可选的 @racket[supers] 参数是一个属性列表，当新创建的属性
+关联到某个结构类型时，这些属性会自动与该结构类型关联。
+@racket[supers] 中的每个属性都与一个过程配对，该过程接收
+为新属性提供的值（由 @racket[guard] 处理后），并返回关联属性
+的值（然后发送给该属性的 guard，如果有的话）。
 
-The optional @racket[can-impersonate?] argument determines if the
-structure type property can be redirected through @racket[impersonate-struct].
-If the argument is @racket[#f], then redirection is not allowed.
-Otherwise, the property accessor may be redirected by a struct
-impersonator.
+可选的 @racket[can-impersonate?] 参数决定结构类型属性是否
+可以通过 @racket[impersonate-struct] 重定向。如果该参数为
+@racket[#f]，则不允许重定向。否则，属性访问器可以被结构
+impersonator 重定向。
 
-The optional @racket[accessor-name] argument supplies a name (in the
-sense of @racket[object-name]) to use for the returned accessor
-function. If @racket[accessor-name] is @racket[#f], a name is created
-by adding @racketidfont{-accessor} to the end of @racket[name].
+可选的 @racket[accessor-name] 参数为返回的访问器函数提供
+一个名称（在 @racket[object-name] 的意义上）。如果
+@racket[accessor-name] 为 @racket[#f]，则通过在
+@racket[name] 末尾添加 @racketidfont{-accessor} 来创建名称。
 
-The optional @racket[contract-str] argument supplies a contract that
-is included in an error message with the returned accessor is applied
-to a value that is not an instance of the property (and where a
-@racket[_failure-result] argument is not supplied to the accessor). If
-@racket[contract-str] is @racket[#f], a contract is created by adding
-@racketidfont{?} to the end of @racket[name].
+可选的 @racket[contract-str] 参数提供一个 contract，当返回的
+访问器应用于不是该属性实例的值时（且没有向访问器提供
+@racket[_failure-result] 参数），该 contract 会包含在错误
+消息中。如果 @racket[contract-str] 为 @racket[#f]，则通过在
+@racket[name] 末尾添加 @racketidfont{?} 来创建 contract。
 
-The optional @racket[realm] argument supplies a @tech{realm} (in the
-sense of @racket[procedure-realm]) to associate with the returned
-accessor.
+可选的 @racket[realm] 参数提供一个 @tech{realm}（在
+@racket[procedure-realm] 的意义上）与返回的访问器关联。
 
 @examples[
 #:eval struct-eval
@@ -475,24 +430,24 @@ accessor.
 
 @defproc[(struct-type-property? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{structure type property
-descriptor} value, @racket[#f] otherwise.}
+如果 @racket[v] 是一个 @tech{结构类型属性描述符}值，
+则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(struct-type-property-accessor-procedure? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is an accessor procedure produced
-by @racket[make-struct-type-property], @racket[#f] otherwise.}
+如果 @racket[v] 是 @racket[make-struct-type-property] 产生的
+访问器过程，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(struct-type-property-predicate-procedure? [v any/c]
                                                     [prop (or/c struct-type-property? #f) #f])
          boolean?]{
 
-Returns @racket[#t] if @racket[v] is a predicate procedure produced by
-@racket[make-struct-type-property] and either @racket[prop] is
-@racket[#f] or it was produced by the same call to
-@racket[make-struct-type-property], @racket[#f] otherwise.
+如果 @racket[v] 是 @racket[make-struct-type-property] 产生的
+谓词过程，并且 @racket[prop] 为 @racket[#f] 或者是由同一次
+@racket[make-struct-type-property] 调用产生的，则返回
+@racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "7.5.0.11"]}
 
@@ -506,37 +461,32 @@ Returns @racket[#t] if @racket[v] is a predicate procedure produced by
               ((fld-id [field-id expr]
                        [field-id #:parent parent-id expr]))]{
 
-Creates a new instance of the structure type @racket[id] (which is defined via a
-@seclink["define-struct"]{structure type defining form} such as @racket[struct])
-with the same field values as the structure produced by @racket[struct-expr], except
-that the value of each supplied @racket[field-id] is instead
-determined by the corresponding @racket[expr]. If @racket[#:parent]
-is specified, the @racket[parent-id] must be bound to a parent
-structure type of @racket[id].
+创建结构类型 @racket[id]（通过
+@seclink["define-struct"]{结构类型定义形式}如 @racket[struct] 定义）
+的一个新实例，其字段值与 @racket[struct-expr] 产生的结构相同，
+只是每个提供的 @racket[field-id] 的值改为由相应的
+@racket[expr] 确定。如果指定了 @racket[#:parent]，
+则 @racket[parent-id] 必须绑定到 @racket[id] 的父结构类型。
 
-The @racket[id] must have a @tech{transformer} binding that
-encapsulates information about a structure type (i.e., like the
-initial identifier bound by @racket[struct]), and the binding
-must supply a constructor, a predicate, and all field accessors.
+@racket[id] 必须有一个 @tech{transformer} 绑定，其中封装了
+结构类型的信息（即类似于 @racket[struct] 绑定的初始标识符），
+并且该绑定必须提供构造函数、谓词和所有字段访问器。
 
-Each @racket[field-id] must correspond to a @racket[field-id] in
-the @seclink["define-struct"]{structure type defining forms} of @racket[id]
-(or @racket[parent-id], if present). The accessor bindings determined by different
-@racket[field-id]s under the same @racket[id] (or @racket[parent-id], if present)
-must be distinct. The order of the
-@racket[field-id]s need not match the order of the corresponding
-fields in the structure type.
+每个 @racket[field-id] 必须对应于
+@racket[id]（如果存在则为 @racket[parent-id]）的
+@seclink["define-struct"]{结构类型定义形式}中的一个
+@racket[field-id]。同一 @racket[id]（如果存在则为
+@racket[parent-id]）下不同 @racket[field-id] 确定的访问器
+绑定必须是不同的。@racket[field-id] 的顺序不必与结构类型中
+相应字段的顺序匹配。
 
-The @racket[struct-expr] is evaluated first. The result must be an
-instance of the @racket[id] structure type, otherwise the
-@exnraise[exn:fail:contract]. Next, the field @racket[expr]s are
-evaluated in order (even if the fields that correspond to the
-@racket[field-id]s are in a different order). Finally, the new
-structure instance is created.
+首先求值 @racket[struct-expr]。结果必须是 @racket[id] 结构
+类型的实例，否则 @exnraise[exn:fail:contract]。接下来，
+按顺序求值字段 @racket[expr]（即使与 @racket[field-id]
+对应的字段顺序不同）。最后，创建新的结构实例。
 
-The result of @racket[struct-expr] can be an instance of a sub-type of
-@racket[id], but the resulting copy is an immediate instance of
-@racket[id] (not the sub-type).
+@racket[struct-expr] 的结果可以是 @racket[id] 子类型的实例，
+但生成的副本是 @racket[id] 的直接实例（而不是子类型）。
 
 @examples[
 #:eval struct-copy-eval
@@ -568,55 +518,49 @@ not-really-chum
 
 @defproc[(struct->vector [v any/c] [opaque-v any/c '...]) vector?]{
 
-Creates a vector representing @racket[v].  The first slot of the
-result vector contains a symbol whose printed name has the form
-@racketidfont{struct:}@racket[_id]. Each remaining slot contains
-either the value of a field in @racket[v], if it is accessible via the
-current inspector, or @racket[opaque-v] for a field that is not
-accessible. A single @racket[opaque-v] value is used in the vector for
-contiguous inaccessible fields. (Consequently, the size of the vector
-does not match the size of the @racket[struct] if more than one field
-is inaccessible.)}
+创建一个表示 @racket[v] 的向量。结果向量的第一个槽包含一个
+符号，其打印名称的形式为
+@racketidfont{struct:}@racket[_id]。其余每个槽包含
+@racket[v] 中字段的值（如果可以通过当前 inspector 访问），
+或者对于不可访问的字段包含 @racket[opaque-v]。连续不可访问
+的字段在向量中使用单个 @racket[opaque-v] 值。（因此，如果
+有多个字段不可访问，向量的大小与 @racket[struct] 的大小不匹配。）}
 
-@defproc[(struct? [v any/c]) any]{ Returns @racket[#t] if
- @racket[struct-info] exposes any structure types of @racket[v] with
- the current inspector, @racket[#f] otherwise.
+@defproc[(struct? [v any/c]) any]{如果 @racket[struct-info] 通过当前 inspector 暴露了
+@racket[v] 的任何结构类型则返回 @racket[#t]，否则返回
+@racket[#f]。
 
- Typically, when @racket[(struct? v)] is true, then
- @racket[(struct->vector v)] exposes at least one field value. It is
- possible, however, for the only visible types of @racket[v] to
- contribute zero fields.}
+通常，当 @racket[(struct? v)] 为真时，
+@racket[(struct->vector v)] 至少暴露一个字段值。但是，
+有可能 @racket[v] 的唯一可见类型贡献零个字段。}
 
-@defproc[(struct-type? [v any/c]) boolean?]{Returns @racket[#t] if
- @racket[v] is a structure type descriptor value, @racket[#f]
- otherwise.}
+@defproc[(struct-type? [v any/c]) boolean?]{如果 @racket[v] 是结构类型描述符值则返回 @racket[#t]，
+否则返回 @racket[#f]。}
 
-@defproc[(struct-constructor-procedure? [v any/c]) boolean?]{Returns
- @racket[#t] if @racket[v] is a constructor procedure generated by
- @racket[struct] or @racket[make-struct-type], @racket[#f]
- otherwise.}
+@defproc[(struct-constructor-procedure? [v any/c]) boolean?]{如果 @racket[v] 是由 @racket[struct] 或
+@racket[make-struct-type] 生成的构造函数过程则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
-@defproc[(struct-predicate-procedure? [v any/c]) boolean?]{Returns
- @racket[#t] if @racket[v] is a predicate procedure generated by
- @racket[struct] or @racket[make-struct-type], @racket[#f]
- otherwise.}
+@defproc[(struct-predicate-procedure? [v any/c]) boolean?]{如果 @racket[v] 是由 @racket[struct] 或
+@racket[make-struct-type] 生成的谓词过程则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
-@defproc[(struct-accessor-procedure? [v any/c]) boolean?]{Returns
- @racket[#t] if @racket[v] is an accessor procedure generated by
- @racket[struct], @racket[make-struct-type], or
- @racket[make-struct-field-accessor], @racket[#f] otherwise.}
+@defproc[(struct-accessor-procedure? [v any/c]) boolean?]{如果 @racket[v] 是由 @racket[struct]、
+@racket[make-struct-type] 或
+@racket[make-struct-field-accessor] 生成的访问器过程则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
-@defproc[(struct-mutator-procedure? [v any/c]) boolean?]{Returns
- @racket[#t] if @racket[v] is a mutator procedure generated by
- @racket[struct], @racket[make-struct-type], or
- @racket[make-struct-field-mutator], @racket[#f] otherwise.}
+@defproc[(struct-mutator-procedure? [v any/c]) boolean?]{如果 @racket[v] 是由 @racket[struct]、
+@racket[make-struct-type] 或
+@racket[make-struct-field-mutator] 生成的修改器过程则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(prefab-struct-key [v any/c]) (or/c #f symbol? list?)]{
 
-Returns @racket[#f] if @racket[v] is not an instance of a
-@tech{prefab} structure type. Otherwise, the result is the shorted key
-that could be used with @racket[make-prefab-struct] to create an instance
-of the structure type.
+如果 @racket[v] 不是 @tech{prefab} 结构类型的实例，则返回
+@racket[#f]。否则，结果是可与
+@racket[make-prefab-struct] 一起用于创建该结构类型实例的
+缩短 key。
 
 @examples[
 (prefab-struct-key #s(cat "Garfield"))
@@ -629,49 +573,40 @@ of the structure type.
 
 @defproc[(make-prefab-struct [key prefab-key?] [v any/c] ...) struct?]{
 
-Creates an instance of a @tech{prefab} structure type, using the
-@racket[v]s as field values. The @racket[key] and the number of
-@racket[v]s determine the @tech{prefab} structure type.
+使用 @racket[v] 作为字段值创建 @tech{prefab} 结构类型的实例。
+@racket[key] 和 @racket[v] 的数量决定了 @tech{prefab} 结构类型。
 
-A @racket[key] identifies a structure type based on a list with the
-following items:
+@racket[key] 基于包含以下项目的列表标识一个结构类型：
 
 @itemize[
 
- @item{A symbol for the structure type's name.}
+ @item{结构类型名称的符号。}
 
- @item{An exact, nonnegative integer representing the number of
-       non-automatic fields in the structure type, not counting fields
-       from the supertype (if any).}
+ @item{一个精确非负整数，表示结构类型中非自动字段的数量，
+       不包括来自超类型（如果有的话）的字段。}
 
- @item{A list of two items, where the first is an exact, nonnegative
-       integer for the number of automatic fields in the structure
-       type that are not from the supertype (if any), and the second
-       element is an arbitrary value that is the value for the
-       automatic fields.}
+ @item{一个包含两个项目的列表，其中第一个是精确非负整数，
+       表示结构类型中非来自超类型（如果有的话）的自动字段数量，
+       第二个元素是任意值，作为自动字段的值。}
 
- @item{A vector of exact, nonnegative integers that indicate mutable
-       non-automatic fields in the structure type, counting from
-       @racket[0] and not including fields from the supertype (if
-       any).}
+ @item{一个精确非负整数向量，指示结构类型中的可变非自动字段，
+       从 @racket[0] 开始计数，不包括来自超类型
+       （如果有的话）的字段。}
 
- @item{Nothing else, if the structure type has no
-       supertype. Otherwise, the rest of the list is the key
-       for the supertype.}
+ @item{如果结构类型没有超类型，则无其他内容。
+       否则，列表的其余部分是超类型的 key。}
 
 ]
 
-An empty vector and an auto-field list that starts with @racket[0] can
-be omitted. Furthermore, the first integer (which indicates the number
-of non-automatic fields) can be omitted, since it can be inferred from
-the number of supplied @racket[v]s. Finally, a single symbol can be
-used instead of a list that contains only a symbol (in the case that
-the structure type has no supertype, no automatic fields, and no
-mutable fields).
+空向量和以 @racket[0] 开头的自动字段列表可以省略。此外，
+第一个整数（指示非自动字段的数量）可以省略，因为它可以从
+提供的 @racket[v] 的数量推断出来。最后，可以使用单个符号
+代替只包含一个符号的列表（在结构类型没有超类型、没有自动字段、
+没有可变字段的情况下）。
 
-The total field count must be no more than 32768. If the number of
-fields indicated by @racket[key] is inconsistent with the number of
-supplied @racket[v]s, the @exnraise[exn:fail:contract].
+总字段数不得超过 32768。如果 @racket[key] 指示的字段数
+与提供的 @racket[v] 的数量不一致，则
+@exnraise[exn:fail:contract]。
 
 @examples[
 (make-prefab-struct 'clown "Binky" "pie")
@@ -685,9 +620,9 @@ supplied @racket[v]s, the @exnraise[exn:fail:contract].
 @defproc[(prefab-struct-type-key+field-count [type struct-type?])
          (or/c #f (cons/c prefab-key? (integer-in 0 32768)))]{
 
-Returns a pair containing the @tech{prefab} key and field count for
-the @tech{structure type descriptor} @racket[type] if it represents a
-prefab structure type, @racket[#f] otherwise.
+如果 @tech{结构类型描述符} @racket[type] 表示一个 prefab
+结构类型，则返回一个包含 @tech{prefab} key 和字段数的 pair，
+否则返回 @racket[#f]。
 
 @history[#:added "8.5.0.8"]}
 
@@ -696,20 +631,19 @@ prefab structure type, @racket[#f] otherwise.
                                   [field-count (integer-in 0 32768)])
          struct-type?]{
 
-Returns a @tech{structure type descriptor} for the @tech{prefab}
-structure type specified by the combination of @racket[key] and
-@racket[field-count].
+返回由 @racket[key] 和 @racket[field-count] 组合指定的
+@tech{prefab} 结构类型的 @tech{结构类型描述符}。
 
-If the number of fields indicated by @racket[key] is inconsistent with
-@racket[field-count], the @exnraise[exn:fail:contract].}
+如果 @racket[key] 指示的字段数与 @racket[field-count]
+不一致，则 @exnraise[exn:fail:contract]。}
 
 
 @defproc[(prefab-key? [v any/c]) boolean?]{
 
-Return @racket[#t] if @racket[v] can be a @tech{prefab} structure type
-key, @racket[#f] otherwise.
+如果 @racket[v] 可以是 @tech{prefab} 结构类型 key
+则返回 @racket[#t]，否则返回 @racket[#f]。
 
-See @racket[make-prefab-struct] for a description of valid key shapes.}
+有效 key 形状的描述请参见 @racket[make-prefab-struct]。}
 
 @subsection{Additional Structure Utilities}
 
@@ -720,15 +654,14 @@ See @racket[make-prefab-struct] for a description of valid key shapes.}
             [get-contents    (-> any/c sequence?)])
          (-> any/c output-port? (or/c #t #f 0 1) void?)]{
 
- Produces a function suitable as a value for 
- @racket[gen:custom-write] or @racket[prop:custom-write].
- The function prints values in ``constructor style.'' When
- the value is @racket[print]ed as an expression, it is shown
- as an application of the constructor (as returned by 
- @racket[get-constructor]) to the contents (as returned by 
- @racket[get-contents]). When given to @racket[write], it is
- shown as an unreadable value with the constructor separated
- from the contents by a colon.
+生成一个适合作为
+ @racket[gen:custom-write] 或 @racket[prop:custom-write] 值
+ 的函数。该函数以“构造函数风格”打印值。当值作为表达式
+ @racket[print] 时，它显示为构造函数
+ （由 @racket[get-constructor] 返回）对内容
+ （由 @racket[get-contents] 返回）的应用。当交给
+ @racket[write] 时，它显示为不可读的值，构造函数
+ 与内容之间用冒号分隔。
 
 @(struct-eval '(require racket/struct racket/pretty))
 
@@ -742,7 +675,7 @@ See @racket[make-prefab-struct] for a description of valid key shapes.}
           (print (point 1 2))
           (write (point 1 2))]
 
-The function also cooperates with @racket[pretty-print]:
+该函数还与 @racket[pretty-print] 配合使用：
 
 @examples[#:eval struct-eval #:label #f
 (parameterize ((pretty-print-columns 10))
@@ -751,16 +684,15 @@ The function also cooperates with @racket[pretty-print]:
   (pretty-write (point #e3e6 #e4e6)))
 ]
 
-Note that the printer uses a separate property,
-@racket[prop:custom-print-quotable], to determine whether a struct
-instance is quotable. If so, the printer may print it in
-@racket[write] mode it in certain contexts, such as within a list. For
-example:
+请注意，打印机使用单独的属性
+@racket[prop:custom-print-quotable] 来确定结构实例是否可引用。
+如果是，打印机可能在某些上下文（如在列表中）中
+以 @racket[write] 模式打印它。例如：
 @examples[#:eval struct-eval #:label #f
 (print (list (point 1 2) (point 3 4)))
 ]
-Use @racket[#:property prop:custom-print-quotable 'never] to prevent a
-struct instance from being considered quotable. For example:
+使用 @racket[#:property prop:custom-print-quotable 'never]
+来防止结构实例被视为可引用。例如：
 @examples[#:eval struct-eval #:label #f
 (struct point2 (x y)
   #:property prop:custom-print-quotable 'never
@@ -772,7 +704,7 @@ struct instance from being considered quotable. For example:
 (print (list (point2 1 2) (point2 3 4)))
 ]
 
-Keyword arguments can be simulated with @racket[unquoted-printing-string]:
+关键字参数可以用 @racket[unquoted-printing-string] 模拟：
 
 @examples[#:eval struct-eval #:label #f
 (code:comment "Private implementation")
@@ -801,16 +733,15 @@ Keyword arguments can be simulated with @racket[unquoted-printing-string]:
                        [#:on-opaque on-opaque (or/c 'error 'return-false 'skip) 'error])
          (or/c list? #f)]{
 
-Returns a list containing the struct instance @racket[v]'s
-fields. Unlike @racket[struct->vector], the struct name itself is not
-included.
+返回一个包含结构实例 @racket[v] 的字段的列表。与
+@racket[struct->vector] 不同，结构名称本身不包含在内。
 
-If any fields of @racket[v] are inaccessible via the current inspector
-the behavior of @racket[struct->list] is determined by
-@racket[on-opaque]. If @racket[on-opaque] is @racket['error] (the
-default), an error is raised. If it is @racket['return-false],
-@racket[struct->list] returns @racket[#f]. If it is @racket['skip],
-the inaccessible fields are omitted from the list.
+如果 @racket[v] 的任何字段通过当前 inspector 不可访问，
+则 @racket[struct->list] 的行为由 @racket[on-opaque]
+决定。如果 @racket[on-opaque] 是 @racket['error]（默认），
+则引发错误。如果是 @racket['return-false]，
+@racket[struct->list] 返回 @racket[#f]。如果是
+@racket['skip]，不可访问的字段从列表中省略。
 
 @examples[#:eval struct-eval
 (struct open (u v) #:transparent)
@@ -830,111 +761,97 @@ the inaccessible fields are omitted from the list.
 @;------------------------------------------------------------------------
 @section[#:tag "structinfo"]{Structure Type Transformer Binding}
 
-The @racket[struct] form binds the name of a structure type as
-a @tech{transformer} binding that records the other identifiers bound
-to the structure type, the constructor procedure, the predicate
-procedure, and the field accessor and mutator procedures. This
-information can be used during the expansion of other expressions via
-@racket[syntax-local-value].
+@racket[struct] 形式将结构类型的名称绑定为一个
+@tech{transformer} 绑定，该绑定记录了绑定到结构类型、构造函数
+过程、谓词过程以及字段访问器和修改器过程的其他标识符。
+这些信息可以在其他表达式的展开过程中通过
+@racket[syntax-local-value] 使用。
 
-For example, the @racket[struct] variant for subtypes uses the
-base type name @racket[_t] to find the variable
-@racketidfont{struct:}@racket[_t] containing the base type's descriptor; it
-also folds the field accessor and mutator information for the base
-type into the information for the subtype. As another example, the
-@racket[match] form uses a type name to find the predicates and field
-accessors for the structure type. The @racket[struct] form in an
-imported signature for @racket[unit] causes the @racket[unit]
-transformer to generate information about imported structure types, so
-that @racket[match] and subtyping @racket[struct] forms work
-within the unit.
+例如，子类型的 @racket[struct] 变体使用基类型名称
+@racket[_t] 来查找包含基类型描述符的变量
+@racketidfont{struct:}@racket[_t]；它还
+将基类型的字段访问器和修改器信息合并到子类型的信息中。
+作为另一个例子，@racket[match] 形式使用
+类型名称来查找结构类型的谓词和字段访问器。
+@racket[unit] 的导入签名中的 @racket[struct] 形式会导致
+@racket[unit] transformer 生成关于导入的结构类型的信息，
+使得 @racket[match] 和子类型化的 @racket[struct] 形式
+能够在 unit 内正常工作。
 
-The expansion-time information for a structure type can be represented
-directly as a list of six elements (of the same sort that the
-encapsulated procedure must return):
+结构类型的展开期信息可以直接表示为一个包含六个元素的列表
+（与封装的 procedure 必须返回的类型相同）：
 
 @itemize[
 
- @item{an identifier that is bound to the structure type's descriptor,
- or @racket[#f] if none is known;}
+ @item{绑定到结构类型描述符的标识符，如果没有已知的则
+ 为 @racket[#f]；}
 
- @item{an identifier that is bound to the structure type's constructor,
- or @racket[#f] if none is known;}
+ @item{绑定到结构类型构造函数的标识符，如果没有已知的则
+ 为 @racket[#f]；}
 
- @item{an identifier that is bound to the structure type's predicate,
- or @racket[#f] if none is known;}
+ @item{绑定到结构类型谓词的标识符，如果没有已知的则
+ 为 @racket[#f]；}
 
- @item{a list of identifiers bound to the field accessors of the
- structure type, optionally with @racket[#f] as the list's last
- element. A @racket[#f] as the last element indicates that the
- structure type may have additional fields, otherwise the list is a
- reliable indicator of the number of fields in the structure
- type. Furthermore, the accessors are listed in reverse order for the
- corresponding constructor arguments. (The reverse order enables
- sharing in the lists for a subtype and its base type.)}
+ @item{绑定到结构类型字段访问器的标识符列表，可选的以
+ @racket[#f] 作为列表的最后一个元素。最后一个元素为
+ @racket[#f] 表示结构类型可能有额外的字段，否则列表是对
+ 结构类型中字段数量的可靠指示。此外，访问器以与相应构造函数
+ 参数相反的顺序列出。（反向顺序使得子类型及其基类型的列表
+ 能够共享。）}
 
- @item{a list of identifiers bound to the field mutators of
- the structure type, or @racket[#f] for each field that has no known
- mutator, and optionally with an extra @racket[#f] as the list's last
- element (if the accessor list has such a @racket[#f]). The list's
- order and the meaning of a final @racket[#f] are the same as for the
- accessor identifiers, and the length of the mutator list is the same
- as the accessor list's length.}
+ @item{绑定到结构类型字段修改器的标识符列表，对于没有已知
+ 修改器的每个字段为 @racket[#f]，可选的以额外的
+ @racket[#f] 作为列表的最后一个元素（如果访问器列表有
+ 这样的 @racket[#f]）。列表的顺序和末尾 @racket[#f] 的
+ 含义与访问器标识符相同，修改器列表的长度与访问器列表
+ 的长度相同。}
 
- @item{an identifier that determines a super-type for the structure
- type, @racket[#f] if the super-type (if any) is unknown, or
- @racket[#t] if there is no super-type. If a super-type is specified,
- the identifier is also bound to structure-type expansion-time
- information.}
+ @item{确定结构类型超类型的标识符，如果超类型（如果有）
+ 未知则为 @racket[#f]，如果没有超类型则为 @racket[#t]。
+ 如果指定了超类型，则该标识符也绑定到结构类型的展开期信息。}
 
 ]
 
-Instead of this direct representation, the representation can be a
-structure created by @racket[make-struct-info] (or an instance of a
-subtype of @racket[struct:struct-info]), which encapsulates a
-procedure that takes no arguments and returns a list of six
-elements. Alternately, the representation can be a structure whose
-type has the @racket[prop:struct-info] @tech{structure type property}.
-Finally, the representation can be an instance of a structure type
-derived from @racket[struct:struct-info] or with the
-@racket[prop:struct-info] property that also implements
-@racket[prop:procedure], and where the instance is further is wrapped
-by @racket[make-set!-transformer]. In addition, the representation may
-implement the @racket[prop:struct-auto-info] and
-@racket[prop:struct-field-info] properties.
+除了这种直接表示之外，表示可以是由
+@racket[make-struct-info] 创建的结构（或者是
+@racket[struct:struct-info] 子类型的实例），它封装了一个
+不带参数并返回六个元素的列表的过程。另外，表示可以是其类型
+具有 @racket[prop:struct-info] @tech{结构类型属性}的结构。
+最后，表示可以是源自 @racket[struct:struct-info] 或具有
+@racket[prop:struct-info] 属性的结构类型的实例，该实例还
+实现了 @racket[prop:procedure]，并且该实例进一步被
+@racket[make-set!-transformer] 包装。此外，表示可以实现
+@racket[prop:struct-auto-info] 和
+@racket[prop:struct-field-info] 属性。
 
-Use @racket[struct-info?] to recognize all allowed forms of the
-information, and use @racket[extract-struct-info] to obtain a list
-from any representation.
+使用 @racket[struct-info?] 来识别所有允许的信息形式，
+使用 @racket[extract-struct-info] 从任何表示中获取列表。
 
-The implementor of a syntactic form can expect users of the form to
-know what kind of information is available about a structure type. For
-example, the @racket[match] implementation works with structure
-information containing an incomplete set of accessor bindings, because
-the user is assumed to know what information is available in the
-context of the @racket[match] expression. In particular, the
-@racket[match] expression can appear in a @racket[unit] form with an
-imported structure type, in which case the user is expected to know
-the set of fields that are listed in the signature for the structure
-type.
+语法形式的实现者可以预期该形式的使用者知道关于结构类型
+有哪些可用信息。例如，@racket[match] 的实现使用包含不完整
+访问器绑定集的结构信息，因为假设使用者知道在
+@racket[match] 表达式上下文中哪些信息可用。特别是，
+@racket[match] 表达式可以出现在带有导入结构类型的
+@racket[unit] 形式中，在这种情况下，预期使用者知道在
+结构类型的签名中列出的字段集。
 
 @note-lib-only[racket/struct-info]
 
 @defproc[(struct-info? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is either a six-element list with
-the correct shape for representing structure-type information, a
-procedure encapsulated by @racket[make-struct-info], a structure with
-the @racket[prop:struct-info] property, or a structure type derived
-from @racket[struct:struct-info] or with @racket[prop:struct-info] and
-wrapped with @racket[make-set!-transformer].}
+如果 @racket[v] 是具有表示结构类型信息的正确形状的六元素列表、
+由 @racket[make-struct-info] 封装的过程、具有
+@racket[prop:struct-info] 属性的结构、或源自
+@racket[struct:struct-info] 或具有 @racket[prop:struct-info]
+并由 @racket[make-set!-transformer] 包装的结构类型，
+则返回 @racket[#t]。}
 
 @defproc[(checked-struct-info? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a procedure encapsulated by
-@racket[make-struct-info] and produced by @racket[struct], but
-only when no parent type is specified or the parent type is also
-specified through a transformer binding to such a value.}
+如果 @racket[v] 是由 @racket[make-struct-info] 封装并且
+由 @racket[struct] 产生的过程，但仅当没有指定父类型或者
+父类型也通过绑定到这种值的 transformer 绑定时指定，
+则返回 @racket[#t]。}
 
 @defproc[(make-struct-info [thunk (-> (and/c struct-info? list?))])
          struct-info?]{
@@ -988,23 +905,20 @@ with forms like @racket[struct-copy] and @racket[struct*].
 @defproc[(extract-struct-info [v struct-info?])
          (and/c struct-info? list?)]{
 
-Extracts the list form of the structure type information represented
-by @racket[v].}
+提取由 @racket[v] 表示的结构类型信息的列表形式。}
 
 @defthing[struct:struct-info struct-type?]{
 
-The @tech{structure type descriptor} for the structure type returned
-by @racket[make-struct-info]. This @tech{structure type descriptor} is
-mostly useful for creating structure subtypes. The structure type
-includes a guard that checks an instance's first field in the same way
-as @racket[make-struct-info].}
+由 @racket[make-struct-info] 返回的结构类型的
+@tech{结构类型描述符}。此 @tech{结构类型描述符}主要用于
+创建结构子类型。该结构类型包含一个 guard，它以与
+@racket[make-struct-info] 相同的方式检查实例的第一个字段。}
 
 @defthing[prop:struct-info struct-type-property?]{
 
-The @tech{structure type property} for creating new structure types
-like @racket[struct:struct-info]. The property value must be a procedure
-of one argument that takes an instance structure and returns
-structure-type information in list form.}
+用于创建类似 @racket[struct:struct-info] 的新结构类型的
+@tech{结构类型属性}。属性值必须是一个接受一个参数的过程，
+该参数接受一个实例结构并以列表形式返回结构类型信息。}
 
 @deftogether[(
 @defthing[prop:struct-auto-info struct-type-property?]
@@ -1013,43 +927,39 @@ structure-type information in list form.}
          (list/c (listof identifier?) (listof identifier?))]
 )]{
 
-The @racket[prop:struct-auto-info] property is implemented to provide
-static information about which of the accessor and mutator identifiers
-for a structure type correspond to @racket[#:auto] fields (so that
-they have no corresponding argument in the constructor). The property
-value must be a procedure that accepts an instance structure to which
-the property is given, and the result must be two lists of identifiers
-suitable as a result from @racket[struct-auto-info-lists].
+@racket[prop:struct-auto-info] 属性的实现是为了提供关于
+结构类型的哪些访问器和修改器标识符对应于 @racket[#:auto]
+字段的静态信息（以便它们在构造函数中没有相应的参数）。
+属性值必须是一个过程，该过程接受一个被赋予该属性的实例结构，
+结果必须是两个标识符列表，适合作为
+@racket[struct-auto-info-lists] 的结果。
 
-The @racket[struct-auto-info?] predicate recognizes values that
-implement the @racket[prop:struct-auto-info] property.
+@racket[struct-auto-info?] 谓词识别实现了
+@racket[prop:struct-auto-info] 属性的值。
 
-The @racket[struct-auto-info-lists] function extracts two lists of
-identifiers from a value that implements the
-@racket[prop:struct-auto-info] property. The first list should be a
-subset of the accessor identifiers for the structure type described by
-@racket[sai], and the second list should be a subset of the mutator
-identifiers. The two subsets correspond to @racket[#:auto] fields.}
+@racket[struct-auto-info-lists] 函数从实现了
+@racket[prop:struct-auto-info] 属性的值中提取两个标识符
+列表。第一个列表应该是 @racket[sai] 描述的结构类型的访问器
+标识符的子集，第二个列表应该是修改器标识符的子集。这两个
+子集对应于 @racket[#:auto] 字段。}
 
 @deftogether[(
 @defthing[prop:struct-field-info struct-type-property?]
 @defproc[(struct-field-info? [v any/c]) boolean?]
 @defproc[(struct-field-info-list [sfi struct-field-info?]) (listof symbol?)])]{
 
-The @racket[prop:struct-field-info] property is implemented to provide
-static information about field names in a structure type. The property
-value must be a procedure that accepts an instance structure to which
-the property is given, and the result must be a list of symbols
-suitable as a result from @racket[struct-field-info-list].
+@racket[prop:struct-field-info] 属性的实现是为了提供关于
+结构类型中字段名称的静态信息。属性值必须是一个过程，该过程
+接受一个被赋予该属性的实例结构，结果必须是一个符号列表，
+适合作为 @racket[struct-field-info-list] 的结果。
 
-The @racket[struct-field-info?] predicate recognizes values that
-implement the @racket[prop:struct-field-info] property.
+@racket[struct-field-info?] 谓词识别实现了
+@racket[prop:struct-field-info] 属性的值。
 
-The @racket[struct-field-info-list] function extracts a list of
-symbols from a value that implements the @racket[prop:struct-field-info] property.
-The list should contain every immediate field name
-(that is, not including fields from its super struct type)
-in the reverse order.
+@racket[struct-field-info-list] 函数从实现了
+@racket[prop:struct-field-info] 属性的值中提取一个符号列表。
+该列表应该以相反的顺序包含每个直接字段名称
+（即不包括来自其超结构类型的字段）。
 
 @examples[#:escape no-escape
 #:eval struct-eval
