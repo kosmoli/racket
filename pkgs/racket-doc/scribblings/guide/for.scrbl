@@ -1,26 +1,23 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "for"]{Iterations and Comprehensions}
+@title[#:tag "for"]{迭代与推导式}
 
-The @racket[for] family of syntactic forms support iteration over
-@defterm{sequences}. Lists, vectors, strings, byte strings, input
-ports, and hash tables can all be used as sequences, and constructors
-like @racket[in-range] offer even more kinds of sequences.
+@racket[for] 系列 syntactic form 支持对 @defterm{sequence} 的迭代。
+List、vector、string、byte string、input port 和 hash table 都可用作 sequence，
+而 @racket[in-range] 等构造器提供了更多种类的 sequence。
 
-Variants of @racket[for] accumulate iteration results in different
-ways, but they all have the same syntactic shape. Simplifying for
-now, the syntax of @racket[for] is
+@racket[for] 的变体以不同方式累积迭代结果，但具有相同的语法形状。
+为简化起见，@racket[for] 的语法是
 
 @specform[
 (for ([id sequence-expr] ...)
   body ...+)
 ]{}
 
-A @racket[for] loop iterates through the sequence produced by the
-@racket[_sequence-expr]. For each element of the sequence,
-@racket[for] binds the element to @racket[_id], and then it evaluates
-the @racket[_body]s for side effects.
+@racket[for] 循环遍历 @racket[_sequence-expr] 产生的 sequence。
+对于 sequence 的每个元素，@racket[for] 将元素绑定到 @racket[_id]，
+然后求值 @racket[_body] 以产生副作用。
 
 @examples[
 (for ([i '(1 2 3)])
@@ -31,11 +28,10 @@ the @racket[_body]s for side effects.
   (display i))
 ]
 
-The @racket[for/list] variant of @racket[for] is more Racket-like. It
-accumulates @racket[_body] results into a list, instead of
-evaluating @racket[_body] only for side effects. In more
-technical terms, @racket[for/list] implements a @defterm{list
-comprehension}.
+@racket[for] 的 @racket[for/list] 变体更具 Racket 风格。
+它将 @racket[_body] 结果累积到 list 中，而不是仅对 @racket[_body]
+求值以产生副作用。更技术化地说，@racket[for/list] 实现了 @defterm{list
+comprehension}。
 
 @examples[
 (for/list ([i '(1 2 3)])
@@ -46,23 +42,20 @@ comprehension}.
   i)
 ]
 
-The full syntax of @racket[for] accommodates multiple sequences to
-iterate in parallel, and the @racket[for*] variant nests the
-iterations instead of running them in parallel. More variants of
-@racket[for] and @racket[for*] accumulate @racket[_body] results
-in different ways.  In all of these variants, predicates that prune
-iterations can be included along with bindings.
+@racket[for] 的完整语法支持多个 sequence 的并行迭代，
+而 @racket[for*] 变体嵌套迭代而不是并行运行它们。
+@racket[for] 和 @racket[for*] 的更多变体以不同方式累积 @racket[_body] 结果。
+在所有这些变体中，可用于剪枝迭代的谓词可以与绑定一起包含。
 
-Before details on the variations of @racket[for], though, it's best to
-see the kinds of sequence generators that make interesting examples.
+不过，在介绍 @racket[for] 变体的细节之前，最好先了解
+能使示例更有趣的各类 sequence 生成器。
 
-@section[#:tag "sequences"]{Sequence Constructors}
+@section[#:tag "sequences"]{Sequence 构造器}
 
-The @racket[in-range] function generates a sequence of numbers, given
-an optional starting number (which defaults to @racket[0]), a number
-before which the sequence ends, and an optional step (which defaults
-to @racket[1]). Using a non-negative integer @racket[_k] directly as 
-a sequence is a shorthand for @racket[(in-range _k)].
+@racket[in-range] 函数生成一个数字 sequence，给定可选的起始数字
+(默认为 @racket[0])、sequence 结束前的数字，以及可选的步长
+(默认为 @racket[1])。直接将非负整数 @racket[_k] 用作 sequence
+是 @racket[(in-range _k)] 的简写。
 
 @examples[
 (for ([i 3])
@@ -79,12 +72,10 @@ a sequence is a shorthand for @racket[(in-range _k)].
   (printf " ~a " i))
 ]
 
-The @racket[in-naturals] function is similar, except that the
-starting number must be an exact non-negative integer (which defaults
-to @racket[0]), the step is always @racket[1], and there is no upper
-limit. A @racket[for] loop using just @racket[in-naturals] will never
-terminate unless a body expression raises an exception or otherwise
-escapes.
+@racket[in-naturals] 函数类似，但起始数字必须是非负整数
+(默认为 @racket[0])，步长始终为 @racket[1]，且没有上限。
+仅使用 @racket[in-naturals] 的 @racket[for] 循环永远不会终止，
+除非 body 表达式引发异常或以其他方式逃逸。
 
 @examples[
 (for ([i (in-naturals)])
@@ -93,11 +84,9 @@ escapes.
       (display i)))
 ]
 
-The @racket[stop-before] and @racket[stop-after] functions construct
-a new sequence given a sequence and a predicate. The new sequence is
-like the given sequence, but truncated either immediately before or
-immediately after the first element for which the predicate returns
-true.
+@racket[stop-before] 和 @racket[stop-after] 函数根据给定 sequence
+和谓词构造新 sequence。新 sequence 类似于给定 sequence，但在谓词返回真值的
+第一个元素之前或之后立即截断。
 
 @examples[
 (for ([i (stop-before "abc def"
@@ -105,13 +94,11 @@ true.
   (display i))
 ]
 
-Sequence constructors like @racket[in-list], @racket[in-vector] and
-@racket[in-string] simply make explicit the use of a list, vector, or
-string as a sequence. Along with @racket[in-range],
-these constructors raise an exception when given the
-wrong kind of value, and since they otherwise avoid a run-time
-dispatch to determine the sequence type, they enable more efficient
-code generation; see @secref["for-performance"] for more information.
+@racket[in-list]、@racket[in-vector] 和 @racket[in-string]
+等 sequence 构造器只是显式地将 list、vector 或 string 用作 sequence。
+与 @racket[in-range] 一样，这些构造器在给定错误类型的值时会引发异常，
+并且由于它们避免了运行时派发来确定 sequence 类型，因此能生成更高效的代码；
+更多信息参见 @secref["for-performance"]。
 
 @examples[
 (for ([i (in-string "abc")])
@@ -122,9 +109,9 @@ code generation; see @secref["for-performance"] for more information.
 
 @refdetails["sequences"]{sequences}
 
-@section{@racket[for] and @racket[for*]}
+@section{@racket[for] 和 @racket[for*]}
 
-A more complete syntax of @racket[for] is
+@racket[for] 更完整的语法是
 
 @specform/subs[
 (for (clause ...)
@@ -134,9 +121,8 @@ A more complete syntax of @racket[for] is
          (code:line #:unless boolean-expr)])
 ]{}
 
-When multiple @racket[[_id _sequence-expr]] clauses are provided
-in a @racket[for] form, the corresponding sequences are traversed in
-parallel:
+当在 @racket[for] 形式中提供多个 @racket[[_id _sequence-expr]] 子句时，
+对应的 sequence 会被并行遍历：
 
 @interaction[
 (for ([i (in-range 1 4)]
@@ -144,10 +130,9 @@ parallel:
   (printf "Chapter ~a. ~a\n" i chapter))
 ]
 
-With parallel sequences, the @racket[for] expression stops iterating
-when any sequence ends. This behavior allows @racket[in-naturals],
-which creates an infinite sequence of numbers, to be used for
-indexing:
+对于 parallel sequence，@racket[for] 表达式在任一 sequence 结束时
+停止迭代。此行为允许 @racket[in-naturals](创建无限的数字 sequence)
+用于索引：
 
 @interaction[
 (for ([i (in-naturals 1)]
@@ -155,8 +140,8 @@ indexing:
   (printf "Chapter ~a. ~a\n" i chapter))
 ]
 
-The @racket[for*] form, which has the same syntax as @racket[for],
-nests multiple sequences instead of running them in parallel:
+@racket[for*] 形式与 @racket[for] 语法相同，但嵌套多个 sequence
+而不是并行运行它们：
 
 @interaction[
 (for* ([book '("Guide" "Reference")]
@@ -164,12 +149,11 @@ nests multiple sequences instead of running them in parallel:
   (printf "~a ~a\n" book chapter))
 ]
 
-Thus, @racket[for*] is a shorthand for nested @racket[for]s in the
-same way that @racket[let*] is a shorthand for nested @racket[let]s.
+因此，@racket[for*] 是嵌套 @racket[for] 的简写，
+正如 @racket[let*] 是嵌套 @racket[let] 的简写。
 
-The @racket[#:when _boolean-expr] form of a @racket[_clause] is
-another shorthand. It allows the @racket[_body]s to evaluate only
-when the @racket[_boolean-expr] produces a true value:
+@racket[_clause] 的 @racket[#:when _boolean-expr] 形式是另一种简写。
+它允许 @racket[_body] 仅在 @racket[_boolean-expr] 产生真值时求值：
 
 @interaction[
 (for* ([book '("Guide" "Reference")]
@@ -178,11 +162,10 @@ when the @racket[_boolean-expr] produces a true value:
   (printf "~a ~a\n" book chapter))
 ]
 
-A @racket[_boolean-expr] with @racket[#:when] can refer to any of the
-preceding iteration bindings. In a @racket[for] form, this scoping
-makes sense only if the test is nested in the iteration of the
-preceding bindings; thus, bindings separated by @racket[#:when] are
-mutually nested, instead of in parallel, even with @racket[for].
+@racket[#:when] 中的 @racket[_boolean-expr] 可以引用任何先前的迭代绑定。
+在 @racket[for] 形式中，此作用域仅在测试嵌套在先前绑定的迭代中时才有意义；
+因此，被 @racket[#:when] 分隔的绑定是相互嵌套的，而不是并行的，
+即使在 @racket[for] 中也是如此。
 
 @interaction[
 (for ([book '("Guide" "Reference" "Notes")]
@@ -193,15 +176,13 @@ mutually nested, instead of in parallel, even with @racket[for].
   (printf "~a Chapter ~a. ~a\n" book i chapter))
 ]
 
-An @racket[#:unless] clause is analogous to a @racket[#:when] clause, but
-the @racket[_body]s evaluate only when the @racket[_boolean-expr]
-produces a false value.
+@racket[#:unless] 子句类似于 @racket[#:when] 子句，
+但 @racket[_body] 仅在 @racket[_boolean-expr] 产生假值时求值。
 
-@section{@racket[for/list] and @racket[for*/list]}
+@section{@racket[for/list] 和 @racket[for*/list]}
 
-The @racket[for/list] form, which has the same syntax as @racket[for],
-evaluates the @racket[_body]s to obtain values that go into a
-newly constructed list:
+@racket[for/list] 形式与 @racket[for] 语法相同，
+求值 @racket[_body] 以获取放入新构造 list 中的值：
 
 @interaction[
 (for/list ([i (in-naturals 1)]
@@ -209,8 +190,8 @@ newly constructed list:
   (string-append (number->string i) ". " chapter))
 ]
 
-A @racket[#:when] clause in a @racket[for-list] form prunes the result
-list along with evaluations of the @racket[_body]s:
+@racket[for-list] 形式中的 @racket[#:when] 子句在求值 @racket[_body]
+的同时对结果 list 进行剪枝：
 
 @interaction[
 (for/list ([i (in-naturals 1)]
@@ -219,14 +200,12 @@ list along with evaluations of the @racket[_body]s:
   chapter)
 ]
 
-This pruning behavior of @racket[#:when] is more useful with
-@racket[for/list] than @racket[for]. Whereas a plain @racket[when]
-form normally suffices with @racket[for], a @racket[when] expression
-form in a @racket[for/list] would cause the result list to contain
-@|void-const|s instead of omitting list elements.
+@racket[#:when] 的剪枝行为在 @racket[for/list] 中比在 @racket[for]
+中更有用。在 @racket[for] 中，普通的 @racket[when] 形式通常已足够，
+而在 @racket[for/list] 中，@racket[when] 表达式形式会导致结果 list
+包含 @|void-const| 而不是省略 list 元素。
 
-The @racket[for*/list] form is like @racket[for*], nesting multiple
-iterations:
+@racket[for*/list] 形式类似于 @racket[for*]，嵌套多次迭代：
 
 @interaction[
 (for*/list ([book '("Guide" "Ref.")]
@@ -234,17 +213,15 @@ iterations:
   (string-append book " " chapter))
 ]
 
-A @racket[for*/list] form is not quite the same thing as nested
-@racket[for/list] forms. Nested @racket[for/list]s would produce a
-list of lists, instead of one flattened list. Much like
-@racket[#:when], then, the nesting of @racket[for*/list] is more
-useful than the nesting of @racket[for*].
+@racket[for*/list] 形式与嵌套 @racket[for/list] 形式不完全相同。
+嵌套 @racket[for/list] 会产生 list 的 list，而不是一个扁平的 list。
+因此，与 @racket[#:when] 一样，@racket[for*/list] 的嵌套比 @racket[for*]
+的嵌套更有用。
 
-@section{@racket[for/vector] and @racket[for*/vector]}
+@section{@racket[for/vector] 和 @racket[for*/vector]}
 
-The @racket[for/vector] form can be used with the same syntax as the
-@racket[for/list] form, but the evaluated @racket[_body]s go into a
-newly-constructed vector instead of a list:
+@racket[for/vector] 形式可与 @racket[for/list] 形式相同的语法使用，
+但求值后的 @racket[_body] 进入新构造的 vector 而不是 list：
 
 @interaction[
 (for/vector ([i (in-naturals 1)]
@@ -252,13 +229,11 @@ newly-constructed vector instead of a list:
   (string-append (number->string i) ". " chapter))
 ]
 
-The @racket[for*/vector] form behaves similarly, but the iterations are
-nested as in @racket[for*].
+@racket[for*/vector] 形式行为类似，但迭代如 @racket[for*] 中那样嵌套。
 
-The @racket[for/vector] and @racket[for*/vector] forms also allow the
-length of the vector to be constructed to be supplied in advance.  The
-resulting iteration can be performed more efficiently than plain
-@racket[for/vector] or @racket[for*/vector]:
+@racket[for/vector] 和 @racket[for*/vector] 形式还允许预先提供
+要构造的 vector 的长度。结果迭代可以比普通的 @racket[for/vector]
+或 @racket[for*/vector] 更高效地执行：
 
 @interaction[
 (let ([chapters '("Intro" "Details" "Conclusion")])
@@ -267,38 +242,35 @@ resulting iteration can be performed more efficiently than plain
     (string-append (number->string i) ". " chapter)))
 ]
 
-If a length is provided, the iteration stops when the vector is filled
-or the requested iterations are complete, whichever comes first.  If
-the provided length exceeds the requested number of iterations, then
-the remaining slots in the vector are initialized to the default
-argument of @racket[make-vector].
+如果提供了长度，迭代在 vector 已满或请求的迭代完成时停止，
+以先发生者为准。如果提供的长度超过请求的迭代次数，
+则 vector 中剩余的槽位被初始化为 @racket[make-vector] 的默认参数。
 
-@section{@racket[for/and] and @racket[for/or]}
+@section{@racket[for/and] 和 @racket[for/or]}
 
-The @racket[for/and] form combines iteration results with
-@racket[and], stopping as soon as it encounters @racket[#f]:
+@racket[for/and] 形式通过 @racket[and] 组合迭代结果，
+在遇到 @racket[#f] 时立即停止：
 
 @interaction[
 (for/and ([chapter '("Intro" "Details" "Conclusion")])
   (equal? chapter "Intro"))
 ]
 
-The @racket[for/or] form combines iteration results with @racket[or],
-stopping as soon as it encounters a true value:
+@racket[for/or] 形式通过 @racket[or] 组合迭代结果，
+在遇到真值时立即停止：
 
 @interaction[
 (for/or ([chapter '("Intro" "Details" "Conclusion")])
   (equal? chapter "Intro"))
 ]
 
-As usual, the @racket[for*/and] and @racket[for*/or] forms provide the
-same facility with nested iterations.
+与往常一样，@racket[for*/and] 和 @racket[for*/or] 形式以嵌套迭代
+提供相同的功能。
 
-@section{@racket[for/first] and @racket[for/last]}
+@section{@racket[for/first] 和 @racket[for/last]}
 
-The @racket[for/first] form returns the result of the first time that
-the @racket[_body]s are evaluated, skipping further iterations.
-This form is most useful with a @racket[#:when] clause.
+@racket[for/first] 形式返回 @racket[_body] 第一次求值的结果，
+跳过后续迭代。此形式在配合 @racket[#:when] 子句时最为有用。
 
 @interaction[
 (for/first ([chapter '("Intro" "Details" "Conclusion" "Index")]
@@ -306,11 +278,10 @@ This form is most useful with a @racket[#:when] clause.
   chapter)
 ]
 
-If the @racket[_body]s are evaluated zero times, then the result
-is @racket[#f].
+如果 @racket[_body] 被求值零次，则结果为 @racket[#f]。
 
-The @racket[for/last] form runs all iterations, returning the value of
-the last iteration (or @racket[#f] if no iterations are run):
+@racket[for/last] 形式运行所有迭代，返回最后一次迭代的值
+(如果没有运行迭代，则返回 @racket[#f])：
 
 @interaction[
 (for/last ([chapter '("Intro" "Details" "Conclusion" "Index")]
@@ -318,8 +289,8 @@ the last iteration (or @racket[#f] if no iterations are run):
   chapter)
 ]
 
-As usual, the @racket[for*/first] and @racket[for*/last] forms provide
-the same facility with nested iterations:
+与往常一样，@racket[for*/first] 和 @racket[for*/last] 形式以嵌套迭代
+提供相同的功能：
 
 @interaction[
 (for*/first ([book '("Guide" "Reference")]
@@ -333,12 +304,10 @@ the same facility with nested iterations:
   (list book chapter))
 ]
 
-@section[#:tag "for/fold"]{@racket[for/fold] and @racket[for*/fold]}
+@section[#:tag "for/fold"]{@racket[for/fold] 和 @racket[for*/fold]}
 
-The @racket[for/fold] form is a very general way to combine iteration
-results. Its syntax is slightly different than the syntax of
-@racket[for], because accumulation variables must be declared at the
-beginning:
+@racket[for/fold] 形式是组合迭代结果的非常通用的方式。
+其语法与 @racket[for] 略有不同，因为累积变量必须在开头声明：
 
 @racketblock[
 (for/fold ([_accum-id _init-expr] ...)
@@ -346,13 +315,11 @@ beginning:
   _body ...+)
 ]
 
-In the simple case, only one @racket[[_accum-id _init-expr]] is
-provided, and the result of the @racket[for/fold] is the final value
-for @racket[_accum-id], which starts out with the value of
-@racket[_init-expr]. In the @racket[_clause]s and
-@racket[_body]s, @racket[_accum-id] can be referenced to get its
-current value, and the last @racket[_body] provides the value of
-@racket[_accum-id] for the next iteration.
+在简单情况下，只提供一个 @racket[[_accum-id _init-expr]]，
+@racket[for/fold] 的结果是 @racket[_accum-id] 的最终值，
+它从 @racket[_init-expr] 的值开始。在 @racket[_clause] 和 @racket[_body]
+中，可以引用 @racket[_accum-id] 以获取其当前值，
+最后一个 @racket[_body] 提供 @racket[_accum-id] 在下一次迭代中的值。
 
 @examples[
 (for/fold ([len 0])
@@ -366,10 +333,9 @@ current value, and the last @racket[_body] provides the value of
   chapter)
 ]
 
-When multiple @racket[_accum-id]s are specified, then the last
-@racket[_body] must produce multiple values, one for each
-@racket[_accum-id]. The @racket[for/fold] expression itself produces
-multiple values for the results.
+当指定多个 @racket[_accum-id] 时，最后一个 @racket[_body]
+必须为每个 @racket[_accum-id] 产生多个值。
+@racket[for/fold] 表达式本身为结果产生多个值。
 
 @examples[
 (for/fold ([prev #f]
@@ -381,30 +347,27 @@ multiple values for the results.
           (add1 counter)))
 ]
 
-@section{Multiple-Valued Sequences}
+@section{多值 Sequence}
 
-In the same way that a function or expression can produce multiple
-values, individual iterations of a sequence can produce multiple
-elements.  For example, a hash table as a sequence generates two
-values for each iteration: a key and a value.
+与 function 或表达式可以产生多个值的方式相同，
+sequence 的单独迭代可以产生多个元素。例如，
+hash table 作为 sequence 每次迭代产生两个值：一个 key 和一个 value。
 
-In the same way that @racket[let-values] binds multiple results to
-multiple identifiers, @racket[for] can bind multiple sequence elements
-to multiple iteration identifiers:
+与 @racket[let-values] 将多个结果绑定到多个标识符的方式相同，
+@racket[for] 可以将多个 sequence 元素绑定到多个迭代标识符：
 
-@margin-note{While @racket[let] must be changed to @racket[let-values]
-             to bind multiple identifiers, @racket[for] simply allows a
-             parenthesized list of identifiers instead of a single
-             identifier in any clause.}
+@margin-note{虽然 @racket[let] 必须改为 @racket[let-values]
+             才能绑定多个标识符，但 @racket[for] 只需在任何子句中
+             使用标识符的括号列表即可代替单个标识符。}
 
 @interaction[
 (for ([(k v) #hash(("apple" . 1) ("banana" . 3))])
   (printf "~a count: ~a\n" k v))
 ]
 
-This extension to multiple-value bindings works for all @racket[for]
-variants. For example, @racket[for*/list] nests iterations, builds a
-list, and also works with multiple-valued sequences:
+此多值绑定扩展适用于所有 @racket[for] 变体。
+例如，@racket[for*/list] 嵌套迭代、构建 list，
+并且也适用于多值 sequence：
 
 @interaction[
 (for*/list ([(k v) #hash(("apple" . 1) ("banana" . 3))]
@@ -413,9 +376,9 @@ list, and also works with multiple-valued sequences:
 ]
 
 
-@section{Breaking an Iteration}
+@section{中断迭代}
 
-An even more complete syntax of @racket[for] is
+@racket[for] 更完整的语法是
 
 @specform/subs[
 (for (clause ...)
@@ -429,17 +392,14 @@ An even more complete syntax of @racket[for] is
          (code:line #:final boolean-expr)])
 ]{}
 
-That is, a @racket[#:break] or @racket[#:final] clause can
-be included among the binding clauses and body of the iteration. Among
-the binding clauses, @racket[#:break] is like @racket[#:unless]
-but when its @racket[_boolean-expr] is true, all sequences within the
-@racket[for] are stopped. Among the @racket[_body]s,
-@racket[#:break] has the same effect on sequences when its
-@racket[_boolean-expr] is true, and it also prevents later
-@racket[_body]s from evaluation in the current iteration.
+也就是说，@racket[#:break] 或 @racket[#:final] 子句可以包含在迭代的
+绑定子句和 body 之中。在绑定子句中，@racket[#:break] 类似于 @racket[#:unless]，
+但当其 @racket[_boolean-expr] 为真时，@racket[for] 中的所有 sequence 都会停止。
+在 @racket[_body] 中，@racket[#:break] 在其 @racket[_boolean-expr] 为真时
+对 sequence 有相同的效果，并且它还阻止当前迭代中后续 @racket[_body] 的求值。
 
-For example, while using @racket[#:unless] between clauses effectively
-skips later sequences as well as the body,
+例如，虽然在子句之间使用 @racket[#:unless] 有效地跳过了后续 sequence
+以及 body，
 
 @interaction[
 (for ([book '("Guide" "Story" "Reference")]
@@ -448,8 +408,7 @@ skips later sequences as well as the body,
   (printf "~a ~a\n" book chapter))
 ]
 
-using @racket[#:break] causes the entire @racket[for] iteration
-to terminate:
+使用 @racket[#:break] 会导致整个 @racket[for] 迭代终止：
 
 @interaction[
 (for ([book '("Guide" "Story" "Reference")]
@@ -463,10 +422,9 @@ to terminate:
   (printf "~a ~a\n" book chapter))
 ]
 
-A @racket[#:final] clause is similar to @racket[#:break],
-but it does not immediately terminate the iteration. Instead, it
-allows at most one more element to be drawn for each sequence and at
-most one more evaluation of the @racket[_body]s.
+@racket[#:final] 子句类似于 @racket[#:break]，
+但它不会立即终止迭代。相反，它允许每个 sequence 最多再抽取一个元素，
+@racket[_body] 最多再求值一次。
 
 
 @interaction[
@@ -481,19 +439,16 @@ most one more evaluation of the @racket[_body]s.
   (printf "~a ~a\n" book chapter))
 ]
 
-@section[#:tag "for-performance"]{Iteration Performance}
+@section[#:tag "for-performance"]{迭代性能}
 
-Ideally, a @racket[for] iteration should run as fast as a loop that
-you write by hand as a recursive-function invocation. A hand-written
-loop, however, is normally specific to a particular kind of data, such
-as lists. In that case, the hand-written loop uses selectors like
-@racket[car] and @racket[cdr] directly, instead of handling all forms
-of sequences and dispatching to an appropriate iterator.
+理想情况下，@racket[for] 迭代应该与你手写为 recursive function 调用的
+循环一样快。然而，手写循环通常针对特定类型的数据，如 list。
+在这种情况下，手写循环直接使用 @racket[car] 和 @racket[cdr]
+等选择器，而不是处理所有形式的 sequence 并派发给适当的迭代器。
 
-The @racket[for] forms can provide the performance of hand-written
-loops when enough information is apparent about the sequences to
-iterate, specifically when the clause has one of the following
-@racket[_fast-clause] forms:
+当关于要迭代的 sequence 有足够明显的信息时，
+@racket[for] 形式可以提供手写循环的性能，
+特别是当子句具有以下 @racket[_fast-clause] 形式之一时：
 
 @racketgrammar[
 fast-clause [id fast-seq]
@@ -553,10 +508,8 @@ fast-parallel-seq (in-parallel fast-seq ...)
             (void)))))
 ]
 
-The grammars above are not complete, because the set of syntactic
-patterns that provide good performance is extensible, just like the
-set of sequence values. The documentation for a sequence constructor
-should indicate the performance benefits of using it directly in
-a @racket[for] @racket[_clause].
+上述语法并不完整，因为提供良好性能的 syntactic pattern 集合是可扩展的，
+正如 sequence 值的集合一样。Sequence 构造器的文档应指出
+在 @racket[for] @racket[_clause] 中直接使用它的性能优势。
 
 @refdetails["for"]{iterations and comprehensions}
