@@ -15,22 +15,19 @@
 @margin-note{This chapter is based on a paper @cite["Flatt06"].}
 @hash-lang-note[racket/class #:lang racket/base]
 
-A @racket[class] expression denotes a first-class value,
-just like a @racket[lambda] expression:
+@racket[class] 表达式表示一个一等值，
+就像 @racket[lambda] 表达式一样：
 
 @specform[(class superclass-expr decl-or-expr ...)]
 
-The @racket[_superclass-expr] determines the superclass for the new
-class. Each @racket[_decl-or-expr] is either a declaration related to
-methods, fields, and initialization arguments, or it is an expression
-that is evaluated each time that the class is instantiated. In other
-words, instead of a method-like constructor, a class has
-initialization expressions interleaved with field and method
-declarations.
+@racket[_superclass-expr] 决定新类的超类。每个
+@racket[_decl-or-expr] 要么是与方法、字段和初始化参数相关的声明，
+要么是每次实例化类时求值的表达式。换句话说，类没有像方法一样的
+构造函数，而是将初始化表达式与字段和方法声明交错排列。
 
-By convention, class names end with @racketidfont{%}. The built-in root class is
-@racket[object%]. The following expression creates a class with
-public methods @racket[get-size], @racket[grow], and @racket[eat]:
+按照惯例，类名以 @racketidfont{%} 结尾。内置根类是
+@racket[object%]。以下表达式创建一个具有公共方法
+@racket[get-size]、@racket[grow] 和 @racket[eat] 的类：
 
 @racketblock[
 (class object%
@@ -64,14 +61,14 @@ public methods @racket[get-size], @racket[grow], and @racket[eat]:
     (define/public (eat other-fish)
       (grow (send other-fish get-size))))))
 
-The @racket[size] initialization argument must be supplied via a named
- argument when instantiating the class through the @racket[new] form:
+通过 @racket[new] 形式实例化类时，必须通过命名参数
+提供 @racket[size] 初始化参数：
 
 @racketblock[
 (new (class object% (init size) ....) [size 10])
 ]
 
-Of course, we can also name the class and its instance:
+当然，我们也可以为类及其实例命名：
 
 @racketblock[
 (define fish% (class object% (init size) ....))
@@ -82,38 +79,32 @@ Of course, we can also name the class and its instance:
 #:eval class-eval
 (define charlie (new fish% [size 10])))
 
-In the definition of @racket[fish%], @racket[current-size] is a
-private field that starts out with the value of the @racket[size]
-initialization argument. Initialization arguments like @racket[size]
-are available only during class instantiation, so they cannot be
-referenced directly from a method. The @racket[current-size] field, in
-contrast, is available to methods.
+在 @racket[fish%] 的定义中，@racket[current-size] 是一个
+私有字段，初始值为 @racket[size] 初始化参数的值。像
+@racket[size] 这样的初始化参数仅在类实例化期间可用，
+因此不能从方法中直接引用它们。相比之下，
+@racket[current-size] 字段对方法是可用的。
 
-The @racket[(super-new)] expression in @racket[fish%] invokes the
-initialization of the superclass. In this case, the superclass is
-@racket[object%], which takes no initialization arguments and performs
-no work; @racket[super-new] must be used, anyway, because a class must
-always invoke its superclass's initialization.
+@racket[fish%] 中的 @racket[(super-new)] 表达式调用超类的
+初始化。在这种情况下，超类是 @racket[object%]，它不接受
+初始化参数且不执行任何工作；无论如何必须使用
+@racket[super-new]，因为类总是必须调用其超类的初始化。
 
-Initialization arguments, field declarations, and expressions such as
-@racket[(super-new)] can appear in any order within a @racket[class],
-and they can be interleaved with method declarations. The relative
-order of expressions in the class determines the order of evaluation
-during instantiation. For example, if a field's initial value requires
-calling a method that works only after superclass initialization, then
-the field declaration must be placed after the @racket[super-new]
-call. Ordering field and initialization declarations in this way helps
-avoid imperative assignment. The relative order of method declarations
-makes no difference for evaluation, because methods are fully defined
-before a class is instantiated.
+初始化参数、字段声明和像 @racket[(super-new)] 这样的表达式
+可以在 @racket[class] 中以任意顺序出现，并且可以与方法声明
+交错排列。类中表达式的相对顺序决定了实例化期间的求值顺序。
+例如，如果字段的初始值需要调用仅在超类初始化之后才能工作的
+方法，则字段声明必须放在 @racket[super-new] 调用之后。
+以这种方式排列字段和初始化声明有助于避免命令式赋值。
+方法声明的相对顺序对求值没有影响，因为方法在类实例化之前
+就已经完全定义了。
 
 @section[#:tag "methods"]{Methods}
 
-Each of the three @racket[define/public] declarations in
-@racket[fish%] introduces a new method. The declaration uses the same
-syntax as a Racket function, but a method is not accessible as an
-independent function.  A call to the @racket[grow] method of a
-@racket[fish%] object requires the @racket[send] form:
+@racket[fish%] 中的三个 @racket[define/public] 声明各引入一个
+新方法。声明使用与 Racket 函数相同的语法，但方法不能作为独立
+函数访问。调用 @racket[fish%] 对象的 @racket[grow] 方法需要
+使用 @racket[send] 形式：
 
 @interaction[
 #:eval class-eval
@@ -121,15 +112,14 @@ independent function.  A call to the @racket[grow] method of a
 (send charlie get-size)
 ]
 
-Within @racket[fish%], self methods can be called like functions,
-because the method names are in scope.  For example, the @racket[eat]
-method within @racket[fish%] directly invokes the @racket[grow]
-method.  Within a class, attempting to use a method name in any way
-other than a method call results in a syntax error.
+在 @racket[fish%] 内部，self 方法可以像函数一样调用，
+因为方法名在作用域内。例如，@racket[fish%] 中的
+@racket[eat] 方法直接调用 @racket[grow] 方法。在类内部，
+尝试以方法调用之外的任何方式使用方法名都会导致语法错误。
 
-In some cases, a class must call methods that are supplied by the superclass
-but not overridden. In that case, the class can use @racket[send]
-with @racket[this] to access the method:
+在某些情况下，类必须调用由超类提供但未被覆盖的方法。
+在这种情况下，类可以使用 @racket[send] 配合 @racket[this]
+来访问该方法：
 
 @def+int[
 #:eval class-eval
@@ -139,8 +129,8 @@ with @racket[this] to access the method:
                          (send this eat fish2))))
 ]
 
-Alternately, the class can declare the existence of a method using @racket[inherit],
-which brings the method name into scope for a direct call:
+或者，类可以使用 @racket[inherit] 声明方法的存在，
+这将方法名带入直接调用的作用域：
 
 @def+int[
 #:eval class-eval
@@ -150,26 +140,23 @@ which brings the method name into scope for a direct call:
                          (eat fish1) (eat fish2))))
 ]
 
-With the @racket[inherit] declaration, if @racket[fish%] had not
-provided an @racket[eat] method, an error would be signaled in the
-evaluation of the @racket[class] form for @racket[hungry-fish%]. In
-contrast, with @racket[(send this ....)], an error would not be
-signaled until the @racket[eat-more] method is called and the
-@racket[send] form is evaluated. For this reason, @racket[inherit] is
-preferred.
+使用 @racket[inherit] 声明，如果 @racket[fish%] 没有提供
+@racket[eat] 方法，则在求值 @racket[hungry-fish%] 的
+@racket[class] 形式时会发出错误信号。相比之下，使用
+@racket[(send this ....)]，直到调用 @racket[eat-more] 方法
+并求值 @racket[send] 形式时才会发出错误信号。因此，
+@racket[inherit] 更受欢迎。
 
-Another drawback of @racket[send] is that it is less efficient than
-@racket[inherit]. Invocation of a method via @racket[send] involves
-finding a method in the target object's class at run time, making
-@racket[send] comparable to an interface-based method call in Java. In
-contrast, @racket[inherit]-based method invocations use an offset
-within the class's method table that is computed when the class is
-created.
+@racket[send] 的另一个缺点是它比 @racket[inherit] 效率更低。
+通过 @racket[send] 调用方法涉及在运行时在目标对象的类中查找
+方法，使得 @racket[send] 类似于 Java 中基于接口的方法调用。
+相比之下，基于 @racket[inherit] 的方法调用使用类的方法表中
+的偏移量，该偏移量在类创建时计算。
 
-To achieve performance similar to @racket[inherit]-based method calls when
-invoking a method from outside the method's class, the programmer must use the
-@racket[generic] form, which produces a class- and method-specific
-@defterm{generic method} to be invoked with @racket[send-generic]:
+为了在从方法所属类的外部调用方法时获得与基于
+@racket[inherit] 的方法调用类似的性能，程序员必须使用
+@racket[generic] 形式，它产生特定于类和方法的
+@defterm{泛型方法}，用 @racket[send-generic] 调用：
 
 @def+int[
 #:eval class-eval
@@ -179,14 +166,13 @@ invoking a method from outside the method's class, the programmer must use the
 (send-generic (new object%) get-fish-size)
 ]
 
-Roughly speaking, the form translates the class and the external
-method name to a location in the class's method table. As illustrated
-by the last example, sending through a generic method checks that its
-argument is an instance of the generic's class.
+粗略地说，该形式将类和外部方法名转换为类方法表中的位置。
+如最后一个示例所示，通过泛型方法发送会检查其参数是否为
+泛型方法所在类的实例。
 
-Whether a method is called directly within a @racket[class],
-through a generic method,
-or through @racket[send], method overriding works in the usual way:
+无论是在 @racket[class] 内部直接调用方法，
+通过泛型方法，还是通过 @racket[send]，
+方法覆盖都按通常的方式工作：
 
 @defs+int[
 #:eval class-eval
@@ -201,28 +187,25 @@ or through @racket[send], method overriding works in the usual way:
 (send daisy get-size)
 ]
 
-The @racket[grow] method in @racket[picky-fish%] is declared with
-@racket[define/override] instead of @racket[define/public], because
-@racket[grow] is meant as an overriding declaration. If @racket[grow]
-had been declared with @racket[define/public], an error would have
-been signaled when evaluating the @racket[class] expression, because
-@racket[fish%] already supplies @racket[grow].
+@racket[picky-fish%] 中的 @racket[grow] 方法使用
+@racket[define/override] 而不是 @racket[define/public] 声明，
+因为 @racket[grow] 是一个覆盖声明。如果 @racket[grow] 用
+@racket[define/public] 声明，则在求值 @racket[class] 表达式
+时会发出错误信号，因为 @racket[fish%] 已经提供了
+@racket[grow]。
 
-Using @racket[define/override] also allows the invocation of the
-overridden method via a @racket[super] call. For example, the
-@racket[grow] implementation in @racket[picky-fish%] uses
-@racket[super] to delegate to the superclass implementation.
+使用 @racket[define/override] 还允许通过 @racket[super] 调用
+被覆盖的方法。例如，@racket[picky-fish%] 中的
+@racket[grow] 实现使用 @racket[super] 委托给超类的实现。
 
 @section[#:tag "initargs"]{Initialization Arguments}
 
-Since @racket[picky-fish%] declares no initialization arguments, any
-initialization values supplied in @racket[(new picky-fish% ....)]  are
-propagated to the superclass initialization, i.e., to @racket[fish%].
-A subclass can supply additional initialization arguments for its
-superclass in a @racket[super-new] call, and such initialization
-arguments take precedence over arguments supplied to @racket[new]. For
-example, the following @racket[size-10-fish%] class always generates
-fish of size 10:
+由于 @racket[picky-fish%] 不声明任何初始化参数，
+@racket[(new picky-fish% ....)] 中提供的任何初始化值
+都会传播到超类初始化，即 @racket[fish%]。子类可以在
+@racket[super-new] 调用中为其超类提供额外的初始化参数，
+这些初始化参数优先于提供给 @racket[new] 的参数。例如，
+下面的 @racket[size-10-fish%] 类总是生成大小为 10 的鱼：
 
 @def+int[
 #:eval class-eval
@@ -230,16 +213,15 @@ fish of size 10:
 (send (new size-10-fish%) get-size)
 ]
 
-In the case of @racket[size-10-fish%], supplying a @racket[size]
-initialization argument with @racket[new] would result in an
-initialization error; because the @racket[size] in @racket[super-new]
-takes precedence, a @racket[size] supplied to @racket[new] would have
-no target declaration.
+对于 @racket[size-10-fish%]，使用 @racket[new] 提供
+@racket[size] 初始化参数会导致初始化错误；因为
+@racket[super-new] 中的 @racket[size] 优先，提供给
+@racket[new] 的 @racket[size] 将没有目标声明。
 
-An initialization argument is optional if the @racket[class] form
-declares a default value. For example, the following @racket[default-10-fish%]
-class accepts a @racket[size] initialization argument, but its value defaults to
-10 if no value is supplied on instantiation:
+如果 @racket[class] 形式声明了默认值，则初始化参数是可选的。
+例如，下面的 @racket[default-10-fish%] 类接受一个
+@racket[size] 初始化参数，但如果在实例化时未提供值，
+则其值默认为 10：
 
 @def+int[
 #:eval class-eval
@@ -250,96 +232,84 @@ class accepts a @racket[size] initialization argument, but its value defaults to
 (new default-10-fish% [size 20])
 ]
 
-In this example, the @racket[super-new] call propagates its own
-@racket[size] value as the @racket[size] initialization argument to
-the superclass.
+在此示例中，@racket[super-new] 调用将其自身的
+@racket[size] 值作为 @racket[size] 初始化参数传播到超类。
 
 @section[#:tag "intnames"]{Internal and External Names}
 
-The two uses of @racket[size] in @racket[default-10-fish%] expose the
-double life of class-member identifiers. When @racket[size] is the
-first identifier of a bracketed pair in @racket[new] or
-@racket[super-new], @racket[size] is an @defterm{external name} that
-is symbolically matched to an initialization argument in a class. When
-@racket[size] appears as an expression within
-@racket[default-10-fish%], @racket[size] is an @defterm{internal name}
-that is lexically scoped. Similarly, a call to an inherited
-@racket[eat] method uses @racket[eat] as an internal name, whereas a
-@racket[send] of @racket[eat] uses @racket[eat] as an external name.
+@racket[default-10-fish%] 中 @racket[size] 的两种用法揭示
+了类成员标识符的双重身份。当 @racket[size] 是 @racket[new]
+或 @racket[super-new] 中括号对的第一个标识符时，
+@racket[size] 是一个 @defterm{外部名称}，以符号方式匹配到
+类中的初始化参数。当 @racket[size] 作为
+@racket[default-10-fish%] 中的表达式出现时，
+@racket[size] 是一个词法作用域的 @defterm{内部名称}。
+类似地，对继承的 @racket[eat] 方法的调用将 @racket[eat]
+作为内部名称使用，而 @racket[eat] 的 @racket[send] 将
+@racket[eat] 作为外部名称使用。
 
-The full syntax of the @racket[class] form allows a programmer to
-specify distinct internal and external names for a class member. Since
-internal names are local, they can be renamed to avoid shadowing or
-conflicts. Such renaming is not frequently necessary, but workarounds
-in the absence of renaming can be especially cumbersome.
+@racket[class] 形式的完整语法允许程序员为类成员指定不同的
+内部和外部名称。由于内部名称是局部的，可以重命名它们以避免
+遮蔽或冲突。这种重命名并不经常需要，但在没有重命名的情况
+下，变通方案可能特别繁琐。
 
 @section{Interfaces}
 
-Interfaces are useful for checking that an object or a class
-implements a set of methods with a particular (implied) behavior.
-This use of interfaces is helpful even without a static type system
-(which is the main reason that Java has interfaces).
+接口对于检查对象或类是否实现了具有特定（隐含）行为的方法集
+很有用。即使没有静态类型系统（这是 Java 有接口的主要原因），
+接口的这种使用也是有帮助的。
 
-An interface in Racket is created using the @racket[interface]
-form, which merely declares the method names required to implement the
-interface. An interface can extend other interfaces, which means that
-implementations of the interface automatically implement the extended
-interfaces.
+Racket 中的接口使用 @racket[interface] 形式创建，它仅声明
+实现接口所需的方法名称。接口可以扩展其他接口，这意味着接口
+的实现自动实现被扩展的接口。
 
 @specform[(interface (superinterface-expr ...) id ...)]
 
-To declare that a class implements an interface, the
-@racket[class*] form must be used instead of @racket[class]:
+要声明一个类实现了某个接口，必须使用
+@racket[class*] 形式而不是 @racket[class]：
 
 @specform[(class* superclass-expr (interface-expr ...) decl-or-expr ...)]
 
-For example, instead of forcing all fish classes to be derived from
-@racket[fish%], we can define @racket[fish-interface] and change the
-@racket[fish%] class to declare that it implements
-@racket[fish-interface]:
+例如，与其强制所有鱼类别都派生自 @racket[fish%]，
+我们可以定义 @racket[fish-interface] 并将
+@racket[fish%] 类改为声明它实现了
+@racket[fish-interface]：
 
 @racketblock[
 (define fish-interface (interface () get-size grow eat))
 (define fish% (class* object% (fish-interface) ....))
 ]
 
-If the definition of @racket[fish%] does not include
-@racket[get-size], @racket[grow], and @racket[eat] methods, then an
-error is signaled in the evaluation of the @racket[class*] form,
-because implementing the @racket[fish-interface] interface requires
-those methods.
+如果 @racket[fish%] 的定义不包括
+@racket[get-size]、@racket[grow] 和 @racket[eat] 方法，
+则在求值 @racket[class*] 形式时会发出错误信号，因为实现
+@racket[fish-interface] 接口需要这些方法。
 
-The @racket[is-a?] predicate accepts an object as its first argument
-and either a class or interface as its second argument. When given a
-class, @racket[is-a?] checks whether the object is an instance of that
-class or a derived class.  When given an interface, @racket[is-a?]
-checks whether the object's class implements the interface. In
-addition, the @racket[implementation?]  predicate checks whether a
-given class implements a given interface.
+@racket[is-a?] 谓词接受一个对象作为第一个参数，一个类或接口
+作为第二个参数。当给定一个类时，@racket[is-a?] 检查对象是否
+是该类或派生类的实例。当给定一个接口时，@racket[is-a?]
+检查对象的类是否实现了该接口。此外，
+@racket[implementation?] 谓词检查给定类是否实现了给定接口。
 
 @section[#:tag "inner"]{Final, Augment, and Inner}
 
-As in Java, a method in a @racket[class] form can be specified as
-@defterm{final}, which means that a subclass cannot override the
-method.  A final method is declared using @racket[public-final] or
-@racket[override-final], depending on whether the declaration is for a
-new method or an overriding implementation.
+与 Java 一样，@racket[class] 形式中的方法可以指定为
+@defterm{final}，这意味着子类不能覆盖该方法。final 方法
+使用 @racket[public-final] 或 @racket[override-final] 声明，
+取决于声明是针对新方法还是覆盖实现。
 
-Between the extremes of allowing arbitrary overriding and disallowing
-overriding entirely, the class system also supports Beta-style
-@defterm{augmentable} methods @cite["Goldberg04"]. A method
-declared with @racket[pubment] is like @racket[public], but the method
-cannot be overridden in subclasses; it can be augmented only. A
-@racket[pubment] method must explicitly invoke an augmentation (if any)
-using @racket[inner]; a subclass augments the method using
-@racket[augment], instead of @racket[override].
+在允许任意覆盖和完全禁止覆盖两个极端之间，类系统还支持
+Beta 风格的 @defterm{可增强}方法 @cite["Goldberg04"]。
+使用 @racket[pubment] 声明的方法类似于 @racket[public]，
+但该方法不能在子类中被覆盖；只能被增强。
+@racket[pubment] 方法必须使用 @racket[inner] 显式调用
+增强（如果有的话）；子类使用 @racket[augment] 而不是
+@racket[override] 来增强该方法。
 
-In general, a method can switch between augment and override modes in
-a class derivation. The @racket[augride] method specification
-indicates an augmentation to a method where the augmentation is itself
-overrideable in subclasses (though the superclass's implementation
-cannot be overridden). Similarly, @racket[overment] overrides a method
-and makes the overriding implementation augmentable.
+一般来说，在类派生中，方法可以在增强和覆盖模式之间切换。
+@racket[augride] 方法规范表示对方法的增强，其中增强本身
+在子类中是可覆盖的（尽管超类的实现不能被覆盖）。类似地，
+@racket[overment] 覆盖一个方法并使覆盖实现成为可增强的。
 
 @section[#:tag "extnames"]{Controlling the Scope of External Names}
 
@@ -350,16 +320,14 @@ and makes the overriding implementation augmentable.
   is based on lexical scope, not the inheritance hierarchy.
 }
 
-As noted in @secref["intnames"], class members have both
-internal and external names. A member definition binds an internal
-name locally, and this binding can be locally renamed.  External
-names, in contrast, have global scope by default, and a member
-definition does not bind an external name. Instead, a member
-definition refers to an existing binding for an external name, where
-the member name is bound to a @defterm{member key}; a class ultimately
-maps member keys to methods, fields, and initialization arguments.
+如 @secref["intnames"] 所述，类成员同时具有内部和外部名称。
+成员定义在局部绑定一个内部名称，此绑定可以局部重命名。
+相比之下，外部名称默认具有全局作用域，成员定义不绑定外部名称。
+相反，成员定义引用外部名称的现有绑定，其中成员名称绑定到
+@defterm{成员键}；类最终将成员键映射到方法、字段和
+初始化参数。
 
-Recall the @racket[hungry-fish%] @racket[class] expression:
+回顾 @racket[hungry-fish%] @racket[class] 表达式：
 
 @racketblock[
 (define hungry-fish% (class fish% ....
@@ -368,28 +336,26 @@ Recall the @racket[hungry-fish%] @racket[class] expression:
                          (eat fish1) (eat fish2))))
 ]
 
-During its evaluation, the @racket[hungry-fish%] and @racket[fish%]
-classes refer to the same global binding of @racket[eat].  At run
-time, calls to @racket[eat] in @racket[hungry-fish%] are matched with
-the @racket[eat] method in @racket[fish%] through the shared method
-key that is bound to @racket[eat].
+在求值过程中，@racket[hungry-fish%] 和 @racket[fish%] 类
+引用 @racket[eat] 的相同全局绑定。在运行时，
+@racket[hungry-fish%] 中对 @racket[eat] 的调用通过绑定到
+@racket[eat] 的共享方法键与 @racket[fish%] 中的
+@racket[eat] 方法匹配。
 
-The default binding for an external name is global, but a
-programmer can introduce an external-name binding with the
-@racket[define-member-name] form.
+外部名称的默认绑定是全局的，但程序员可以使用
+@racket[define-member-name] 形式引入外部名称绑定。
 
 @specform[(define-member-name id member-key-expr)]
 
-In particular, by using @racket[(generate-member-key)] as the
-@racket[member-key-expr], an external name can be localized for a
-particular scope, because the generated member key is inaccessible
-outside the scope. In other words, @racket[define-member-name] gives
-an external name a kind of package-private scope, but generalized from
-packages to arbitrary binding scopes in Racket.
+特别是，通过使用 @racket[(generate-member-key)] 作为
+@racket[member-key-expr]，外部名称可以局部化到特定作用域，
+因为生成的成员键在作用域外不可访问。换句话说，
+@racket[define-member-name] 赋予外部名称一种
+package-private 作用域，但从包推广到了 Racket 中的任意
+绑定作用域。
 
-For example, the following @racket[fish%] and @racket[pond%] classes cooperate
-via a @racket[get-depth] method that is only accessible to the
-cooperating classes:
+例如，下面的 @racket[fish%] 和 @racket[pond%] 类通过一个
+@racket[get-depth] 方法协作，该方法只对协作的类可访问：
 
 @racketblock[
 (define-values (fish% pond%) (code:comment #,(t "two mutually recursive classes"))
@@ -410,33 +376,30 @@ cooperating classes:
     (values fish% pond%)))
 ]
 
-External names are in a namespace that separates them from other Racket
-names. This separate namespace is implicitly used for the method name in
-@racket[send], for initialization-argument names in @racket[new], or for
-the external name in a member definition.  The special form
-@racket[member-name-key] provides access to the binding of an external name
-in an arbitrary expression position: @racket[(member-name-key id)]
-produces the member-key binding of @racket[id] in the current scope.
+外部名称位于一个与其他 Racket 名称分开的命名空间中。这个
+独立的命名空间隐式地用于 @racket[send] 中的方法名、
+@racket[new] 中的初始化参数名，或成员定义中的外部名称。
+特殊形式 @racket[member-name-key] 提供了在任意表达式位置
+访问外部名称绑定的能力：@racket[(member-name-key id)]
+生成当前作用域中 @racket[id] 的 member-key 绑定。
 
-A member-key value is primarily used with a
-@racket[define-member-name] form. Normally, then,
-@racket[(member-name-key id)] captures the method key of @racket[id]
-so that it can be communicated to a use of @racket[define-member-name]
-in a different scope. This capability turns out to be useful for
-generalizing mixins, as discussed next.
+member-key 值主要与 @racket[define-member-name] 形式一起使用。
+通常，@racket[(member-name-key id)] 捕获 @racket[id] 的方法键，
+以便可以将其传递给不同作用域中的
+@racket[define-member-name] 使用。这种能力对于泛化 mixin
+非常有用，如下所述。
 
 @; ----------------------------------------------------------------------
 
 @section{Mixins}
 
-Since @racket[class] is an expression form instead of a top-level
-declaration as in Smalltalk and Java, a @racket[class] form can be
-nested inside any lexical scope, including @racket[lambda]. The result
-is a @deftech{mixin}, i.e., a class extension that is parameterized
-with respect to its superclass.
+由于 @racket[class] 是一个表达式形式，而不是像 Smalltalk
+和 Java 中的顶层声明，@racket[class] 形式可以嵌套在任何
+词法作用域内，包括 @racket[lambda]。结果是一个
+@deftech{mixin}，即一个相对于其超类参数化的类扩展。
 
-For example, we can parameterize the @racket[picky-fish%] class over
-its superclass to define @racket[picky-mixin]:
+例如，我们可以将 @racket[picky-fish%] 类相对于其超类
+参数化来定义 @racket[picky-mixin]：
 
 @racketblock[
 (define (picky-mixin %)
@@ -445,16 +408,15 @@ its superclass to define @racket[picky-mixin]:
 (define picky-fish% (picky-mixin fish%))
 ]
 
-Many small differences between Smalltalk-style classes and Racket
-classes contribute to the effective use of mixins. In particular, the
-use of @racket[define/override] makes explicit that
-@racket[picky-mixin] expects a class with a @racket[grow] method. If
-@racket[picky-mixin] is applied to a class without a @racket[grow]
-method, an error is signaled as soon as @racket[picky-mixin] is
-applied.
+Smalltalk 风格的类和 Racket 类之间的许多细微差异有助于
+mixin 的有效使用。特别是，使用 @racket[define/override]
+明确表示 @racket[picky-mixin] 期望一个具有 @racket[grow]
+方法的类。如果将 @racket[picky-mixin] 应用于没有
+@racket[grow] 方法的类，则在应用 @racket[picky-mixin] 时
+立即发出错误信号。
 
-Similarly, a use of @racket[inherit] enforces a ``method existence''
-requirement when the mixin is applied:
+类似地，使用 @racket[inherit] 在应用 mixin 时强制执行
+“方法存在”要求：
 
 @racketblock[
 (define (hungry-mixin %)
@@ -465,23 +427,21 @@ requirement when the mixin is applied:
       (eat fish2))))
 ]
 
-The advantage of mixins is that we can easily combine them to create
-new classes whose implementation sharing does not fit into a
-single-inheritance hierarchy---without the ambiguities associated with
-multiple inheritance. Equipped with @racket[picky-mixin] and
-@racket[hungry-mixin], creating a class for a hungry, yet picky fish
-is straightforward:
+mixin 的优点是我们可以轻松地组合它们来创建新类，
+这些类的实现共享不适合单继承层次结构——没有多重继承
+带来的歧义。有了 @racket[picky-mixin] 和
+@racket[hungry-mixin]，创建一个饥饿但挑剔的鱼就很简单了：
 
 @racketblock[
 (define picky-hungry-fish% 
   (hungry-mixin (picky-mixin fish%)))
 ]
 
-The use of keyword initialization arguments is critical for the easy
-use of mixins. For example, @racket[picky-mixin] and
-@racket[hungry-mixin] can augment any class with suitable @racket[eat]
-and @racket[grow] methods, because they do not specify initialization
-arguments and add none in their @racket[super-new] expressions:
+关键字初始化参数的使用对于 mixin 的易用性至关重要。例如，
+@racket[picky-mixin] 和 @racket[hungry-mixin] 可以用合适的
+@racket[eat] 和 @racket[grow] 方法增强任何类，因为它们
+不指定初始化参数，也不在 @racket[super-new] 表达式中添加
+任何参数：
 
 @racketblock[
 (define person% 
@@ -494,21 +454,20 @@ arguments and add none in their @racket[super-new] expressions:
 (define oliver (new child% [name "Oliver"] [age 6]))
 ]
 
-Finally, the use of external names for class members (instead of
-lexically scoped identifiers) makes mixin use convenient. Applying
-@racket[picky-mixin] to @racket[person%] works because the names
-@racket[eat] and @racket[grow] match, without any a priori declaration
-that @racket[eat] and @racket[grow] should be the same method in
-@racket[fish%] and @racket[person%]. This feature is a potential
-drawback when member names collide accidentally; some accidental
-collisions can be corrected by limiting the scope external names, as
-discussed in @secref["extnames"].
+最后，对类成员使用外部名称（而不是词法作用域的标识符）使
+mixin 使用变得方便。将 @racket[picky-mixin] 应用于
+@racket[person%] 可以正常工作，因为名称
+@racket[eat] 和 @racket[grow] 匹配，无需任何关于
+@racket[eat] 和 @racket[grow] 在 @racket[fish%] 和
+@racket[person%] 中应该是相同方法的先验声明。当成员名称
+意外冲突时，此功能是一个潜在的缺点；一些意外冲突可以通过
+限制外部名称的作用域来纠正，如 @secref["extnames"] 所述。
 
 @subsection{Mixins and Interfaces}
 
-Using @racket[implementation?], @racket[picky-mixin] could require
-that its base class implements @racket[grower-interface], which could
-be implemented by both @racket[fish%] and @racket[person%]:
+使用 @racket[implementation?]，@racket[picky-mixin] 可以要求
+其基类实现 @racket[grower-interface]，该接口可以由
+@racket[fish%] 和 @racket[person%] 共同实现：
 
 @racketblock[
 (define grower-interface (interface () grow))
@@ -518,14 +477,13 @@ be implemented by both @racket[fish%] and @racket[person%]:
   (class % ....))
 ]
 
-Another use of interfaces with a mixin is to tag classes generated by
-the mixin, so that instances of the mixin can be recognized. In other
-words, @racket[is-a?] cannot work on a mixin represented as a
-function, but it can recognize an interface (somewhat like a
-@defterm{specialization interface}) that is consistently implemented
-by the mixin.  For example, classes generated by @racket[picky-mixin]
-could be tagged with @racket[picky-interface], enabling the
-@racket[is-picky?] predicate:
+接口与 mixin 的另一种用法是为 mixin 生成的类打标签，
+以便识别 mixin 的实例。换句话说，@racket[is-a?] 无法用于
+表示为函数的 mixin，但它可以识别由 mixin 一致实现的接口
+（有点像 @defterm{特化接口}）。例如，
+@racket[picky-mixin] 生成的类可以用
+@racket[picky-interface] 打标签，从而启用
+@racket[is-picky?] 谓词：
 
 @racketblock[
 (define picky-interface (interface ()))
@@ -539,24 +497,21 @@ could be tagged with @racket[picky-interface], enabling the
 
 @subsection{The @racket[mixin] Form}
 
-To codify the @racket[lambda]-plus-@racket[class] pattern for
-implementing mixins, including the use of interfaces for the domain
-and range of the mixin, the class system provides a @racket[mixin]
-macro:
+为了将实现 mixin 的 @racket[lambda] 加 @racket[class] 模式
+规范化，包括使用接口指定 mixin 的域和范围，类系统提供了一个
+@racket[mixin] 宏：
 
 @specform[
 (mixin (interface-expr ...) (interface-expr ...)
   decl-or-expr ...)
 ]
 
-The first set of @racket[interface-expr]s determines the domain of the
-mixin, and the second set determines the range. That is, the expansion
-is a function that tests whether a given base class implements the
-first sequence of @racket[interface-expr]s and produces a class that
-implements the second sequence of @racket[interface-expr]s. Other
-requirements, such as the presence of @racket[inherit]ed methods in
-the superclass, are then checked for the @racket[class] expansion of
-the @racket[mixin] form.  For example:
+第一组 @racket[interface-expr] 确定 mixin 的域，第二组确定
+范围。也就是说，展开结果是一个函数，它测试给定的基类是否
+实现了第一组 @racket[interface-expr]，并生成一个实现了第二组
+@racket[interface-expr] 的类。其他要求，如超类中存在
+@racket[inherit] 的方法，则在 @racket[mixin] 形式的
+@racket[class] 展开中进行检查。例如：
 
 @interaction[
 #:eval class-eval
@@ -588,19 +543,18 @@ the @racket[mixin] form.  For example:
 ]
 
 
-Mixins not only override methods and introduce public methods, they
-can also augment methods, introduce augment-only methods, add an
-overrideable augmentation, and add an augmentable override --- all of
-the things that a class can do (see @secref["inner"]).
+mixin 不仅可以覆盖方法和引入公共方法，还可以增强方法、
+引入仅增强方法、添加可覆盖的增强以及添加可增强的覆盖——
+类可以做的所有事情（参见 @secref["inner"]）。
 
 
 @subsection[#:tag "parammixins"]{Parameterized Mixins}
 
-As noted in @secref["extnames"], external names can be bound with
-@racket[define-member-name]. This facility allows a mixin to be
-generalized with respect to the methods that it defines and uses.  For
-example, we can parameterize @racket[hungry-mixin] with respect to the
-external member key for @racket[eat]:
+如 @secref["extnames"] 所述，外部名称可以用
+@racket[define-member-name] 绑定。这种机制允许 mixin 相对于
+它定义和使用的方法进行泛化。例如，我们可以将
+@racket[hungry-mixin] 相对于 @racket[eat] 的外部成员键
+进行参数化：
 
 @racketblock[
 (define (make-hungry-mixin eat-method-key)
@@ -610,18 +564,18 @@ external member key for @racket[eat]:
     (define/public (eat-more x y) (eat x) (eat y))))
 ]
 
-To obtain a particular hungry-mixin, we must apply this function to a
-member key that refers to a suitable
-@racket[eat] method, which we can obtain using @racket[member-name-key]: 
+要获得一个特定的 hungry-mixin，我们必须将此函数应用于引用
+合适的 @racket[eat] 方法的成员键，我们可以使用
+@racket[member-name-key] 获取该成员键： 
 
 @racketblock[
 ((make-hungry-mixin (member-name-key eat))
  (class object% .... (define/public (eat x) 'yum)))
 ]
 
-Above, we apply @racket[hungry-mixin] to an anonymous class that provides
-@racket[eat], but we can also combine it with a class that provides 
-@racket[chomp], instead:
+上面，我们将 @racket[hungry-mixin] 应用于一个提供
+@racket[eat] 的匿名类，但我们也可以将其与提供
+@racket[chomp] 的类组合：
 
 @racketblock[
 ((make-hungry-mixin (member-name-key chomp))
@@ -632,40 +586,36 @@ Above, we apply @racket[hungry-mixin] to an anonymous class that provides
 
 @section{Traits}
 
-A @defterm{trait} is similar to a mixin, in that it encapsulates a set
-of methods to be added to a class. A trait is different from a mixin
-in that its individual methods can be manipulated with trait operators
-such as @racket[trait-sum] (merge the methods of two traits), @racket[trait-exclude]
-(remove a method from a trait), and @racket[trait-alias] (add a copy of a
-method with a new name; do not redirect any calls to the old name).
+@defterm{trait} 类似于 mixin，它封装了一组要添加到类中的方法。
+trait 与 mixin 的不同之处在于，它的各个方法可以使用 trait
+操作符进行操作，如 @racket[trait-sum]（合并两个 trait 的方法）、
+@racket[trait-exclude]（从 trait 中移除一个方法）和
+@racket[trait-alias]（添加方法的副本并使用新名称；不重定向
+对旧名称的任何调用）。
 
-The practical difference between mixins and traits is that two traits
-can be combined, even if they include a common method and even if
-neither method can sensibly override the other. In that case, the
-programmer must explicitly resolve the collision, usually by aliasing
-methods, excluding methods, and merging a new trait that uses the
-aliases.
+mixin 和 trait 之间的实际区别在于，两个 trait 可以组合，
+即使它们包含共同的方法，即使任何方法都不能合理地覆盖另一个。
+在这种情况下，程序员必须显式解决冲突，通常通过别名方法、
+排除方法以及合并使用别名的新 trait。
 
-Suppose our @racket[fish%] programmer wants to define two class
-extensions, @racket[spots] and @racket[stripes], each of which
-includes a @racket[get-color] method. The fish's spot color should not
-override the stripe color nor vice versa; instead, a
-@racket[spots+stripes-fish%] should combine the two colors, which is
-not possible if @racket[spots] and @racket[stripes] are implemented as
-plain mixins. If, however, @racket[spots] and @racket[stripes] are
-implemented as traits, they can be combined. First, we alias
-@racket[get-color] in each trait to a non-conflicting name. Second,
-the @racket[get-color] methods are removed from both and the traits
-with only aliases are merged. Finally, the new trait is used to create
-a class that introduces its own @racket[get-color] method based on the
-two aliases, producing the desired @racket[spots+stripes] extension.
+假设我们的 @racket[fish%] 程序员想要定义两个类扩展，
+@racket[spots] 和 @racket[stripes]，每个都包含一个
+@racket[get-color] 方法。鱼的斑点颜色不应该覆盖条纹颜色，
+反之亦然；相反，@racket[spots+stripes-fish%] 应该结合
+两种颜色，这在 @racket[spots] 和 @racket[stripes] 被实现
+为普通 mixin 时是不可能的。然而，如果 @racket[spots] 和
+@racket[stripes] 被实现为 trait，它们可以组合。首先，
+我们将每个 trait 中的 @racket[get-color] 别名为不冲突的名称。
+其次，从两者中移除 @racket[get-color] 方法，合并仅包含别名
+的 trait。最后，使用新 trait 创建一个类，该类基于两个别名
+引入自己的 @racket[get-color] 方法，从而得到所需的
+@racket[spots+stripes] 扩展。
 
 @subsection{Traits as Sets of Mixins}
 
-One natural approach to implementing traits in Racket is as a set
-of mixins, with one mixin per trait method.  For example, we might
-attempt to define the spots and stripes traits as follows, using
-association lists to represent sets:
+在 Racket 中实现 trait 的一种自然方法是作为一组 mixin，
+每个 trait 方法一个 mixin。例如，我们可以尝试按以下方式定义
+spots 和 stripes trait，使用关联列表表示集合：
 
 @racketblock[
 (define spots-trait
@@ -680,17 +630,16 @@ association lists to represent sets:
                               'red))))))
 ]
 
-A set representation, such as the above, allows @racket[trait-sum] and
-@racket[trait-exclude] as simple manipulations; unfortunately, it does
-not support the @racket[trait-alias] operator. Although a mixin can be
-duplicated in the association list, the mixin has a fixed method name,
-e.g., @racket[get-color], and mixins do not support a method-rename
-operation. To support @racket[trait-alias], we must parameterize the
-mixins over the external method name in the same way that @racket[eat]
-was parameterized in @secref["parammixins"].
+像上面这样的集合表示允许 @racket[trait-sum] 和
+@racket[trait-exclude] 作为简单的操作；不幸的是，它不支持
+@racket[trait-alias] 操作符。虽然可以在关联列表中复制一个
+mixin，但 mixin 具有固定的方法名，例如 @racket[get-color]，
+mixin 不支持方法重命名操作。为了支持
+@racket[trait-alias]，我们必须以与 @secref["parammixins"]
+中参数化 @racket[eat] 相同的方式参数化 mixin 的外部方法名。
 
-To support the @racket[trait-alias] operation, @racket[spots-trait]
-should be represented as:
+为了支持 @racket[trait-alias] 操作，@racket[spots-trait]
+应该表示为：
 
 @racketblock[
 (define spots-trait
@@ -701,9 +650,9 @@ should be represented as:
                   (define/public (get-color) 'black))))))
 ]
 
-When the @racket[get-color] method in @racket[spots-trait] is aliased
-to @racket[get-trait-color] and the @racket[get-color] method is
-removed, the resulting trait is the same as
+当 @racket[spots-trait] 中的 @racket[get-color] 方法被别名
+为 @racket[get-trait-color] 并且 @racket[get-color] 方法被移除时，
+生成的 trait 等同于
 
 @racketblock[
 (list (cons (member-name-key get-trait-color)
@@ -713,26 +662,25 @@ removed, the resulting trait is the same as
                 (define/public (get-color) 'black)))))
 ]
 
-To apply a trait @racket[_T] to a class @racket[_C] and obtain a derived
-class, we use @racket[((trait->mixin _T) _C)]. The @racket[trait->mixin]
-function supplies each mixin of @racket[_T] with the key for the mixin's
-method and a partial extension of @racket[_C]:
+要将 trait @racket[_T] 应用于类 @racket[_C] 并获得派生类，
+我们使用 @racket[((trait->mixin _T) _C)]。
+@racket[trait->mixin] 函数为 @racket[_T] 的每个 mixin
+提供 mixin 方法的键和 @racket[_C] 的部分扩展：
 
 @racketblock[
 (define ((trait->mixin T) C)
   (foldr (lambda (m %) ((cdr m) (car m) %)) C T))
 ]
 
-Thus, when the trait above is combined with other traits and then
-applied to a class, the use of @racket[get-color] becomes a reference
-to the external name @racket[get-trait-color].
+因此，当上面的 trait 与其他 trait 组合然后应用于一个类时，
+@racket[get-color] 的使用变成了对外部名称
+@racket[get-trait-color] 的引用。
 
 @subsection{Inherit and Super in Traits}
 
-This first implementation of traits supports @racket[trait-alias], and it
- supports a trait method that calls itself, but it does not support
- trait methods that call each other. In particular, suppose that a spot-fish's
- market value depends on the color of its spots:
+trait 的第一个实现支持 @racket[trait-alias]，并且支持调用
+自身的 trait 方法，但不支持相互调用的 trait 方法。特别是，
+假设斑点鱼的市场价值取决于其斑点的颜色：
 
 @racketblock[
 (define spots-trait
@@ -744,27 +692,25 @@ This first implementation of traits supports @racket[trait-alias], and it
                     .... (get-color) ....))))))
 ]
 
-In this case, the definition of @racket[spots-trait] fails, because
-@racket[get-color] is not in scope for the @racket[get-price]
-mixin. Indeed, depending on the order of mixin application when the
-trait is applied to a class, the @racket[get-color] method may not be
-available when @racket[get-price] mixin is applied to the class.
-Therefore adding an @racket[(inherit get-color)] declaration to the
-@racket[get-price] mixin does not solve the problem.
+在这种情况下，@racket[spots-trait] 的定义失败，因为
+@racket[get-color] 不在 @racket[get-price] mixin 的作用域
+内。实际上，取决于 trait 应用于类时 mixin 的应用顺序，
+当 @racket[get-price] mixin 应用于类时，
+@racket[get-color] 方法可能还不可用。因此，在
+@racket[get-price] mixin 中添加
+@racket[(inherit get-color)] 声明并不能解决问题。
 
-One solution is to require the use of @racket[(send this get-color)] in
-methods such as @racket[get-price]. This change works because
-@racket[send] always delays the method lookup until the method call is
-evaluated. The delayed lookup is more expensive than a direct call,
-however. Worse, it also delays checking whether a @racket[get-color] method
-even exists.
+一种解决方案是要求在 @racket[get-price] 等方法中使用
+@racket[(send this get-color)]。这个改变有效，因为
+@racket[send] 总是延迟方法查找，直到方法调用被求值。
+然而，延迟查找比直接调用更昂贵。更糟的是，它还延迟了
+检查 @racket[get-color] 方法是否存在的检查。
 
-A second, effective, and efficient solution is to change the encoding
-of traits. Specifically, we represent each method as a pair of mixins:
-one that introduces the method and one that implements it. When a
-trait is applied to a class, all of the method-introducing mixins are
-applied first. Then the method-implementing mixins can use
-@racket[inherit] to directly access any introduced method.
+第二种有效且高效的解决方案是改变 trait 的编码方式。具体来说，
+我们将每个方法表示为一对 mixin：一个引入方法，一个实现方法。
+当 trait 应用于类时，所有引入方法的 mixin 首先被应用。
+然后，实现方法的 mixin 可以使用 @racket[inherit] 直接访问
+任何已引入的方法。
 
 @racketblock[
 (define spots-trait
@@ -786,30 +732,28 @@ applied first. Then the method-implementing mixins can use
                     .... (get-color) ....))))))
 ]
 
-With this trait encoding, @racket[trait-alias] adds a new method with
-a new name, but it does not change any references to the old method.
+通过这种 trait 编码，@racket[trait-alias] 使用新名称添加
+一个新方法，但不改变对旧方法的任何引用。
 
 @subsection{The @racket[trait] Form}
 
 @hash-lang-note[racket/trait]
 
-The general-purpose trait pattern is clearly too complex for a
-programmer to use directly, but it is easily codified in a
-@racket[trait] macro:
+通用 trait 模式显然太复杂，不适合程序员直接使用，
+但可以很容易地用 @racket[trait] 宏编码：
 
 @specform[
 (trait trait-clause ...)
 ]
 
-The @racket[id]s in the optional @racket[inherit] clause are available for direct
-reference in the method @racket[expr]s, and they must be supplied
-either by other traits or the base class to which
-the trait is ultimately applied.
+可选 @racket[inherit] 子句中的 @racket[id] 可以在方法
+@racket[expr] 中直接引用，它们必须由其他 trait 或最终
+应用 trait 的基类提供。
 
-Using this form in conjunction with trait operators such as
-@racket[trait-sum], @racket[trait-exclude], @racket[trait-alias], and
-@racket[trait->mixin], we can implement @racket[spots-trait] and
-@racket[stripes-trait] as desired.
+将此形式与 @racket[trait-sum]、@racket[trait-exclude]、
+@racket[trait-alias] 和 @racket[trait->mixin] 等 trait
+操作符一起使用，我们可以按需实现 @racket[spots-trait] 和
+@racket[stripes-trait]。
 
 @racketblock[
 (define spots-trait
@@ -842,20 +786,19 @@ Using this form in conjunction with trait operators such as
 
 @section{Class Contracts}
 
-As classes are values, they can flow across contract boundaries, and we
-may wish to protect parts of a given class with contracts.  For this,
-the @racket[class/c] form is used.  The @racket[class/c] form has many
-subforms, which describe two types of contracts on fields and methods:
-those that affect uses via instantiated objects and those that affect
-subclasses.
+由于类是值，它们可以跨越 contract 边界流动，我们可能希望
+用 contract 保护给定类的某些部分。为此，使用
+@racket[class/c] 形式。@racket[class/c] 形式有许多子形式，
+描述了两种类型的字段和方法 contract：影响通过实例化对象
+使用的 contract 和影响子类的 contract。
 
 @subsection{External Class Contracts}
 
-In its simplest form, @racket[class/c] protects the public fields and methods
-of objects instantiated from the contracted class.  There is also an
-@racket[object/c] form that can be used to similarly protect the public fields
-and methods of a particular object. Take the following definition of
-@racket[animal%], which uses a public field for its @racket[size] attribute:
+在其最简单的形式中，@racket[class/c] 保护从受 contract 约束
+的类实例化的对象的公共字段和方法。还有一个
+@racket[object/c] 形式，可以用来类似地保护特定对象的
+公共字段和方法。以 @racket[animal%] 的以下定义为例，
+它为其 @racket[size] 属性使用了一个公共字段：
 
 @racketblock[
 (define animal%
@@ -865,12 +808,12 @@ and methods of a particular object. Take the following definition of
     (define/public (eat food)
       (set! size (+ size (get-field size food))))))]
 
-For any instantiated @racket[animal%], accessing the @racket[size] field
-should return a positive number.  Also, if the @racket[size] field is set,
-it should be assigned a positive number.  Finally, the @racket[eat] method
-should receive an argument which is an object with a @racket[size] field
-that contains a positive number. To ensure these conditions, we will define
-the @racket[animal%] class with an appropriate contract:
+对于任何实例化的 @racket[animal%]，访问 @racket[size] 字段
+应该返回一个正数。此外，如果设置了 @racket[size] 字段，
+应该赋予它一个正数。最后，@racket[eat] 方法应该接收一个
+参数，该参数是一个具有包含正数的 @racket[size] 字段的对象。
+为确保这些条件，我们将使用适当的 contract 定义
+@racket[animal%] 类：
 
 @racketblock[
 (define positive/c (and/c number? positive?))
@@ -899,10 +842,10 @@ the @racket[animal%] class with an appropriate contract:
       (define/public (eat food)
         (set! size (+ size (get-field size food)))))))]
 
-Here we use @racket[->m] to describe the behavior of @racket[eat] since we
-do not need to describe any requirements for the @racket[this] parameter.
-Now that we have our contracted class, we can see that the contracts
-on both @racket[size] and @racket[eat] are enforced:
+这里我们使用 @racket[->m] 来描述 @racket[eat] 的行为，
+因为我们不需要描述 @racket[this] 参数的任何要求。
+现在有了受 contract 约束的类，我们可以看到
+@racket[size] 和 @racket[eat] 上的 contract 都得到了执行：
 
 @interaction[
 #:eval class-eval
@@ -918,21 +861,18 @@ on both @racket[size] and @racket[eat] are enforced:
 (define giant (new (class object% (super-new) (field [size 'large]))))
 (send bob eat giant)]
 
-There are two important caveats for external class contracts. First,
-external method contracts are only enforced when the target of dynamic
-dispatch is the method implementation of the contracted class, which
-lies within the contract boundary.  Overriding that implementation, and
-thus changing the target of dynamic dispatch, will mean that the contract
-is no longer enforced for clients, since accessing the method no longer
-crosses the contract boundary.  Unlike external method contracts, external
-field contracts are always enforced for clients of subclasses, since fields
-cannot be overridden or shadowed.
+外部类 contract 有两个重要的注意事项。首先，外部方法
+contract 仅在动态分派的目标是受 contract 约束的类的
+方法实现时才执行，该实现位于 contract 边界内。覆盖该实现，
+从而改变动态分派的目标，将意味着 contract 不再对客户端
+执行，因为访问方法不再跨越 contract 边界。与外部方法
+contract 不同，外部字段 contract 始终对子类的客户端执行，
+因为字段不能被覆盖或遮蔽。
 
-Second, these contracts do not restrict subclasses of @racket[animal%]
-in any way.  Fields and methods that are inherited and used by subclasses
-are not checked by these contracts, and uses of the superclass's methods
-via @racket[super] are also unchecked.  The following example illustrates
-both caveats:
+其次，这些 contract 不以任何方式限制 @racket[animal%] 的
+子类。被继承和被子类使用的字段和方法不受这些 contract
+检查，通过 @racket[super] 使用超类的方法也不受检查。
+下面的示例说明了这两种情况：
 
 @def+int[
 #:eval class-eval
@@ -949,20 +889,17 @@ both caveats:
 
 @subsection{Internal Class Contracts}
 
-Notice that retrieving the @racket[size] field from the object
-@racket[elephant] blames @racket[animal%] for the contract violation.
-This blame is correct, but unfair to the @racket[animal%] class,
-as we have not yet provided it with a method for protecting itself from
-subclasses.  To this end we add internal class contracts, which
-provide directives to subclasses for how they may access and override
-features of the superclass.  This distinction between external and internal
-class contracts allows for weaker contracts within the class hierarchy, where
-invariants may be broken internally by subclasses but should be enforced
-for external uses via instantiated objects.
+请注意，从对象 @racket[elephant] 检索 @racket[size] 字段
+将 contract 违规归咎于 @racket[animal%]。这种归咎是
+正确的，但对 @racket[animal%] 类是不公平的，因为我们还没
+有为它提供保护自己免受子类影响的方法。为此，我们添加内部
+类 contract，它们为子类提供了如何访问和覆盖超类特性的指令。
+外部和内部类 contract 之间的这种区别允许在类层次结构内部
+使用较弱的 contract，其中不变量可以在内部被子类破坏，但对
+通过实例化对象的外部使用应该强制执行。
 
-As a simple example of what kinds of protection are available, we provide
-an example aimed at the @racket[animal%] class that uses all the applicable
-forms:
+作为可用保护类型的一个简单示例，我们提供了一个针对
+@racket[animal%] 类的示例，使用了所有适用的形式：
 
 @racketblock[
 (class/c (field [size positive/c])
@@ -972,21 +909,20 @@ forms:
          (super [eat (->m edible/c void?)])
          (override [eat (->m edible/c void?)]))]
 
-This class contract not only ensures that objects of class @racket[animal%]
-are protected as before, but also ensure that subclasses of @racket[animal%]
-only store appropriate values within the @racket[size] field and use
-the implementation of @racket[size] from @racket[animal%] appropriately.
-These contract forms only affect uses within the class hierarchy, and only
-for method calls that cross the contract boundary.
+这个类 contract 不仅确保 @racket[animal%] 类的对象像之前
+一样受到保护，还确保 @racket[animal%] 的子类只在
+@racket[size] 字段中存储适当的值，并适当地使用
+@racket[animal%] 中 @racket[size] 的实现。这些 contract
+形式只影响类层次结构内部的使用，且仅影响跨越 contract
+边界的方法调用。
 
-That means that @racket[inherit] will only affect subclass uses of a method
-until a subclass overrides that method, and that @racket[override] only
-affects calls from the superclass into a subclass's overriding implementation
-of that method.  Since these only affect internal uses, the @racket[override]
-form does not automatically enter subclasses into obligations when objects of
-those classes are used.  Also, use of @racket[override] only makes sense, and
-thus can only be used, for methods where no Beta-style augmentation has taken
-place. The following example shows this difference:
+这意味着 @racket[inherit] 只会影响子类对方法的使用，直到
+子类覆盖该方法，而 @racket[override] 只影响从超类到子类的
+覆盖实现的方法调用。由于这些只影响内部使用，当使用这些类
+的对象时，@racket[override] 形式不会自动将子类置于义务中。
+此外，@racket[override] 的使用只在没有发生 Beta 风格增强
+的方法上才有意义，因此也只能用于这些方法。下面的示例显示
+了这种区别：
 
 @racketblock[
 (define/contract glutton%
@@ -1039,25 +975,23 @@ place. The following example shows this difference:
 (get-field size slop1)
 (send pig gulp (list slop1 slop2 slop3))]
 
-In addition to the internal class contract forms shown here, there are
-similar forms for Beta-style augmentable methods.  The @racket[inner]
-form describes to the subclass what is expected from augmentations of
-a given method.  Both @racket[augment] and @racket[augride] tell the
-subclass that the given method is a method which has been augmented and
-that any calls to the method in the subclass will dynamically
-dispatch to the appropriate implementation in the superclass.  Such
-calls will be checked according to the given contract.  The two forms
-differ in that  use of @racket[augment] signifies that subclasses can
-augment the given method, whereas use of @racket[augride] signifies that
-subclasses must override the current augmentation instead.
+除了这里展示的内部类 contract 形式之外，还有用于 Beta
+风格可增强方法的类似形式。@racket[inner] 形式描述了子类
+对给定方法的增强应该提供什么。@racket[augment] 和
+@racket[augride] 都告诉子类，给定方法是一个已被增强的
+方法，子类中对该方法的任何调用都将动态分派到超类中的适当
+实现。这样的调用将根据给定的 contract 进行检查。这两种形式
+的区别在于，使用 @racket[augment] 表示子类可以增强给定
+方法，而使用 @racket[augride] 表示子类必须覆盖当前的增强。
 
-This means that not all forms can be used at the same time.  Only one of the
-@racket[override], @racket[augment], and @racket[augride] forms can be used
-for a given method, and none of these forms can be used if the given method
-has been finalized.  In addition, @racket[super] can be specified for a given
-method only if @racket[augride] or @racket[override] can be specified.
-Similarly, @racket[inner] can be specified only if @racket[augment] or
-@racket[augride] can be specified.
+这意味着并非所有形式都可以同时使用。对于给定方法，只能使用
+@racket[override]、@racket[augment] 和 @racket[augride]
+中的一种形式，如果给定方法已被 finalized，则不能使用这些
+形式中的任何一种。此外，只有在可以指定
+@racket[augride] 或 @racket[override] 时，才能为给定方法
+指定 @racket[super]。类似地，只有在可以指定
+@racket[augment] 或 @racket[augride] 时，才能指定
+@racket[inner]。
 
 @; ----------------------------------------------------------------------
 
