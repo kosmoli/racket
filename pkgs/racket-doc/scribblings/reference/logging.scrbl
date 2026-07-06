@@ -3,86 +3,66 @@
           scribble/bnf
           (for-label racket/cmdline))
 
-@title[#:tag "logging"]{Logging}
+@title[#:tag "logging"]{日志}
 
-A @deftech{logger} accepts events that contain information to be
-logged for interested parties. A @deftech{log receiver} represents an
-interested party that receives logged events asynchronously. Each
-event has a topic and level of detail, and a @tech{log receiver} subscribes to
-logging events at a certain level of detail (and lower) for a specific topic or for all topics. The
-levels, in increasing order of detail, are @racket['none], @racket['fatal],
-@racket['error], @racket['warning], @racket['info], and
-@racket['debug]. The @racket['none] level is intended for specifying receivers,
-and messages logged at that level are never sent to subscribers.
+一个 @deftech{logger} 接受包含待记录信息的事件，供感兴趣的各方使用。
+一个 @deftech{log receiver} 代表一个异步接收已记录事件的感兴趣方。
+每个事件都有一个主题和详细级别，@tech{log receiver} 会订阅特定主题或所有主题
+在某个详细级别（及更低级别）的日志事件。按详细级别递增的顺序，级别包括
+@racket['none]、@racket['fatal]、@racket['error]、@racket['warning]、
+@racket['info] 和 @racket['debug]。@racket['none] 级别用于指定 receiver，
+在该级别记录的消息永远不会发送给订阅者。
 
-To help organize logged events, a @tech{logger} can have a default topic and/or
-a parent logger. Every event reported to a logger is propagated to
-its parent (if any), and the event message is prefixed with the logger's topic (if
-any) if the message doesn't already have a topic. Furthermore, events that are propagated
-from a logger to its parent can be filtered by level and topic.
+为了帮助组织已记录的事件，@tech{logger} 可以有一个默认主题和/或父 logger。
+报告给 logger 的每个事件都会传播到其父 logger（如果有），并且如果消息没有主题，
+则事件消息会加上 logger 的主题作为前缀（如果有的话）。此外，从 logger 传播到
+其父 logger 的事件可以按级别和主题进行过滤。
 
-On start-up, Racket creates an initial logger that is used to
-record events from the core run-time system. For example, a
-@racket['debug] event is reported for each garbage collection (see
-@secref["gc-model"]). For this initial logger, two log receivers are
-also created: one that writes events to the process's original error
-output port, and one that writes events to the system log. The level
-of written events in each case is system-specific, and the default can
-be changed through command-line flags (see @secref["mz-cmdline"]) or
-through environment variables:
+在启动时，Racket 创建一个初始 logger，用于记录核心运行时系统的事件。
+例如，每次垃圾回收都会报告一个 @racket['debug] 事件（参见
+@secref["gc-model"]）。对于这个初始 logger，还会创建两个 log receiver：
+一个将事件写入进程的原始错误输出端口，另一个将事件写入系统日志。
+每种情况下写入事件的级别是系统特定的，默认值可以通过命令行标志
+（参见 @secref["mz-cmdline"]）或通过环境变量来更改：
 
 @itemize[
 
- @item{If the @indexed-envvar{PLTSTDERR} environment variable is
-       defined and is not overridden by a command-line flag, it
-       determines the level of the @tech{log receiver} that propagates
-       events to the original error port.
+ @item{如果 @indexed-envvar{PLTSTDERR} 环境变量已定义且未被命令行标志覆盖，
+       它决定了将事件传播到原始错误端口的 @tech{log receiver} 的级别。
 
-       The environment variable's value can be a @nonterm{level}:
-       @litchar{none}, @litchar{fatal}, @litchar{error},
-       @litchar{warning}, @litchar{info}, or @litchar{debug} (from low detail
-       to high detail); all
-       events at the corresponding level of detail or lower are printed. After an
-       initial @nonterm{level}, the value can contain
-       whitespace-separated specifications of the form
-       @nonterm{level}@litchar["@"]@nonterm{topic}, which prints
-       events whose topics match @nonterm{topic} only at the given
-       @nonterm{level} or higher (where a @nonterm{topic} contains any
-       character other than whitespace or @litchar["@"]). Leading and
-       trailing whitespace is ignored. For example, the value
-       @racket["error debug@GC"] prints all events at the
-       @racket['error] level and higher, but prints events for the
-       topic @racket['GC] at the @racket['debug] level and higher
-       (which includes all levels).
+       环境变量的值可以是一个 @nonterm{level}：
+       @litchar{none}、@litchar{fatal}、@litchar{error}、
+       @litchar{warning}、@litchar{info} 或 @litchar{debug}（从低详细
+       到高详细）；所有在相应详细级别或更低级别的事件都会被打印。在初始
+       @nonterm{level} 之后，值可以包含以空白分隔的
+       @nonterm{level}@litchar["@"]@nonterm{topic} 形式的规范，
+       它仅打印在给定 @nonterm{level} 或更高（其中 @nonterm{topic} 包含除
+       空白或 @litchar["@"] 之外的任何字符）与 @nonterm{topic} 匹配的主题事件。
+       前导和尾随空白会被忽略。例如，值 @racket["error debug@GC"] 会打印
+       @racket['error] 级别及以上的所有事件，但会打印 @racket['GC] 主题
+       在 @racket['debug] 级别及更高（包括所有级别）的事件。
 
-       The default is @racket["error"].}
+       默认值是 @racket["error"]。}
 
- @item{If the @indexed-envvar{PLTSTDOUT} environment variable is
-       defined and is not overridden by a command-line flag, it
-       determines the level of the @tech{log receiver} that propagates
-       events to the original output port. The possible values are the
-       same as for @envvar{PLTSTDERR}.
+ @item{如果 @indexed-envvar{PLTSTDOUT} 环境变量已定义且未被命令行标志覆盖，
+       它决定了将事件传播到原始输出端口的 @tech{log receiver} 的级别。
+       可能的值与 @envvar{PLTSTDERR} 相同。
 
-       The default is @racket["none"].}
+       默认值是 @racket["none"]。}
 
- @item{If the @indexed-envvar{PLTSYSLOG} environment variable is
-       defined and is not overridden by a command-line flag, it
-       determines the level of the @tech{log receiver} that propagates
-       events to the system log. The possible values are the
-       same as for @envvar{PLTSTDERR}.
+ @item{如果 @indexed-envvar{PLTSYSLOG} 环境变量已定义且未被命令行标志覆盖，
+       它决定了将事件传播到系统日志的 @tech{log receiver} 的级别。
+       可能的值与 @envvar{PLTSTDERR} 相同。
 
-       The default is @racket["none"] for Unix or @racket["error"] for
-       Windows and Mac OS.}
+       对于 Unix，默认值是 @racket["none"]；对于 Windows 和 Mac OS，
+       默认值是 @racket["error"]。}
 
 ]
 
-The @racket[current-logger] @tech{parameter} determines the
-@deftech{current logger} that is used by forms such as
-@racket[log-warning]. On start-up, the initial value of this parameter
-is the initial logger. The run-time system sometimes uses the current
-logger to report events. For example, the bytecode compiler sometimes
-reports @racket['warning] events when it detects an expression that
-would produce a run-time error if evaluated.
+@racket[current-logger] @tech{parameter} 决定了 @racket[log-warning]
+等形式使用的 @deftech{current logger}。在启动时，该参数的初始值是初始 logger。
+运行时系统有时会使用当前 logger 来报告事件。例如，字节码编译器在检测到
+求值时会产生运行时错误的表达式时，有时会报告 @racket['warning] 事件。
 
 @history[#:changed "6.6.0.2" @elem{Prior to version 6.6.0.2, parsing
     of @envvar{PLTSTDERR} and @envvar{PLTSYSLOG} was very strict.
@@ -96,8 +76,7 @@ would produce a run-time error if evaluated.
 
 @defproc[(logger? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{logger}, @racket[#f]
-otherwise.}
+如果 @racket[v] 是 @tech{logger}，返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(make-logger [topic (or/c symbol? #f) #f]
@@ -107,14 +86,12 @@ otherwise.}
                       ... ...)
          logger?]{
 
-Creates a new @tech{logger} with an optional topic and parent.
+创建一个新的 @tech{logger}，带有可选的主题和父 logger。
 
-The optional @racket[propagate-level] and @racket[propagate-topic]
-arguments constrain the events that are propagated from the new logger
-to @racket[parent] (when @racket[parent] is not @racket[#f]) in the
-same way that events are described for a log receiver in
-@racket[make-log-receiver]. By default, all events are propagated to
-@racket[parent].
+可选的 @racket[propagate-level] 和 @racket[propagate-topic] 参数限制了
+从新 logger 传播到 @racket[parent]（当 @racket[parent] 不是 @racket[#f] 时）
+的事件，其方式与 @racket[make-log-receiver] 中描述 log receiver 事件的方式相同。
+默认情况下，所有事件都会传播到 @racket[parent]。
 
 @history[#:changed "6.1.1.3" @elem{Removed an optional argument to
                                    specify a notification callback,
@@ -125,32 +102,31 @@ same way that events are described for a log receiver in
 
 @defproc[(logger-name [logger logger?]) (or/c symbol? #f)]{
 
-Reports @racket[logger]'s default topic, if any.}
+报告 @racket[logger] 的默认主题（如果有的话）。}
 
 
 @defparam[current-logger logger logger?]{
 
-A @tech{parameter} that determines the @tech{current logger}.}
+一个决定 @tech{current logger} 的 @tech{parameter}。}
 
 
 @defform[(define-logger id maybe-parent)
          #:grammar ([maybe-parent (code:line) (code:line #:parent parent-expr)])
          #:contracts ([parent-expr (or/c logger? #f)])]{
 
-Defines @racketkeywordfont{log-}@racket[id]@racketkeywordfont{-fatal},
-@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-error},
-@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-warning},
-@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-info}, and
-@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-debug} as forms
-like @racket[log-fatal], @racket[log-error],@racket[log-warning],
-@racket[log-info], and @racket[log-debug]. The @racket[define-logger]
-form also defines @racket[id]@racketidfont{-logger}, which is a logger with
-default topic @racket['@#,racket[id]] that is a child of the result of
-@racket[parent-expr] (if @racket[parent-expr] does not produce @racket[#f]),
-or of @racket[(current-logger)] if @racket[parent-expr] not provided; the
-@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-fatal}, @|etc| forms
-use this new logger. The new logger is created when @racket[define-logger]
-is evaluated.
+定义 @racketkeywordfont{log-}@racket[id]@racketkeywordfont{-fatal}、
+@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-error}、
+@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-warning}、
+@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-info} 和
+@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-debug} 为类似
+@racket[log-fatal]、@racket[log-error]、@racket[log-warning]、
+@racket[log-info] 和 @racket[log-debug] 的形式。@racket[define-logger]
+形式还定义了 @racket[id]@racketidfont{-logger}，它是一个默认主题为
+@racket[#,@racket[id]] 的 logger，是 @racket[parent-expr] 结果的子 logger
+（如果 @racket[parent-expr] 不产生 @racket[#f]），或者如果未提供
+@racket[parent-expr]，则是 @racket[(current-logger)] 的子 logger；
+@racketkeywordfont{log-}@racket[id]@racketkeywordfont{-fatal} 等形式
+使用这个新的 logger。新的 logger 在 @racket[define-logger] 被求值时创建。
 
 @history[#:changed "7.1.0.9" @elem{Added the @racket[#:parent] option.}]}
 
@@ -165,16 +141,13 @@ is evaluated.
                       [prefix-message? any/c #t])
           void?]{
 
-Reports an event to @racket[logger], which in turn distributes the
-information to any @tech{log receivers} attached to @racket[logger] or
-its ancestors that are interested in events at @racket[level] or
-higher. If @racket[level] is @racket['none], the logged message is not
-sent to any receiver.
+向 @racket[logger] 报告一个事件，后者又将信息分发给附加到 @racket[logger]
+或其祖先的任何对 @racket[level] 或更高的事件感兴趣的 @tech{log receivers}。
+如果 @racket[level] 是 @racket['none]，则记录的消息不会发送给任何 receiver。
 
-@tech{Log receivers} can filter events based on @racket[topic].  In
-addition, if @racket[topic] and @racket[prefix-message?] are not
-@racket[#f], then @racket[message] is prefixed with the topic followed
-by @racket[": "] before it is sent to receivers.
+@tech{Log receivers} 可以基于 @racket[topic] 过滤事件。此外，如果
+@racket[topic] 和 @racket[prefix-message?] 都不是 @racket[#f]，
+则 @racket[message] 在发送给 receiver 之前会加上主题前缀，后跟 @racket[": "]。
 
 @history[#:changed "6.0.1.10" @elem{Added the @racket[prefix-message?] argument.}
          #:changed "7.2.0.7" @elem{Made the @racket[data] argument optional.}
@@ -186,23 +159,20 @@ by @racket[": "] before it is sent to receivers.
                      [topic (or/c symbol? #f) #f])
          boolean?]{
 
-Reports whether any @tech{log receiver} attached to @racket[logger] or
-one of its ancestors is interested in @racket[level] events (or
-potentially lower) for @racket[topic]. If @racket[topic] is @racket[#f],
-the result indicates whether a @tech{log receiver} is interested in
-events at @racket[level] for any topic.  If @racket[level] is @racket['none],
-the result is always @racket[#f].
+报告附加到 @racket[logger] 或其任何祖先的任何 @tech{log receiver}
+是否对 @racket[topic] 的 @racket[level] 事件（或可能更低）感兴趣。
+如果 @racket[topic] 是 @racket[#f]，则结果表示是否有 @tech{log receiver}
+对任何主题的 @racket[level] 事件感兴趣。如果 @racket[level] 是 @racket['none]，
+结果总是 @racket[#f]。
 
-Use this function to avoid work generating an
-event for @racket[log-message] if no receiver is interested in the
-information; this shortcut is built into @racket[log-fatal],
-@racket[log-error], @racket[log-warning], @racket[log-info],
-@racket[log-debug], and forms bound by @racket[define-logger],
-however, so it should not be used with those forms.
+使用此函数可以避免在没有 receiver 对信息感兴趣时为 @racket[log-message]
+生成事件的工作；然而，此快捷方式已内置到 @racket[log-fatal]、
+@racket[log-error]、@racket[log-warning]、@racket[log-info]、
+@racket[log-debug] 以及由 @racket[define-logger] 绑定的形式中，
+因此不应与这些形式一起使用。
 
-The result of this function can change if a garbage collection
-determines that a log receiver is no longer accessible (and therefore
-that any event information it receives will never become accessible).
+如果垃圾回收确定 log receiver 不再可访问（因此它接收的任何事件信息
+将永远无法访问），此函数的结果可能会改变。
 
 @history[#:changed "6.1.1.3" @elem{Added the @racket[topic] argument.}
          #:changed "8.10.0.5" @elem{Changed the result for @racket['none] to be consistently @racket[#f].}]}
@@ -211,10 +181,10 @@ that any event information it receives will never become accessible).
                         [topic (or/c symbol? #f) #f])
          (or/c log-level/c #f)]{
 
-Similar to @racket[log-level?], but reports the maximum-detail level of logging for
-which @racket[log-level?] on @racket[logger] and @racket[topic] returns @racket[#t]. The
-result is @racket[#f] if @racket[log-level?] with @racket[logger] and @racket[topic]
-currently returns @racket[#f] for all levels.
+类似于 @racket[log-level?]，但报告 @racket[log-level?] 在 @racket[logger]
+和 @racket[topic] 上返回 @racket[#t] 的最高详细级别的日志。如果
+@racket[log-level?] 在 @racket[logger] 和 @racket[topic] 上当前对所有级别
+都返回 @racket[#f]，则结果为 @racket[#f]。
 
 @history[#:changed "6.1.1.3" @elem{Added the @racket[topic] argument.}]}
 
@@ -224,37 +194,30 @@ currently returns @racket[#f] for all levels.
                  (or/c #f symbol?)
                  ... ...)]{
 
-Summarizes the possible results of @racket[log-max-level] on all
-possible @tech{interned} symbols. The result list contains a sequence
-of symbols and @racket[#f], where the first, third, etc., list element
-corresponds to a level, and the second, fourth, etc., list element
-indicates a corresponding topic. The level is the result that
-@racket[log-max-level] would produce for the topic, where the level for
-the @racket[#f] topic (which is always present in the result list)
-indicates the result for any @tech{interned}-symbol topic that does not
-appear in the list.
+总结 @racket[log-max-level] 在所有可能的 @tech{interned} 符号上的可能结果。
+结果列表包含一个符号和 @racket[#f] 的序列，其中第一、第三等列表元素对应一个级别，
+第二、第四等列表元素指示相应的主题。级别是 @racket[log-max-level] 会为该主题
+产生的结果，其中 @racket[#f] 主题（始终存在于结果列表中的）的级别指示
+任何未出现在列表中的 @tech{interned}-symbol 主题的结果。
 
-The result is suitable as a sequence of arguments to
-@racket[make-log-receiver] (after a @tech{logger} argument) to create
-a new receiver for events that currently have receivers in @racket[logger].
+结果适合用作 @racket[make-log-receiver] 的参数序列（在 @tech{logger}
+参数之后），以创建一个新的 receiver 用于当前在 @racket[logger] 中有 receiver 的事件。
 
 @history[#:added "6.1.1.4"]}
 
 
 @defproc[(log-level-evt [logger logger?]) evt?]{
 
-Creates a @tech{synchronizable event} that is @tech{ready for
-synchronization} when the result of @racket[log-level?],
-@racket[log-max-level], or @racket[log-all-levels] can be different
-than before @racket[log-level-evt] was called. The event's
-@tech{synchronization result} is the event itself.
+创建一个 @tech{synchronizable event}，当 @racket[log-level?]、
+@racket[log-max-level] 或 @racket[log-all-levels] 的结果可能不同于
+@racket[log-level-evt] 被调用之前时，该事件 @tech{ready for synchronization}。
+事件的 @tech{synchronization result} 是事件本身。
 
-The condition reported by the event is a conservative approximation:
-the event can become @tech{ready for synchronization} even if the
-results of @racket[log-level?], @racket[log-max-level], and
-@racket[log-all-levels] are unchanged. Nevertheless, the expectation
-is that events produced by @racket[log-level-evt] become ready infrequently,
-because they are triggered by the creation of a log receiver.
+事件报告的条件是一个保守近似：即使 @racket[log-level?]、
+@racket[log-max-level] 和 @racket[log-all-levels] 的结果未改变，
+事件也可能变为 @tech{ready for synchronization}。然而，预期
+@racket[log-level-evt] 产生的事件很少会变为就绪状态，因为它们是由
+log receiver 的创建触发的。
 
 @history[#:added "6.1.1.4"]}
 
@@ -272,23 +235,21 @@ because they are triggered by the creation of a log receiver.
            (log-debug format-string-expr v ...)]]
 )]{
 
-Log an event with the @tech{current logger}, evaluating
-@racket[string-expr] or @racket[(format format-string-expr v ...)]
-only if the logger has receivers that are interested in the event. In
-addition, the current continuation's @tech{continuation marks} are
-sent to the logger with the message string.
+使用 @tech{current logger} 记录一个事件，仅当 logger 有对事件感兴趣的 receiver 时
+才求值 @racket[string-expr] 或 @racket[(format format-string-expr v ...)]。
+此外，当前 continuation 的 @tech{continuation marks} 会与消息字符串一起
+发送给 logger。
 
-These form are convenient for using the current logger, but libraries
-should generally use a logger for a specific topic---typically through
-similar convenience forms generated by @racket[define-logger].
+这些形式便于使用当前 logger，但库通常应使用特定主题的 logger——
+通常通过 @racket[define-logger] 生成的类似便捷形式。
 
-For each @racketkeywordfont{log-}@racket[_level],
+对于每个 @racketkeywordfont{log-}@racket[_level]，
 
 @racketblock[
 (@#,racketkeywordfont{log-}_level string-expr)
 ]
 
-is equivalent to
+等价于
 
 @racketblock[
 (let ([l (current-logger)])
@@ -297,13 +258,13 @@ is equivalent to
                  (current-continuation-marks))))
 ]
 
-while
+而
 
 @racketblock[
 (@#,racketkeywordfont{log-}_level format-string-expr v ...)
 ]
 
-is equivalent to
+等价于
 
 @racketblock[
 (@#,racketkeywordfont{log-}_level (format format-string-expr v ...))
@@ -314,8 +275,7 @@ is equivalent to
 
 @defproc[(log-receiver? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{log receiver}, @racket[#f]
-otherwise.}
+如果 @racket[v] 是 @tech{log receiver}，返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(make-log-receiver [logger logger?]
                             [level log-level/c]
@@ -323,28 +283,21 @@ otherwise.}
                             ... ...)
          log-receiver?]{
 
-Creates a @tech{log receiver} to receive events of detail
-@racket[level] and lower as reported to @racket[logger] and its
-descendants, as long as either @racket[topic] is @racket[#f] or the
-event's topic matches @racket[topic].
+创建一个 @tech{log receiver} 来接收报告给 @racket[logger] 及其后代的
+@racket[level] 及更低详细级别的事件，只要 @racket[topic] 是 @racket[#f]
+或事件的主题与 @racket[topic] 匹配。
 
-A @tech{log receiver} is a @tech{synchronizable event}. It becomes
-@tech{ready for synchronization} when a logging event is
-received, so use @racket[sync] to receive a logged event. The
-@tech{log receiver}'s @tech{synchronization result} is an immutable vector containing
-four values: the level of the event as a symbol, an immutable string
-for the event message, an arbitrary value that was supplied as the
-last argument to @racket[log-message] when the event was logged, and a
-symbol or @racket[#f] for the event topic.
+@tech{log receiver} 是一个 @tech{synchronizable事件}。当接收到日志事件时，
+它变为 @tech{ready for synchronization}，因此使用 @racket[sync] 来接收已记录的事件。
+@tech{log receiver} 的 @tech{synchronization result} 是一个包含四个值的不可变向量：
+事件级别（符号）、事件消息（不可变字符串）、作为最后一个参数传递给
+@racket[log-message] 的任意值（当事件被记录时），以及事件主题（符号或 @racket[#f]）。
 
-Multiple pairs of @racket[level] and @racket[topic] can be provided to
-indicate different specific @racket[level]s for different
-@racket[topic]s (where @racket[topic] defaults to @racket[#f] only for
-the last given @racket[level]). A @racket[level] for a @racket[#f]
-@racket[topic] applies only to events whose topic does not match any other
-provided @racket[topic]. If the same @racket[topic] is provided multiple
-times, the @racket[level] provided with the last instance in the
-argument list takes precedence.}
+可以提供多对 @racket[level] 和 @racket[topic] 来指示不同 @racket[topic]
+的不同特定 @racket[level]（其中 @racket[topic] 仅对最后一个给定的
+@racket[level] 默认为 @racket[#f]）。@racket[#f] @racket[topic] 的 @racket[level]
+仅适用于主题与任何其他提供的 @racket[topic] 都不匹配的事件。如果多次提供
+相同的 @racket[topic]，则参数列表中最后一个实例提供的 @racket[level] 优先。}
 
 
 @; ----------------------------------------
@@ -358,9 +311,9 @@ argument list takes precedence.}
 
 @defproc[(log-level/c [v any/c])
          boolean?]{
-Returns @racket[#t] if @racket[v] is a valid logging level (@racket['none],
-@racket['fatal], @racket['error], @racket['warning], @racket['info], or
-@racket['debug]), @racket[#f] otherwise.
+如果 @racket[v] 是有效的日志级别（@racket['none]、@racket['fatal]、
+@racket['error]、@racket['warning]、@racket['info] 或 @racket['debug]），
+返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "6.3"]{}
 }
@@ -379,12 +332,11 @@ Returns @racket[#t] if @racket[v] is a valid logging level (@racket['none],
            ... ...)
          any]{
 
-Runs @racket[proc], calling @racket[interceptor] on any log event that the
-execution of @racket[proc] emits to @racket[current-logger] at the specified
-levels and topics.
-If @racket[#:logger] is specified, intercepts events sent to that logger,
-otherwise uses a new child logger of the current logger.
-Returns whatever @racket[proc] returns.
+运行 @racket[proc]，对 @racket[proc] 执行期间向 @racket[current-logger]
+在指定级别和主题发出的任何日志事件调用 @racket[interceptor]。
+如果指定了 @racket[#:logger]，则拦截发送给该 logger 的事件，
+否则使用当前 logger 的一个新子 logger。
+返回 @racket[proc] 返回的任何值。
 
 @examples[
 #:eval log-eval
@@ -411,11 +363,10 @@ Returns whatever @racket[proc] returns.
            ... ...)
          any]{
 
-Runs @racket[proc], outputting any logging that the execution of @racket[proc]
-emits to @racket[current-logger] at the specified levels and topics.
-If @racket[#:logger] is specified, intercepts events sent to that logger,
-otherwise uses a new child logger of the current logger.
-Returns whatever @racket[proc] returns.
+运行 @racket[proc]，输出 @racket[proc] 执行期间向 @racket[current-logger]
+在指定级别和主题发出的任何日志。如果指定了 @racket[#:logger]，
+则拦截发送给该 logger 的事件，否则使用当前 logger 的一个新子 logger。
+返回 @racket[proc] 返回的任何值。
 
 @examples[
 #:eval log-eval
