@@ -23,26 +23,21 @@ expander or while a module is @tech{visit}ed (see
   @tech{protected} in the sense of @racket[protect-out].})
 
 
-@title[#:tag "stxtrans"]{Syntax Transformers}
+@title[#:tag "stxtrans"]{语法变换器}
 
 @defproc[(set!-transformer? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a value created by
-@racket[make-set!-transformer] or an instance of a structure type with
-the @racket[prop:set!-transformer] property, @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[make-set!-transformer] 创建的值，或者是具有
+@racket[prop:set!-transformer] 属性的结构类型实例，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(make-set!-transformer [proc (syntax? . -> . syntax?)])
          set!-transformer?]{
 
-Creates an @tech{assignment transformer} that cooperates with
-@racket[set!]. If the result of @racket[make-set!-transformer] is
-bound to @racket[_id] as a @tech{transformer} binding, then
-@racket[proc] is applied as a transformer when @racket[_id] is
-used in an expression position, or when it is used as the target of a
-@racket[set!] assignment as @racket[(set! _id _expr)]. When the
-identifier appears as a @racket[set!] target, the entire @racket[set!]
-expression is provided to the transformer.
+创建一个与 @racket[set!] 协作的 @tech{赋值变换器}。如果将 @racket[make-set!-transformer] 的结果
+作为 @tech{变换器} 绑定到 @racket[_id]，那么当 @racket[_id] 在表达式位置使用，或者作为 @racket[set!] 赋值的目标（如 @racket[(set! _id _expr)]）使用时，
+@racket[proc] 将作为变换器被应用。当标识符作为 @racket[set!] 目标出现时，整个 @racket[set!]
+表达式会被传递给变换器。
 
 @examples[
 #:eval stx-eval
@@ -64,52 +59,24 @@ expression is provided to the transformer.
 @defproc[(set!-transformer-procedure [transformer set!-transformer?])
          (syntax? . -> . syntax?)]{
 
-Returns the procedure that was passed to
-@racket[make-set!-transformer] to create @racket[transformer] or that
-is identified by the @racket[prop:set!-transformer] property of
-@racket[transformer].}
+返回传递给 @racket[make-set!-transformer] 用于创建 @racket[transformer] 的过程，
+或者由 @racket[transformer] 的 @racket[prop:set!-transformer] 属性标识的过程。}
 
 
 @defthing[prop:set!-transformer struct-type-property?]{
 
-A @tech{structure type property} to identify structure types that act
-as @tech{assignment transformers} like the ones created by
-@racket[make-set!-transformer].
+一个 @tech{结构类型属性}，用于标识充当 @tech{赋值变换器}（类似于 @racket[make-set!-transformer] 创建的变换器）的结构类型。
 
-The property value must be an exact integer or procedure of one or two
-arguments. In the former case, the integer designates a field within
-the structure that should contain a procedure; the integer must be
-between @racket[0] (inclusive) and the number of non-automatic fields
-in the structure type (exclusive, not counting supertype fields), and
-the designated field must also be specified as immutable.
+属性值必须是一个精确整数，或者是一个接受一个或两个参数的过程。对于前一种情况，该整数指定结构内应包含一个过程的字段；该整数必须在 @racket[0]（含）到结构类型中非自动字段的数量（不含，不计算超类型字段）之间，并且指定的字段也必须被声明为不可变。
 
-If the property value is a procedure of one argument, then the
-procedure serves as a @tech{syntax transformer} and for @racket[set!]
-transformations. If the property value is a procedure of two
-arguments, then the first argument is the structure whose type has
-@racket[prop:set!-transformer] property, and the second argument is a
-syntax object as for a @tech{syntax transformer} and for @racket[set!]
-transformations; @racket[set!-transformer-procedure] applied to the
-structure produces a new function that accepts just the syntax object
-and calls the procedure associated through the property. Finally, if the
-property value is an integer, the target identifier is extracted from
-the structure instance; if the field value is not a procedure of one
-argument, then a procedure that always calls
-@racket[raise-syntax-error] is used, instead.
+如果属性值是一个接受一个参数的过程，那么该过程作为 @tech{语法变换器}，并用于 @racket[set!] 变换。如果属性值是一个接受两个参数的过程，那么第一个参数是具有 @racket[prop:set!-transformer] 属性的结构，第二个参数是一个语法对象，类似于 @tech{语法变换器} 和 @racket[set!] 变换；应用到该结构的 @racket[set!-transformer-procedure] 会生成一个新函数，该函数仅接受语法对象并调用通过该属性关联的过程。最后，如果属性值是一个整数，则从结构实例中提取目标标识符；如果该字段值不是一个接受一个参数的过程，则使用一个总是调用 @racket[raise-syntax-error] 的过程来替代。
 
-If a value has both the @racket[prop:set!-transformer] and
-@racket[prop:rename-transformer] properties, then the latter takes
-precedence. If a structure type has the @racket[prop:set!-transformer]
-and @racket[prop:procedure] properties, then the former takes
-precedence for the purposes of macro expansion.}
+如果一个值同时具有 @racket[prop:set!-transformer] 和 @racket[prop:rename-transformer] 属性，则后者优先。如果一个结构类型同时具有 @racket[prop:set!-transformer] 和 @racket[prop:procedure] 属性，则在宏展开时前者优先。}
 
 
 @defproc[(rename-transformer? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a value created by
-@racket[make-rename-transformer] or an instance of a structure type
-with the @racket[prop:rename-transformer] property, @racket[#f]
-otherwise.
+如果 @racket[v] 是由 @racket[make-rename-transformer] 创建的值，或者是具有 @racket[prop:rename-transformer] 属性的结构类型实例，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @examples[#:eval stx-eval
   (rename-transformer? (make-rename-transformer #'values))
@@ -120,16 +87,9 @@ otherwise.
 @defproc[(make-rename-transformer [id-stx syntax?])
          rename-transformer?]{
 
-Creates a @tech{rename transformer} that, when used as a
-@tech{transformer} binding, acts as a transformer that inserts the
-identifier @racket[id-stx] in place of whatever identifier binds the
-transformer, including in non-application positions, in @racket[set!]
-expressions.
+创建一个 @tech{重命名变换器}，当作为 @tech{变换器} 绑定时，它充当一个变换器，将标识符 @racket[id-stx] 插入到绑定该变换器的任何标识符的位置，包括在非应用位置和 @racket[set!] 表达式中。
 
-Such a transformer could be written manually, but the one created by
-@racket[make-rename-transformer] triggers special cooperation with the
-parser and other syntactic forms when @racket[_id] is bound to the
-rename transformer:
+这样的变换器可以手动编写，但是由 @racket[make-rename-transformer] 创建的变换器在与解析器和其他语法形式协作时会触发特殊行为，当 @racket[_id] 绑定到该重命名变换器时：
 
 @itemlist[
 
@@ -175,9 +135,8 @@ rename transformer:
 @defproc[(rename-transformer-target [transformer rename-transformer?])
          identifier?]{
 
-Returns the identifier passed to @racket[make-rename-transformer] to
-create @racket[transformer] or as indicated by a
-@racket[prop:rename-transformer] property on @racket[transformer].
+返回传递给 @racket[make-rename-transformer] 用于创建 @racket[transformer] 的标识符，
+或者由 @racket[transformer] 上的 @racket[prop:rename-transformer] 属性所指示的标识符。
 
 @examples[#:eval stx-eval
   (rename-transformer-target (make-rename-transformer #'or))
@@ -186,32 +145,14 @@ create @racket[transformer] or as indicated by a
 
 @defthing[prop:rename-transformer struct-type-property?]{
 
-A @tech{structure type property} to identify structure types that act
-as @tech{rename transformers} like the ones created by
-@racket[make-rename-transformer].
+一个 @tech{结构类型属性}，用于标识充当 @tech{重命名变换器}（类似于 @racket[make-rename-transformer] 创建的变换器）的结构类型。
 
-The property value must be an exact integer, an identifier
-@tech{syntax object}, or a procedure that takes one argument.
-In the former case, the integer designates a
-field within the structure that should contain an identifier; the
-integer must be between @racket[0] (inclusive) and the number of
-non-automatic fields in the structure type (exclusive, not counting
-supertype fields), and the designated field must also be specified as
-immutable.
+属性值必须是一个精确整数、一个标识符 @tech{语法对象}，或者一个接受一个参数的过程。
+对于前一种情况，该整数指定结构内应包含一个标识符的字段；该整数必须在 @racket[0]（含）到结构类型中非自动字段的数量（不含，不计算超类型字段）之间，并且指定的字段也必须被声明为不可变。
 
-If the property value is an identifier, the identifier serves as the
-target for renaming, just like the first argument to
-@racket[make-rename-transformer]. If the property value is an integer,
-the target identifier is extracted from the structure instance; if the
-field value is not an identifier, then an identifier @racketidfont{?}
-with an empty context is used, instead.
+如果属性值是一个标识符，则该标识符作为重命名的目标，就像 @racket[make-rename-transformer] 的第一个参数一样。如果属性值是一个整数，则从结构实例中提取目标标识符；如果该字段值不是一个标识符，则使用一个带有空上下文的 @racketidfont{?} 标识符来替代。
 
-If the property value is a procedure that takes one argument, then the
-procedure is called to obtain the identifier that the rename
-transformer will use as a target identifier. The returned identifier
-should probably have the @racket['not-free-identifier=?] syntax
-property. If the procedure returns any value that is not an
-identifier, the @racket[exn:fail:contract] exception is raised.
+如果属性值是一个接受一个参数的过程，则调用该过程来获取重命名变换器将用作目标标识符的标识符。返回的标识符可能应该具有 @racket['not-free-identifier=?] 语法属性。如果该过程返回任何不是标识符的值，则引发 @racket[exn:fail:contract] 异常。
 
 @examples[#:eval stx-eval #:escape UNSYNTAX
   (code:comment "Example of a procedure argument for prop:rename-transformer")
@@ -246,15 +187,9 @@ identifier, the @racket[exn:fail:contract] exception is raised.
                                    #f])
          syntax?]{
 
-Expands @racket[stx] in the lexical context of the expression
-currently being expanded. The @racket[context-v] argument is used as
-the result of @racket[syntax-local-context] for immediate expansions;
-a list indicates an @tech{internal-definition context}, and more
-information on the form of the list is below. If @racket[stx] is not
-already a @tech{syntax object}, it is coerced with
-@racket[(datum->syntax #f stx)] before expansion.
+在当前正在展开的表达式的词法上下文中展开 @racket[stx]。@racket[context-v] 参数用作即时展开时 @racket[syntax-local-context] 的结果；列表表示一个 @tech{内部定义上下文}，关于列表形式的更多信息见下文。如果 @racket[stx] 还不是一个 @tech{语法对象}，则在展开前使用 @racket[(datum->syntax #f stx)] 进行强制转换。
 
-The @racket[stop-ids] argument controls how far @racket[local-expand] expands @racket[stx]:
+@racket[stop-ids] 参数控制 @racket[local-expand] 对 @racket[stx] 的展开深度：
 
 @itemlist[
  @item{If @racket[stop-ids] is an empty list, then @racket[stx] is recursively expanded (i.e.
@@ -294,51 +229,31 @@ The @racket[stop-ids] argument controls how far @racket[local-expand] expands @r
        binding identifier). The @racketid[#%app], @racketid[#%datum], and @racketid[#%top] identifiers are
        never introduced.}]
 
-Independent of @racket[stop-ids], when @racket[local-expand] encounters an identifier that has a local
-binding but no binding in the current expansion context, the variable is left as-is (as opposed to
-triggering an ``out of context'' syntax error).
+与 @racket[stop-ids] 无关，当 @racket[local-expand] 遇到一个具有局部绑定但在当前展开上下文中没有绑定的标识符时，该变量保持原样（而不是触发"上下文之外"的语法错误）。
 
-When @racket[context-v] is @racket['module-begin], and the result of
-expansion is a @racket[#%plain-module-begin] form, then a
-@racket['submodule] @tech{syntax property} is added to each enclosed
-@racket[module] form (but not @racket[module*] forms) in the same way as by
-@racket[module] expansion.
+当 @racket[context-v] 为 @racket['module-begin] 且展开结果是一个 @racket[#%plain-module-begin] 形式时，
+会以与 @racket[module] 展开相同的方式为每个内嵌的 @racket[module] 形式（但不包括 @racket[module*] 形式）添加
+@racket['submodule] @tech{语法属性}。
 
-If the @racket[intdef-ctx] argument is an internal-definition context, its @tech{bindings} and
-@tech{bindings} from all @tech{parent internal-definition contexts} are added to the
-@tech{local binding context} during the dynamic extent of the call to @racket[local-expand].
-Additionally, unless @racket[#f] was provided for the @racket[_add-scope?] argument to
-@racket[syntax-local-make-definition-context] when the internal-definition context was created,
-its @tech{inside-edge scope} (but @emph{not} the scopes of any @tech{parent internal-definition contexts}) is
-added to the @tech{lexical information} for both @racket[stx] prior to its expansion and the expansion
-result (because the expansion might introduce bindings or references to internal-definition bindings).
+如果 @racket[intdef-ctx] 参数是一个内部定义上下文，则在调用 @racket[local-expand] 的动态范围内，其 @tech{绑定} 和所有 @tech{父内部定义上下文} 的 @tech{绑定} 将被添加到 @tech{局部绑定上下文} 中。
+此外，除非在创建内部定义上下文时为 @racket[syntax-local-make-definition-context] 的 @racket[_add-scope?] 参数提供了 @racket[#f]，
+否则其 @tech{内边缘作用域}（但 @emph{不} 包括任何 @tech{父内部定义上下文} 的作用域）将被添加到 @racket[stx] 展开前和展开结果的
+@tech{词法信息} 中（因为展开可能会引入对内部定义绑定的绑定或引用）。
 
-For backwards compatibility, when @racket[intdef-ctx] is a list all @tech{bindings} from all of the provided internal-definition
-contexts and their parents are added to the @tech{local binding context}, and the @tech{inside-edge scope} from
-each context for which @racket[_add-scope?] was not @racket[#f] is added in the same way.
+为了向后兼容，当 @racket[intdef-ctx] 是一个列表时，所有提供的内部定义上下文及其父上下文的所有 @tech{绑定} 都将添加到 @tech{局部绑定上下文} 中，
+并且每个上下文中 @racket[_add-scope?] 不是 @racket[#f] 的 @tech{内边缘作用域} 以相同方式添加。
 
-Expansion records @tech{use-site scopes} for removal from definition bindings. When the
-@racket[intdef-ctx] argument is an internal-definition context, use-site scopes are recorded
-with that context. When @racket[intdef-ctx] is @racket[#f] or (for backwards compatibility) a list,
-use-site scopes are recorded with the current expand context.
+展开记录 @tech{使用点作用域} 以便从定义绑定中移除。当 @racket[intdef-ctx] 参数是一个内部定义上下文时，使用点作用域与该上下文一起记录。
+当 @racket[intdef-ctx] 是 @racket[#f] 或（为了向后兼容）一个列表时，使用点作用域与当前展开上下文一起记录。
 
-For a particular @tech{internal-definition context}, generate a unique
-value and put it into a list for @racket[context-v]. To allow
-@tech{liberal expansion} of @racket[define] forms, the generated value
-should be an instance of a structure with a true value for
-@racket[prop:liberal-define-context]. If the internal-definition
-context is meant to be self-contained, the list for @racket[context-v]
-should contain only the generated value; if the internal-definition
-context is meant to splice into an immediately enclosing context, then
-when @racket[syntax-local-context] produces a list, @racket[cons] the
-generated value onto that list.
+对于特定的 @tech{内部定义上下文}，生成一个唯一值并将其放入 @racket[context-v] 的列表中。为了允许 @racket[define] 形式的 @tech{自由展开}，
+生成的值应该是一个对 @racket[prop:liberal-define-context] 具有真值的结构实例。如果内部定义上下文是自包含的，
+则 @racket[context-v] 的列表应仅包含生成的值；如果内部定义上下文要拼接到直接包围的上下文中，
+则当 @racket[syntax-local-context] 产生一个列表时，将生成的值 @racket[cons] 到该列表上。
 
-When expressions are expanded via @racket[local-expand] with an
-internal-definition context @racket[intdef-ctx], and when the expanded
-expressions are incorporated into an overall form @racket[_new-stx],
-then typically @racket[internal-definition-context-track] should be
-applied to @racket[intdef-ctx] and @racket[_new-stx] to provide
-expansion history to external tools.
+当通过 @racket[local-expand] 使用内部定义上下文 @racket[intdef-ctx] 展开表达式，并且将展开后的表达式整合到整体形式 @racket[_new-stx] 中时，
+通常应对 @racket[intdef-ctx] 和 @racket[_new-stx] 应用 @racket[internal-definition-context-track]，
+以便向外部工具提供展开历史。
 
 @transform-time[]
 
@@ -378,32 +293,17 @@ expansion history to external tools.
 @defproc[(syntax-local-expand-expression [stx any/c] [opaque-only? any/c #f])
          (values (if opaque-only? #f syntax?) syntax?)]{
 
-Like @racket[local-expand] given @racket['expression] and an empty
-stop list, but with two results: a syntax object for the fully
-expanded expression, and a syntax object whose content is opaque.
+类似于给定 @racket['expression] 和一个空停止列表的 @racket[local-expand]，但返回两个结果：一个完全展开的表达式语法对象，以及一个内容不透明的语法对象。
 
-The latter can be used in place of the former (perhaps in a larger
-expression produced by a macro transformer), and when the macro
-expander encounters the opaque object, it substitutes the fully
-expanded expression without re-expanding it; the
-@exnraise[exn:fail:syntax] if the expansion context includes
-@tech{scopes} that were not present for the original expansion, in
-which case re-expansion might produce different results. Consistent
-use of @racket[syntax-local-expand-expression] and the opaque object
-thus avoids quadratic expansion times when local expansions are
-nested.
+后者可以替代前者使用（可能用于宏变换器产生的更大表达式中），当宏展开器遇到不透明对象时，它直接替换完全展开的表达式而无需重新展开；
+如果展开上下文包含原始展开时不存在 @tech{作用域}，则 @exnraise[exn:fail:syntax]，因为重新展开可能产生不同的结果。
+持续使用 @racket[syntax-local-expand-expression] 和不透明对象可以避免嵌套局部展开时的二次展开时间。
 
-If @racket[opaque-only?] is true, then the first result is @racket[#f]
-instead of the expanded expression. Obtaining only the second, opaque
-result can be more efficient in some expansion contexts.
+如果 @racket[opaque-only?] 为真，则第一个结果为 @racket[#f] 而非展开后的表达式。仅获取第二个不透明结果在某些展开上下文中可能更高效。
 
-Unlike @racket[local-expand], @racket[syntax-local-expand-expression]
-normally produces an expanded expression that contains no
-@racket[#%expression] forms. However, if
-@racket[syntax-local-expand-expression] is used within an expansion
-that is triggered by an enclosing @racket[local-expand] call, then the
-result of @racket[syntax-local-expand-expression] can include
-@racket[#%expression] forms.
+与 @racket[local-expand] 不同，@racket[syntax-local-expand-expression] 通常产生不含 @racket[#%expression] 形式的展开表达式。
+但是，如果在由外围 @racket[local-expand] 调用触发的展开中使用 @racket[syntax-local-expand-expression]，
+则 @racket[syntax-local-expand-expression] 的结果可能包含 @racket[#%expression] 形式。
 
 @transform-time[] @provided-as-protected[]
 
@@ -420,16 +320,11 @@ result of @racket[syntax-local-expand-expression] can include
                                     #f])
          syntax?]{
 
-Like @racket[local-expand], but @racket[stx] is expanded as a
-transformer expression instead of a run-time expression.
+类似于 @racket[local-expand]，但 @racket[stx] 作为变换器表达式展开，而非运行时表达式。
 
-Any lifted expressions---from calls to
-@racket[syntax-local-lift-expression] during the expansion of
-@racket[stx]---are captured in the result. If @racket[context-v] is
-@racket['top-level], then lifts are captured in a @racket[begin] form,
-otherwise lifts are captured in @racket[let-values] forms. If no
-expressions are lifted during expansion, then no @racket[begin]
-or @racket[let-values] wrapper is added.
+展开 @racket[stx] 期间通过调用 @racket[syntax-local-lift-expression] 产生的任何提升表达式都会被捕获到结果中。
+如果 @racket[context-v] 是 @racket['top-level]，则提升内容被捕获在 @racket[begin] 形式中，
+否则提升内容被捕获在 @racket[let-values] 形式中。如果展开期间没有表达式被提升，则不会添加 @racket[begin] 或 @racket[let-values] 包装。
 
 @provided-as-protected[]
 
@@ -449,20 +344,14 @@ or @racket[let-values] wrapper is added.
           [lift-ctx any/c (gensym 'lifts)])
          syntax?]{
 
-Like @racket[local-expand], but the result is a syntax object that
-represents a @racket[begin] expression. Lifted expressions---from
-calls to @racket[syntax-local-lift-expression] during the expansion of
-@racket[stx]---appear with their identifiers in @racket[define-values]
-forms, and the expansion of @racket[stx] is the last expression in the
-@racket[begin]. The @racket[lift-ctx] value is reported by
-@racket[syntax-local-lift-context] during local expansion. The lifted
-expressions are not expanded, but instead left as provided in the
-@racket[begin] form.
+类似于 @racket[local-expand]，但结果是一个表示 @racket[begin] 表达式的语法对象。
+展开 @racket[stx] 期间通过调用 @racket[syntax-local-lift-expression] 产生的提升表达式以 @racket[define-values] 形式出现，
+其中包含它们的标识符，而 @racket[stx] 的展开结果是 @racket[begin] 中的最后一个表达式。
+@racket[lift-ctx] 值由 @racket[syntax-local-lift-context] 在局部展开期间报告。
+提升的表达式不会被展开，而是保持原样出现在 @racket[begin] 形式中。
 
-If @racket[context-v] is @racket['top-level] or @racket['module], then
-@racket[module] forms can appear in the result as added via
-@racket[syntax-local-lift-module]. If @racket[context-v] is
-@racket['module], then @racket[module*] forms can appear, too.
+如果 @racket[context-v] 是 @racket['top-level] 或 @racket['module]，则可以通过 @racket[syntax-local-lift-module] 添加的 @racket[module] 形式
+出现在结果中。如果 @racket[context-v] 是 @racket['module]，则 @racket[module*] 形式也可以出现。
 
 @provided-as-protected[]
 
@@ -480,10 +369,8 @@ If @racket[context-v] is @racket['top-level] or @racket['module], then
           [lift-ctx any/c (gensym 'lifts)])
          syntax?]{
 
-Like @racket[local-expand/capture-lifts], but @racket[stx] is expanded
-as a transformer expression instead of a run-time expression. Lifted
-expressions are reported as @racket[define-values] forms (in the
-transformer environment).
+类似于 @racket[local-expand/capture-lifts]，但 @racket[stx] 作为变换器表达式展开，而非运行时表达式。
+提升的表达式报告为 @racket[define-values] 形式（在变换器环境中）。
 
 @provided-as-protected[]
 
@@ -499,30 +386,16 @@ transformer environment).
           [v any/c] ...)
          any]{
 
-Applies the procedure @racket[transformer] to the @racket[v]s in a new
-expansion @tech{context} and @tech{local binding context}. Adds and flips
-@tech{macro-introduction scopes} and @tech{use-site scopes} on the arguments
-and return values in the same manner as @tech{syntax transformer} application.
-The arguments and returns may be any value; scopes are manipulated only for
-those that are syntax objects.
+在新的展开 @tech{上下文} 和 @tech{局部绑定上下文} 中将过程 @racket[transformer] 应用于 @racket[v]。
+以与 @tech{语法变换器} 应用相同的方式对参数和返回值添加和翻转 @tech{宏引入作用域} 和 @tech{使用点作用域}。
+参数和返回值可以是任何值；仅对语法对象操纵作用域。
 
-The @racket[context-v] argument is as in @racket[local-expand], and the
-@racket[intdef-ctx] is an @tech{internal-definition context} value or
-@racket[#f].
+@racket[context-v] 参数与 @racket[local-expand] 中的相同，@racket[intdef-ctx] 是一个 @tech{内部定义上下文} 值或 @racket[#f]。
 
-The @racket[binding-id/insp] argument encodes up to two additional
-arguments: @racket[_biding-id] as an identifier and
-@racket[_expander-insp] as an @tech{inspector}. The
-@racket[_binding-id] part, if supplied, specifies a @tech{binding}
-associated with the @racket[transformer], which the expander uses to
-determine whether to add @tech{use-site scopes} and which @tech{code
-inspector} to use during expansion. The @racket[_expander-insp] part
-specifies a @tech{code inspector} for the expander itself, which
-defaults to the code inspector associated with the binding of the
-transformer currently in progress. The relevant inspector is the inferior
-(in the sense of @racket[inspector-superior?]) of the one implied by
-@racket[_binding-id] and @racket[_expander-insp] if the inspector are
-comparable, or no inspector otherwise.
+@racket[binding-id/insp] 参数编码最多两个额外参数：作为标识符的 @racket[_biding-id] 和作为 @tech{检查器} 的 @racket[_expander-insp]。
+@racket[_binding-id] 部分（如果提供了的话）指定与 @racket[transformer] 关联的 @tech{绑定}，展开器用它来确定是否添加 @tech{使用点作用域} 以及
+展开期间使用哪个 @tech{代码检查器}。@racket[_expander-insp] 部分指定展开器本身的 @tech{代码检查器}，默认为与当前进行中的变换器的绑定关联的代码检查器。
+相关的检查器是 @racket[_binding-id] 和 @racket[_expander-insp] 所暗示的检查器的下级（在 @racket[inspector-superior?] 的意义上），前提是这些检查器是可比较的，否则没有检查器。
 
 @transform-time[]
 
@@ -533,8 +406,7 @@ comparable, or no inspector otherwise.
 
 @defproc[(internal-definition-context? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is an @tech{internal-definition
-context}, @racket[#f] otherwise.}
+如果 @racket[v] 是一个 @tech{内部定义上下文}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(syntax-local-make-definition-context
@@ -542,33 +414,20 @@ context}, @racket[#f] otherwise.}
           [add-scope? any/c #t])
          internal-definition-context?]{
 
-Creates an opaque @tech{internal-definition context} value to be used with @racket[local-expand] and
-other functions. A transformer should create one context for each set of internal definitions to be
-expanded.
+创建一个不透明的 @tech{内部定义上下文} 值，用于 @racket[local-expand] 和其他函数。变换器应为要展开的每组内部定义创建一个上下文。
 
-Before expanding forms whose lexical context should include the definitions, the transformer
-should use @racket[internal-definition-context-add-scopes] to apply the context's scopes to the syntax.
-Calls to procedures such as @racket[local-expand] to expand the forms should
-provide the @tech{internal-definition context} value as an argument.
+在展开其词法上下文应包含这些定义的形式之前，变换器应使用 @racket[internal-definition-context-add-scopes] 将上下文的作用域应用到语法。
+调用 @racket[local-expand] 等过程展开这些形式时，应将 @tech{内部定义上下文} 值作为参数提供。
 
-After discovering an internal @racket[define-values] or @racket[define-syntaxes] form, use
-@racket[syntax-local-bind-syntaxes] to add @tech{bindings} to the context.
+发现内部 @racket[define-values] 或 @racket[define-syntaxes] 形式后，使用 @racket[syntax-local-bind-syntaxes] 向上下文添加 @tech{绑定}。
 
-An @tech{internal-definition context} internally creates an @tech{outside-edge
-scope} and an @tech{inside-edge scope} to represent the context. The
-@tech{inside-edge scope} is added to any form that is expanded within the
-context or that appears as the result of a (partial) expansion within the
-context.  For backward compatibility, providing @racket[#f] for
-@racket[add-scope?] disables this behavior.
+@tech{内部定义上下文} 内部创建 @tech{外边缘作用域} 和 @tech{内边缘作用域} 来表示该上下文。@tech{内边缘作用域} 被添加到在该上下文中展开的任何形式，
+或者作为该上下文中（部分）展开结果出现的任何形式。为了向后兼容，为 @racket[add-scope?] 提供 @racket[#f] 会禁用此行为。
 
-If @racket[parent-ctx] is not @racket[#f], then @racket[parent-ctx] is made the @deftech{parent
-internal-definition context} for the new internal-definition context. Whenever the new context’s
-@tech{bindings} are added to the @tech{local binding context} (e.g. by providing the context to
-@racket[local-expand], @racket[syntax-local-bind-syntaxes], or @racket[syntax-local-value]), then the
-bindings from @racket[parent-ctx] are also added as well. If @racket[parent-ctx] was also created with a
-@tech{parent internal-definition context}, @tech{bindings} from its parent are also added, and so on
-recursively. Note that the @tech{scopes} of parent contexts are @emph{not} added implicitly, only the
-@tech{bindings}, even when the @tech{inside-edge scope} of the child context would be implicitly added. If the
+如果 @racket[parent-ctx] 不是 @racket[#f]，则 @racket[parent-ctx] 成为新内部定义上下文的 @deftech{父内部定义上下文}。 每当新上下文的 @tech{绑定} 被添加到 @tech{局部绑定上下文} 时（例如通过将上下文提供给 @racket[local-expand]、
+@racket[syntax-local-bind-syntaxes] 或 @racket[syntax-local-value]），来自 @racket[parent-ctx] 的绑定也会被添加。
+如果 @racket[parent-ctx] 也是通过 @tech{父内部定义上下文} 创建的，则其父级的 @tech{绑定} 也会被添加，以此递归进行。
+请注意，父上下文的 @tech{作用域} @emph{不会} 隐式添加，仅添加 @tech{绑定}，即使子上下文的 @tech{内边缘作用域} 会被隐式添加。 If the
 @tech{scopes} of parent definition contexts should be added, the parent contexts must be provided
 explicitly.
 
@@ -582,11 +441,8 @@ An @tech{internal-definition context} also tracks @tech{use-site scopes} created
 within the definition context, so that they can be removed from bindings created in the context,
 at @racket[syntax-local-identifier-as-binding], and at @racket[internal-definition-context-splice-binding-identifier].
 
-The scopes associated with a new definition context are pruned from
-@racket[quote-syntax] forms only when it is created during the dynamic
-extent of a @tech{syntax transformer} application or in a
-@racket[begin-for-syntax] form (potentially nested) within a module
-being expanded.
+仅当在 @tech{语法变换器} 应用的动态范围内创建新的定义上下文，或者在正在展开的模块中的 @racket[begin-for-syntax] 形式（可能嵌套）中创建时，
+与该新定义上下文关联的作用域才会从 @racket[quote-syntax] 形式中被修剪。
 
 @transform-time[]
 
@@ -601,18 +457,11 @@ being expanded.
           [name (and/c symbol? (not/c 'macro)) 'intdef])
          ((syntax?) ((or/c 'flip 'add 'remove)) . ->* . syntax?)]{
 
-Like @racket[make-syntax-introducer], but the encapsulated
-@tech{scope} is pruned from @racket[quote-syntax] forms, much like the
-scopes associated with a new definition context (see
-@racket[syntax-local-make-definition-context]). The @racket[name]
-argument is used as the symbolic name, which serves as a debugging
-aid.
+类似于 @racket[make-syntax-introducer]，但封装在其中的 @tech{作用域} 会从 @racket[quote-syntax] 形式中被修剪，
+很像与新定义上下文关联的作用域（参见 @racket[syntax-local-make-definition-context]）。@racket[name] 参数用作符号名，作为调试辅助。
 
-Typically, @racket[internal-definition-context-add-scopes] and
-@racket[internal-definition-context-splice-binding-identifier] are
-preferred, but this function can be useful when you are sure that you
-want a single scope that should be pruned from @racket[quote-syntax]
-forms.
+通常优先使用 @racket[internal-definition-context-add-scopes] 和 @racket[internal-definition-context-splice-binding-identifier]，
+但当你确定需要一个应从 @racket[quote-syntax] 形式中修剪的单一作用域时，此函数可能有用。
 
 @transform-time[]
 
@@ -623,11 +472,9 @@ forms.
                                                  [stx syntax?])
          syntax?]{
 
-Adds the @tech{outside-edge scope} and @tech{inside-edge scope} for
-@racket[intdef-ctx] to @racket[stx].
+将 @racket[intdef-ctx] 的 @tech{外边缘作用域} 和 @tech{内边缘作用域} 添加到 @racket[stx]。
 
-Use this function to apply the definition context scopes to syntax that
-originates within the definition context before expansion.
+使用此函数在展开前将定义上下文作用域应用到源自该定义上下文内的语法。
 
 @history[#:added "8.2.0.7"]}
 
@@ -637,12 +484,10 @@ originates within the definition context before expansion.
           [id identifier?])
          syntax?]{
 
-Removes scopes associated with the @racket[intdef-ctx] from @racket[id]: the
-@tech{outside-edge scope}, the @tech{inside-edge scope}, and @tech{use-site
-scopes} created by expansions within the definition context.
+从 @racket[id] 中移除与 @racket[intdef-ctx] 关联的作用域：@tech{外边缘作用域}、@tech{内边缘作用域} 以及
+在定义上下文内的展开所创建的 @tech{使用点作用域}。
 
-Use when splicing a binding originating within the @racket[intdef-ctx] into a
-surrounding context.
+当将源自 @racket[intdef-ctx] 内的绑定拼接到外围上下文中时使用。
 
 @history[#:added "8.2.0.7"]}
 
@@ -655,25 +500,17 @@ surrounding context.
                                       '()])
          (listof identifier?)]{
 
-Binds each identifier in @racket[id-list] within the
-@tech{internal-definition context} represented by @racket[intdef-ctx], where
-@racket[intdef-ctx] is the result of
-@racket[syntax-local-make-definition-context].
-Returns identifiers with @tech{lexical information} matching the new bindings.
+在由 @racket[intdef-ctx] 表示的 @tech{内部定义上下文} 中绑定 @racket[id-list] 中的每个标识符，
+其中 @racket[intdef-ctx] 是 @racket[syntax-local-make-definition-context] 的结果。
+返回具有与新绑定匹配的 @tech{词法信息} 的标识符。
 
-For backwards compatibility, the @tech{lexical information} of each element of @racket[extra-intdef-ctxs]
-is also added to each identifier in @racket[id-list] before binding.
+为了向后兼容，在绑定之前，@racket[extra-intdef-ctxs] 中每个元素的 @tech{词法信息} 也会添加到 @racket[id-list] 中的每个标识符。
 
-Supply @racket[#f] for
-@racket[expr] when the identifiers correspond to
-@racket[define-values] bindings, and supply a compile-time expression
-when the identifiers correspond to @racket[define-syntaxes] bindings.
-In the latter case, the number of values produced by the expression should
-match the number of identifiers, otherwise the
-@exnraise[exn:fail:contract:arity].
+当标识符对应 @racket[define-values] 绑定时，为 @racket[expr] 提供 @racket[#f]；
+当标识符对应 @racket[define-syntaxes] 绑定时，提供一个编译时表达式。
+在后一种情况下，表达式产生的值的数量应与标识符的数量匹配，否则 @exnraise[exn:fail:contract:arity]。
 
-When @racket[expr] is not @racket[#f], it is expanded in an @tech{expression context} and evaluated in
-the current @tech{transformer environment}. In this case, the @tech{bindings} and @tech{lexical
+当 @racket[expr] 不是 @racket[#f] 时，它在 @tech{表达式上下文} 中展开并在当前 @tech{变换器环境} 中求值。 In this case, the @tech{bindings} and @tech{lexical
 information} from both @racket[intdef-ctx] and @racket[extra-intdef-ctxs] are used to enrich
 @racket[expr]’s @tech{lexical information} and extend the @tech{local binding context} in the same way
 as the fourth argument to @racket[local-expand]. If @racket[expr] is @racket[#f], the value provided
@@ -689,10 +526,8 @@ for @racket[extra-intdef-ctxs] is ignored.
           [intdef-ctx internal-definition-context?])
          (listof identifier?)]{
 
-Returns a list of all binding identifiers registered for
-@racket[intdef-ctx] through @racket[syntax-local-bind-syntaxes]. Each
-identifier in the returned list includes the @tech{internal-definition
-context}'s @tech{scope}.
+返回通过 @racket[syntax-local-bind-syntaxes] 为 @racket[intdef-ctx] 注册的所有绑定标识符的列表。
+返回列表中的每个标识符都包含 @tech{内部定义上下文} 的 @tech{作用域}。
 
 @history[#:added "6.3.0.4"]}
 
@@ -702,15 +537,11 @@ context}'s @tech{scope}.
                                                 [mode (or/c 'flip 'add 'remove) 'flip])
          syntax?]{
 
-Flips, adds, or removes (depending on @racket[mode]) the @tech{scope}
-for @racket[intdef-ctx] for all parts of @racket[stx].
+对 @racket[stx] 的所有部分翻转、添加或移除（取决于 @racket[mode]）@racket[intdef-ctx] 的 @tech{作用域}。
 
-This function is provided for backwards compatibility;
-@racket[internal-definition-context-add-scopes] and
-@racket[internal-definition-context-splice-binding-identifier] are preferred.
-See also @racket[syntax-local-make-definition-context-introducer] for
-encapsulating a single scope that should be pruned from
-@racket[quote-syntax] forms.
+提供此函数是为了向后兼容；推荐使用 @racket[internal-definition-context-add-scopes] 和
+@racket[internal-definition-context-splice-binding-identifier]。
+另请参阅 @racket[syntax-local-make-definition-context-introducer]，用于封装应从 @racket[quote-syntax] 形式中修剪的单一作用域。
 
 @history[#:added "6.3"]}
 
@@ -719,7 +550,7 @@ encapsulating a single scope that should be pruned from
 @defproc[(internal-definition-context-seal [intdef-ctx internal-definition-context?])
          void?]{
 
-For backward compatibility only; has no effect.}
+仅为向后兼容而提供；无实际作用。}
 
 
 @defproc[(identifier-remove-from-definition-context [id-stx identifier?]
@@ -727,12 +558,10 @@ For backward compatibility only; has no effect.}
                                                                       (listof internal-definition-context?))])
          identifier?]{
 
-Removes all of the @tech{scopes} of @racket[intdef-ctx] (or of each
-element in a list @racket[intdef-ctx]) from @racket[id-stx].
+从 @racket[id-stx] 中移除 @racket[intdef-ctx] 的所有 @tech{作用域}（或列表 @racket[intdef-ctx] 中每个元素的作用域）。
 
-The @racket[identifier-remove-from-definition-context] function is
-provided for backward compatibility; the
-@racket[internal-definition-context-splice-binding-identifier] function is preferred.
+提供 @racket[identifier-remove-from-definition-context] 函数是为了向后兼容；
+推荐使用 @racket[internal-definition-context-splice-binding-identifier] 函数。
 
 @history[#:changed "6.3" @elem{Simplified the operation to @tech{scope} removal.}]}
 
@@ -741,19 +570,13 @@ provided for backward compatibility; the
 
 @defthing[prop:expansion-contexts struct-type-property?]{
 
-A @tech{structure type property} to constrain the use of macro
-@tech{transformers} and @tech{rename transformers}. The property's
-value must be a list of symbols, where the allowed symbols are
-@racket['expression], @racket['top-level], @racket['module],
-@racket['module-begin], and @racket['definition-context]. Each symbol
-corresponds to an expansion context in the same way as for
-@racket[local-expand] or as reported by @racket[syntax-local-context],
-except that @racket['definition-context] is used (instead of a list)
-to represent an @tech{internal-definition context}.
+一个 @tech{结构类型属性}，用于约束宏 @tech{变换器} 和 @tech{重命名变换器} 的使用。属性值
+必须是一个符号列表，允许的符号有 @racket['expression]、@racket['top-level]、@racket['module]、
+@racket['module-begin] 和 @racket['definition-context]。每个符号对应一个展开上下文，与
+@racket[local-expand] 或 @racket[syntax-local-context] 报告的方式相同，不同之处在于 @racket['definition-context]（而不是列表）用于表示
+@tech{内部定义上下文}。
 
-If an identifier is bound to a transformer whose list does not include
-a symbol for a particular use of the identifier, then the use is
-adjusted as follows:
+如果标识符绑定到的变换器的列表不包含该标识符特定用途的符号，则按以下方式调整用法：
 @;
 @itemlist[
 
@@ -765,18 +588,15 @@ adjusted as follows:
        @racket['expression] is present in the list, then the use is
        wrapped in an @racket[#%expression] form.}
 
- @item{Otherwise, a syntax error is reported.}
+ @item{否则，报告语法错误。}
 
 ]
 
-The @racket[prop:expansion-contexts] property is most useful in
-combination with @racket[prop:rename-transformer], since a general
-@tech{transformer} procedure can use @racket[syntax-local-context].
-Furthermore, a @racket[prop:expansion-contexts] property makes the
-most sense when a @tech{rename transformer}'s identifier has the
-@racket['not-free-identifier=?] property, otherwise a definition of
-the binding creates a binding alias that effectively routes around the
-@racket[prop:expansion-contexts] property.
+@racket[prop:expansion-contexts] 属性在与 @racket[prop:rename-transformer] 结合使用时最为有用，
+因为一般的 @tech{变换器} 过程可以使用 @racket[syntax-local-context]。
+此外，当 @tech{重命名变换器} 的标识符具有 @racket['not-free-identifier=?] 属性时，
+@racket[prop:expansion-contexts] 属性最具意义，否则绑定的定义会创建一个绑定别名，
+实际上绕过了 @racket[prop:expansion-contexts] 属性。
 
 @history[#:added "6.3"]}
 
@@ -790,22 +610,16 @@ the binding creates a binding alias that effectively routes around the
                               #f])
          any]{
 
-Returns the @tech{transformer} binding value of the identifier @racket[id-stx] in the context of the
-current expansion. If @racket[intdef-ctx] is not @racket[#f], bindings from all provided definition
-contexts are also considered. Unlike the fourth argument to @racket[local-expand], the
-@tech{scopes} associated with the provided definition contexts are @emph{not} used to enrich
-@racket[id-stx]’s @tech{lexical information}.
+在当前展开上下文中返回标识符 @racket[id-stx] 的 @tech{变换器} 绑定值。如果 @racket[intdef-ctx] 不是 @racket[#f]，
+则还会考虑所有提供的定义上下文中的绑定。与 @racket[local-expand] 的第四个参数不同，
+提供的定义上下文关联的 @tech{作用域} @emph{不} 用于丰富 @racket[id-stx] 的 @tech{词法信息}。
 
-If @racket[id-stx] is bound to a @tech{rename transformer} created
-with @racket[make-rename-transformer], @racket[syntax-local-value]
-effectively calls itself with the target of the rename and returns
-that result, instead of the @tech{rename transformer}.
+如果 @racket[id-stx] 绑定到由 @racket[make-rename-transformer] 创建的 @tech{重命名变换器}，
+则 @racket[syntax-local-value] 实际上会使用重命名的目标调用自身，并返回该结果而不是 @tech{重命名变换器}。
 
-If @racket[id-stx] has no @tech{transformer} binding (via
-@racket[define-syntax], @racket[let-syntax], etc.) in that
-environment, the result is obtained by applying @racket[failure-thunk]
-if not @racket[#f]. If @racket[failure-thunk] is @racket[false], the
-@exnraise[exn:fail:contract].
+如果 @racket[id-stx] 在该环境中没有 @tech{变换器} 绑定（通过 @racket[define-syntax]、@racket[let-syntax] 等），
+则如果 @racket[failure-thunk] 不是 @racket[#f]，则通过应用它来获取结果。如果 @racket[failure-thunk] 是 @racket[false]，
+则 @exnraise[exn:fail:contract]。
 
 @transform-time[]
 
@@ -848,21 +662,15 @@ if not @racket[#f]. If @racket[failure-thunk] is @racket[false], the
                                         #f])
          any]{
 
-Like @racket[syntax-local-value], but the result is normally two
-values. If @racket[id-stx] is bound to a @tech{rename transformer},
-the results are the rename transformer and the identifier in the
-transformer. @margin-note*{Beware that @racket[provide] on an
-@racket[_id] bound to a @tech{rename transformer} may export the
-target of the rename instead of @racket[_id]. See
-@racket[make-rename-transformer] for more information.} If
+类似于 @racket[syntax-local-value]，但结果通常是两个值。如果 @racket[id-stx] 绑定到一个 @tech{重命名变换器}，
+则结果是该重命名变换器和变换器中的标识符。 @margin-note*{请注意，对绑定到 @tech{重命名变换器} 的 @racket[_id] 执行 @racket[provide] 可能会导出重命名的目标而非 @racket[_id]。
+更多信息请参见 @racket[make-rename-transformer]。} If
 @racket[id-stx] is not bound to a @tech{rename transformer}, then the
 results are the value that @racket[syntax-local-value] would produce
 and @racket[#f].
 
-If @racket[id-stx] has no transformer binding, then
-@racket[failure-thunk] is called (and it can return any number of
-values), or an exception is raised if @racket[failure-thunk] is
-@racket[#f].
+如果 @racket[id-stx] 没有变换器绑定，则调用 @racket[failure-thunk]（它可以返回任意数量的值），
+或者如果 @racket[failure-thunk] 是 @racket[#f]，则引发异常。
 
 @examples[#:eval (make-base-eval '(require (for-syntax racket/base syntax/parse)))
           #:escape unsyntax-splicing
@@ -882,25 +690,14 @@ values), or an exception is raised if @racket[failure-thunk] is
 @defproc[(syntax-local-lift-expression [stx syntax?])
          identifier?]{
 
-Returns a fresh identifier, and cooperates with the @racket[module],
-@racket[letrec-syntaxes+values], @racket[define-syntaxes],
-@racket[begin-for-syntax], and top-level expanders to bind the
-generated identifier to the expression @racket[stx].
+返回一个新的标识符，并与 @racket[module]、@racket[letrec-syntaxes+values]、@racket[define-syntaxes]、
+@racket[begin-for-syntax] 和顶层展开器协作，将生成的标识符绑定到表达式 @racket[stx]。
 
-A run-time expression within a module is lifted to the module's top
-level, just before the expression whose expansion requests the
-lift. Similarly, a run-time expression outside of a module is lifted
-to a top-level definition. A compile-time expression in a
-@racket[letrec-syntaxes+values] or @racket[define-syntaxes] binding is
-lifted to a @racket[let] wrapper around the corresponding right-hand
-side of the binding. A compile-time expression within
-@racket[begin-for-syntax] is lifted to a @racket[define]
-declaration just before the requesting expression within the
-@racket[begin-for-syntax].
+模块内的运行时表达式提升到模块顶层，位于请求提升的表达式之前。类似地，模块外的运行时表达式提升为顶层定义。
+@racket[letrec-syntaxes+values] 或 @racket[define-syntaxes] 绑定中的编译时表达式提升为相应绑定右侧的 @racket[let] 包装。
+@racket[begin-for-syntax] 内的编译时表达式提升为 @racket[define] 声明，位于请求表达式之前。
 
-Other syntactic forms can capture lifts by using
-@racket[local-expand/capture-lifts] or
-@racket[local-transformer-expand/capture-lifts].
+其他语法形式可以通过使用 @racket[local-expand/capture-lifts] 或 @racket[local-transformer-expand/capture-lifts] 来捕获提升。
 
 @transform-time[] In addition, this procedure can be called only when
 a lift target is available, as indicated by
@@ -909,9 +706,7 @@ a lift target is available, as indicated by
 @defproc[(syntax-local-lift-values-expression [n exact-nonnegative-integer?] [stx syntax?])
          (listof identifier?)]{
 
-Like @racket[syntax-local-lift-expression], but binds the result to
-@racket[n] identifiers, and returns a list of the @racket[n]
-identifiers.
+类似于 @racket[syntax-local-lift-expression]，但将结果绑定到 @racket[n] 个标识符，并返回这 @racket[n] 个标识符的列表。
 
 @transform-time[]}
 
@@ -919,12 +714,9 @@ identifiers.
 @defproc[(syntax-local-lift-context)
          any/c]{
 
-Returns a value that represents the target for expressions lifted via
-@racket[syntax-local-lift-expression]. That is, for different
-transformer calls for which this procedure returns the same value (as
-determined by @racket[eq?]), lifted expressions for the two
-transformer are moved to the same place. Thus, the result is useful
-for caching lift information to avoid redundant lifts.
+返回一个表示通过 @racket[syntax-local-lift-expression] 提升的表达式目标的值。也就是说，
+对于此过程返回相同值（由 @racket[eq?] 确定）的不同变换器调用，两个变换器的提升表达式会被移到相同的位置。
+因此，该结果对于缓存提升信息以避免冗余提升很有用。
 
 @transform-time[]}
 
@@ -932,21 +724,15 @@ for caching lift information to avoid redundant lifts.
 @defproc[(syntax-local-lift-module [stx syntax?])
          void?]{
 
-Cooperates with the @racket[module] form or top-level expansion to add
-@racket[stx] as a module declaration in the enclosing module or top-level.
-The @racket[stx] form must start with @racket[module] or @racket[module*],
-where the latter is only allowed within the expansion of a module.
+与 @racket[module] 形式或顶层展开协作，将 @racket[stx] 作为模块声明添加到外围模块或顶层。
+@racket[stx] 形式必须以 @racket[module] 或 @racket[module*] 开头，其中后者仅在模块展开内允许。
 
-The module is not immediately declared when
-@racket[syntax-local-lift-module] returns. Instead, the module
-declaration is recorded for processing when expansion returns to the
-enclosing module body or top-level sequence.
+当 @racket[syntax-local-lift-module] 返回时，模块并不会立即声明。相反，模块声明被记录下来，
+当展开返回到外围模块体或顶层序列时再进行处理。
 
-@transform-time[] If the current expression being transformed is not
-within a @racket[module] form or within a top-level expansion, then
-the @exnraise[exn:fail:contract]. If @racket[stx] form does not start with
-@racket[module] or @racket[module*], or if it starts with @racket[module*]
-in a top-level context, the @exnraise[exn:fail:contract].
+@transform-time[] 如果当前正在变换的表达式不在 @racket[module] 形式内或顶层展开内，则 @exnraise[exn:fail:contract]。
+如果 @racket[stx] 形式不以 @racket[module] 或 @racket[module*] 开头，或者如果在顶层上下文中以 @racket[module*] 开头，
+则 @exnraise[exn:fail:contract]。
 
 @history[#:added "6.3"]}
 
@@ -954,48 +740,28 @@ in a top-level context, the @exnraise[exn:fail:contract].
 @defproc[(syntax-local-lift-module-end-declaration [stx syntax?])
          void?]{
 
-Cooperates with the @racket[module] form to insert @racket[stx] as
-a top-level declaration at the end of the module currently being
-expanded. If the current expression being
-transformed is in @tech{phase level} 0 and not in the module top-level, then @racket[stx] is
-eventually expanded in an expression context. If the current expression being
-transformed is in a higher @tech{phase level} (i.e., nested within some
-number of @racket[begin-for-syntax]es within a module top-level), then the lifted declaration
-is placed at the very end of the module (under a suitable number of
-@racket[begin-for-syntax]es), instead of merely the end of the
-enclosing @racket[begin-for-syntax].
+与 @racket[module] 形式协作，将 @racket[stx] 作为顶层声明插入到当前正在展开的模块末尾。 如果当前正在变换的表达式处于 @tech{阶段级别} 0 且不在模块顶层中，则 @racket[stx] 最终在表达式上下文中展开。
+如果当前正在变换的表达式处于更高的 @tech{阶段级别}（即嵌套在模块顶层的若干 @racket[begin-for-syntax]es 内），
+则提升的声明被放置在模块的最末尾（在适当数量的 @racket[begin-for-syntax]es 之下），而不仅仅是在外围 @racket[begin-for-syntax] 的末尾。
 
-@transform-time[] If the current expression being transformed is not
-within a @racket[module] form (see @racket[syntax-transforming-module-expression?]),
-then the @exnraise[exn:fail:contract].}
+@transform-time[] 如果当前正在变换的表达式不在 @racket[module] 形式内（参见 @racket[syntax-transforming-module-expression?]），
+则 @exnraise[exn:fail:contract]。}
 
 
 @defproc[(syntax-local-lift-require [raw-require-spec any/c] [stx syntax?] [new-scope? any/c #t])
          syntax?]{
 
-Lifts a @racket[#%require] form corresponding to
-@racket[raw-require-spec] (either as a @tech{syntax object} or datum)
-to the top-level or to the top of the module currently being expanded
- or to an enclosing @racket[begin-for-syntax].
+将对应于 @racket[raw-require-spec]（作为 @tech{语法对象} 或数据）的 @racket[#%require] 形式提升到
+顶层或当前正在展开的模块的顶部，或者提升到外围 @racket[begin-for-syntax] 中。
 
-The resulting syntax object is the same as @racket[stx], except that a
-fresh @tech{scope} is added if @racket[new-scope?] is true. The same @tech{scope} is
-added to the lifted @racket[#%require] form, so that the
-@racket[#%require] form can bind uses of imported identifiers in the
-resulting syntax object (assuming that the lexical information of
-@racket[stx] includes the binding environment into which the
-@racket[#%require] is lifted). If @racket[new-scope?] is @racket[#f], then
-the result exactly @racket[stx], and no scope is added to the lifted
-@racket[#%require] form; in that case, take care to ensure that the lifted
-require does not change the meaning of already-expanded identifiers in the module,
-otherwise re-expansion of the enclosing module will not produce the same result
-as the expanded module.
+生成的语法对象与 @racket[stx] 相同，不同之处在于如果 @racket[new-scope?] 为真则添加一个新的 @tech{作用域}。
+相同的 @tech{作用域} 被添加到提升的 @racket[#%require] 形式中，以便 @racket[#%require] 形式可以绑定结果语法对象中导入标识符的使用
+（假设 @racket[stx] 的词法信息包含了 @racket[#%require] 被提升到的绑定环境）。
+如果 @racket[new-scope?] 是 @racket[#f]，则结果恰好是 @racket[stx]，并且不会向提升的 @racket[#%require] 形式添加作用域；
+在这种情况下，请注意确保提升的 require 不会改变模块中已展开标识符的含义，否则外围模块的重新展开将不会产生与已展开模块相同的结果。
 
-If @racket[raw-require-spec] is part of the input to a transformer,
-then typically @racket[syntax-local-introduce] should be applied
-before passing it to @racket[syntax-local-lift-require]. Otherwise,
-marks added by the macro expander can prevent access to the new
-imports.
+如果 @racket[raw-require-spec] 是变换器输入的一部分，则通常应在传递给 @racket[syntax-local-lift-require] 之前应用 @racket[syntax-local-introduce]。
+否则，宏展开器添加的标记可能会阻止访问新的导入。
 
 @transform-time[]
 
@@ -1008,19 +774,15 @@ imports.
 @defproc[(syntax-local-lift-provide [raw-provide-spec-stx syntax?])
          void?]{
 
-Lifts a @racket[#%provide] form corresponding to
-@racket[raw-provide-spec-stx] to the top of the module currently being
-expanded or to an enclosing @racket[begin-for-syntax].
+将对应于 @racket[raw-provide-spec-stx] 的 @racket[#%provide] 形式提升到
+当前正在展开的模块的顶部，或者提升到外围 @racket[begin-for-syntax] 中。
 
-@transform-time[] If the current expression being transformed is not
-within a @racket[module] form (see @racket[syntax-transforming-module-expression?]),
-then the @exnraise[exn:fail:contract].}
+@transform-time[] 如果当前正在变换的表达式不在 @racket[module] 形式内（参见 @racket[syntax-transforming-module-expression?]），
+则 @exnraise[exn:fail:contract]。}
 
 @defproc[(syntax-local-name) any/c]{
 
-Returns an inferred name for the expression position being
-transformed, or @racket[#f] if no such name is available. A name is
-normally a symbol or an identifier. See also @secref["infernames"].
+返回正在变换的表达式位置的推断名称，如果没有此类名称，则返回 @racket[#f]。名称通常是符号或标识符。另请参见 @secref["infernames"]。
 
 @transform-time[]}
 
@@ -1028,32 +790,20 @@ normally a symbol or an identifier. See also @secref["infernames"].
 @defproc[(syntax-local-context)
          (or/c 'expression 'top-level 'module 'module-begin list?)]{
 
-Returns an indication of the context for expansion that triggered a
-@tech{syntax transformer} call. See @secref["expand-context-model"]
-for more information on contexts.
+返回触发 @tech{语法变换器} 调用的展开上下文的指示。有关上下文的更多信息，请参见 @secref["expand-context-model"]。
 
-The symbol results indicate that the expression is being expanded for
-an @tech{expression context}, a @tech{top-level context}, a
-@tech{module context}, or a @tech{module-begin context}.
+符号结果表示表达式正在针对 @tech{表达式上下文}、@tech{顶层上下文}、@tech{模块上下文} 或 @tech{模块开始上下文} 展开。
 
-A list result indicates expansion in an @tech{internal-definition
-context}. The identity of the list's first element (i.e., its
-@racket[eq?]ness) reflects the identity of the internal-definition
-context; in particular two transformer expansions receive the same
-first value if and only if they are invoked for the same
-@tech{internal-definition context}. Later values in the list similarly
-identify @tech{internal-definition contexts} that are still being expanded,
-and that required the expansion of nested internal-definition
-contexts.
+列表结果表示在 @tech{内部定义上下文} 中展开。列表第一个元素的标识（即其 @racket[eq?] 性）反映了内部定义上下文的标识；
+特别地，当且仅当针对相同的 @tech{内部定义上下文} 调用两个变换器展开时，它们才会收到相同的第一个值。
+列表中后续值类似地标识仍在展开且需要展开嵌套内部定义上下文的 @tech{内部定义上下文}。
 
 @transform-time[]}
 
 
 @defproc[(syntax-local-phase-level) exact-integer?]{
 
-During the dynamic extent of a @tech{syntax transformer} application
-by the expander, the result is the @tech{phase level} of the form
-being expanded. Otherwise, the result is @racket[0].
+在展开器应用 @tech{语法变换器} 的动态范围内，结果是正在展开的形式的 @tech{阶段级别}。否则，结果是 @racket[0]。
 
 @examples[#:eval stx-eval
   (code:comment "a macro bound at phase 0")
@@ -1076,10 +826,8 @@ being expanded. Otherwise, the result is @racket[0].
                                                       (syntax/c module-path?))])
          (listof (cons/c phase+space? (listof symbol?)))]{
 
-Returns an association list from @tech{phase level} and
-@tech{binding space} combinations to lists of symbols,
-where the symbols are the names of @racket[provide]d
-bindings from @racket[mod-path] at the corresponding @tech{phase level}.
+返回一个从 @tech{阶段级别} 和 @tech{绑定空间} 组合到符号列表的关联列表，
+其中符号是在相应的 @tech{阶段级别} 上从 @racket[mod-path] 中 @racket[provide]d 的绑定名称。
 
 @transform-time[]
 
@@ -1088,9 +836,7 @@ bindings from @racket[mod-path] at the corresponding @tech{phase level}.
 
 @defproc[(syntax-local-submodules) (listof symbol?)]{
 
-Returns a list of submodule names that are declared via
-@racket[module] (as opposed to @racket[module*]) in the current
-expansion context.
+返回当前展开上下文中通过 @racket[module]（而非 @racket[module*]）声明的子模块名称列表。
 
 @transform-time[]}
 
@@ -1098,15 +844,10 @@ expansion context.
 @defproc[(syntax-local-module-interned-scope-symbols)
          (listof symbol?)]{
 
-Returns a list of distinct @tech{interned} symbols corresponding to
-@tech{binding spaces} that have been used, so far, for binding within
-the current expansion context's module or top-level namespace. The
-result is conservative in the sense that it may include additional
-symbols that have not been used in the current module or namespace.
+返回一个不同的 @tech{interned} 符号列表，这些符号对应于目前为止在当前展开上下文的模块或顶层命名空间中用于绑定的 @tech{绑定空间}。
+结果在某种意义上是保守的，即它可能包含当前模块或命名空间中尚未使用的额外符号。
 
-The current implementation returns all symbols for @tech{reachable}
-interned scopes, but that behavior may change in the future to return
-a less conservative list of symbols.
+当前实现返回所有 @tech{可达} 的内部作用域的所有符号，但该行为将来可能会改变为返回不那么保守的符号列表。
 
 @transform-time[]
 
@@ -1116,16 +857,12 @@ a less conservative list of symbols.
                                     [only-generated? any/c #f])
          identifier?]{
 
-Adds @tech{scopes} to @racket[id-stx] so that it refers to bindings
-in the current expansion context or could bind any identifier obtained
-via @racket[(syntax-local-get-shadower id-stx)] in more nested contexts.
-If @racket[only-generated?] is true, the phase-spanning @tech{scope}
-of the enclosing module or namespace is omitted from the added scopes,
-however, which limits the bindings that can be referenced (and
-therefore avoids certain ambiguous references).
+向 @racket[id-stx] 添加 @tech{作用域}，使其引用当前展开上下文中的绑定，
+或者可以绑定在更深嵌套上下文中通过 @racket[(syntax-local-get-shadower id-stx)] 获取的任何标识符。
+如果 @racket[only-generated?] 为真，则外围模块或命名空间的跨阶段 @tech{作用域} 会从添加的作用域中省略，
+但这限制了可以引用的绑定（因此避免了某些歧义引用）。
 
-This function is intended for the implementation of
-@racket[syntax-parameterize] and @racket[local-require].
+此函数旨在用于 @racket[syntax-parameterize] 和 @racket[local-require] 的实现。
 
 @transform-time[]
 
@@ -1136,7 +873,7 @@ This function is intended for the implementation of
 
 @defproc[(syntax-local-make-delta-introducer [id-stx identifier?]) procedure?]{
 
-For (limited) backward compatibility only; raises @racket[exn:fail:unsupported].
+仅为（有限的）向后兼容而提供；引发 @racket[exn:fail:unsupported]。
 
 @history[#:changed "6.3" @elem{changed to raise @racket[exn:fail:supported].}]}
 
@@ -1146,41 +883,31 @@ For (limited) backward compatibility only; raises @racket[exn:fail:unsupported].
          ((syntax?) (any/c (or/c procedure? #f))
           . ->* . syntax?)]{
 
-For backward compatibility only; returns a procedure that returns its
-first argument.}
+仅为向后兼容而提供；返回一个返回其第一个参数的过程。}
 
 @defproc[(syntax-transforming?) boolean?]{
 
-Returns @racket[#t] during the dynamic extent of a @tech{syntax
-transformer} application by the expander and while a module is being
-@tech{visit}ed, @racket[#f] otherwise.}
+在展开器应用 @tech{语法变换器} 的动态范围内以及在模块被 @tech{visit} 期间返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(syntax-transforming-with-lifts?) boolean?]{
 
-Returns @racket[#t] if @racket[(syntax-transforming?)] produces
-@racket[#t] and a target context is available for lifting expressions
-(via @racket[syntax-local-lift-expression]), @racket[#f] otherwise.
+如果 @racket[(syntax-transforming?)] 产生 @racket[#t] 且存在用于提升表达式（通过 @racket[syntax-local-lift-expression]）的目标上下文，则返回 @racket[#t]，否则返回 @racket[#f]。
 
-Currently, @racket[(syntax-transforming?)] implies
-@racket[(syntax-transforming-with-lifts?)].
+目前，@racket[(syntax-transforming?)] 蕴含 @racket[(syntax-transforming-with-lifts?)]。
 
 @history[#:added "6.3.0.9"]}
 
 
 @defproc[(syntax-transforming-module-expression?) boolean?]{
 
-Returns @racket[#t] during the dynamic extent of a @tech{syntax
-transformer} application by the expander for an expression
-within a @racket[module] form, @racket[#f] otherwise.}
+在展开器对 @racket[module] 形式内的表达式应用 @tech{语法变换器} 的动态范围内返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(syntax-local-compiling-module?) boolean?]{
 
-Returns @racket[#t] during the dynamic extent of a @tech{syntax
-transformer} application by the expander in a @tech{module-begin
-context} and when the expansion is part of a compilation process where
-a compiled module can be returned directly. See also @racket[module].
+在展开器在 @tech{module-begin context} 中应用 @tech{语法变换器} 的动态范围内，
+且展开是可返回编译模块的编译过程的一部分时，返回 @racket[#t]。另请参见 @racket[module]。
 
 @history[#:added "8.13.0.7"]}
 
@@ -1189,20 +916,14 @@ a compiled module can be returned directly. See also @racket[module].
                                              [intdef-ctx (or/c internal-definition-context? #f) #f])
          identifier?]{
 
-Returns an identifier like @racket[id-stx], but without @tech{use-site
-scopes} that were previously added to the identifier as part of a
-macro expansion. When the @racket[intdef-ctx] is an internal-definition
-context, the function removes use-site scopes created during expansion
-in that context. When it is @racket[#f] (the default), it removes use-site
-scopes created during expansion in the current expansion context.
+返回类似 @racket[id-stx] 的标识符，但移除了之前作为宏展开的一部分添加到标识符的 @tech{使用点作用域}。
+当 @racket[intdef-ctx] 是一个内部定义上下文时，该函数移除了在该上下文中展开期间创建的使用点作用域。
+当它为 @racket[#f]（默认值）时，它移除了在当前展开上下文中展开期间创建的使用点作用域。
 
-In a @tech{syntax transformer} that runs in a non-expression context
-and forces the expansion of subforms with @racket[local-expand], use
-@racket[syntax-local-identifier-as-binding] on an identifier from the
-expansion before moving it into a binding position or comparing it
-with @racket[bound-identifier=?]. Otherwise, the results can be
-inconsistent with the way that @racket[define] works in the same
-definition context.
+在非表达式上下文中运行并强制使用 @racket[local-expand] 展开子形式的 @tech{语法变换器} 中，
+在将来自展开的标识符移动到绑定位置或与 @racket[bound-identifier=?] 比较之前，
+使用 @racket[syntax-local-identifier-as-binding] 处理该标识符。否则，结果可能与 @racket[define] 在同一
+定义上下文中的工作方式不一致。
 
 @transform-time[]
 
@@ -1212,11 +933,8 @@ definition context.
 
 @defproc[(syntax-local-introduce [stx syntax?]) syntax?]{
 
-Produces a syntax object that is like @racket[stx], except that the
-presence of @tech{scopes} for the current expansion---both the
-@tech{macro-introduction scope} and the @tech{use-site scope}, if any---is flipped
-on all parts of the syntax object. See @secref["transformer-model"] for information
-on macro-introduction and use-site @tech{scopes}.
+生成一个类似 @racket[stx] 的语法对象，不同之处在于当前展开的 @tech{作用域}——@tech{宏引入作用域} 和 @tech{使用点作用域}（如果有）——在语法对象的所有部分上被翻转。
+有关宏引入和使用点 @tech{作用域} 的信息，请参见 @secref["transformer-model"]。
 
 @transform-time[]
 
@@ -1231,22 +949,15 @@ on macro-introduction and use-site @tech{scopes}.
 @defproc[(make-syntax-introducer [as-use-site? any/c #f])
          ((syntax?) ((or/c 'flip 'add 'remove)) . ->* . syntax?)]{
 
-Produces a procedure that encapsulates a fresh @tech{scope} and flips,
-adds, or removes it in a given syntax object. By default, the fresh
-scope is a @tech{macro-introduction scope}, but providing a true value for
-@racket[as-use-site?] creates a scope that is like a @tech{use-site scope};
-the difference is in how the scopes are treated by
-@racket[syntax-original?].
+生成一个封装了新的 @tech{作用域} 的过程，并在给定的语法对象中翻转、添加或移除它。默认情况下，
+新的作用域是 @tech{宏引入作用域}，但为 @racket[as-use-site?] 提供真值会创建一个类似于 @tech{使用点作用域} 的作用域；
+区别在于 @racket[syntax-original?] 如何处理这些作用域。
 
-The action of the generated procedure can be @racket['flip] (the
-default) to flip the presence of a scope in each part of a given
-syntax object, @racket['add] to add the scope to each regardless of
-whether it is present already, or @racket['remove] to remove the scope
-when it is currently present in any part.
+生成的过程的操作可以是 @racket['flip]（默认值），用于翻转给定语法对象各部分中作用域的存在性；
+@racket['add] 用于将作用域添加到每个部分，无论其是否已存在；
+或 @racket['remove] 用于在当前任何部分中存在作用域时将其移除。
 
-Multiple applications of the same
-@racket[make-syntax-introducer] result procedure use the same scope,
-and different result procedures use distinct scopes.
+多次应用相同的 @racket[make-syntax-introducer] 结果过程使用相同的作用域，不同的结果过程使用不同的作用域。
 
 @history[#:changed "6.3" @elem{Added the optional
                                @racket[as-use-site?] argument, and
@@ -1256,21 +967,17 @@ and different result procedures use distinct scopes.
 @defproc[(make-interned-syntax-introducer [key (and/c symbol? symbol-interned?)])
          ((syntax?) ((or/c 'flip 'add 'remove)) . ->* . syntax?)]{
 
-Like @racket[make-syntax-introducer], but the encapsulated @tech{scope} is an @deftech{interned scope}. Multiple calls to
-@racket[make-interned-syntax-introducer] with the same @racket[key] will produce procedures that flip,
-add, or remove the same scope, even across @tech{phases} and module @tech{instantiations}.
-Furthermore, the scope remains consistent even when embedded in @tech{compiled} code, so a scope
-created with @racket[make-interned-syntax-introducer] will retain its identity in syntax objects
-loaded from compiled code. (In this sense, the relationship between @racket[make-syntax-introducer]
-and @racket[make-interned-syntax-introducer] is analogous to the relationship between
-@racket[gensym] and @racket[quote].)
+类似于 @racket[make-syntax-introducer]，但封装在其中的 @tech{作用域} 是一个 @deftech{interned scope}。
+使用相同 @racket[key] 多次调用 @racket[make-interned-syntax-introducer] 会产生翻转、添加或移除相同作用域的过程，
+即使是跨 @tech{phases} 和模块 @tech{instantiations}。此外，该作用域即使嵌入在 @tech{compiled} 代码中也保持一致，
+因此使用 @racket[make-interned-syntax-introducer] 创建的作用域在从编译代码加载的语法对象中会保持其标识。
+（在这个意义上，@racket[make-syntax-introducer] 和 @racket[make-interned-syntax-introducer] 之间的关系类似于
+@racket[gensym] 和 @racket[quote] 之间的关系。）
 
-This function is intended for the implementation of separate @tech{binding spaces} within a single
-phase, for which the scope associated with each environment must be the same across modules.
+此函数旨在用于在单个阶段内实现独立的 @tech{binding spaces}，为此每个环境关联的作用域必须在模块之间相同。
 
-Unlike @racket[make-syntax-introducer], the scope added by a procedure created with
-@racket[make-interned-syntax-introducer] is always treated like a @tech{use-site scope}, not a
-@tech{macro-introduction scope}, so it does not affect originalness as reported by @racket[syntax-original?].
+与 @racket[make-syntax-introducer] 不同，由 @racket[make-interned-syntax-introducer] 创建的过程所添加的作用域
+始终被视为 @tech{use-site scope} 而不是 @tech{macro-introduction scope}，因此它不会影响 @racket[syntax-original?] 报告的原始性。
 
 @history[#:added "6.90.0.28"
          #:changed "8.2.0.4" @elem{Added the constraint that @racket[key] is @tech{interned}.}]}
@@ -1281,9 +988,7 @@ Unlike @racket[make-syntax-introducer], the scope added by a procedure created w
                                                     (syntax-local-phase-level)])
          ((syntax?) ((or/c 'flip 'add 'remove)) . ->* . syntax?)]{
 
-Produces a procedure that behaves like the result of
-@racket[make-syntax-introducer], but using a set of @tech{scopes} from
-@racket[ext-stx] and with a default action of @racket['add].
+生成一个行为类似于 @racket[make-syntax-introducer] 的结果的过程，但使用来自 @racket[ext-stx] 的一组 @tech{作用域}，且默认操作为 @racket['add]。
 
 @itemlist[
 
@@ -1302,42 +1007,29 @@ Produces a procedure that behaves like the result of
 
 ]
 
-A @racket[#f] value for @racket[base-stx] is equivalent to a syntax
-object with no @tech{scopes}.
+@racket[base-stx] 的 @racket[#f] 值等同于没有 @tech{作用域} 的语法对象。
 
-This procedure is potentially useful when some @racket[_m-id] has a
-transformer binding that records some @racket[_orig-id], and a use of
-@racket[_m-id] introduces a binding of @racket[_orig-id]. In that
-case, the @tech{scopes} one the use of @racket[_m-id] added since the
-binding of @racket[_m-id] should be transferred to the binding
-instance of @racket[_orig-id], so that it captures uses with the same
-lexical context as the use of @racket[_m-id].
+此过程在某些情况下可能有用：当某个 @racket[_m-id] 具有记录某个 @racket[_orig-id] 的变换器绑定，
+且使用 @racket[_m-id] 会引入一个 @racket[_orig-id] 的绑定。在这种情况下，自 @racket[_m-id] 绑定以来添加到 @racket[_m-id] 使用上的 @tech{作用域}
+应转移到 @racket[_orig-id] 的绑定实例上，以便它捕获与 @racket[_m-id] 使用具有相同词法上下文的用法。
 
-If @racket[ext-stx] is @tech{tainted}, then an
-identifier result from the created procedure is @tech{tainted}.}
+如果 @racket[ext-stx] 是 @tech{tainted}，则从创建的过程返回的标识符结果是 @tech{tainted}。}
 
 
 @defproc[(syntax-local-transforming-module-provides?) boolean?]{
 
-Returns @racket[#t] while a @tech{provide transformer} is running (see
-@racket[make-provide-transformer]) or while an @racketidfont{expand} sub-form of
-@racket[#%provide] is expanded, @racket[#f] otherwise.}
+当 @tech{provide transformer} 正在运行时返回 @racket[#t]（参见 @racket[make-provide-transformer]），
+或者当 @racket[#%provide] 的 @racketidfont{expand} 子形式正在展开时返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(syntax-local-module-defined-identifiers) (and/c hash? immutable?)]{
 
-Can be called only while
-@racket[syntax-local-transforming-module-provides?] returns
-@racket[#t].
+只能在 @racket[syntax-local-transforming-module-provides?] 返回 @racket[#t] 时调用。
 
-It returns a hash table mapping a @tech{phase-level} number (such as
-@racket[0]) to a list of all definitions at that @tech{phase level}
-within the module being expanded. This information is used for
-implementing @racket[provide] sub-forms like @racket[all-defined-out].
+它返回一个哈希表，将 @tech{phase-level} 数字（如 @racket[0]）映射到正在展开的模块内该 @tech{phase level} 上所有定义的列表。
+此信息用于实现 @racket[provide] 子形式，如 @racket[all-defined-out]。
 
-Beware that the @tech{phase-level} keys are absolute relative to the
-enclosing module, and not relative to the current transformer phase
-level as reported by @racket[syntax-local-phase-level].}
+请注意，@tech{phase-level} 键是相对于外围模块的绝对级别，而不是相对于 @racket[syntax-local-phase-level] 报告的当前变换器阶段级别。}
 
 
 @defproc[(syntax-local-module-required-identifiers
@@ -1347,29 +1039,18 @@ level as reported by @racket[syntax-local-phase-level].}
                                (listof identifier?)))
                #f)]{
 
-Can be called only while
-@racket[syntax-local-transforming-module-provides?] returns
-@racket[#t].
+只能在 @racket[syntax-local-transforming-module-provides?] 返回 @racket[#t] 时调用。
 
-It returns an association list mapping @tech{phase level} and
-@tech{binding space} combinations to lists of
-identifiers.  Each list of identifiers includes all bindings imported
-(into the module being expanded) using the module path
-@racket[mod-path], or all modules if @racket[mod-path] is
-@racket[#f]. The association list includes all identifiers imported
-with a phase level and binding space shift as represented by @racket[shift],
-or all shifts if @racket[shift] is @racket[#t]. If @racket[shift] is
-not @racket[#t], the result can be @racket[#f] if no identifiers
-are imported at that shift.
+它返回一个关联列表，将 @tech{phase level} 和 @tech{binding space} 组合映射到标识符列表。
+每个标识符列表包括使用模块路径 @racket[mod-path] 导入（到正在展开的模块）的所有绑定，
+如果 @racket[mod-path] 是 @racket[#f]，则包括所有模块。关联列表包括以 @racket[shift] 表示的阶段级别和绑定空间偏移导入的所有标识符，
+如果 @racket[shift] 是 @racket[#t]，则包括所有偏移。如果 @racket[shift] 不是 @racket[#t]，
+且在该偏移下没有导入标识符，则结果可以是 @racket[#f]。
 
-When an identifier is renamed on import, the result association list
-includes the identifier by its internal name. Use
-@racket[identifier-binding] to obtain more information about the
-identifier.
+当标识符在导入时被重命名时，结果关联列表通过其内部名称包含该标识符。
+使用 @racket[identifier-binding] 获取有关该标识符的更多信息。
 
-Beware that the @tech{phase-level} shifts are absolute relative to the
-enclosing module, and not relative to the current transformer phase
-level as reported by @racket[syntax-local-phase-level].
+请注意，@tech{phase-level} 偏移是相对于外围模块的绝对级别，而不是相对于 @racket[syntax-local-phase-level] 报告的当前变换器阶段级别。
 
 @history[#:changed "8.2.0.3" @elem{Generalized @racket[shift] and result
                                    to phase--space combinations.}]}
@@ -1379,56 +1060,37 @@ level as reported by @racket[syntax-local-phase-level].
 @defproc[(liberal-define-context? [v any/c]) boolean?]
 )]{
 
-An instance of a structure type with a true value for the
-@racket[prop:liberal-define-context] property can be used as an
-element of an @tech{internal-definition context} representation in the
-result of @racket[syntax-local-context] or the second argument of
-@racket[local-expand]. Such a value indicates that the context
-supports @deftech{liberal expansion} of @racket[define] forms into
-potentially multiple @racket[define-values] and
-@racket[define-syntaxes] forms. The @racket['module] and
-@racket['module-body] contexts implicitly allow @tech{liberal
-expansion}.
+一个具有 @racket[prop:liberal-define-context] 属性真值的结构类型实例可以用作 @racket[syntax-local-context] 结果或 @racket[local-expand] 的第二个参数中
+@tech{internal-definition context} 表示的元素。
+此值表示该上下文支持 @deftech{liberal expansion}，即将 @racket[define] 形式展开为可能多个 @racket[define-values]
+和 @racket[define-syntaxes] 形式。@racket['module] 和 @racket['module-body] 上下文隐式允许 @tech{liberal expansion}。
 
-The @racket[liberal-define-context?] predicate returns @racket[#t] if
-@racket[v] is an instance of a structure with a true value for the
-@racket[prop:liberal-define-context] property, @racket[#f] otherwise.}
+@racket[liberal-define-context?] 谓词在 @racket[v] 是 @racket[prop:liberal-define-context] 属性为真值的结构实例时返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "require-trans"]{@racket[require] Transformers}
+@section[#:tag "require-trans"]{@racket[require] 变换器}
 
 @note-lib-only[racket/require-transform]
 
-A @tech{transformer} binding whose value is a structure with the
-@racket[prop:require-transformer] property implements a derived
-@racket[_require-spec] for @racket[require] as a @deftech{require
-transformer}.
+一个 @tech{transformer} 绑定，如果其值是一个具有 @racket[prop:require-transformer] 属性的结构，则实现了 @racket[require] 的派生 @racket[_require-spec]，
+作为一个 @deftech{require transformer}。
 
-A @tech{require transformer} is called with the syntax object representing its use
-as a @racket[_require-spec] within a @racket[require] form, and the
-result must be two lists: a list of @racket[import]s and a list of
-@racket[import-source]s.
+@tech{require transformer} 会接收到一个表示其在 @racket[require] 形式中作为 @racket[_require-spec] 的用法的语法对象，
+结果必须是两个列表：一个 @racket[import] 列表和一个 @racket[import-source] 列表。
 
-If the derived form contains a sub-form that is a
-@racket[_require-spec], then it can call @racket[expand-import] to
-transform the sub-@racket[_require-spec] to lists of imports and
-import sources.
+如果派生形式包含一个子形式是 @racket[_require-spec]，则可以调用 @racket[expand-import] 将该子 @racket[_require-spec] 转换
+为 import 和 import-source 列表。
 
-See also @racket[define-require-syntax], which supports macro-style
-@racket[require] transformers.
+另请参见 @racket[define-require-syntax]，它支持宏风格的 @racket[require] 变换器。
 
 @defproc[(expand-import [require-spec syntax?])
          (values (listof import?)
                  (listof import-source?))]{
 
-Expands the given @racket[_require-spec] to lists of imports and
-import sources.  The latter specifies modules to be
-@tech{instantiate}d or @tech{visit}ed, so the modules that it
-represents should be a superset of the modules represented in the
-former list (so that a module will be @tech{instantiate}d or
-@tech{visit}ed even if all of imports are eventually filtered from the
-former list).}
+将给定的 @racket[_require-spec] 展开为 import 和 import-source 列表。后者指定要 @tech{instantiate} 或 @tech{visit} 的模块，
+因此它所代表的模块应是前一个列表所代表的模块的超集（这样即使所有 import 最终都从前一个列表中被过滤掉，
+模块仍会被 @tech{instantiate} 或 @tech{visit}）。}
 
 
 @defproc[(make-require-transformer [proc (syntax? . -> . (values
@@ -1436,9 +1098,8 @@ former list).}
                                                           (listof import-source?)))])
          require-transformer?]{
 
-Creates a @tech{require transformer} using the given procedure as the
-transformer.
-Often used in combination with @racket[expand-import].
+使用给定的过程作为变换器创建一个 @tech{require transformer}。
+通常与 @racket[expand-import] 结合使用。
 
 @examples[
 #:eval stx-eval
@@ -1459,16 +1120,13 @@ Often used in combination with @racket[expand-import].
 
 @defthing[prop:require-transformer struct-type-property?]{
 
-A property to identify @tech{require transformers}. The property
-value must be a procedure that takes the structure and returns a transformer
-procedure; the returned transformer procedure takes a syntax object and returns
-import and import-source lists.}
+用于标识 @tech{require transformers} 的属性。属性值必须是一个过程，该过程接受结构并返回一个变换器过程；
+返回的变换器过程接受一个语法对象并返回 import 和 import-source 列表。}
 
 
 @defproc[(require-transformer? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] has the
-@racket[prop:require-transformer] property, @racket[#f] otherwise.}
+如果 @racket[v] 具有 @racket[prop:require-transformer] 属性，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defstruct[import ([local-id identifier?]
@@ -1480,7 +1138,7 @@ Returns @racket[#t] if @racket[v] has the
                    [orig-mode phase+space?]
                    [orig-stx syntax?])]{
 
-A structure representing a single imported identifier:
+表示单个导入标识符的结构：
 
 @itemize[
 
@@ -1516,9 +1174,7 @@ A structure representing a single imported identifier:
 @defstruct[import-source ([mod-path-stx (syntax/c module-path?)]
                           [mode phase+space-shift?])]{
 
-A structure representing an imported module, which must be
-@tech{instantiate}d or @tech{visit}ed even if no binding is imported
-into a module.
+表示导入模块的结构，即使没有绑定导入到模块中，也必须对其进行 @tech{instantiate} 或 @tech{visit}。
 
 @itemize[
 
@@ -1535,20 +1191,13 @@ into a module.
 
 @defparam[current-require-module-path module-path (or/c #f module-path-index?)]{
 
-A @tech{parameter} that determines how relative @racket[require]-level module
-paths are expanded to @racket[#%require]-level module paths by
-@racket[convert-relative-module-path] (which is used implicitly by all
-built-in @racket[require] sub-forms).
+一个 @tech{parameter}，决定了 @racket[convert-relative-module-path] 如何将相对 @racket[require] 级模块路径展开为 @racket[#%require] 级模块路径
+（所有内置 @racket[require] 子形式均隐式使用 @racket[convert-relative-module-path]）。
 
-When the value of @racket[current-require-module-path] is @racket[#f],
-relative module paths are left as-is, which means that the
-@racket[require] context determines the resolution of the module
-path.
+当 @racket[current-require-module-path] 的值是 @racket[#f] 时，相对模块路径保持原样，这意味着 @racket[require] 上下文决定模块路径的解析。
 
-The @racket[require] form @racket[parameterize]s
-@racket[current-require-module-path] as @racket[#f] while invoking
-sub-form transformers, while @racket[relative-in] @racket[parameterize]s
-to a given module path.}
+@racket[require] 形式在调用子形式变换器时将 @racket[current-require-module-path] 以 @racket[parameterize] 设置为 @racket[#f]，
+而 @racket[relative-in] 则以 @racket[parameterize] 设置为给定的模块路径。}
 
 
 @defproc[(convert-relative-module-path [module-path
@@ -1557,22 +1206,17 @@ to a given module path.}
           (or/c module-path?
                 (syntax/c module-path?))]{
 
-Converts @racket[module-path] according to @racket[current-require-module-path].
+根据 @racket[current-require-module-path] 转换 @racket[module-path]。
 
-If @racket[module-path] is not relative or if the value of
-@racket[current-require-module-path] is @racket[#f], then
-@racket[module-path] is returned. Otherwise, @racket[module-path] is
-converted to an absolute module path that is equivalent to
-@racket[module-path] relative to the value of
-@racket[current-require-module-path].}
+如果 @racket[module-path] 不是相对路径，或者 @racket[current-require-module-path] 的值是 @racket[#f]，
+则返回 @racket[module-path]。否则，@racket[module-path] 被转换为一个绝对模块路径，该路径等价于
+相对于 @racket[current-require-module-path] 的值的 @racket[module-path]。}
 
 @defproc[(syntax-local-lift-require-top-level-form [top-level-stx syntax?])
          void?]{
- Lifts @racket[top-level-stx] to the top-level of the enclosing module, immediately
- following the @racket[require] that is being expanded.
+ 将 @racket[top-level-stx] 提升到外围模块的顶层，紧跟在正在展开的 @racket[require] 之后。
 
- @transform-time[] In addition, this procedure may only be called while
- expanding a @tech{require transformer}.
+ @transform-time[] 此外，此过程只能在展开 @tech{require transformer} 时调用。
 
  @history[#:added "8.12.0.13"]
 }
@@ -1581,63 +1225,41 @@ converted to an absolute module path that is equivalent to
          ((syntax?) (or/c #f (syntax? . -> . syntax?))
           . ->* . syntax?)]{
 
-For backward compatibility only; returns a procedure that returns its
-first argument.}
+仅为向后兼容而提供；返回一个返回其第一个参数的过程。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "provide-trans"]{@racket[provide] Transformers}
+@section[#:tag "provide-trans"]{@racket[provide] 变换器}
 
 @note-lib-only[racket/provide-transform]
 
-A @tech{transformer} binding whose value is a structure with the
-@racket[prop:provide-transformer] property implements a derived
-@racket[_provide-spec] for @racket[provide] as a @deftech{provide transformer}.
-A @tech{provide transformer} is applied as part of the last phase of
-a module's expansion, after all other declarations and expressions within
-the module are expanded.
+一个 @tech{transformer} 绑定，如果其值是一个具有 @racket[prop:provide-transformer] 属性的结构，则实现了 @racket[provide] 的派生 @racket[_provide-spec]，
+作为一个 @deftech{provide transformer}。@tech{provide transformer} 作为模块展开的最后阶段的一部分被应用，
+在模块内所有其他声明和表达式展开之后。
 
-A @tech{transformer} binding whose value is a structure with the
-@racket[prop:provide-pre-transformer] property implements a derived
-@racket[_provide-spec] for @racket[provide] as a @deftech{provide
-pre-transformer}.  A @tech{provide pre-transformer} is applied as part
-of the first phase of a module's expansion. Since it is used in the
-first phase, a @tech{provide pre-transformer} can use functions such
-as @racket[syntax-local-lift-expression] to introduce expressions and
-definitions in the enclosing module.
+一个 @tech{transformer} 绑定，如果其值是一个具有 @racket[prop:provide-pre-transformer] 属性的结构，则实现了 @racket[provide] 的派生 @racket[_provide-spec]，
+作为一个 @deftech{provide pre-transformer}。@tech{provide pre-transformer} 作为模块展开的第一阶段的一部分被应用。
+由于它在第一阶段使用，@tech{provide pre-transformer} 可以使用 @racket[syntax-local-lift-expression] 等函数在外围模块中引入表达式和定义。
 
-An identifier can have a @tech{transformer} binding to a value that
-acts both as a @tech{provide transformer} and @tech{provide
-pre-transformer}. The result of a @tech{provide
-pre-transformer} is @emph{not} automatically re-expanded, so a
-@tech{provide pre-transformer} can usefully expand to itself in that case.
+一个标识符可以有一个 @tech{transformer} 绑定到一个同时充当 @tech{provide transformer} 和 @tech{provide pre-transformer} 的值。
+@tech{provide pre-transformer} 的结果 @emph{不} 会自动重新展开，因此在这种情况下，@tech{provide pre-transformer} 可以有用地展开为自身。
 
-A transformer is called with the syntax object representing its use as
-a @racket[_provide-spec] within a @racket[provide] form and a list of
-symbols representing the export modes specified by enclosing
-@racket[_provide-spec]s. The result of a @tech{provide transformer}
-must be a list of @racket[export]s, while the result of a
-@tech{provide pre-transformer} is a syntax object to be used as a
-@racket[_provide-spec] in the last phase of module expansion.
+变换器会接收到表示其在 @racket[provide] 形式中作为 @racket[_provide-spec] 的用法的语法对象，
+以及一个表示外围 @racket[_provide-spec] 所指定的导出模式的符号列表。
+@tech{provide transformer} 的结果必须是 @racket[export] 列表，
+而 @tech{provide pre-transformer} 的结果是一个将在模块展开的最后阶段用作 @racket[_provide-spec] 的语法对象。
 
-If a derived form contains a sub-form that is a
-@racket[_provide-spec], then it can call @racket[expand-export] or
-@racket[pre-expand-export] to transform the sub-@racket[_provide-spec]
-sub-form.
+如果派生形式包含一个子形式是 @racket[_provide-spec]，则可以调用 @racket[expand-export] 或 @racket[pre-expand-export] 来转换该子 @racket[_provide-spec] 子形式。
 
-See also @racket[define-provide-syntax], which supports macro-style
-@tech{provide transformers}.
+另请参见 @racket[define-provide-syntax]，它支持宏风格的 @tech{provide transformers}。
 
 
 @defproc[(expand-export [provide-spec syntax?] [modes (listof phase+space?)])
          (listof export?)]{
 
-Expands the given @racket[_provide-spec] to a list of exports. The
-@racket[modes] list controls the expansion of
-sub-@racket[_provide-specs]; for example, an identifier refers to a
-binding in the @tech{phase level} of the enclosing @racket[provide]
-form, unless the @racket[modes] list specifies otherwise. Normally,
-@racket[modes] is either empty or contains a single element.
+将给定的 @racket[_provide-spec] 展开为导出列表。@racket[modes] 列表控制子 @racket[_provide-specs] 的展开；
+例如，一个标识符引用外围 @racket[provide] 形式的 @tech{phase level} 中的绑定，除非 @racket[modes] 列表另有指定。
+通常，@racket[modes] 为空或包含单个元素。
 
 @history[#:changed "8.2.0.3" @elem{Generalized @racket[modes] to phase--space combinations.}]}
 
@@ -1645,9 +1267,7 @@ form, unless the @racket[modes] list specifies otherwise. Normally,
 @defproc[(pre-expand-export [provide-spec syntax?] [modes (listof phase+space?)])
          syntax?]{
 
-Expands the given @racket[_provide-spec] at the level of @tech{provide
-pre-transformers}. The @racket[modes] argument is the same as for
-@racket[expand-export].
+在 @tech{provide pre-transformers} 的级别上展开给定的 @racket[_provide-spec]。@racket[modes] 参数与 @racket[expand-export] 的相同。
 
 @history[#:changed "8.2.0.3" @elem{Generalized @racket[modes] to phase--space combinations.}]}
 
@@ -1661,21 +1281,17 @@ pre-transformers}. The @racket[modes] argument is the same as for
                                                  . -> . syntax?)])
             (and/c provide-transformer? provide-pre-transformer?)])]{
 
-Creates a @tech{provide transformer} (i.e., a structure with the
-@racket[prop:provide-transformer] property) using the given procedure
-as the transformer. If a @racket[pre-proc] is provided, then the result is also a
-@tech{provide pre-transformer}.
-Often used in combination with @racket[expand-export] and/or
-@racket[pre-expand-export].}
+使用给定的过程作为变换器创建一个 @tech{provide transformer}（即具有 @racket[prop:provide-transformer] 属性的结构）。
+如果提供了 @racket[pre-proc]，则结果也是一个 @tech{provide pre-transformer}。
+通常与 @racket[expand-export] 和/或 @racket[pre-expand-export] 结合使用。}
 
 
 @defproc[(make-provide-pre-transformer [pre-proc (syntax? (listof phase+space?)
                                                   . -> . syntax?)])
          provide-pre-transformer?]{
 
-Like @racket[make-provide-transformer], but for a value that is a
-@tech{provide pre-transformer}, only.
-Often used in combination with @racket[pre-expand-export].
+类似于 @racket[make-provide-transformer]，但仅用于 @tech{provide pre-transformer} 的值。
+通常与 @racket[pre-expand-export] 结合使用。
 
 @examples[
 #:eval stx-eval
@@ -1705,30 +1321,24 @@ Often used in combination with @racket[pre-expand-export].
 
 @defthing[prop:provide-transformer struct-type-property?]{
 
-A property to identify @tech{provide transformers}. The property
-value must be a procedure that takes the structure and returns a transformer
-procedure; the returned transformer procedure takes a syntax object and mode list and
-returns an export list.}
+用于标识 @tech{provide transformers} 的属性。属性值必须是一个过程，该过程接受结构并返回一个变换器过程；
+返回的变换器过程接受一个语法对象和模式列表，并返回一个导出列表。}
 
 
 @defthing[prop:provide-pre-transformer struct-type-property?]{
 
-A property to identify @tech{provide pre-transformers}. The property
-value must be a procedure that takes the structure and returns a transformer
-procedure; the returned transformer procedure takes a syntax object and mode list and
-returns a syntax object.}
+用于标识 @tech{provide pre-transformers} 的属性。属性值必须是一个过程，该过程接受结构并返回一个变换器过程；
+返回的变换器过程接受一个语法对象和模式列表，并返回一个语法对象。}
 
 
 @defproc[(provide-transformer? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] has the
-@racket[prop:provide-transformer] property, @racket[#f] otherwise.}
+如果 @racket[v] 具有 @racket[prop:provide-transformer] 属性，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(provide-pre-transformer? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] has the
-@racket[prop:provide-pre-transformer] property, @racket[#f] otherwise.}
+如果 @racket[v] 具有 @racket[prop:provide-pre-transformer] 属性，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defstruct[export ([local-id identifier?]
@@ -1737,14 +1347,14 @@ Returns @racket[#t] if @racket[v] has the
                    [protect? any/c]
                    [orig-stx syntax?])]{
 
-A structure representing a single exported identifier:
+表示单个导出标识符的结构：
 
 @itemize[
 
  @item{@racket[local-id] --- the identifier that is bound within the
        exporting module.}
 
- @item{@racket[out-id] --- the external name of the binding.}
+ @item{@racket[out-id] --- 绑定的外部名称。}
 
  @item{@racket[mode] --- the @tech{phase level} and @tech{binding
        space} of the export (which affects how it is imported).}
@@ -1769,10 +1379,9 @@ A structure representing a single exported identifier:
 
 @defproc[(export-out-sym [ex export?]) symbol?]{
 
-Composes @racket[syntax-e] with @racket[export-out-id].
+将 @racket[syntax-e] 与 @racket[export-out-id] 组合。
 
-This function is intended for backward compatibility. Use
-@racket[export-out-id] directly, instead.
+此函数旨在向后兼容。请直接使用 @racket[export-out-id]。
 
 @history[#:added "8.9.0.5"]
 }
@@ -1781,12 +1390,11 @@ This function is intended for backward compatibility. Use
          ((syntax?) (or/c #f (syntax? . -> . syntax?))
           . ->* . syntax?)]{
 
-For backward compatibility only; returns a procedure that returns its
-first argument.}
+仅为向后兼容而提供；返回一个返回其第一个参数的过程。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "keyword-trans"]{Keyword-Argument Conversion Introspection}
+@section[#:tag "keyword-trans"]{关键字参数转换内省}
 
 @note-lib-only[racket/keyword-transform]
 
@@ -1805,52 +1413,41 @@ first argument.}
                  val?))]
 )]{
 
-Reports the value of a syntax property that can be
-attached to an identifier by the expansion of a keyword-application
-form. See @racket[lambda] for more
-information about the property.
+报告一个语法属性的值，该属性可以通过关键字应用形式的展开附加到标识符上。
+有关该属性的更多信息，请参见 @racket[lambda]。
 
-The property value is normally a pair consisting of the original
-identifier and an identifier that appears in the
-expansion. Property-value merging via @racket[syntax-track-origin] can make
-the value a pair of such values, and so on.}
+属性值通常是一个由原始标识符和出现在展开中的标识符组成的 pair。
+通过 @racket[syntax-track-origin] 的属性值合并可以使该值成为这种值的 pair，依此类推。}
 
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "portal-syntax"]{Portal Syntax Bindings}
+@section[#:tag "portal-syntax"]{入口语法绑定}
 
-An identifier bound to @deftech{portal syntax} value created by
-@racket[make-portal-syntax] does not act as a transformer, but it
-encapsulates a syntax object that can be accessed and inspected even
-without instantiating the enclosing module. Portal syntax is also bound
-using the @racketidfont{portal} form of @racket[#%require].
+绑定到由 @racket[make-portal-syntax] 创建的 @deftech{portal syntax} 值的标识符不充当变换器，
+但它封装了一个语法对象，即使不实例化外围模块也可以访问和检查该对象。
+入口语法也可以使用 @racket[#%require] 的 @racketidfont{portal} 形式来绑定。
 
 @defproc[(portal-syntax? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a value created by
-@racket[make-portal-syntax], @racket[#f] otherwise.
+如果 @racket[v] 是由 @racket[make-portal-syntax] 创建的值，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @history[#:added "8.3.0.8"]}
 
 @defproc[(make-portal-syntax [stx syntax?])
          portal-syntax?]{
 
-Creates @tech{portal syntax} with the content @racket[stx].
+创建内容为 @racket[stx] 的 @tech{portal syntax}。
 
-When @racket[define-syntax] or @racket[define-syntaxes] binds an
-identifier to portal syntax immediately in a module body, then in
-addition to being accessible via @racket[syntax-local-value] while
-expanding, the portal syntax content is accessible via
-@racket[identifier-binding-portal-syntax].
+当 @racket[define-syntax] 或 @racket[define-syntaxes] 在模块体中直接将标识符绑定到入口语法时，
+除了在展开时通过 @racket[syntax-local-value] 可访问外，还可以通过 @racket[identifier-binding-portal-syntax] 访问入口语法内容。
 
 @history[#:added "8.3.0.8"]}
 
 @defproc[(portal-syntax-content [portal portal-syntax?])
          syntax?]{
 
-Returns the content of @tech{portal syntax} created with
-@racket[make-portal-syntax].
+返回使用 @racket[make-portal-syntax] 创建的 @tech{portal syntax} 的内容。
 
 @history[#:added "8.3.0.8"]}
 
