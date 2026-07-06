@@ -8,7 +8,7 @@
 @(define box-eval (make-base-eval))
 @examples[#:hidden #:eval box-eval (require racket/sandbox)]
 
-@title{Sandboxed Evaluation}
+@title{沙箱求值}
 
 @note-lib-only[racket/sandbox]
 
@@ -70,11 +70,11 @@ a program in one of the following forms:
 
 @itemize[
 
- @item{an input port used to read the program;}
+ @item{用于读取程序的 input port；}
 
- @item{a string or a byte string holding the complete input;}
+ @item{保存完整输入的 string 或 byte string；}
 
- @item{a path that names a file holding the input; or}
+ @item{命名保存输入的文件的 path；或}
 
  @item{an S-expression or a @tech{syntax object}, which is evaluated
        as with @racket[eval] (see also
@@ -127,7 +127,7 @@ argument:
        parameters (such as such as @racket[read-accept-infix-dot]) are
        set to customize reading programs from strings and ports.
 
-       This option is provided mainly for older test systems. Using
+       此选项主要为较旧的测试系统提供。 Using
        @racket[make-module-evaluator] with input starting with
        @racketmodfont{#lang} is generally better.}
 
@@ -213,7 +213,7 @@ In all cases, the evaluator operates in an isolated and limited
 environment:
 @itemize[
 
- @item{It uses a new custodian and namespace. When 
+ @item{它使用新的 custodian 和 namespace。 When 
        @racket[gui-available?] and @racket[sandbox-gui-available] produce
        true, it is also runs in its own eventspace.}
 
@@ -256,7 +256,7 @@ sandboxed code, for example:
  (let ([e (make-evaluator 'racket/base)])
    (e `(,e 1))))
 ]
-An error will be signaled in such cases.
+在这种情况下将发出错误信号。
 
 If the value of @racket[sandbox-propagate-exceptions] is true (the
 default) when the sandbox is created, then exceptions (both syntax and
@@ -297,7 +297,7 @@ continue to raise it on further evaluation attempts.}
 
 @; ----------------------------------------------------------------------
 
-@section{Security Considerations}
+@section{安全考虑}
 
 Although the sandbox is designed to provide a safe environment for executing
 Racket programs with restricted access to system resources, executing untrusted
@@ -307,7 +307,7 @@ an attacker who identifies a vulnerability in Racket or an installed collection
 may be able to escape the sandbox.
 
 To mitigate this risk, programs that use the sandbox should employ additional
-precautions when possible. Suggested measures include:
+precautions when possible. 建议的措施包括：
 @itemlist[
 @item{Supplying a custom module language to @racket[make-evaluator] or
 @racket[make-module-evaluator] that gives untrusted code access to only
@@ -322,7 +322,7 @@ with the latest release.}
 
 @; ----------------------------------------------------------------------
 
-@section{Customizing Evaluators}
+@section{自定义 Evaluator}
 
 The sandboxed evaluators that @racket[make-evaluator] creates can be
 customized via many parameters.  Most of the configuration parameters
@@ -399,14 +399,14 @@ used to read the program input for @racket[make-module-evaluator],
 
 A @tech{parameter} that determines the initial @racket[current-input-port]
 setting for a newly created evaluator. It defaults to @racket[#f],
-which creates an empty port.  The following other values are allowed:
+which creates an empty port.  允许以下其他值：
 
 @itemize[
 
  @item{a string or byte string, which is converted to a port using
        @racket[open-input-string] or @racket[open-input-bytes];}
 
- @item{an input port;}
+ @item{input port；}
 
  @item{the symbol @racket['pipe], which triggers the creation of a
        pipe, where @racket[put-input] can return the output end of the
@@ -433,7 +433,7 @@ values are allowed:
 
 @itemize[
 
- @item{an output port, which is used as-is;}
+ @item{output port，按原样使用；}
 
  @item{the symbol @racket['bytes], which causes @racket[get-output] to
        return the complete output as a byte string as long as the
@@ -479,7 +479,7 @@ A @tech{parameter} that controls whether syntactic coverage information is
 collected by sandbox evaluators.  Use
 @racket[get-uncovered-expressions] to retrieve coverage information.
 
-The default value is @racket[#f].
+默认值是 @racket[#f]。
 }
 
 
@@ -496,7 +496,7 @@ evaluator's result, in which case the evaluation result is lost. Finally,
 beware that a break may be propagated after an evaluator has produced
 a result, so that the break is visible on the next interaction with
 the evaluator (or the break is lost if the evaluator is not used
-further). The default is @racket[#t].}
+further). 默认值是 @racket[#t]。}
 
 
 @defboolparam[sandbox-propagate-exceptions propagate?]{
@@ -520,7 +520,7 @@ that creates the namespace, and the rest are module paths for modules
 to be attached to the created namespace using
 @racket[namespace-attach-module].
 
-The default is @racket[(list sandbox-make-namespace)].
+默认值是 @racket[(list sandbox-make-namespace)]。
 
 The module paths are needed for sharing module instantiations between
 the sandbox and the caller.  For example, sandbox code that returns
@@ -555,7 +555,7 @@ Determines whether the @racketmodname[racket/gui] module can be used
 when a sandbox evaluator is created. If @racket[gui-available?]
 produces @racket[#f] during the creation of a sandbox evaluator, this
 parameter is forced to @racket[#f] during initialization of the
-sandbox. The default value of the parameter is @racket[#t].
+sandbox. 参数的默认值是 @racket[#t]。
 
 Various aspects of the library change when the GUI library is
 available, such as using a new eventspace for each evaluator.}
@@ -569,7 +569,7 @@ parameter is useful for cases when you want to test code using an
 alternate, test-friendly version of a collection, for example, testing
 code that uses a GUI (like the @racket[htdp/world] teachpack) can be
 done using a fake library that provides the same interface but no
-actual interaction. The default is @racket[null].}
+actual interaction. 默认值是 @racket[null]。}
 
 
 @defparam[sandbox-security-guard guard
@@ -600,7 +600,7 @@ The access mode symbol is one of: @racket['execute], @racket['write],
 are in decreasing order: each implies access for the following modes
 too (e.g., @racket['read] allows reading or checking for existence).
 
-The path regexp is used to identify paths that are granted access.  It
+路径 regexp 用于标识被授予访问权限的路径。  It
 can also be given as a path (or a string or a byte string), which is
 (made into a complete path, cleansed, simplified, and then) converted
 to a regexp that allows the path and sub-directories; e.g.,
@@ -652,10 +652,10 @@ appropriate error message (see
 @defparam[sandbox-memory-limit limit (or/c (>=/c 0) #f)]{
 
 A @tech{parameter} that determines the total memory limit on the sandbox in
-megabytes (it can hold a rational or a floating point number).  When
+megabytes(它可以是有理数或浮点数)。  When
 this limit is exceeded, the sandbox is terminated.  This value is used
 when the sandbox is created and the limit cannot be changed
-afterwards.  It defaults to 30mb.  See @racket[sandbox-eval-limits]
+afterwards.  它默认为 30mb。  See @racket[sandbox-eval-limits]
 for per-evaluation limits and a description of how the two limits work
 together.
 
@@ -706,7 +706,7 @@ fail if the limits are strict enough.  For example,
   (parameterize ([sandbox-eval-limits '(0.25 5)])
     (make-evaluator 'racket/base '(sleep 2)))
 ]
-will throw an error instead of creating an evaluator.  Therefore, to
+将抛出错误而不是创建 evaluator。  Therefore, to
 avoid surprises you need to catch errors that happen when the sandbox
 is created.
 
@@ -819,7 +819,7 @@ initializing an evaluator.
 If the value is @racket['propagate] (the default), then a new plumber
 is created, and a @tech{flush callback} is added to the current
 plumber to propagate the request to the new plumber within the created
-sandbox (if the sandbox has not already terminated).
+sandbox(如果沙箱尚未终止)。
 
 @history[#:added "6.0.1.8"]}
 
@@ -860,7 +860,7 @@ in the future):
 
 @; ----------------------------------------------------------------------
 
-@section{Interacting with Evaluators}
+@section{与 Evaluator 交互}
 
 The following functions are used to interact with a sandboxed
 evaluator in addition to using it to evaluate code.
@@ -868,7 +868,7 @@ evaluator in addition to using it to evaluate code.
 
 @defproc[(evaluator-alive? [evaluator (any/c . -> . any)]) boolean?]{
 
-Determines whether the evaluator is still alive.}
+确定 evaluator 是否仍然存活。}
 
 
 @defproc[(kill-evaluator [evaluator (any/c . -> . any)]) void?]{
@@ -885,14 +885,14 @@ immediately.}
 
 @defproc[(break-evaluator [evaluator (any/c . -> . any)]) void?]{
 
-Sends a break to the running evaluator.  The effect of this is as if
+向运行中的 evaluator 发送中断。  The effect of this is as if
 Ctrl-C was typed when the evaluator is currently executing, which
 propagates the break to the evaluator's context.}
 
 
 @defproc[(get-user-custodian [evaluator (any/c . -> . any)]) void?]{
 
-Retrieves the @racket[evaluator]'s toplevel custodian.  This returns a
+检索 @racket[evaluator] 的 toplevel custodian。  This returns a
 value that is different from @racket[(evaluator '(current-custodian))]
 or @racket[(call-in-sandbox-context evaluator current-custodian)] --- each
 sandbox interaction is wrapped in its own custodian, which is what these
@@ -914,7 +914,7 @@ megabytes (either one can be @racket[#f], indicating no limit).
 
 This procedure should be used to modify an existing evaluator limits,
 because changing the @racket[sandbox-eval-limits] parameter does not
-affect existing evaluators. See also @racket[call-with-limits].}
+affect existing evaluators. 另见 @racket[call-with-limits]。}
 
 
 @defproc[(set-eval-handler [evaluator (any/c . -> . any)]
@@ -936,7 +936,7 @@ provided.}
 @defproc*[([(call-with-custodian-shutdown [thunk (-> any)]) any]
            [(call-with-killing-threads [thunk (-> any)]) any])]{
 
-These functions are useful for use as an evaluation handler.
+这些 function 用作求值 handler 很有用。
 @racket[call-with-custodian-shutdown] will execute the @racket[thunk]
 in a fresh custodian, then shutdown that custodian, making sure that
 @racket[thunk] could not have left behind any resources.
@@ -974,7 +974,7 @@ in a way that depends on the setting of @racket[(sandbox-output)] or
        terminated, and any allocations of the output are subject to
        the sandbox memory limit);}
 
-  @item{otherwise, it returns @racket[#f].}
+  @item{否则，它返回 @racket[#f]。}
 ]}
 
 
@@ -1053,7 +1053,7 @@ your own permissions, for example,
 
 @; ----------------------------------------------------------------------
 
-@section{Miscellaneous}
+@section{其他}
 
 @defthing[gui? boolean?]{
 
@@ -1080,7 +1080,7 @@ exception).  Each of the two limits can be @racket[#f] to indicate the
 absence of a limit. See also @racket[custodian-limit-memory] for
 information on memory limits.
 
-To enforce limits, @racket[thunk] is run in a new thread. As usual,
+为了强制执行限制，@racket[thunk] 在新 thread 中运行。 As usual,
 the new thread starts with the same parameter values as the one that
 calls @racket[call-with-limits]. @emph{Not} as usual, parameter values
 from the thread used to run @racket[thunk] are copied back to the
@@ -1095,7 +1095,7 @@ only to limit a whole testing session, instead of each expression.}
 
 @defform[(with-limits sec-expr mb-expr body ...)]{
 
-A macro version of @racket[call-with-limits].}
+@racket[Call-with-limits] 的 macro 版本。}
 
 @defproc[(call-with-deep-time-limit [secs exact-nonnegative-integer?]
                                     [thunk (-> any)])
@@ -1103,7 +1103,7 @@ A macro version of @racket[call-with-limits].}
 Executes the given @racket[thunk] with @tech{deep time} restrictions,
 and returns the values produced by @racket[thunk].
 
-The given @racket[thunk] is run in a new thread. If it errors or if
+给定的 @racket[thunk] 在新 thread 中运行。 If it errors or if
 the thread terminates returning a value, then @racket[(values)] is
 returned.
 
@@ -1112,7 +1112,7 @@ returned.
 
 @defform[(with-deep-time-limit secs-expr body ...)]{
 
-A macro version of @racket[call-with-deep-time-limit].}
+@racket[Call-with-deep-time-limit] 的 macro 版本。}
 
 @defproc*[([(exn:fail:resource? [v any/c]) boolean?]
            [(exn:fail:resource-resource [exn exn:fail:resource?])
