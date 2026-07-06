@@ -2,23 +2,15 @@
 @(require scribble/manual scribble/eval "../guide-utils.rkt" "utils.rkt"
           (for-label racket/contract))
 
-@title[#:tag "contracts-struct"]{Contracts on Structures}
+@title[#:tag "contracts-struct"]{结构上的契约}
 
-Modules deal with structures in two ways. First they export
-@racket[struct] definitions, i.e., the ability to create
-structs of a certain kind, to access their fields, to modify
-them, and to distinguish structs of this kind against every
-other kind of value in the world. Second, on occasion a
-module exports a specific struct and wishes to promise that
-its fields contain values of a certain kind. This section
-explains how to protect structs with contracts for both
-uses.
+模块以两种方式处理结构。首先，它们导出
+@racket[struct] 定义，即创建某种类型的 struct、访问其字段、修改字段，以及将该类型的 struct 与世界上所有其他类型的值区分开来的能力。其次，有时模块会导出一个特定的 struct，并承诺其字段包含某种类型的值。本节解释如何为这两种用途用契约保护 struct。
 
 @; ----------------------------------------------------------------------
-@ctc-section[#:tag "single-struct"]{Guarantees for a Specific Value}
+@ctc-section[#:tag "single-struct"]{对特定值的保证}
 
-If your module defines a variable to be a structure value, then you can
-specify the structure's shape using @racket[struct/c]. 
+如果你的模块定义一个变量为结构值，那么你可以使用 @racket[struct/c] 来指定该结构的形状。
 
 @racketmod[
 racket
@@ -32,20 +24,14 @@ racket
     [origin (struct/c posn zero? zero?)]))
 ]
 
-In this example, the module defines a structure shape for representing
-2-dimensional positions and then creates one specific instance:
-@racket[origin]. The export of this instance guarantees that its fields
-are @racket[0], i.e., they represent @tt{(0,0)}, on the Cartesian grid. 
+在这个例子中，模块定义了一个用于表示二维位置的结构形状，然后创建了一个特定的实例：@racket[origin]。该实例的导出保证其字段为 @racket[0]，即它们表示笛卡尔网格上的 @tt{(0,0)}。 
 
-@margin-note{See also @racket[vector/c] and similar contract
-combinators for (flat) compound data.}
+@margin-note{另见 @racket[vector/c] 以及类似的契约组合子，用于（flat）复合数据。}
 
 @; ----------------------------------------------------------------------
-@ctc-section[#:tag "define-struct"]{Guarantees for All Values}
+@ctc-section[#:tag "define-struct"]{对所有值的保证}
 
-The book @|HtDP| teaches that @racket[posn]s should contain only
-numbers in their two fields. With contracts we would enforce this
-informal data definition as follows:
+@|HtDP| 一书教导我们，@racket[posn] 的两个字段应该只包含数字。使用契约时，我们可以如下强制执行这个非正式的数据定义：
 
 @racketmod[
 racket
@@ -61,25 +47,11 @@ racket
 (define p-sick (posn 'a 'b))
 ]
 
-This module exports the entire structure definition: @racket[posn],
-@racket[posn?], @racket[posn-x], @racket[posn-y],
-@racket[set-posn-x!], and @racket[set-posn-y!]. Each function enforces
-or promises that the two fields of a @racket[posn] structure are
-numbers --- when the values flow across the module boundary.  Thus, if
-a client calls @racket[posn] on @racket[10] and @racket['a], the
-contract system signals a contract violation.
+该模块导出整个结构定义：@racket[posn]、@racket[posn?]、@racket[posn-x]、@racket[posn-y]、@racket[set-posn-x!] 和 @racket[set-posn-y!]。每个函数在值跨越模块边界时强制执行或承诺 @racket[posn] 结构的两个字段是数字。因此，如果客户端用 @racket[10] 和 @racket['a] 调用 @racket[posn]，契约系统会发出契约违规信号。
 
-The creation of @racket[p-sick] inside of the @racket[posn] module,
-however, does not violate the contracts. The function @racket[posn] is
-used internally, so @racket['a] and @racket['b] don't cross the module
-boundary. Similarly, when @racket[p-sick] crosses the boundary of
-@racket[posn], the contract promises a @racket[posn?] and nothing
-else. In particular, this check does @italic{not} require that the
-fields of @racket[p-sick] are numbers.
+然而，在 @racket[posn] 模块内部创建 @racket[p-sick] 并不违反契约。函数 @racket[posn] 在内部使用，所以 @racket['a] 和 @racket['b] 不会跨越模块边界。类似地，当 @racket[p-sick] 跨越 @racket[posn] 的边界时，契约承诺它是 @racket[posn?] 而已，不承诺其他。特别地，这个检查@italic{不}要求 @racket[p-sick] 的字段是数字。
 
-The association of contract checking with module boundaries implies that
-@racket[p-okay] and @racket[p-sick] look alike from a client's
-perspective until the client extracts the pieces: 
+契约检查与模块边界的关联意味着，从客户端的角度看，@racket[p-okay] 和 @racket[p-sick] 看起来是一样的，直到客户端提取其中的字段：
 
 @racketmod[
 racket
@@ -88,30 +60,17 @@ racket
 ... (posn-x p-sick) ...
 ]
 
-Using @racket[posn-x] is the only way the client can find out what
-a @racket[posn] contains in the @racket[x] field. The application of
-@racket[posn-x] sends @racket[p-sick] back into the
-@racket[posn] module and the result value -- @racket['a] here -- back to
-the client, again across the module boundary. At this very point, the contract
-system discovers that a promise is broken. Specifically, @racket[posn-x]
-doesn't return a number but a symbol and is therefore blamed. 
+使用 @racket[posn-x] 是客户端能够找出 @racket[posn] 的 @racket[x] 字段中包含什么的唯一方法。@racket[posn-x] 的应用将 @racket[p-sick] 发送回 @racket[posn] 模块，并将结果值（这里是 @racket['a]）再次跨越模块边界发送回客户端。就在这一点上，契约系统发现一个承诺被打破了。具体来说，@racket[posn-x] 返回的不是数字而是 symbol，因此被归责。 
 
-This specific example shows that the explanation for a contract violation
-doesn't always pinpoint the source of the error. The good news is that the
-error is located in the @racket[posn] module. The bad news is that the
-explanation is misleading. Although it is true that @racket[posn-x]
-produced a symbol instead of a number, it is the fault of the programmer who
-created a @racket[posn] from symbols, i.e., the programmer who added
+这个具体的例子表明，对契约违规的解释并不总能 pinpoint 错误源。好消息是错误位于 @racket[posn] 模块中。坏消息是解释具有误导性。虽然 @racket[posn-x] 确实产生了 symbol 而不是数字，但这是从 symbol 创建 @racket[posn] 的程序员的错，即添加了
 
 @racketblock[
 (define p-sick (posn 'a 'b))
 ]
 
- to the module. So, when you are looking for bugs based on contract
- violations, keep this example in mind.
+到模块的程序员。所以，当你基于契约违规寻找 bug 时，请记住这个例子。
 
-If we want to fix the contract for @racket[p-sick] so that the error
-is caught when @racket[sick] is exported, a single change suffices:
+如果我们想修复 @racket[p-sick] 的契约，以便在导出 @racket[sick] 时捕获错误，只需一个更改即可：
 
 @racketblock[
 (provide
@@ -120,29 +79,16 @@ is caught when @racket[sick] is exported, a single change suffices:
   [p-sick (struct/c posn number? number?)]))
 ]
 
-That is, instead of exporting @racket[p-sick] as a plain
-@racket[posn?], we use a @racket[struct/c] contract to enforce
-constraints on its components.
+也就是说，我们不是将 @racket[p-sick] 作为普通的 @racket[posn?] 导出，而是使用 @racket[struct/c] 契约来强制执行对其组件的约束。
 
 @; ----------------------------------------------------------------------
-@ctc-section[#:tag "lazy-contracts"]{Checking Properties of Data Structures}
+@ctc-section[#:tag "lazy-contracts"]{检查数据结构的属性}
 
-Contracts written using @racket[struct/c] immediately
-check the fields of the data structure, but sometimes this
-can have disastrous effects on the performance of a program
-that does not, itself, inspect the entire data structure.
+使用 @racket[struct/c] 编写的契约会立即检查数据结构的字段，但有时这会对不检查整个数据结构的程序的性能产生灾难性影响。
 
-As an example, consider the binary search tree
-search algorithm. A binary search tree is like a binary
-tree, except that the numbers are organized in the tree to
-make searching the tree fast. In particular, for each
-interior node in the tree, all of the numbers in the left
-subtree are smaller than the number in the node, and all of
-the numbers in the right subtree are larger than the number
-in the node.
+作为例子，考虑二叉搜索树搜索算法。二叉搜索树类似于二叉树，不同之处在于数字在树中被组织起来使搜索树变得快速。具体来说，对于树中的每个内部节点，左子树中的所有数字都小于节点中的数字，而右子树中的所有数字都大于节点中的数字。
 
-We can implement a search function @racket[in?] that takes
-advantage of the structure of the binary search tree.
+我们可以实现一个搜索函数 @racket[in?]，它利用二叉搜索树的结构。
 @racketmod[
 racket
 
@@ -177,42 +123,15 @@ racket
     [in? (number? bst? . -> . boolean?)]))
 ]
 
-In a full binary search tree, this means that
-the @racket[in?] function only has to explore a
-logarithmic number of nodes.
+在一个完整的二叉搜索树中，这意味着 @racket[in?] 函数只需要探索对数数量的节点。
 
-The contract on @racket[in?] guarantees that its input
-is a binary search tree. But a little careful thought
-reveals that this contract defeats the purpose of the binary
-search tree algorithm. In particular, consider the
-inner @racket[cond] in the @racket[in?]
-function. This is where the @racket[in?] function gets
-its speed: it avoids searching an entire subtree at each
-recursive call. Now compare that to the @racket[bst-between?]
-function. In the case that it returns @racket[#t], it
-traverses the entire tree, meaning that the speedup
-of @racket[in?] is lost.
+@racket[in?] 上的契约保证其输入是一个二叉搜索树。但仔细思考就会发现，这个契约实际上破坏了二叉搜索树算法的初衷。具体来看 @racket[in?] 函数中的内部 @racket[cond]。这是 @racket[in?] 函数获得速度的地方：它在每次递归调用时避免搜索整个子树。现在将其与 @racket[bst-between?] 函数进行比较。在它返回 @racket[#t] 的情况下，它会遍历整棵树，这意味着 @racket[in?] 的加速效果丧失了。
 
-In order to fix that, we can employ a new strategy for
-checking the binary search tree contract. In particular, if
-we only checked the contract on the nodes
-that @racket[in?] looks at, we can still guarantee that
-the tree is at least partially well-formed, but without
-changing the complexity.
+为了修复这个问题，我们可以采用一种新策略来检查二叉搜索树契约。具体来说，如果我们只在 @racket[in?] 查看的节点上检查契约，我们仍然可以保证树至少是部分良构的，但不改变复杂度。
 
-To do that, we need to use @racket[struct/dc] to define
-@racket[bst-between?]. Like @racket[struct/c], @racket[struct/dc] defines a
-contract for a structure. Unlike
-@racket[struct/c], it allows fields to be marked as lazy, so that
-the contracts are only checked when the matching selector is called.
-Also, it does not allow mutable fields to be marked as lazy.
+为此，我们需要使用 @racket[struct/dc] 来定义 @racket[bst-between?]。与 @racket[struct/c] 一样，@racket[struct/dc] 定义一个结构的契约。与 @racket[struct/c] 不同的是，它允许字段被标记为 lazy，以便契约只在调用相应的 selector 时才被检查。此外，它不允许 mutable 字段被标记为 lazy。
 
-The @racket[struct/dc] form accepts a contract for each
-field of the struct and returns a contract on the
-struct. More interestingly, @racket[struct/dc] allows us to write dependent
-contracts, i.e., contracts where some of the contracts on
-the fields depend on the values of other fields. We can use
-this to define the binary search tree contract:
+@racket[struct/dc] 形式接受 struct 每个字段的契约并返回该 struct 上的契约。更有趣的是，@racket[struct/dc] 允许我们编写 dependent 契约，即某些字段的契约依赖于其他字段的值的契约。我们可以用这个来定义二叉搜索树契约：
 
 @racketmod[
 racket
@@ -240,31 +159,9 @@ racket
     [in? (number? bst/c . -> . boolean?)]))
 ]
 
-In general, each use of @racket[struct/dc] must name the
-fields and then specify contracts for each field. In the
-above, the @racket[val] field is a contract that accepts
-values between @racket[low] and @racket[high].
-The @racket[left] and @racket[right] fields are
-dependent on the value of the @racket[val] field,
-indicated by their second sub-expressions. They are
-also marked with the @racket[#:lazy] keyword to indicate
-that they should be checked only when the appropriate
-accessor is called on the struct instance. Their contracts
-are built by recursive calls to
-the @racket[bst-between/c] function. Taken together,
-this contract ensures the same thing that
-the @racket[bst-between?] function checked in the
-original example, but here the checking only happens
-as @racket[in?] explores the tree.
+通常，每次使用 @racket[struct/dc] 必须命名字段，然后为每个字段指定契约。在上面的例子中，@racket[val] 字段是一个接受 @racket[low] 和 @racket[high] 之间值的契约。@racket[left] 和 @racket[right] 字段依赖于 @racket[val] 字段的值，由它们的第二个子表达式表示。它们还标记有 @racket[#:lazy] 关键字，表示它们应该只在 struct 实例上调用相应的 accessor 时才被检查。它们的契约通过递归调用 @racket[bst-between/c] 函数构建。综合起来，这个契约确保了与原始例子中 @racket[bst-between?] 函数检查的相同内容，但这里的检查只在 @racket[in?] 探索树时发生。
 
-Although this contract improves the performance
-of @racket[in?], restoring it to the logarithmic
-behavior that the contract-less version had, it is still
-imposes a fairly large constant overhead. So, the contract
-library also provides @racket[define-opt/c] that brings
-down that constant factor by optimizing its body. Its shape
-is just like the @racket[define] above. It expects its
-body to be a contract and then optimizes that contract.
+虽然这个契约改善了 @racket[in?] 的性能，将其恢复到无契约版本所具有的对数行为，但它仍然施加了相当大的常数开销。因此，契约库还提供 @racket[define-opt/c]，通过优化其主体来降低该常数因子。它的形状就像上面的 @racket[define]。它期望其主体是一个契约，然后优化该契约。
 
 @racketblock[
 (define-opt/c (bst-between/c low high)
