@@ -33,167 +33,68 @@ Racket 3m 使用精确垃圾收集器，在收集期间移动对象，这种情�
 
 ]
 
-@index['("globals" "in extension code")]{If} a Racket extension
-stores Racket pointers in a global or static variable, then that
-variable must be registered with
-@cppi{scheme_register_extension_global}; this makes the pointer
-visible to the garbage collector. Registered variables need not
-contain a collectable pointer at all times (even with 3m, but the
-variable must contain some pointer, possibly uncollectable, at all
-times). Beware that static or global variables that are not 
-thread-specific (in the OS sense of ``thread'') generally do not
-work with multiple @|tech-place|s.
+@index['("globals" "in extension code")]{如果} Racket 扩展将 Racket 指针存储在全局变量或静态变量中，则该变量必须通过 @cppi{scheme_register_extension_global} 注册；这使指针对垃圾收集器可见。已注册的变量不必始终包含可收集指针（即使在 3m 中也是如此，但变量必须始终包含某个指针，可能是不可收集的）。注意，非线程特定（OS 意义上的"线程"）的静态或全局变量通常不能与多个 @|tech-place| 一起使用。
 
-Registration is needed for the global and static variables of an
-embedding program on most platforms, and registration is needed on all
-platforms if the program calls @cpp{scheme_main_setup} or
-@cppi{scheme_set_stack_base} with a non-zero first or second
-(respectively) argument. Global and static variables containing
-collectable pointers must be registered with
-@cppi{scheme_register_static}. The @cppi{MZ_REGISTER_STATIC} macro
-takes any variable name and registers it with
-@cppi{scheme_register_static}. The @cppi{scheme_register_static}
-function can be safely called even when it's not needed, but it must
-not be called multiple times for a single memory address.  When using
-@cppi{scheme_set_stack_base} and when @|tech-place|s are enabled, then
-@cppi{scheme_register_static} or @cppi{MZ_REGISTER_STATIC} normally
-should be used only after @cpp{scheme_basic_env}, since
-@cpp{scheme_basic_env} changes the allocation space as explained in
-@secref["im:3m:places"].
+在大多数平台上，嵌入程序的全局变量和静态变量需要注册；如果程序使用非零的第一个或第二个参数（分别）调用 @cpp{scheme_main_setup} 或 @cppi{scheme_set_stack_base}，则在所有平台上都需要注册。包含可收集指针的全局变量和静态变量必须通过 @cppi{scheme_register_static} 注册。@cppi{MZ_REGISTER_STATIC} 宏接受任何变量名并通过 @cppi{scheme_register_static} 注册它。@cppi{scheme_register_static} 函数即使不需要也可以安全调用，但不能对同一内存地址多次调用。当使用 @cppi{scheme_set_stack_base} 且启用 @|tech-place| 时，@cppi{scheme_register_static} 或 @cppi{MZ_REGISTER_STATIC} 通常应仅在 @cpp{scheme_basic_env} 之后使用，因为 @cpp{scheme_basic_env} 会更改分配空间，如 @secref["im:3m:places"] 中所述。
 
-Collectable memory can be temporarily locked from collection by using
-the reference-counting function @cppi{scheme_dont_gc_ptr}. On 3m,
-such locking does not prevent the object from being moved.
+可收集内存可以通过使用引用计数函数 @cppi{scheme_dont_gc_ptr} 暂时锁定以防止收集。在 3m 上，这种锁定不会阻止对象被移动。
 
-Garbage collection can occur during any call into Racket or its
-allocator, on anytime that Racket has control, except during functions
-that are documented otherwise.  The predicate and accessor macros
-listed in @secref["im:stdtypes"] never trigger a collection.
+垃圾收集可以在任何对 Racket 或其分配器的调用期间发生，在 Racket 拥有控制权的任何时候，但文档说明不会触发收集的函数除外。@secref["im:stdtypes"] 中列出的谓词和访问器宏从不触发收集。
 
-As described in @secref["im:3m:places"], different @|tech-place|s
-manage allocation separately. Movable memory should not be
-communicated from one place to another, since the source place might
-move the memory before it is used in the destination place.
-Furthermore, allocated memory that contains pointers must not be
-written in a @|tech-place| other than the one where it is allocated,
-due to the place-specific implementation of a write barrier for
-generational garbage collection. No write barrier is used for memory
-that is allocated by @cppi{scheme_malloc_atomic_allow_interior} to
-contain no pointers.
+如 @secref["im:3m:places"] 中所述，不同的 @|tech-place| 分别管理分配。可移动内存不应从一个 place 传递到另一个 place，因为源 place 可能在目标 place 使用该内存之前移动它。此外，包含指针的已分配内存不能在分配它的 @|tech-place| 之外的 place 中写入，这是由于分代垃圾收集的写屏障是特定于 place 的实现。对于通过 @cppi{scheme_malloc_atomic_allow_interior} 分配的不包含指针的内存，不使用写屏障。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "im:3m"]{Cooperating with 3m}
+@section[#:tag "im:3m"]{与 3m 协作}
 
-To allow 3m's precise collector to detect and update pointers during
-garbage collection, all pointer values must be registered with the
-collector, at least during the times that a collection may occur.  The
-content of a word registered as a pointer must contain either
-@cpp{NULL}, a pointer to the start of a collectable object, a pointer
-into an object allocated by @cpp{scheme_malloc_allow_interior}, a
-pointer to an object currently allocated by another memory manager
-(and therefore not into a block that is currently managed by the
-collector), or a pointer to an odd-numbered address (e.g., a Racket
-fixnum).
+为了让 3m 的精确收集器在垃圾收集期间检测和更新指针，所有指针值必须在可能发生收集的时间段内注册到收集器。注册为指针的字的内容必须包含以下之一：@cpp{NULL}、指向可收集对象开头的指针、指向由 @cpp{scheme_malloc_allow_interior} 分配的对象的指针、指向当前由另一个内存管理器分配的对象的指针（因此不在收集器当前管理的块中），或者指向奇数地址的指针（例如 Racket fixnum）。
 
-Pointers are registered in three different ways:
+指针通过三种不同的方式注册：
 
 @itemize[
 
- @item{Pointers in static variables should be registered with
- @cppi{scheme_register_static} or @cpp{MZ_REGISTER_STATIC}.}
+ @item{静态变量中的指针应通过 @cppi{scheme_register_static} 或 @cpp{MZ_REGISTER_STATIC} 注册。}
 
- @item{Pointers in allocated memory are registered automatically when
- they are in an array allocated with @cpp{scheme_malloc}, etc.  When a
- pointer resides in an object allocated with
- @cpp{scheme_malloc_tagged}, etc.~the tag at the start of the object
- identifiers the object's size and shape. Handling of tags is
- described in @secref["im:3m:tagged"].}
+ @item{已分配内存中的指针在位于通过 @cpp{scheme_malloc} 等分配的数组中时自动注册。当指针驻留在通过 @cpp{scheme_malloc_tagged} 等分配的对象中时，对象开头的标签标识对象的大小和形状。标签的处理在 @secref["im:3m:tagged"] 中描述。}
 
- @item{Local pointers (i.e., pointers on the stack or in registers)
- must be registered through the @cpp{MZ_GC_DECL_REG}, @|etc| macros
- that are described in @secref["im:3m:stack"].}
+ @item{局部指针（即栈上或寄存器中的指针）必须通过 @secref["im:3m:stack"] 中描述的 @cpp{MZ_GC_DECL_REG}、@|etc| 宏来注册。}
 
 ]
 
-A pointer must never refer to the interior of an allocated object
-(when a garbage collection is possible), unless the object was
-allocated with @cppi{scheme_malloc_allow_interior}. For this reason,
-pointer arithmetic must usually be avoided, unless the variable
-holding the generated pointer is @cpp{NULL}ed before a collection.
+指针绝不能引用已分配对象的内部（当可能发生垃圾收集时），除非该对象是通过 @cppi{scheme_malloc_allow_interior} 分配的。因此，通常必须避免指针算术，除非在收集之前将保存生成的指针的变量设为 @cpp{NULL}。
 
-@bold{IMPORTANT:} The @cppi{SCHEME_SYM_VAL},
-@cppi{SCHEME_KEYWORD_VAL}, @cppi{SCHEME_VEC_ELS}, and
-@cppi{SCHEME_PRIM_CLOSURE_ELS} macros produce pointers into the middle
-of their respective objects, so the results of these macros must not
-be held during the time that a collection can occur. Incorrectly
-retaining such a pointer can lead to a crash.
+@bold{重要：} @cppi{SCHEME_SYM_VAL}、@cppi{SCHEME_KEYWORD_VAL}、@cppi{SCHEME_VEC_ELS} 和 @cppi{SCHEME_PRIM_CLOSURE_ELS} 宏产生的指针指向各自对象的中间，因此这些宏的结果在可能发生收集期间不能被持有。错误地保留此类指针可能导致崩溃。
 
 @; - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - 
 
-@subsection[#:tag "im:3m:tagged"]{Tagged Objects}
+@subsection[#:tag "im:3m:tagged"]{带标签的对象}
 
-As explained in @secref["im:values+types"], the @cpp{scheme_make_type}
-function can be used to obtain a new tag for a new type of object.
-These new types are in relatively short supply for 3m; the maximum tag
-is 512, and Racket itself uses nearly 300.
+如 @secref["im:values+types"] 中所述，@cpp{scheme_make_type} 函数可用于为新类型的对象获取新标签。这些新类型在 3m 中相对稀缺；最大标签为 512，Racket 自身使用近 300 个。
 
-After allocating a new tag in 3m (and before creating instances of the
-tag), a @defterm{size procedure}, a @defterm{mark procedure}, and a
-@defterm{fixup procedure} must be installed for the tag using
-@cppi{GC_register_traversers}. A type tag and its associated GC
-procedures apply to all @|tech-place|s, even though specific allocated
-objects are confined to a particular @|tech-place|.
+在 3m 中分配新标签后（且在创建该标签的实例之前），必须使用 @cppi{GC_register_traversers} 为该标签安装 @defterm{大小过程}、@defterm{标记过程} 和 @defterm{修正过程}。类型标签及其关联的 GC 过程适用于所有 @|tech-place|，即使特定的已分配对象仅限于某个特定的 @|tech-place|。
 
-A size procedure simply takes a pointer to an object with the tag and
-returns its size in words (not bytes). The @cppi{gcBYTES_TO_WORDS}
-macro converts a byte count to a word count.
+大小过程接受指向带有该标签的对象的指针，并返回其大小（以字为单位，而非字节）。@cppi{gcBYTES_TO_WORDS} 宏将字节数转换为字数。
 
-A mark procedure is used to trace references among objects. The
-procedure takes a pointer to an object, and it should apply the
-@cppi{gcMARK} macro to every pointer within the object. The mark
-procedure should return the same result as the size procedure.
+标记过程用于追踪对象之间的引用。该过程接受指向对象的指针，并应对对象内的每个指针应用 @cppi{gcMARK} 宏。标记过程应返回与大小过程相同的结果。
 
-A fixup procedure is potentially used to update references to objects
-that have moved, although the mark procedure may have moved objects
-and updated references already. The fixup procedure takes a pointer to
-an object, and it should apply the @cppi{gcFIXUP} macro to every
-pointer within the object. The fixup procedure should return the same
-result as the size procedure.
+修正过程可能用于更新对已移动对象的引用，尽管标记过程可能已经移动对象并更新了引用。修正过程接受指向对象的指针，并应对对象内的每个指针应用 @cppi{gcFIXUP} 宏。修正过程应返回与大小过程相同的结果。
 
-Depending on the collector's implementation, the @cpp{gcMARK} and/or
-@cpp{gcFIXUP} macros may take take the address of their arguments, and
-the fixup procedure might not be used. For example, the collector may
-only use the mark procedure and not actually move the object. Or it
-may use mark to move objects at the same time. To dereference an
-object pointer during a mark or fixup procedure, use @cppi{GC_resolve}
-to convert a potentially old address to the location where the object
-has been moved. To dereference an object pointer during a fixup procedure, use
-@cppi{GC_fixup_self} to convert the address passed to the procedure to
-refer to the potentially moved object.
+根据收集器的实现，@cpp{gcMARK} 和/或 @cpp{gcFIXUP} 宏可能需要取其参数的地址，且修正过程可能不被使用。例如，收集器可能只使用标记过程而不实际移动对象。或者它可能同时使用标记来移动对象。要在标记或修正过程中解引用对象指针，使用 @cppi{GC_resolve} 将可能已旧的地址转换为对象已移动到的位置。要在修正过程中解引用对象指针，使用 @cppi{GC_fixup_self} 将传递给过程的地址转换为引用可能已移动的对象。
 
-When allocating a tagged object in 3m, the tag must be installed
-immediately after the object is allocated---or, at least, before the
-next possible collection.
+在 3m 中分配带标签的对象时，标签必须在对象分配后立即安装——或者至少在下次可能的收集之前安装。
 
 @; - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - 
 
-@subsection[#:tag "im:3m:stack"]{Local Pointers}
+@subsection[#:tag "im:3m:stack"]{局部指针}
 
-The 3m collector needs to know the address of every local or temporary
-pointer within a function call at any point when a collection can be
-triggered. Beware that nested function calls can hide temporary
-pointers; for example, in
+3m 收集器需要知道函数调用内每个局部或临时指针的地址，在可能触发收集的任何时刻。注意，嵌套函数调用可能隐藏临时指针；例如，在
 
 @verbatim[#:indent 2]{
   scheme_make_pair(scheme_make_pair(scheme_true, scheme_false),
                    scheme_make_pair(scheme_false, scheme_true))
 }
 
-the result from one @cpp{scheme_make_pair} call is on the stack or in
-a register during the other call to @cpp{scheme_make_pair}; this
-pointer must be exposed to the garbage collection and made subject to
-update. Simply changing the code to
+一个 @cpp{scheme_make_pair} 调用的结果在另一个 @cpp{scheme_make_pair} 调用期间位于栈上或寄存器中；此指针必须暴露给垃圾收集并使其可被更新。简单地将代码更改为
 
 @verbatim[#:indent 2]{
   tmp = scheme_make_pair(scheme_true, scheme_false);
@@ -201,9 +102,7 @@ update. Simply changing the code to
                    scheme_make_pair(scheme_false, scheme_true))
 }
 
-does not expose all pointers, since @cpp{tmp} must be evaluated before
-the second call to @cpp{scheme_make_pair}. In general, the above code
-must be converted to the form
+不会暴露所有指针，因为 @cpp{tmp} 必须在第二次调用 @cpp{scheme_make_pair} 之前求值。通常，上述代码必须转换为以下形式
 
 @verbatim[#:indent 2]{
   tmp1 = scheme_make_pair(scheme_true, scheme_false);
@@ -211,8 +110,7 @@ must be converted to the form
   scheme_make_pair(tmp1, tmp2);
 }
 
-and this is converted form must be instrumented to register @cpp{tmp1}
-and @cpp{tmp2}. The final result might be
+并且此转换后的形式必须进行工具化以注册 @cpp{tmp1} 和 @cpp{tmp2}。最终结果可能是
 
 @verbatim[#:indent 2]{
   {
@@ -233,20 +131,9 @@ and @cpp{tmp2}. The final result might be
   }
 }
 
-Notice that @cpp{result} is not registered above. The
-@cppdef{MZ_GC_UNREG} macro cannot trigger a garbage collection, so the
-@cpp{result} variable is never live during a potential
-collection. Note also that @cpp{tmp1} and @cpp{tmp2} are initialized
-with @cpp{NULL}, so that they always contain a pointer whenever a
-collection is possible.
+注意，上面的 @cpp{result} 未被注册。@cppdef{MZ_GC_UNREG} 宏不能触发垃圾收集，因此 @cpp{result} 变量在可能的收集期间从未存活。另请注意，@cpp{tmp1} 和 @cpp{tmp2} 用 @cpp{NULL} 初始化，因此每当可能发生收集时，它们始终包含一个指针。
 
-The @cppdef{MZ_GC_DECL_REG} macro expands to a local-variable
-declaration to hold information for the garbage collector. The
-argument is the number of slots to provide for
-registration. Registering a simple pointer requires a single slot,
-whereas registering an array of pointers requires three slots. For
-example, to register a pointer @cpp{tmp} and an array of 10
-@cpp{char*}s:
+@cppdef{MZ_GC_DECL_REG} 宏展开为一个局部变量声明，用于保存垃圾收集器的信息。参数是要提供的注册槽位数。注册简单指针需要一个槽位，而注册指针数组需要三个槽位。例如，要注册指针 @cpp{tmp} 和一个包含 10 个 @cpp{char*} 的数组：
 
 @verbatim[#:indent 2]{
   {
@@ -265,19 +152,11 @@ example, to register a pointer @cpp{tmp} and an array of 10
   }
 }
 
-The @cppdef{MZ_GC_ARRAY_VAR_IN_REG} macro registers a local array given
-a starting slot, the array variable, and an array size. The
-@cppdef{MZ_GC_VAR_IN_REG} macro takes a slot and simple pointer variable. A
-local variable or array must not be registered multiple times.
+@cppdef{MZ_GC_ARRAY_VAR_IN_REG} 宏注册一个局部数组，需要提供起始槽位、数组变量和数组大小。@cppdef{MZ_GC_VAR_IN_REG} 宏接受一个槽位和简单指针变量。局部变量或数组不能多次注册。
 
-In the above example, the first argument to @cppi{MZ_GC_VAR_IN_REG} is
-@cpp{3} because the information for @cpp{a} uses the first three
-slots. Even if @cpp{a} is not used after the call to @cpp{f}, @cpp{a}
-must be registered with the collector during the entire call to
-@cpp{f}, because @cpp{f} presumably uses @cpp{a} until it returns.
+在上面的示例中，@cppi{MZ_GC_VAR_IN_REG} 的第一个参数是 @cpp{3}，因为 @cpp{a} 的信息使用前三个槽位。即使 @cpp{a} 在调用 @cpp{f} 之后不再使用，@cpp{a} 也必须在调用 @cpp{f} 的整个过程中向收集器注册，因为 @cpp{f} 可能在返回之前使用 @cpp{a}。
 
-The name used for a variable need not be immediate. Structure members
-can be supplied as well:
+变量使用的名称不必是直接的。结构体成员也可以提供：
 
 @verbatim[#:indent 2]{
   {
@@ -290,25 +169,11 @@ can be supplied as well:
   }
 }
 
-In general, the only constraint on the second argument to
-@cppi{MZ_GC_VAR_IN_REG} or @cppi{MZ_GC_ARRAY_VAR_IN_REG} is that
-@cpp{&} must produce the relevant address, and that address must be on
-the stack.
+通常，对 @cppi{MZ_GC_VAR_IN_REG} 或 @cppi{MZ_GC_ARRAY_VAR_IN_REG} 的第二个参数的唯一约束是 @cpp{&} 必须产生相关地址，且该地址必须在栈上。
 
-Pointer information is not actually registered with the collector
-until the @cppdef{MZ_GC_REG} macro is used. The @cppi{MZ_GC_UNREG} macro
-de-registers the information. Each call to @cpp{MZ_GC_REG} must be
-balanced by one call to @cpp{MZ_GC_UNREG}.
+指针信息实际上在使用 @cppdef{MZ_GC_REG} 宏之前不会向收集器注册。@cppi{MZ_GC_UNREG} 宏取消注册该信息。每次调用 @cpp{MZ_GC_REG} 必须由一次 @cpp{MZ_GC_UNREG} 调用来平衡。
 
-Pointer information need not be initialized with
-@cppi{MZ_GC_VAR_IN_REG} and @cppi{MZ_GC_ARRAY_VAR_IN_REG} before
-calling @cpp{MZ_GC_REG}, and the set of registered pointers can change
-at any time---as long as all relevant pointers are registered when a
-collection might occur. The following example recycles slots and
-completely de-registers information when no pointers are relevant. The
-example also illustrates how @cpp{MZ_GC_UNREG} is not needed when
-control escapes from the function, such as when
-@cpp{scheme_signal_error} escapes.
+指针信息无需在调用 @cpp{MZ_GC_REG} 之前用 @cppi{MZ_GC_VAR_IN_REG} 和 @cppi{MZ_GC_ARRAY_VAR_IN_REG} 初始化，且已注册指针的集合可以随时更改——只要在可能发生收集时所有相关指针都已注册。以下示例回收槽位并在没有指针相关时完全取消注册信息。示例还说明了当控制从函数中逃逸时（例如 @cpp{scheme_signal_error} 逃逸），不需要 @cpp{MZ_GC_UNREG}。
 
 @verbatim[#:indent 2]{
   {
@@ -347,10 +212,7 @@ control escapes from the function, such as when
   }
 }
 
-A @cpp{MZ_GC_DECL_REG} can be used in a nested block to hold
-declarations for the block's variables. In that case, the nested
-@cpp{MZ_GC_DECL_REG} must have its own @cpp{MZ_GC_REG} and
-@cpp{MZ_GC_UNREG} calls.
+@cpp{MZ_GC_DECL_REG} 可用于嵌套块中，以保存该块变量的声明。在这种情况下，嵌套的 @cpp{MZ_GC_DECL_REG} 必须有其自己的 @cpp{MZ_GC_REG} 和 @cpp{MZ_GC_UNREG} 调用。
 
 @verbatim[#:indent 2]{
   {
@@ -378,11 +240,7 @@ declarations for the block's variables. In that case, the nested
   }
 }
 
-Variables declared in a local block can also be registered together
-with variables from an enclosing block, but the local-block variable
-must be unregistered before it goes out of scope. The
-@cppdef{MZ_GC_NO_VAR_IN_REG} macro can be used to unregister a variable
-or to initialize a slot as having no variable.
+在局部块中声明的变量也可以与外部块的变量一起注册，但局部块变量必须在超出作用域之前取消注册。@cppdef{MZ_GC_NO_VAR_IN_REG} 宏可用于取消注册变量或将槽位初始化为没有变量。
 
 @verbatim[#:indent 2]{
   {
@@ -409,95 +267,55 @@ or to initialize a slot as having no variable.
   }
 }
 
-The @cpp{MZ_GC_} macros all expand to nothing when @cpp{MZ_PRECISE_GC}
-is not defined, so the macros can be placed into code to be compiled
-for both conservative and precise collection.
+当未定义 @cpp{MZ_PRECISE_GC} 时，@cpp{MZ_GC_} 宏全部展开为空，因此这些宏可以放置在代码中，以便为保守收集和精确收集两者进行编译。
 
-The @cpp{MZ_GC_REG} and @cpp{MZ_GC_UNREG} macros must never be
-used in an OS thread other than Racket's thread.
+@cpp{MZ_GC_REG} 和 @cpp{MZ_GC_UNREG} 宏绝不能用于 Racket 线程以外的 OS 线程中。
 
 @; - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - 
 
-@subsection[#:tag "im:3m:mzc"]{Local Pointers and @|mzc| @DFlag{xform}}
+@subsection[#:tag "im:3m:mzc"]{局部指针与 @|mzc| @DFlag{xform}}
 
-When @|mzc| is run with the @DFlag{xform} flag and a source C program,
-it produces a C program that is instrumented in the way described in
-the previous section (but with a slightly different set of macros).
-For each input file @filepath{@italic{name}.c}, the transformed output
-is @filepath{@italic{name}.3m.c}.
+当使用 @DFlag{xform} 标志和源 C 程序运行 @|mzc| 时，它会生成一个以前一节所述方式进行工具化的 C 程序（但使用稍有不同的宏集）。对于每个输入文件 @filepath{@italic{name}.c}，转换后的输出为 @filepath{@italic{name}.3m.c}。
 
-The @DFlag{xform} mode for @|mzc| does not change allocation calls,
-nor does it generate size, mark, or fixup procedures. It merely
-converts the code to register local pointers.
+@|mzc| 的 @DFlag{xform} 模式不会更改分配调用，也不会生成大小、标记或修正过程。它仅转换代码以注册局部指针。
 
-Furthermore, the @DFlag{xform} mode for @|mzc| does not handle all of
-C. It's ability to rearrange compound expressions is particularly
-limited, because @DFlag{xform} merely converts expression text
-heuristically instead of parsing C. A future version of the tool will
-correct such problems. For now, @|mzc| in @DFlag{xform} mode attempts
-to provide reasonable error messages when it is unable to convert a
-program, but beware that it can miss cases. To an even more limited
-degree, @DFlag{xform} can work on C++ code. Inspect the output of
-@DFlag{xform} mode to ensure that your code is correctly instrumented.
+此外，@|mzc| 的 @DFlag{xform} 模式不处理所有 C 语言特性。其重新排列复合表达式的能力尤其有限，因为 @DFlag{xform} 仅基于启发式方法转换表达式文本，而不是解析 C。该工具的未来版本将纠正此类问题。目前，@|mzc| 在 @DFlag{xform} 模式下尝试在无法转换程序时提供合理的错误消息，但请注意它可能会遗漏某些情况。在更有限的程度上，@DFlag{xform} 可以处理 C++ 代码。检查 @DFlag{xform} 模式的输出以确保代码已正确工具化。
 
-Some specific limitations:
+一些具体的限制：
 
 @itemize[
 
- @item{The body of a @cpp{for}, @cpp{while}, or @cpp{do} loop must be
-       surrounded with curly braces.  (A conversion error is normally
-       reported, otherwise.)}
+ @item{@cpp{for}、@cpp{while} 或 @cpp{do} 循环的主体必须用花括号括起来。（否则通常会报告转换错误。）}
 
- @item{Function calls may not appear on the right-hand side of an
-       assignment within a declaration block.  (A conversion error is
-       normally reported if such an assignment is discovered.)}
+ @item{函数调用不能出现在声明块内赋值的右侧。（如果发现此类赋值，通常会报告转换错误。）}
 
- @item{Multiple function calls in @cpp{... ? ... : ...} cannot be
-       lifted. (A conversion error is normally reported, otherwise.)}
+ @item{@cpp{... ? ... : ...} 中的多个函数调用无法提升。（否则通常会报告转换错误。）}
 
- @item{In an assignment, the left-hand side must be a local or static
-       variable, not a field selection, pointer dereference, etc. (A
-       conversion error is normally reported, otherwise.)}
+ @item{在赋值中，左侧必须是局部变量或静态变量，而不是字段选择、指针解引用等。（否则通常会报告转换错误。）}
 
- @item{The conversion assumes that all function calls use an immediate
-       name for a function, as opposed to a compound expression as
-       in @cpp{s->f()}. The function name need not be a top-level
-       function name, but it must be bound either as an argument or
-       local variable with the form @cpp{@var{type} @var{id}}; the
-       syntax @cpp{@var{ret_type} (*@var{id})(...)} is not
-       recognized, so bind the function type to a simple name
-       with @cpp{typedef}, first: @cpp{typedef @var{ret_type}
-       (*@var{type})(...); .... @var{type} @var{id}}.}
+ @item{转换假定所有函数调用使用函数的直接名称，而不是像 @cpp{s->f()} 这样的复合表达式。函数名不必是顶级函数名，但必须作为参数或局部变量以 @cpp{@var{type} @var{id}} 的形式绑定；语法 @cpp{@var{ret_type} (*@var{id})(...)} 无法识别，因此首先使用 @cpp{typedef} 将函数类型绑定到简单名称：@cpp{typedef @var{ret_type} (*@var{type})(...); .... @var{type} @var{id}}。}
 
- @item{Arrays and structs must be passed by address, only.}
+ @item{数组和结构体必须通过地址传递。}
 
- @item{GC-triggering code must not appear in system headers.}
+ @item{触发 GC 的代码不能出现在系统头文件中。}
 
- @item{Pointer-comparison expressions are not handled correctly when
-       either of the compared expressions includes a function call.
-       For example, @cpp{a() == b()} is not converted correctly when
-       @cpp{a} and @cpp{b} produce pointer values.}
+ @item{当比较表达式中任一包含函数调用时，指针比较表达式无法正确处理。例如，当 @cpp{a} 和 @cpp{b} 产生指针值时，@cpp{a() == b()} 无法正确转换。}
 
- @item{Passing the address of a local pointer to a function works only
-       when the pointer variable remains live after the function call.}
+ @item{将局部指针的地址传递给函数仅在指针变量在函数调用后仍然存活时才有效。}
 
- @item{A @cpp{return;} form can get converted to @cpp["{ " @var{stmt}
-       "; return; };"], which can break an @cpp{if (...) return; else
-       ...} pattern.}
+ @item{@cpp{return;} 形式可能会被转换为 @cpp["{ " @var{stmt} "; return; };"]，这可能破坏 @cpp{if (...) return; else ...} 模式。}
 
- @item{Local instances of union types are generally not supported.}
+ @item{union 类型的局部实例通常不受支持。}
 
- @item{Pointer arithmetic cannot be converted away, and is instead
-       reported as an error.}
+ @item{指针算术无法转换，而是报告为错误。}
 
 ] 
 
 @; - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - 
 
-@subsection[#:tag "im:3m:macros"]{Guiding @|mzc| @DFlag{xform}}
+@subsection[#:tag "im:3m:macros"]{引导 @|mzc| @DFlag{xform}}
 
-The following macros can be used (with care!) to navigate
-@DFlag{xform} around code that it cannot handle:
+以下宏可以（小心地！）用于引导 @DFlag{xform} 绕过它无法处理的代码：
 
 @itemize[
 
@@ -524,15 +342,9 @@ The following macros can be used (with care!) to navigate
   }
 }
 
- These macros can also be used at the top level, outside of any
- function.  Since they have to be terminated by a semi-colon, however,
- top-level uses usually must be wrapped with @cpp{#ifdef
-   MZ_PRECISE_GC} and @cpp{#endif}; a semi-colon by itself at the
- top level is not legal in C.}
+ 这些宏也可以在顶层使用，即在任何函数之外。但是，由于它们必须以分号结尾，顶层使用通常必须用 @cpp{#ifdef MZ_PRECISE_GC} 和 @cpp{#endif} 包裹；单独的分号在 C 的顶层是不合法的。}
 
-@item{@cppdef{XFORM_SKIP_PROC}: annotate a function so that its body
-      is skipped in the same way as bracketing it with
-      @cpp{XFORM_START_SKIP} and @cpp{XFORM_END_SKIP}.
+@item{@cppdef{XFORM_SKIP_PROC}：注解一个函数，使其函数体以与用 @cpp{XFORM_START_SKIP} 和 @cpp{XFORM_END_SKIP} 括起来相同的方式被跳过。
 
     Example:
 
@@ -541,8 +353,7 @@ The following macros can be used (with care!) to navigate
     }
   }}
 
-@item{@cppdef{XFORM_HIDE_EXPR}: a macro that takes wraps an expression to
-  disable processing of the expression.
+@item{@cppdef{XFORM_HIDE_EXPR}：一个宏，用于包装表达式以禁用对该表达式的处理。
 
   Example:
 
@@ -561,185 +372,122 @@ The following macros can be used (with care!) to navigate
     }
   }}
 
-@item{@cppdef{XFORM_CAN_IGNORE}: a macro that acts like a type
-  modifier (must appear first) to indicate that a declared variable
-  can be treated as atomic. See above for an example.}
+@item{@cppdef{XFORM_CAN_IGNORE}：一个宏，作用类似于类型修饰符（必须首先出现），指示声明的变量可以被视为原子的。参见上方的示例。}
 
-@item{@cppdef{XFORM_START_SUSPEND} and @cppdef{XFORM_END_SUSPEND}: for
-  use at the top level (outside of any function definition), and
-  similar to @cpp{XFORM_START_SKIP} and @cpp{XFORM_END_SKIP} in
-  that function and class bodies are not transformed. Type and
-  prototype information is still collected for use by later
-  transformations, however. These forms must be terminated by a
-  semi-colon.}
+@item{@cppdef{XFORM_START_SUSPEND} 和 @cppdef{XFORM_END_SUSPEND}：用于顶层（在任何函数定义之外），与 @cpp{XFORM_START_SKIP} 和 @cpp{XFORM_END_SKIP} 类似，函数和类体不会被转换。但是，类型和原型信息仍会被收集，以供后续转换使用。这些形式必须以分号结尾。}
 
-@item{@cppdef{XFORM_START_TRUST_ARITH} and
-  @cppdef{XFORM_END_TRUST_ARITH}: for use at the top level (outside
-  of any function definition) to disable warnings about pointer
-  arithmetic. Use only when you're absolutely certain that the garbage
-  collector cannot be pointers offset into the middle of a collectable
-  object. These forms must be terminated by a semi-colon.}
+@item{@cppdef{XFORM_START_TRUST_ARITH} 和 @cppdef{XFORM_END_TRUST_ARITH}：用于顶层（在任何函数定义之外），以禁用关于指针算术的警告。仅在您绝对确定垃圾收集器不会有指针偏移到可收集对象中间时使用。这些形式必须以分号结尾。}
 
-@item{@cppdef{XFORM_TRUST_PLUS}: a replacement for @cpp{+} that does
-  not trigger pointer-arithmetic warnings. Use with care.}
+@item{@cppdef{XFORM_TRUST_PLUS}：@cpp{+} 的替代品，不会触发指针算术警告。小心使用。}
 
-@item{@cppdef{XFORM_TRUST_MINUS}: a replacement for @cpp{-} that does
-  not trigger pointer-arithmetic warnings. Use with care.}
+@item{@cppdef{XFORM_TRUST_MINUS}：@cpp{-} 的替代品，不会触发指针算术警告。小心使用。}
 
 ]
 
 @; - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - 
 
-@subsection[#:tag "im:3m:places"]{Places and Garbage Collector Instances}
+@subsection[#:tag "im:3m:places"]{Places 与垃圾收集器实例}
 
-When @|tech-place|s are enabled, then a single process can have
-multiple instances of the garbage collector in the same process. Each
-@|tech-place| allocates using its own collector, and no place is
-allowed to hold a reference to memory that is allocated by another
-place. In addition, a @deftech{master} garbage collector instance
-holds values that are shared among places; different places can refer
-to memory that is allocated by the @tech{master} garbage collector,
-but the @tech{master} still cannot reference memory allocated by
-place-specific garbage collectors.
+当启用 @|tech-place| 时，单个进程可以在同一进程中拥有多个垃圾收集器实例。每个 @|tech-place| 使用自己的收集器进行分配，不允许任何 place 持有对另一个 place 分配的内存的引用。此外，一个 @deftech{master} 垃圾收集器实例保存着在 place 之间共享的值；不同的 place 可以引用由 @tech{master} 垃圾收集器分配的内存，但 @tech{master} 仍然不能引用由特定 place 的垃圾收集器分配的内存。
 
-Calling @cpp{scheme_main_stack_setup} creates the @tech{master}
-garbage collector, and allocation uses that collector until
-@cpp{scheme_basic_env} returns, at which point the initial place's
-garbage collector is in effect. Using @cppi{scheme_register_static} or
-@cppi{MZ_REGISTER_STATIC} before calling @cpp{scheme_basic_env}
-registers an address that should be used to hold only values allocated
-before @cpp{scheme_basic_env} is called. More typically,
-@cpp{scheme_register_static} and @cppi{MZ_REGISTER_STATIC} are used
-only after @cpp{scheme_basic_env} returns. Using
-@cpp{scheme_main_setup} calls @cpp{scheme_basic_env} automatically, in
-which case there is no opportunity to use @cpp{scheme_register_static}
-or @cppi{MZ_REGISTER_STATIC} too early.
+调用 @cpp{scheme_main_stack_setup} 会创建 @tech{master} 垃圾收集器，分配使用该收集器直到 @cpp{scheme_basic_env} 返回，此时初始 place 的垃圾收集器生效。在调用 @cpp{scheme_basic_env} 之前使用 @cppi{scheme_register_static} 或 @cppi{MZ_REGISTER_STATIC} 会注册一个地址，该地址应仅用于保存在调用 @cpp{scheme_basic_env} 之前分配的值。更典型地，@cpp{scheme_register_static} 和 @cppi{MZ_REGISTER_STATIC} 仅在 @cpp{scheme_basic_env} 返回之后使用。使用 @cpp{scheme_main_setup} 会自动调用 @cpp{scheme_basic_env}，在这种情况下没有机会过早使用 @cpp{scheme_register_static} 或 @cppi{MZ_REGISTER_STATIC}。
 
 @; --------------------------------------------------
 
-@section{Memory Functions}
+@section{内存函数}
 
 @function[(void* scheme_malloc
            [size_t n])]{
 
-Allocates @var{n} bytes of collectable memory, initially filled with
-zeros. The allocated object is treated as an array of
-pointers.}
+分配 @var{n} 字节的可收集内存，初始填充为零。分配的对象被视为指针数组。}
 
 @function[(void* scheme_malloc_atomic
            [size_t n])]{
 
-Allocates @var{n} bytes of collectable memory containing no pointers
-visible to the garbage collector. The object is @italic{not}
-initialized to zeros.}
+分配 @var{n} 字节的可收集内存，其中不包含垃圾收集器可见的指针。该对象@italic{不}初始化为零。}
 
 @function[(void* scheme_malloc_uncollectable
            [size_t n])]{
 
-Non-3m, only. Allocates @var{n} bytes of uncollectable memory.}
+仅限非 3m。分配 @var{n} 字节的不可收集内存。}
 
 @function[(void* scheme_malloc_eternal
            [size_t n])]{
 
-Allocates uncollectable atomic memory. This function is equivalent to
- @cpp{malloc}, except that the memory cannot be freed.}
+分配不可收集的原子内存。此函数等效于 @cpp{malloc}，但内存无法释放。}
 
 @function[(void* scheme_calloc
            [size_t num]
            [size_t size])]{
 
-Allocates @var{num} * @var{size} bytes of memory using @cpp{scheme_malloc}.}
+使用 @cpp{scheme_malloc} 分配 @var{num} * @var{size} 字节的内存。}
 
 @function[(void* scheme_malloc_tagged
            [size_t n])]{
 
-Like @cpp{scheme_malloc}, but in 3m, the type tag determines how the
- garbage collector traverses the object; see @secref["im:memoryalloc"].}
+类似于 @cpp{scheme_malloc}，但在 3m 中，类型标签决定垃圾收集器如何遍历对象；参见 @secref["im:memoryalloc"]。}
 
 @function[(void* scheme_malloc_allow_interior
            [size_t n])]{
 
-Like @cpp{scheme_malloc}, but in 3m, the object never moves, and pointers are allowed to
- reference the middle of the object; see @secref["im:memoryalloc"].}
+类似于 @cpp{scheme_malloc}，但在 3m 中，对象永不移动，且允许指针引用对象中间；参见 @secref["im:memoryalloc"]。}
 
 @function[(void* scheme_malloc_atomic_allow_interior
            [size_t n])]{
 
-Like @cpp{scheme_malloc_atomic}, but in 3m, the object never moves, and pointers are allowed to
- reference the middle of the object; see @secref["im:memoryalloc"].}
+类似于 @cpp{scheme_malloc_atomic}，但在 3m 中，对象永不移动，且允许指针引用对象中间；参见 @secref["im:memoryalloc"]。}
 
 @function[(void* scheme_malloc_stubborn
            [size_t n])]{
 
-An obsolete variant of @cpp{scheme_malloc}, where
- @cpp{scheme_end_stubborn_change} can be called on the allocated
- pointer when no further changes will be made to the allocated
- memory. Stubborn allocation is potentially useful as a hint for
- generational collection, but the hint is normally ignored and unlikely
- to be used more in future version.}
+@cpp{scheme_malloc} 的过时变体，其中当不再对分配的内存进行更改时，可以对已分配的指针调用 @cpp{scheme_end_stubborn_change}。顽固分配作为分代收集的提示可能有用，但该提示通常被忽略，且在未来的版本中不太可能更多使用。}
 
 @function[(void* scheme_end_stubborn_change
            [void* p])]{
 
-Declares the end of changes to the memory at @var{p} as allocated via
-@cpp{scheme_malloc_stubborn}.}
+声明通过 @cpp{scheme_malloc_stubborn} 分配的内存 @var{p} 的更改结束。}
 
 @function[(char* scheme_strdup
            [char* str])]{
 
-Copies the null-terminated string @var{str}; the copy is collectable.}
+复制以 null 结尾的字符串 @var{str}；副本是可收集的。}
 
 @function[(char* scheme_strdup_eternal
            [char* str])]{
 
-Copies the null-terminated string @var{str}; the copy will never be freed.}
+复制以 null 结尾的字符串 @var{str}；副本永不被释放。}
 
 @function[(void* scheme_malloc_fail_ok
            [|void *(*)(size_t)| mallocf]
            [size_t size])]{
 
-Attempts to allocate @var{size} bytes using @var{mallocf}. If the
-allocation fails, the @racket[exn:fail:out-of-memory] exception is
-raised.}
+尝试使用 @var{mallocf} 分配 @var{size} 字节。如果分配失败，则引发 @racket[exn:fail:out-of-memory] 异常。}
 
 @function[(void** scheme_malloc_immobile_box
            [void* p])]{
 
-Allocates memory that is not garbage-collected and that does not move
-(even with 3m), but whose first word contains a pointer to a
-collectable object. The box is initialized with @var{p}, but the value
-can be changed at any time. An immobile box must be explicitly freed
-using @cpp{scheme_free_immobile_box}.}
+分配不被垃圾收集且不移动的内存（即使在 3m 中），但其第一个字包含指向可收集对象的指针。该 box 用 @var{p} 初始化，但值可以随时更改。不可移动的 box 必须使用 @cpp{scheme_free_immobile_box} 显式释放。}
 
 @function[(void scheme_free_immobile_box
            [void** b])]{
 
-Frees an immobile box allocated with @cpp{scheme_malloc_immobile_box}.}
+释放通过 @cpp{scheme_malloc_immobile_box} 分配的不可移动 box。}
 
 @function[(void* scheme_malloc_code [intptr_t size])]{
 
-Allocates non-collectable memory to hold executable machine code. Use
-this function instead of @cpp{malloc} to ensure that the allocated
-memory has ``execute'' permissions. Use @cpp{scheme_free_code} to free
-memory allocated by this function.}
+分配不可收集的内存以保存可执行机器代码。使用此函数而不是 @cpp{malloc}，以确保分配的内存具有"执行"权限。使用 @cpp{scheme_free_code} 释放此函数分配的内存。}
 
 @function[(void scheme_free_code [void* p])]{
 
-Frees memory allocated with @cpp{scheme_malloc_code}.}
+释放通过 @cpp{scheme_malloc_code} 分配的内存。}
 
 @function[(void scheme_register_extension_global
            [void* ptr]
            [intptr_t size])]{
 
-Registers an extension's global variable that can contain Racket
- pointers (for the current @|tech-place|). The address of the global 
- is given in @var{ptr}, and its
- size in bytes in @var{size}.
+注册可以包含 Racket 指针的扩展全局变量（针对当前 @|tech-place|）。全局变量的地址在 @var{ptr} 中给出，其大小（以字节为单位）在 @var{size} 中给出。
 
-In addition to global variables, this
- function can be used to register any permanent memory that the
- collector would otherwise treat as atomic. A garbage collection can
- occur during the registration.}
+除了全局变量外，此函数还可用于注册收集器原本会视为原子的任何永久内存。注册期间可能发生垃圾收集。}
 
 
 @function[(int scheme_main_setup
@@ -748,23 +496,18 @@ In addition to global variables, this
            [int argc]
            [char** argv])]{
 
-Initializes the GC stack base, creates the initial namespace by
-calling @cpp{scheme_basic_env}, and then calls @var{main} with the
-namespace, @var{argc}, and @var{argv}. (The @var{argc} and @var{argv}
-are just passed on to @var{main}, and are not inspected in any way.)
+初始化 GC 栈基址，通过调用 @cpp{scheme_basic_env} 创建初始命名空间，然后使用命名空间、@var{argc} 和 @var{argv} 调用 @var{main}。（@var{argc} 和 @var{argv} 只是传递给 @var{main}，不会以任何方式检查。）
 
-The @cpp{Scheme_Env_Main} type is defined as follows:
+@cpp{Scheme_Env_Main} 类型定义如下：
 
 @verbatim[#:indent 4]{
 typedef int (*Scheme_Env_Main)(Scheme_Env *env, 
                                int argc, char **argv);
 }
 
-The result of @var{main} is the result of @cpp{scheme_main_setup}.
+@var{main} 的结果就是 @cpp{scheme_main_setup} 的结果。
 
-If @var{no_auto_statics} is non-zero, then static variables must be
-explicitly registered with the garbage collector; see
-@secref["im:memoryalloc"] for more information.}
+如果 @var{no_auto_statics} 非零，则必须将静态变量显式注册到垃圾收集器；参见 @secref["im:memoryalloc"] 了解更多信息。}
 
 
 @function[(int scheme_main_stack_setup
@@ -772,13 +515,9 @@ explicitly registered with the garbage collector; see
            [Scheme_Nested_Main main]
            [void* data])]{
 
-A more primitive variant of @cpp{scheme_main_setup} that initializes
-the GC stack base but does not create the initial namespace (so an
-embedding application can perform other operations that involve
-garbage-collected data before creating a namespace).
+@cpp{scheme_main_setup} 的更原始变体，初始化 GC 栈基址但不创建初始命名空间（因此嵌入应用程序可以在创建命名空间之前执行涉及垃圾收集数据的其他操作）。
 
-The @var{data} argument is passed through to @var{main}, where the
-@cpp{Scheme_Nested_Main} type is defined as follows:
+@var{data} 参数传递给 @var{main}，其中 @cpp{Scheme_Nested_Main} 类型定义如下：
 
 @verbatim[#:indent 4]{
 typedef int (*Scheme_Nested_Main)(void *data);
@@ -789,16 +528,9 @@ typedef int (*Scheme_Nested_Main)(void *data);
            [void* stack_addr]
            [int no_auto_statics])]{
 
-Overrides the GC's auto-determined stack base, and/or disables the
- GC's automatic traversal of global and static variables. If
- @var{stack_addr} is @cpp{NULL}, the stack base determined by the GC
- is used. Otherwise, it should be the ``deepest'' memory address on
- the stack where a collectable pointer might be stored. This function
- should be called only once, and before any other @cpp{scheme_}
- function is called, but only with CGC and when future and places are
- disabled. The function never triggers a garbage collection.
+覆盖 GC 自动确定的栈基址，和/或禁用 GC 对全局变量和静态变量的自动遍历。如果 @var{stack_addr} 为 @cpp{NULL}，则使用 GC 确定的栈基址。否则，它应该是栈上可能存储可收集指针的"最深"内存地址。此函数应仅调用一次，且在任何其他 @cpp{scheme_} 函数调用之前，但仅适用于 CGC 且 future 和 places 被禁用的情况。此函数从不触发垃圾收集。
 
-Example:
+示例：
 
 @verbatim[#:indent 4]{
     int main(int argc, char **argv) {
@@ -808,97 +540,51 @@ Example:
     }
 }
 
-On 3m, the above code does not quite work, because @var{stack_addr}
-must be the beginning or end of a local-frame registration. Worse, in
-CGC or 3m, if @cpp{real_main} is declared @cpp{static}, the compiler
-may inline it and place variables containing collectable values deeper
-in the stack than @cpp{dummy}. To avoid these problems, use
-@cpp{scheme_main_setup} or @cpp{scheme_main_stack_setup}, instead.
+在 3m 上，上述代码不完全正确，因为 @var{stack_addr} 必须是局部帧注册的开始或结束。更糟的是，在 CGC 或 3m 中，如果 @cpp{real_main} 声明为 @cpp{static}，编译器可能将其内联并将包含可收集值的变量放在比 @cpp{dummy} 更深的栈位置。为避免这些问题，请改用 @cpp{scheme_main_setup} 或 @cpp{scheme_main_stack_setup}。
 
-The above code also may not work when future and/or places are enabled
-in Racket, because @cpp{scheme_set_stack_base} does not initialize
-Racket's thread-local variables. Again, use @cpp{scheme_main_setup} or
-@cpp{scheme_main_stack_setup} to avoid the problem.}
+上述代码在 Racket 中启用 future 和/或 places 时也可能无法工作，因为 @cpp{scheme_set_stack_base} 不初始化 Racket 的线程局部变量。同样，使用 @cpp{scheme_main_setup} 或 @cpp{scheme_main_stack_setup} 来避免此问题。}
 
 @function[(void scheme_set_stack_bounds
            [void* stack_addr]
            [void* stack_end]
            [int no_auto_statics])]{
 
-Like @cpp{scheme_set_stack_base}, except for the extra
-@var{stack_end} argument. If @var{stack_end} is non-@cpp{NULL}, then
-it corresponds to a point of C-stack growth after which Racket
-should attempt to handle stack overflow. The @var{stack_end} argument
-should not correspond to the actual stack end, since detecting stack
-overflow may take a few frames, and since handling stack overflow
-requires a few frames.
+类似于 @cpp{scheme_set_stack_base}，但多了额外的 @var{stack_end} 参数。如果 @var{stack_end} 非 @cpp{NULL}，则它对应于 C 栈增长的一个点，超过该点 Racket 应尝试处理栈溢出。@var{stack_end} 参数不应与实际栈尾对应，因为检测栈溢出可能需要几帧，且处理栈溢出也需要几帧。
 
-If @var{stack_end} is @cpp{NULL}, then the stack end is computed
-automatically: the stack size assumed to be the limit reported by
-@cpp{getrlimit} on Unix and Mac OS, or it is assumed to be the
-stack reservation of the executable (or 1 MB if parsing the
-executable fails) on Windows; if this size is greater than 8 MB, then 8 MB is
-assumed, instead; the size is decremented by 50000 bytes
-(64-bit Windows: 100000 bytes) to cover a
-large margin of error; finally, the size is subtracted from (for
-stacks that grow down) or added to (for stacks that grow up) the stack
-base in @var{stack_addr} or the automatically computed stack
-base. Note that the 50000-byte margin of error is assumed to cover the
-difference between the actual stack start and the reported stack base,
-in addition to the margin needed for detecting and handling stack
-overflow.}
+如果 @var{stack_end} 为 @cpp{NULL}，则栈尾自动计算：在 Unix 和 Mac OS 上，栈大小假定为 @cpp{getrlimit} 报告的限制；在 Windows 上，假定为可执行文件的栈保留（如果解析可执行文件失败则为 1 MB）；如果此大小大于 8 MB，则假定为 8 MB；大小减去 50000 字节（64 位 Windows：100000 字节）以覆盖较大的误差范围；最后，从 @var{stack_addr} 或自动计算的栈基址中减去（对于向下增长的栈）或加上（对于向上增长的栈）该大小。注意，假定 50000 字节的误差范围覆盖了实际栈起始和报告的栈基址之间的差异，以及检测和处理栈溢出所需的余量。}
 
 @function[(void scheme_register_tls_space
            [void* ptr]
            [int   tls_index])]{
 
-For Windows, registers @var{ptr} as the address of a
- thread-local pointer variable that is declared in the main
- executable. The variable's storage will be used to implement
- thread-local storage within the Racket run-time. See
- @secref["embedding"].
+对于 Windows，将 @var{ptr} 注册为在主可执行文件中声明的线程局部指针变量的地址。该变量的存储将用于在 Racket 运行时内实现线程局部存储。参见 @secref["embedding"]。
 
-The @var{tls_index} argument must be @cpp{0}. It is currently
- ignored, but a future version may use the argument to allow
- declaration of the thread-local variable in a dynamically linked
- DLL.
+@var{tls_index} 参数必须为 @cpp{0}。它目前被忽略，但未来版本可能使用该参数允许在动态链接的 DLL 中声明线程局部变量。
 
-@history[#:changed "6.3" @elem{Changed from available only on 32-bit Windows
-                               to available on all Windows variants.}]}
+@history[#:changed "6.3" @elem{从仅 32 位 Windows 可用变更为所有 Windows 变体可用。}]}
 
 @function[(void scheme_register_static
            [void* ptr]
            [intptr_t size])]{
 
-Like @cpp{scheme_register_extension_global}, for use in embedding
- applications in situations where the collector does not automatically
- find static variables (i.e., when @cpp{scheme_set_stack_base} has
- been called with a non-zero second argument).
+类似于 @cpp{scheme_register_extension_global}，用于在收集器不会自动查找静态变量的情况下嵌入应用程序（即当 @cpp{scheme_set_stack_base} 被调用且第二个参数非零时）。
 
-The macro @cppi{MZ_REGISTER_STATIC} can be used directly on a static
- variable. It expands to a comment if statics need not be registered,
- and a call to @cpp{scheme_register_static} (with the address of the
- static variable) otherwise.}
+@cppi{MZ_REGISTER_STATIC} 宏可以直接用于静态变量。如果不需要注册静态变量，它展开为注释，否则展开为对 @cpp{scheme_register_static} 的调用（带有静态变量的地址）。}
 
 @function[(void scheme_weak_reference
            [void** p])]{
 
-Registers the pointer @var{*p} as a weak pointer; when no other
-(non-weak) pointers reference the same memory as @var{*p} references,
-then @var{*p} will be set to @cpp{NULL} by the garbage collector. The
-value in @var{*p} may change, but the pointer remains weak with
-respect to the value of @var{*p} at the time @var{p} was registered.
+将指针 @var{*p} 注册为弱指针；当没有其他（非弱）指针引用与 @var{*p} 引用相同的内存时，@var{*p} 将被垃圾收集器设置为 @cpp{NULL}。@var{*p} 中的值可以更改，但指针对注册时 @var{*p} 的值保持弱引用。
 
-This function is not available in 3m.}
+此函数在 3m 中不可用。}
 
 @function[(void scheme_weak_reference_indirect
            [void** p]
            [void* v])]{
 
-Like @cppi{scheme_weak_reference}, but @var{*p} is set to @cpp{NULL}
-(regardless of its prior value) when there are no references to @var{v}.
+类似于 @cppi{scheme_weak_reference}，但当没有对 @var{v} 的引用时，@var{*p} 被设置为 @cpp{NULL}（无论其先前的值如何）。
 
-This function is not available in 3m.}
+此函数在 3m 中不可用。}
 
 @function[(void scheme_register_finalizer
            [void* p]
@@ -907,130 +593,88 @@ This function is not available in 3m.}
            [fnl_proc* oldf]
            [void** olddata])]{
 
-Registers a callback function to be invoked when the memory @var{p}
-would otherwise be garbage-collected, and when no ``will''-like
-finalizers are registered for @var{p}.
+注册一个回调函数，当内存 @var{p} 本来会被垃圾收集，且没有为 @var{p} 注册"will"式终结器时调用。
 
-The @cpp{fnl_proc} type is not actually defined, but it is equivalent
-to
+@cpp{fnl_proc} 类型实际上并未定义，但它等效于
 
 @verbatim[#:indent 2]{typedef void (*fnl_proc)(void *p, void *data)}
 
-The @var{f} argument is the callback function; when it is called, it
-will be passed the value @var{p} and the data pointer @var{data};
-@var{data} can be anything --- it is only passed on to the callback
-function. If @var{oldf} and @var{olddata} are not @cpp{NULL}, then
-@var{*oldf} and @var{*olddata} are filled with the old callback
-information (@var{f} and @var{data} will override this old callback).
+@var{f} 参数是回调函数；当它被调用时，将传递值 @var{p} 和数据指针 @var{data}；@var{data} 可以是任何内容——它仅传递给回调函数。如果 @var{oldf} 和 @var{olddata} 非 @cpp{NULL}，则 @var{*oldf} 和 @var{*olddata} 将填充旧的回调信息（@var{f} 和 @var{data} 将覆盖此旧回调）。
 
-To remove a registered finalizer, pass @cpp{NULL} for @var{f} and
-@var{data}.
+要移除已注册的终结器，为 @var{f} 和 @var{data} 传递 @cpp{NULL}。
 
-Note: registering a callback not only keeps @var{p} from collection
-until the callback is invoked, but it also keeps @var{data} reachable
-until the callback is invoked.}
+注意：注册回调不仅阻止 @var{p} 被收集直到回调被调用，还使 @var{data} 保持可达直到回调被调用。}
 
 @function[(void scheme_add_finalizer
            [void* p]
            [fnl_proc f]
            [void* data])]{
 
-Adds a finalizer to a chain of primitive finalizers. This chain is
-separate from the single finalizer installed with
-@cpp{scheme_register_finalizer}; all finalizers in the chain are
-called immediately after a finalizer that is installed with
-@cpp{scheme_register_finalizer}.
+将终结器添加到原始终结器链中。此链与通过 @cpp{scheme_register_finalizer} 安装的单个终结器是分开的；链中的所有终结器在通过 @cpp{scheme_register_finalizer} 安装的终结器之后立即调用。
 
-See @cpp{scheme_register_finalizer}, above, for information about
-the arguments.
+有关参数的信息，参见上方的 @cpp{scheme_register_finalizer}。
 
-To remove an added finalizer, use @cpp{scheme_subtract_finalizer}.}
+要移除已添加的终结器，使用 @cpp{scheme_subtract_finalizer}。}
 
 @function[(void scheme_add_scheme_finalizer
            [void* p]
            [fnl_proc f]
            [void* data])]{
 
-Installs a ``will''-like finalizer, similar to @racket[will-register].
- Will-like finalizers are called one at a time, requiring the collector
- to prove that a value has become inaccessible again before calling
- the next will-like finalizer. Finalizers registered with
- @cpp{scheme_register_finalizer} or @cpp{scheme_add_finalizer} are
- not called until all will-like finalizers have been exhausted.
+安装"will"式终结器，类似于 @racket[will-register]。Will 式终结器逐个调用，要求收集器在调用下一个 will 式终结器之前证明某个值已再次变得不可访问。通过 @cpp{scheme_register_finalizer} 或 @cpp{scheme_add_finalizer} 注册的终结器在所有 will 式终结器用尽之前不会被调用。
 
-See @cpp{scheme_register_finalizer}, above, for information about
- the arguments.
+有关参数的信息，参见上方的 @cpp{scheme_register_finalizer}。
 
-There is currently no facility to remove a will-like finalizer.}
+目前没有设施来移除 will 式终结器。}
 
 @function[(void scheme_add_finalizer_once
            [void* p]
            [fnl_proc f]
            [void* data])]{
 
-Like @cpp{scheme_add_finalizer}, but if the combination @var{f} and
- @var{data} is already registered as a (non-``will''-like) finalizer
- for @var{p}, it is not added a second time.}
+类似于 @cpp{scheme_add_finalizer}，但如果 @var{f} 和 @var{data} 的组合已经作为 @var{p} 的（非"will"式）终结器注册，则不会再次添加。}
 
 @function[(void scheme_add_scheme_finalizer_once
            [void* p]
            [fnl_proc f]
            [void* data])]{
 
-Like @cpp{scheme_add_scheme_finalizer}, but if the combination of
- @var{f} and @var{data} is already registered as a ``will''-like
- finalizer for @var{p}, it is not added a second time.}
+类似于 @cpp{scheme_add_scheme_finalizer}，但如果 @var{f} 和 @var{data} 的组合已经作为 @var{p} 的"will"式终结器注册，则不会再次添加。}
 
 @function[(void scheme_subtract_finalizer
            [void* p]
            [fnl_proc f]
            [void* data])]{
 
-Removes a finalizer that was installed with
- @cpp{scheme_add_finalizer}.}
+移除通过 @cpp{scheme_add_finalizer} 安装的终结器。}
 
 @function[(void scheme_remove_all_finalization
            [void* p])]{
 
-Removes all finalization (``will''-like or not) for @var{p}, including
- wills added in Scheme with @racket[will-register] and finalizers used
- by custodians.}
+移除 @var{p} 的所有终结（"will"式或非"will"式），包括在 Scheme 中使用 @racket[will-register] 添加的 wills 以及 custodian 使用的终结器。}
 
 @function[(void scheme_dont_gc_ptr
            [void* p])]{
 
-Keeps the collectable block @var{p} from garbage collection. Use this
- procedure when a reference to @var{p} is be stored somewhere
- inaccessible to the collector. Once the reference is no longer used
- from the inaccessible region, de-register the lock with
- @cpp{scheme_gc_ptr_ok}. A garbage collection can occur during the
- registration.
+阻止可收集块 @var{p} 被垃圾收集。当对 @var{p} 的引用存储在收集器无法访问的某处时，使用此过程。一旦该引用不再从不可访问区域使用，使用 @cpp{scheme_gc_ptr_ok} 取消注册该锁。注册期间可能发生垃圾收集。
 
-This function keeps a reference count on the pointers it registers, so
- two calls to @cppi{scheme_dont_gc_ptr} for the same @var{p} should
- be balanced with two calls to @cpp{scheme_gc_ptr_ok}.}
+此函数对其注册的指针维护引用计数，因此对同一 @var{p} 的两次 @cppi{scheme_dont_gc_ptr} 调用应与两次 @cpp{scheme_gc_ptr_ok} 调用平衡。}
 
 @function[(void scheme_gc_ptr_ok
            [void* p])]{
 
-See @cpp{scheme_dont_gc_ptr}.}
+参见 @cpp{scheme_dont_gc_ptr}。}
 
 
 @function[(void scheme_collect_garbage)]{
 
-Forces an immediate garbage-collection.}
+强制执行立即垃圾收集。}
 
 @function[(void scheme_enable_garbage_collection [int on])]{
 
-Garbage collection is enabled only when an internal counter is
-@cpp{0}.  Calling @cpp{scheme_enable_garbage_collection} with a false
-value increments the counter, and calling
-@cpp{scheme_enable_garbage_collection} with a true value decrements
-the counter.
+仅当内部计数器为 @cpp{0} 时才启用垃圾收集。使用 false 值调用 @cpp{scheme_enable_garbage_collection} 会增加计数器，使用 true 值调用 @cpp{scheme_enable_garbage_collection} 会减少计数器。
 
-When the @envvar{PLTDISABLEGC} environment variable is set, then
-@exec{racket} initializes the internal counter to @cpp{1} to initially
-disable garbage collection.}
+当设置 @envvar{PLTDISABLEGC} 环境变量时，@exec{racket} 将内部计数器初始化为 @cpp{1} 以初始禁用垃圾收集。}
 
 
 @function[(void GC_register_traversers
@@ -1041,10 +685,9 @@ disable garbage collection.}
            [int is_const_size]
            [int is_atomic])]{
 
-3m only. Registers a size, mark, and fixup procedure for a given type
- tag; see @secref["im:3m:tagged"] for more information.
+仅限 3m。为给定类型标签注册大小、标记和修正过程；参见 @secref["im:3m:tagged"] 了解更多信息。
 
-Each of the three procedures takes a pointer and returns an integer:
+这三个过程中的每一个都接受一个指针并返回一个整数：
 
 @verbatim[#:indent 2]{
   typedef int (*Size_Proc)(void *obj);
@@ -1052,76 +695,39 @@ Each of the three procedures takes a pointer and returns an integer:
   typedef int (*Fixup_Proc)(void *obj);
 }
 
-If the result of the size procedure is a constant, then pass a
- non-zero value for @var{is_const_size}. If the mark and fixup
- procedures are no-ops, then pass a non-zero value
- for @var{is_atomic}.}
+如果大小过程的结果是常量，则为 @var{is_const_size} 传递非零值。如果标记和修正过程是空操作，则为 @var{is_atomic} 传递非零值。}
 
 
 @function[(void* GC_resolve [void* p])]{
 
-3m only. Can be called by a size, mark, or fixup procedure that is registered
-with @cpp{GC_register_traversers}. It returns the current address of
-an object @var{p} that might have been moved already. This translation is necessary, for
-example, if the size or structure of an object depends on the content
-of an object it references. For example, the size of a class instance
-usually depends on a field count that is stored in the class. A fixup
-procedure should call this function on a reference @emph{before}
-fixing it.}
+仅限 3m。可由通过 @cpp{GC_register_traversers} 注册的大小、标记或修正过程调用。它返回可能已经移动的对象 @var{p} 的当前地址。例如，如果对象的大小或结构取决于其引用的对象的内容，则此转换是必要的。例如，类实例的大小通常取决于存储在类中的字段计数。修正过程应在修正引用@emph{之前}对该引用调用此函数。}
 
 
 @function[(void* GC_fixup_self [void* p])]{
 
-3m only. Can be called by a fixup procedure that is registered with
-@cpp{GC_register_traversers}. It returns the final address of @var{p},
-which must be the pointer passed to the fixup procedure. The
-@cpp{GC_resolve} function would produce the same result, but
-@cpp{GC_fixup_self} may be more efficient. For some
-implementations of the memory manager, the result is the same as
-@var{p}, either because objects are not moved or because the object is
-moved before it is fixed. With other implementations, an object might
-be moved after the fixup process, and the result is the location that
-the object will have after garbage collection finished.}
+仅限 3m。可由通过 @cpp{GC_register_traversers} 注册的修正过程调用。它返回 @var{p} 的最终地址，该地址必须是传递给修正过程的指针。@cpp{GC_resolve} 函数会产生相同的结果，但 @cpp{GC_fixup_self} 可能更高效。对于内存管理器的某些实现，结果与 @var{p} 相同，这要么是因为对象未被移动，要么是因为对象在修正之前已被移动。对于其他实现，对象可能在修正过程之后被移动，结果是在垃圾收集完成后对象将位于的位置。}
 
 
 @function[(void scheme_register_type_gc_shape [short type]
                                               [intptr_t* shape])]{
 
-Like @cpp{GC_register_traversers}, but using a set of predefined
-functions that interpret @var{shape} to traverse a value. The
-@var{shape} array is a sequence of commands terminated with
-@cpp{SCHEME_GC_SHAPE_TERM}, where each command has a single argument.
+类似于 @cpp{GC_register_traversers}，但使用一组预定义函数来解释 @var{shape} 以遍历值。@var{shape} 数组是以 @cpp{SCHEME_GC_SHAPE_TERM} 结尾的命令序列，每个命令有一个参数。
 
-Commands:
+命令：
 
 @itemlist[
 
- @item{@tt{#define @cppdef{SCHEME_GC_SHAPE_TERM} 0} --- the terminator
-       command, which has no argument.}
+ @item{@tt{#define @cppdef{SCHEME_GC_SHAPE_TERM} 0} --- 终止命令，没有参数。}
 
- @item{@tt{#define @cppdef{SCHEME_GC_SHAPE_PTR_OFFSET} 1} ---
-       specifies that a object tagged with @var{type} has a pointer
-       to be made visible to the garbage collector, where the command
-       argument is the offset from the beginning of the object.}
+ @item{@tt{#define @cppdef{SCHEME_GC_SHAPE_PTR_OFFSET} 1} --- 指定带有 @var{type} 标签的对象有一个指针需要对垃圾收集器可见，其中命令参数是从对象开头的偏移量。}
 
- @item{@tt{#define @cppdef{SCHEME_GC_SHAPE_ADD_SIZE} 2} --- specifies
-       the allocated size of an object tagged with @var{type},
-       where the command argument is an amount to add to an
-       accumulated size; currently, size information is not used, but
-       it may be needed with future implementations of the garbage
-       collector.}
+ @item{@tt{#define @cppdef{SCHEME_GC_SHAPE_ADD_SIZE} 2} --- 指定带有 @var{type} 标签的对象的分配大小，其中命令参数是要添加到累积大小的量；目前，大小信息未被使用，但在未来的垃圾收集器实现中可能需要。}
 
 ]
 
-To improve forward compatibility, any other command is assumed to take
-a single argument and is ignored.
+为了提高向前兼容性，任何其他命令都被假定为接受单个参数并被忽略。
 
-A GC-shape registration is place-specific, even though
-@cpp{scheme_make_type} creates a type tag that spans places. If a
-traversal is already installed for @cpp{type} in the current place,
-the old traversal specification is replaced. The
-@cpp{scheme_register_type_gc_shape} function keeps its own copy of the
-array @var{shape}, so the array need not be retained.
+GC 形状注册是特定于 place 的，即使 @cpp{scheme_make_type} 创建的类型标签跨越 places。如果当前 place 中已为 @cpp{type} 安装了遍历器，则旧的遍历规范将被替换。@cpp{scheme_register_type_gc_shape} 函数保留数组 @var{shape} 的自己的副本，因此无需保留该数组。
 
 @history[#:added "6.4.0.10"]}
 
@@ -1129,11 +735,8 @@ array @var{shape}, so the array need not be retained.
 @function[(Scheme_Object* scheme_add_gc_callback [Scheme_Object* pre_desc]
                                                  [Scheme_Object* post_desc])]{
 
-The same as @racket[unsafe-add-collect-callbacks] from
-@racketmodname[ffi/unsafe/collect-callback].}
+与 @racketmodname[ffi/unsafe/collect-callback] 中的 @racket[unsafe-add-collect-callbacks] 相同。}
 
 @function[(void scheme_remove_gc_callback [Scheme_Object* key])]{
 
-The same as @racket[unsafe-remove-collect-callbacks], removes
-garbage-collection callbacks installed with
-@cpp{scheme_add_gc_callback}.}
+与 @racket[unsafe-remove-collect-callbacks] 相同，移除通过 @cpp{scheme_add_gc_callback} 安装的垃圾收集回调。}
