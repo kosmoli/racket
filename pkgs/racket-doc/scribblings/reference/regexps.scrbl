@@ -34,86 +34,77 @@
 
 @guideintro["regexp"]{regular expressions}
 
-@deftech{Regular expressions} are specified as strings or byte
-strings, using the same pattern language as either the Unix utility
-@exec{egrep} or Perl. A string-specified pattern produces a character
-regexp matcher, and a byte-string pattern produces a byte regexp
-matcher. If a character regexp is used with a byte string or input
-port, it matches UTF-8 encodings (see @secref["encodings"]) of
-matching character streams; if a byte regexp is used with a character
-string, it matches bytes in the UTF-8 encoding of the string.
+@deftech{正则表达式}以字符串或字节字符串的形式指定，
+使用的模式语言与 Unix 工具 @exec{egrep} 或 Perl 相同。
+字符串指定的模式产生字符 regexp 匹配器，字节字符串模式产生
+字节 regexp 匹配器。如果字符 regexp 用于字节字符串或输入端口，
+它匹配匹配字符流的 UTF-8 编码（参见 @secref["encodings"]）；
+如果字节 regexp 用于字符串，它匹配该字符串 UTF-8 编码中的字节。
 
-A regular expression that is represented as a string or byte string
-can be compiled to a @deftech{regexp value}, which can be used more
-efficiently by functions such as @racket[regexp-match] compared to the
-string or byte string form. The @racket[regexp] and
-@racket[byte-regexp] procedures convert a string or byte string
-(respectively) into a regexp value using a syntax of regular
-expressions that is most compatible to @exec{egrep}. The
-@racket[pregexp] and @racket[byte-pregexp] procedures produce a regexp
-value using a slightly different syntax of regular expressions that is
-more compatible with Perl.
+以字符串或字节字符串形式表示的正则表达式可以编译为
+@deftech{regexp 值}，与字符串或字节字符串形式相比，
+@racket[regexp-match] 等函数可以更高效地使用它。
+@racket[regexp] 和 @racket[byte-regexp] 过程分别将字符串
+或字节字符串转换为 regexp 值，使用与 @exec{egrep} 最兼容的
+正则表达式语法。@racket[pregexp] 和 @racket[byte-pregexp] 过程
+使用与 Perl 更兼容的稍有不同的正则表达式语法生成 regexp 值。
 
-Two @tech{regexp values} are @racket[equal?] if they have the same
-source, use the same pattern language, and are both character regexps
-or both byte regexps.
+两个 @tech{regexp 值}如果具有相同的源、使用相同的模式语言、
+且都是字符 regexp 或都是字节 regexp，则是 @racket[equal?] 的。
 
-A literal or printed @tech{regexp value} starts with @litchar{#rx} or
-@litchar{#px}. @see-read-print["regexp"]{regular expressions} Regexp
-values produced by the default reader are @tech{interned} in
-@racket[read-syntax] mode.
+字面量或打印的 @tech{regexp 值}以 @litchar{#rx} 或
+@litchar{#px} 开头。@see-read-print["regexp"]{正则表达式}
+默认 reader 生成的 Regexp 值在 @racket[read-syntax] 模式下
+是 @tech{interned} 的。
 
-On the @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{BC} variant of Racket,
-the internal size of a @tech{regexp value} is limited to 32 kilobytes; this
-limit roughly corresponds to a source string with 32,000 literal
-characters or 5,000 operators.
+在 Racket 的 @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{BC} 变体上，
+@tech{regexp 值}的内部大小限制为 32 KB；此限制大致对应
+于包含 32,000 个文字字符或 5,000 个运算符的源字符串。
 
 @;------------------------------------------------------------------------
 @section[#:tag "regexp-syntax"]{Regexp Syntax}
 
-The following syntax specifications describe the content of a string
-that represents a regular expression. The syntax of the corresponding
-string may involve extra escape characters. For example, the regular
-expression @litchar{(.*)\1} can be represented with the string
-@racket["(.*)\\1"] or the regexp constant @racket[#rx"(.*)\\1"]; the
-@litchar{\} in the regular expression must be escaped to include it
-in a string or regexp constant.
+以下语法规范描述了表示正则表达式的字符串的内容。
+相应字符串的语法可能涉及额外的转义字符。例如，正则表达式
+@litchar{(.*)\1} 可以用字符串
+@racket["(.*)\\1"] 或 regexp 常量 @racket[#rx"(.*)\\1"]
+表示；正则表达式中的 @litchar{\} 必须转义才能包含
+在字符串或 regexp 常量中。
 
-The @racket[regexp] and @racket[pregexp] syntaxes share a common core:
+@racket[regexp] 和 @racket[pregexp] 语法共享一个共同的核心：
 
 @common-table
 
-The following completes the grammar for @racket[regexp], which treats
-@litchar["{"] and @litchar["}"] as literals, @litchar{\} as a
-literal within ranges, and @litchar{\} as a literal producer
-outside of ranges.
+以下完成了 @racket[regexp] 的语法，它将
+@litchar["{"] 和 @litchar["}"] 视为字面量，在
+范围内将 @litchar{\} 视为字面量，在范围外将
+@litchar{\} 视为字面量生成器。
 
 @rx-table
 
-The following completes the grammar for @racket[pregexp], which uses
-@litchar["{"] and @litchar["}"] bounded repetition and uses
-@litchar{\} for meta-characters both inside and outside of ranges.
+以下完成了 @racket[pregexp] 的语法，它使用
+@litchar["{"] 和 @litchar["}"] 进行有界重复，
+并在范围内外都使用 @litchar{\} 表示元字符。
 
 @px-table
 
-In case-insensitive mode, a backreference of the form
-@litchar{\}@nonterm{n} matches case-insensitively only with respect to
-ASCII characters.
+在大小写不敏感模式下，形式为
+@litchar{\}@nonterm{n} 的反向引用仅在 ASCII 字符方面
+进行大小写不敏感匹配。
 
-The Unicode categories follow.
+Unicode 类别如下。
 
 @category-table
 
-When a character regexp with @litchar{.} is used with a byte string or
-input port, the @litchar{.} matches only a valid UTF-8 encoding in the
-input. A @litchar{.} in a byte regexp matches any byte (except a
-newline in multi mode). A property specified with @litchar{\P} or
-@litchar{\p} matches only a valid UTF-8 encoding, whether it is
-written in a character regexp or byte regexp. Similarly, @litchar{\X}
-matches only valid UTF-8 encoding sequences, and it will not match a
-prefix of a sequence (even if matching only a prefix would allow the
-rest of the pattern to match remaining input), but a grapheme-cluster
-sequence can be terminated by an invalid UTF-8 encoding.
+当带有 @litchar{.} 的字符 regexp 与字节字符串或输入端口
+一起使用时，@litchar{.} 仅匹配输入中的有效 UTF-8 编码。
+字节 regexp 中的 @litchar{.} 匹配任何字节（multi 模式下
+的换行符除外）。用 @litchar{\P} 或 @litchar{\p} 指定的
+属性仅匹配有效的 UTF-8 编码，无论它是写在字符 regexp 还是
+字节 regexp 中。类似地，@litchar{\X} 仅匹配有效的 UTF-8
+编码序列，并且不会匹配序列的前缀（即使只匹配前缀可以让模式
+的其余部分匹配剩余的输入），但 grapheme-cluster 序列可以
+被无效的 UTF-8 编码终止。
 
 @rx-examples[
 [1 #rx"a|b" "cat"]
@@ -160,36 +151,31 @@ sequence can be terminated by an invalid UTF-8 encoding.
 @;------------------------------------------------------------------------
 @section{Additional Syntactic Constraints}
 
-In addition to matching a grammar, regular expressions must meet two
-syntactic restrictions:
+除了匹配语法之外，正则表达式还必须满足两个语法限制：
 
 @itemize[
 
- @item{In a @nonterm{repeat} other than @nonterm{atom}@litchar{?},
-       the @nonterm{atom} must not match an empty sequence.}
+ @item{在除 @nonterm{atom}@litchar{?} 之外的 @nonterm{repeat} 中，
+       @nonterm{atom} 不得匹配空序列。}
 
- @item{In a @litchar{(?<=}@nonterm{regexp}@litchar{)} or
-       @litchar{(?<!}@nonterm{regexp}@litchar{)},
-       the @nonterm{regexp} must match a bounded sequence only.}
+ @item{在 @litchar{(?<=}@nonterm{regexp}@litchar{)} 或
+       @litchar{(?<!}@nonterm{regexp}@litchar{)} 中，
+       @nonterm{regexp} 只能匹配有界序列。}
 
 ]
 
-These constraints are checked syntactically by the following type
-system. A type [@math{n}, @math{m}] corresponds to an expression that
-matches between @math{n} and @math{m} characters. In the rule for
-@litchar{(}@nonterm{regexp}@litchar{)}, @nonterm{n} means the number such
-that the opening parenthesis is the @nonterm{n}th opening parenthesis for
-collecting match reports.  Non-emptiness is inferred for a
-backreference pattern, @litchar{\}@nonterm{n}, so that a
-backreference can be used for repetition patterns; in the case of
-mutual dependencies among backreferences, the inference chooses the
-fixpoint that maximizes non-emptiness.  Finiteness is not inferred for
-backreferences (i.e., a backreference is assumed to match an
-arbitrarily large sequence). No syntactic constraint prohibits a
-backreference within the group that it references, although such self
-references might create a pattern with no possible matches (as in the
-case of @litchar{(.\1)}, although @litchar{(^.|\1){2}} matches an
-input that starts with the same two characters).
+这些约束通过以下类型系统在语法上进行检查。类型
+[@math{n}, @math{m}] 对应于匹配 @math{n} 到 @math{m} 个
+字符的表达式。在 @litchar{(}@nonterm{regexp}@litchar{)} 的
+规则中，@nonterm{n} 表示使得左括号是用于收集匹配报告的第
+@nonterm{n} 个左括号的数字。对于反向引用模式
+@litchar{\}@nonterm{n}，会推断非空性，以便反向引用可以
+用于重复模式；在反向引用之间存在相互依赖的情况下，推断会选择
+最大化非空性的不动点。对反向引用不推断有限性（即假设反向引用
+匹配任意大的序列）。没有语法约束禁止在反向引用所引用的组内
+使用反向引用，尽管这种自引用可能会创建没有可能匹配的模式
+（如 @litchar{(.\1)} 的情况，尽管
+@litchar{(^.|\1){2}} 匹配以相同两个字符开头的输入）。
 
 @type-table
 
@@ -198,27 +184,30 @@ input that starts with the same two characters).
 
 @defproc[(regexp? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{regexp value} created by
-@racket[regexp] or @racket[pregexp], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[regexp] 或 @racket[pregexp]
+创建的 @tech{regexp 值}则返回 @racket[#t]，否则返回
+@racket[#f]。}
 
 
 @defproc[(pregexp? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{regexp value} created by
-@racket[pregexp] (not @racket[regexp]), @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[pregexp]（而不是
+@racket[regexp]）创建的 @tech{regexp 值}则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(byte-regexp? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{regexp value} created by
-@racket[byte-regexp] or @racket[byte-pregexp], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[byte-regexp] 或
+@racket[byte-pregexp] 创建的 @tech{regexp 值}则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(byte-pregexp? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{regexp value} created by
-@racket[byte-pregexp] (not @racket[byte-regexp]), @racket[#f]
-otherwise.}
+如果 @racket[v] 是由 @racket[byte-pregexp]（而不是
+@racket[byte-regexp]）创建的 @tech{regexp 值}则返回
+@racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc*[([(regexp [str string?]) regexp?]
@@ -226,22 +215,20 @@ otherwise.}
                     [handler (or/c #f (string? . -> . any))])
             any])]{
 
-Takes a string representation of a regular expression (using the
-syntax in @secref["regexp-syntax"]) and compiles it into a @tech{regexp
-value}. Other regular expression procedures accept either a string or a
-@tech{regexp value} as the matching pattern. If a regular expression string
-is used multiple times, it is faster to compile the string once to a
-@tech{regexp value} and use it for repeated matches instead of using the
-string each time.
+接受正则表达式的字符串表示（使用
+@secref["regexp-syntax"] 中的语法）并将其编译为
+@tech{regexp 值}。其他正则表达式过程接受字符串或
+@tech{regexp 值}作为匹配模式。如果正则表达式字符串被多次
+使用，将字符串编译为 @tech{regexp 值}一次并用于重复匹配
+比每次使用字符串更快。
 
-If @racket[handler] is provided and not @racket[#f], it is called and
-its result is returned when @racket[str] is not a valid representation
-of a regular expression; the argument to @racket[handler] is a string
-that describes the problem with @racket[str]. If @racket[handler] is
-@racket[#f] or not provided, then @exnraise[exn:fail:contract].
+如果提供了 @racket[handler] 且不为 @racket[#f]，则当
+@racket[str] 不是正则表达式的有效表示时调用它并返回其结果；
+@racket[handler] 的参数是描述 @racket[str] 问题的字符串。
+如果 @racket[handler] 是 @racket[#f] 或未提供，则
+@exnraise[exn:fail:contract]。
 
-The @racket[object-name] procedure returns
-the source string for a @tech{regexp value}.
+@racket[object-name] 过程返回 @tech{regexp 值}的源字符串。
 
 @examples[
 (regexp "ap*le")
@@ -256,10 +243,10 @@ the source string for a @tech{regexp value}.
                      [handler (or/c #f (string? . -> . any))])
             any])]{
 
-Like @racket[regexp], except that it uses a slightly different syntax
-(see @secref["regexp-syntax"]). The result can be used with
-@racket[regexp-match], etc., just like the result from
-@racket[regexp].
+类似于 @racket[regexp]，但使用稍有不同的语法
+（参见 @secref["regexp-syntax"]）。结果可以与
+@racket[regexp-match] 等一起使用，就像 @racket[regexp]
+的结果一样。
 
 @examples[
 (pregexp "ap*le")
@@ -274,15 +261,14 @@ Like @racket[regexp], except that it uses a slightly different syntax
                          [handler (or/c #f (bytes? . -> . any))])
             any])]{
 
-Takes a byte-string representation of a regular expression (using the
-syntax in @secref["regexp-syntax"]) and compiles it into a
-byte-@tech{regexp value}.
+接受正则表达式的字节字符串表示（使用
+@secref["regexp-syntax"] 中的语法）并将其编译为
+byte-@tech{regexp 值}。
 
-If @racket[handler] is provided, it is called and its result is returned
-if @racket[bstr] is not a valid representation of a regular expression.
+如果提供了 @racket[handler]，则当 @racket[bstr] 不是正则
+表达式的有效表示时调用它并返回其结果。
 
-The @racket[object-name] procedure
-returns the source byte string for a @tech{regexp value}.
+@racket[object-name] 过程返回 @tech{regexp 值}的源字节字符串。
 
 @examples[
 (byte-regexp #"ap*le")
@@ -298,10 +284,10 @@ returns the source byte string for a @tech{regexp value}.
                           [handler (or/c #f (bytes? . -> . any))])
             any])]{
 
-Like @racket[byte-regexp], except that it uses a slightly different
-syntax (see @secref["regexp-syntax"]). The result can be used with
-@racket[regexp-match], etc., just like the result from
-@racket[byte-regexp].
+类似于 @racket[byte-regexp]，但使用稍有不同的语法
+（参见 @secref["regexp-syntax"]）。结果可以与
+@racket[regexp-match] 等一起使用，就像
+@racket[byte-regexp] 的结果一样。
 
 @examples[
 (byte-pregexp #"ap*le")
@@ -313,12 +299,11 @@ syntax (see @secref["regexp-syntax"]). The result can be used with
 @defproc*[([(regexp-quote [str string?] [case-sensitive? any/c #t]) string?]
            [(regexp-quote [bstr bytes?] [case-sensitive? any/c #t]) bytes?])]{
 
-Produces a string or byte string suitable for use with @racket[regexp]
-to match the literal sequence of characters in @racket[str] or
-sequence of bytes in @racket[bstr]. If @racket[case-sensitive?] is
-true (the default), the resulting regexp matches letters in
-@racket[str] or @racket[bstr] case-sensitively, otherwise it matches
-case-insensitively.
+生成适合与 @racket[regexp] 一起使用的字符串或字节字符串，
+用于匹配 @racket[str] 中的字面字符序列或 @racket[bstr]
+中的字节序列。如果 @racket[case-sensitive?] 为 true（默认），
+则生成的 regexp 以大小写敏感方式匹配 @racket[str] 或
+@racket[bstr] 中的字母，否则以大小写不敏感方式匹配。
 
 @examples[
 (regexp-match "." "apple.scm")
@@ -328,8 +313,8 @@ case-insensitively.
 @defproc*[([(pregexp-quote [str string?] [case-sensitive? any/c #t]) string?]
            [(pregexp-quote [bstr bytes?] [case-sensitive? any/c #t]) bytes?])]{
 
-Like @racket[regexp-quote], but intended for use with @racket[pregexp].
-Escapes all non-alphanumeric, non-underscore characters in the input.
+类似于 @racket[regexp-quote]，但旨在与 @racket[pregexp]
+一起使用。转义输入中所有非字母数字、非下划线字符。
 
 @history[#:added "8.11.1.9"]
 }
@@ -337,13 +322,12 @@ Escapes all non-alphanumeric, non-underscore characters in the input.
 @defproc[(regexp-max-lookbehind [pattern (or/c regexp? byte-regexp?)])
          exact-nonnegative-integer?]{
 
-Returns the maximum number of bytes that @racket[pattern] may consult
-before the starting position of a match to determine the match. For
-example, the pattern @litchar{(?<=abc)d} consults three bytes
-preceding a matching @litchar{d}, while @litchar{e(?<=a..)d} consults
-two bytes before a matching @litchar{ed}. A @litchar{^} pattern may
-consult a preceding byte to determine whether the current position is
-the start of the input or of a line.
+返回 @racket[pattern] 在匹配起始位置之前可能需要参考的
+最大字节数，用于确定匹配。例如，模式
+@litchar{(?<=abc)d} 参考匹配的 @litchar{d} 之前的三个字节，
+而 @litchar{e(?<=a..)d} 参考匹配的 @litchar{ed} 之前的
+两个字节。@litchar{^} 模式可能参考前一个字节来确定当前位置
+是否是输入或行的起始。
 
 @examples[
 (regexp-max-lookbehind #rx#"(?<=abc)d")
@@ -355,9 +339,9 @@ the start of the input or of a line.
 @defproc[(regexp-capture-group-count [pattern (or/c regexp? byte-regexp?)])
          exact-nonnegative-integer?]{
 
-Returns the number of capture groups that are in @racket[pattern],
-which corresponds to one less than the length of the list returned by
-@racket[regexp-match] for a successful match to @racket[pattern].
+返回 @racket[pattern] 中捕获组的数量，这对应于对
+@racket[pattern] 成功匹配时 @racket[regexp-match] 返回的
+列表长度减一。
 
 @examples[
 (regexp-capture-group-count #rx"abcd")
@@ -382,98 +366,87 @@ which corresponds to one less than the length of the list returned by
              (or/c #f (cons/c string? (listof (or/c string? #f))))
              (or/c #f (cons/c bytes?  (listof (or/c bytes?  #f)))))]{
 
-Attempts to match @racket[pattern] (a string, byte string,
-@tech{regexp value}, or byte-@tech{regexp value}) once to a portion of
-@racket[input].  The matcher finds a portion of @racket[input] that
-matches and is closest to the start of the input (after
-@racket[start-pos]).
+尝试将 @racket[pattern]（字符串、字节字符串、@tech{regexp 值}
+或 byte-@tech{regexp 值}）与 @racket[input] 的一部分进行一次
+匹配。匹配器找到 @racket[input] 中匹配且最接近输入开头
+（在 @racket[start-pos] 之后）的部分。
 
-If @racket[input] is a path, it is converted to a byte string with
-@racket[path->bytes] if @racket[pattern] is a byte string or a
-byte-based regexp. Otherwise, @racket[input] is converted to a string
-with @racket[path->string].
+如果 @racket[input] 是一个 path，且 @racket[pattern] 是
+字节字符串或基于字节的 regexp，则使用
+@racket[path->bytes] 将其转换为字节字符串。否则，使用
+@racket[path->string] 将 @racket[input] 转换为字符串。
 
-The optional @racket[start-pos] and @racket[end-pos] arguments select
-a portion of @racket[input] for matching; the default is the entire
-string or the stream up to an end-of-file. When @racket[input] is a
-string, @racket[start-pos] is a character position; when
-@racket[input] is a byte string, then @racket[start-pos] is a byte
-position; and when @racket[input] is an input port, @racket[start-pos]
-is the number of bytes to skip before starting to match. The
-@racket[end-pos] argument can be @racket[#f], which corresponds to the
-end of the string or an end-of-file in the stream; otherwise, it is a
-character or byte position, like @racket[start-pos]. If @racket[input]
-is an input port, and if an end-of-file is reached before
-@racket[start-pos] bytes are skipped, then the match fails.
+可选的 @racket[start-pos] 和 @racket[end-pos] 参数选择
+@racket[input] 的一部分进行匹配；默认为整个字符串或直到
+文件结尾的流。当 @racket[input] 是字符串时，
+@racket[start-pos] 是字符位置；当 @racket[input] 是字节
+字符串时，@racket[start-pos] 是字节位置；当
+@racket[input] 是输入端口时，@racket[start-pos] 是开始匹配
+前要跳过的字节数。@racket[end-pos] 参数可以是
+@racket[#f]，对应字符串的末尾或流中的文件结尾；否则，它像
+@racket[start-pos] 一样是字符或字节位置。如果
+@racket[input] 是输入端口，并且在跳过
+@racket[start-pos] 字节之前到达文件结尾，则匹配失败。
 
-In @racket[pattern], a start-of-string @litchar{^} refers to the first
-position of @racket[input] after @racket[start-pos], assuming that
-@racket[input-prefix] is @racket[#""].  The end-of-input @litchar{$}
-refers to the @racket[end-pos]th position or (in the case of an input
-port) an end-of-file, whichever comes first.
+在 @racket[pattern] 中，字符串开头的 @litchar{^} 指的是
+@racket[input] 在 @racket[start-pos] 之后的第一个位置，
+假设 @racket[input-prefix] 是 @racket[#""]。输入末尾的
+@litchar{$} 指的是第 @racket[end-pos] 个位置或（在输入
+端口的情况下）文件结尾，以先到者为准。
 
-The @racket[input-prefix] specifies bytes that effectively precede
-@racket[input] for the purposes of @litchar{^} and other look-behind
-matching. For example, a @racket[#""] prefix means that @litchar{^}
-matches at the beginning of the stream, while a @racket[#"\n"]
-@racket[input-prefix] means that a start-of-line @litchar{^} can match
-the beginning of the input, while a start-of-file @litchar{^} cannot.
+@racket[input-prefix] 指定有效地在 @racket[input] 之前的
+字节，用于 @litchar{^} 和其他 look-behind 匹配。例如，
+@racket[#""] 前缀意味着 @litchar{^} 在流的开头匹配，
+而 @racket[#"\n"] @racket[input-prefix] 意味着行首
+@litchar{^} 可以匹配输入的开头，而文件开头 @litchar{^}
+则不能。
 
-If the match fails, @racket[#f] is returned. If the match succeeds, a
-list containing strings or byte string, and possibly @racket[#f], is
-returned. The list contains strings only if @racket[input] is a string
-and @racket[pattern] is not a byte regexp. Otherwise, the list
-contains byte strings (substrings of the UTF-8 encoding of
-@racket[input], if @racket[input] is a string).
+如果匹配失败，返回 @racket[#f]。如果匹配成功，返回一个
+包含字符串或字节字符串（可能还有 @racket[#f]）的列表。
+仅当 @racket[input] 是字符串且 @racket[pattern] 不是字节
+regexp 时，列表才包含字符串。否则，列表包含字节字符串
+（如果 @racket[input] 是字符串，则为 @racket[input] 的
+UTF-8 编码的子串）。
 
-The first (byte) string in a result list is the portion of
-@racket[input] that matched @racket[pattern]. If two portions of
-@racket[input] can match @racket[pattern], then the match that starts
-earliest is found.
+结果列表中的第一个（字节）字符串是 @racket[input] 中匹配
+@racket[pattern] 的部分。如果 @racket[input] 的两个部分
+可以匹配 @racket[pattern]，则找到最早开始的那个匹配。
 
-Additional (byte) strings are returned in the list if @racket[pattern]
-contains parenthesized sub-expressions (but not when the opening
-parenthesis is followed by @litchar{?}). Matches for the
-sub-expressions are provided in the order of the opening parentheses
-in @racket[pattern]. When sub-expressions occur in branches of an
-@litchar{|} ``or'' pattern, in a @litchar{*} ``zero or more''
-pattern, or other places where the overall pattern can succeed without
-a match for the sub-expression, then a @racket[#f] is returned for the
-sub-expression if it did not contribute to the final match. When a
-single sub-expression occurs within a @litchar{*} ``zero or more''
-pattern or other multiple-match positions, then the rightmost match
-associated with the sub-expression is returned in the list.
+如果 @racket[pattern] 包含带括号的子表达式（但左括号后跟
+@litchar{?}时除外），则列表中返回额外的（字节）字符串。
+子表达式的匹配按 @racket[pattern] 中左括号的顺序提供。
+当子表达式出现在 @litchar{|} “或”模式的分支中、
+@litchar{*} “零次或多次”模式中，或者其他整体模式
+可以成功而子表达式不匹配的地方时，如果子表达式没有贡献
+最终匹配，则返回 @racket[#f]。当单个子表达式出现在
+@litchar{*} “零次或多次”模式或其他多次匹配位置中时，
+列表中返回与该子表达式关联的最右匹配。
 
-If the optional @racket[output-port] is provided as an output port,
-the part of @racket[input] from its beginning (not @racket[start-pos])
-that precedes the match is written to the port. All of @racket[input]
-up to @racket[end-pos] is written to the port if no match is
-found. This functionality is most useful when @racket[input] is an
-input port.
+如果提供了可选的 @racket[output-port] 作为输出端口，则
+@racket[input] 中从开头（不是 @racket[start-pos]）到匹配
+之前的部分会被写入端口。如果没有找到匹配，则将
+@racket[input] 到 @racket[end-pos] 的全部内容写入端口。
+当 @racket[input] 是输入端口时，此功能最有用。
 
-When matching an input port, a match failure reads up to
-@racket[end-pos] bytes (or end-of-file), even if @racket[pattern]
-begins with a start-of-string @litchar{^}; see also
-@racket[regexp-try-match]. On success, all bytes up to and including
-the match are eventually read from the port, but matching proceeds by
-first peeking bytes from the port (using @racket[peek-bytes-avail!]),
-and then (re@-~-)reading matching bytes to discard them after the match
-result is determined. Non-matching bytes may be read and discarded
-before the match is determined. The matcher peeks in blocking mode
-only as far as necessary to determine a match, but it may peek extra
-bytes to fill an internal buffer if immediately available (i.e.,
-without blocking). Greedy repeat operators in @racket[pattern], such
-as @litchar{*} or @litchar{+}, tend to force reading the entire
-content of the port (up to @racket[end-pos]) to determine a match.
+当匹配输入端口时，匹配失败会读取最多 @racket[end-pos] 字节
+（或文件结尾），即使 @racket[pattern] 以字符串开头
+@litchar{^} 开始；另请参见 @racket[regexp-try-match]。
+成功时，最终会从端口读取直到并包括匹配的所有字节，但匹配
+过程是先 peek 端口的字节（使用 @racket[peek-bytes-avail!]），
+然后在匹配结果确定后（重新）读取匹配的字节以丢弃它们。
+不匹配的字节可能在匹配确定之前被读取和丢弃。匹配器仅在
+必要时以阻塞模式 peek 以确定匹配，但如果立即可用（即无需
+阻塞），它可能 peek 额外的字节来填充内部缓冲区。
+@racket[pattern] 中的贪婪重复运算符，如 @litchar{*} 或
+@litchar{+}，往往会强制读取端口的全部内容（直到
+@racket[end-pos]）以确定匹配。
 
-If the input port is read simultaneously by another thread, or if the
-port is a custom port with inconsistent reading and peeking procedures
-(see @secref["customport"]), then the bytes that are peeked and
-used for matching may be different than the bytes read and discarded
-after the match completes; the matcher inspects only the peeked
-bytes. To avoid such interleaving, use @racket[regexp-match-peek]
-(with a @racket[_progress] argument) followed by
-@racket[port-commit-peeked].
+如果输入端口同时被另一个线程读取，或者端口是具有不一致的
+读取和 peek 过程的自定义端口（参见 @secref["customport"]），
+则 peeked 并用于匹配的字节可能与匹配完成后读取并丢弃的
+字节不同；匹配器仅检查 peek 的字节。为避免这种交错，
+使用 @racket[regexp-match-peek]（带 @racket[_progress]
+参数）后跟 @racket[port-commit-peeked]。
 
 @examples[
 (regexp-match #rx"x." "12x4x6")
@@ -501,55 +474,50 @@ bytes. To avoid such interleaving, use @racket[regexp-match-peek]
              (listof (or/c string? (listof (or/c #f string?))))
              (listof (or/c bytes? (listof (or/c #f bytes?)))))]{
 
-Like @racket[regexp-match], but the result is a list of strings or
-byte strings corresponding to a sequence of matches of
-@racket[pattern] in @racket[input].
+类似于 @racket[regexp-match]，但结果是一个字符串或字节
+字符串的列表，对应 @racket[input] 中 @racket[pattern] 的
+一系列匹配。
 
-The @racket[pattern] is used in order to find matches, where each
-match attempt starts at the end of the last match, and @litchar{^} is
-allowed to match the beginning of the input (if @racket[input-prefix]
-is @racket[#""]) only for the first match.  Empty matches are handled
-like other matches, returning a zero-length string or byte sequence
-(they are more useful in making this a complement of
-@racket[regexp-split]), but @racket[pattern] is restricted from
-matching an empty sequence immediately after an empty match.
+@racket[pattern] 按顺序用于查找匹配，每次匹配尝试从上次
+匹配的末尾开始，@litchar{^} 仅对第一次匹配允许匹配输入的
+开头（如果 @racket[input-prefix] 是 @racket[#""]）。
+空匹配像其他匹配一样处理，返回零长度的字符串或字节序列
+（它们在使其成为 @racket[regexp-split] 的补充方面更有用），
+但 @racket[pattern] 被限制不能在空匹配之后立即匹配空序列。
 
-If @racket[input] contains no matches (in the range @racket[start-pos]
-to @racket[end-pos]), @racket[null] is returned. Otherwise, each item
-in the resulting list is a distinct substring or byte sequence from
-@racket[input] that matches @racket[pattern]. The @racket[end-pos]
-argument can be @racket[#f] to match to the end of @racket[input]
-(which corresponds to an end-of-file if @racket[input] is an input
-port).
+如果 @racket[input]（在 @racket[start-pos] 到
+@racket[end-pos] 范围内）不包含匹配，则返回
+@racket[null]。否则，结果列表中的每个项目是来自
+@racket[input] 的匹配 @racket[pattern] 的不同子字符串或
+字节序列。@racket[end-pos] 参数可以是 @racket[#f]，
+以匹配到 @racket[input] 的末尾（如果 @racket[input] 是
+输入端口，则对应文件结尾）。
 
 @examples[
 (regexp-match* #rx"x." "12x4x6")
 (regexp-match* #rx"x*" "12x4x6")
 ]
 
-The @racket[match-select] function specifies the collected results.  The default of
-@racket[car] means that the result is the list of matches without
-returning parenthesized sub-patterns.  It can be given as a ``selector''
-function which chooses an item from a list, or it can choose a list of
-items.  For example, you can use @racket[cdr] to get a list of lists
-of parenthesized sub-patterns matches, or @racket[values] (as an
-identity function) to get the full matches as well.  (Note that the
-selector must choose an element of its input list or a list of
-elements, but it must not inspect its input as they can be either a
-list of strings or a list of position pairs.  Furthermore, the
-selector must be consistent in its choice(s).)
+@racket[match-select] 函数指定收集的结果。默认的
+@racket[car] 意味着结果是匹配列表，不返回带括号的子模式。
+它可以作为“选择器”函数给出，该函数从列表中选择一个项目，
+或者可以选择一个项目列表。例如，你可以使用 @racket[cdr]
+获取带括号的子模式匹配的列表的列表，或使用 @racket[values]
+（作为恒等函数）同时获取完整匹配。（注意，选择器必须选择
+其输入列表的一个元素或一个元素列表，但不能检查其输入，
+因为它们可以是字符串列表或位置对列表。此外，选择器在其
+选择中必须一致。）
 
 @examples[
 (regexp-match* #rx"x(.)" "12x4x6" #:match-select cadr)
 (regexp-match* #rx"x(.)" "12x4x6" #:match-select values)
 ]
 
-In addition, specifying @racket[gap-select] as a non-@racket[#f] value
-will make the result an interleaved list of the matches as well as the
-separators between them matches, starting and ending with a separator.
-In this case, @racket[match-select] can be given as @racket[#f] to
-return @emph{only} the separators, making such uses equivalent to
-@racket[regexp-split].
+此外，将 @racket[gap-select] 指定为非 @racket[#f] 值会使
+结果成为一个交错列表，包含匹配以及匹配之间的分隔符，
+以分隔符开始和结束。在这种情况下，可以将
+@racket[match-select] 设置为 @racket[#f] 以仅返回分隔符，
+使这种用法等同于 @racket[regexp-split]。
 
 @examples[
 (regexp-match* #rx"x(.)" "12x4x6" #:match-select cadr #:gap-select? #t)
@@ -565,15 +533,13 @@ return @emph{only} the separators, making such uses equivalent to
                            [input-prefix bytes? #""])
          (or/c #f (cons/c bytes? (listof (or/c bytes? #f))))]{
 
-Like @racket[regexp-match] on input ports, except that if the match
-fails, no characters are read and discarded from @racket[in].
+类似于输入端口上的 @racket[regexp-match]，但如果匹配失败，
+不会从 @racket[in] 读取和丢弃任何字符。
 
-This procedure is especially useful with a @racket[pattern] that
-begins with a start-of-string @litchar{^} or with a non-@racket[#f]
-@racket[end-pos], since each limits the amount of peeking into the
-port. Otherwise, beware that a large portion of the stream may be
-peeked (and therefore pulled into memory) before the match succeeds or
-fails.}
+此过程特别适用于以字符串开头 @litchar{^} 开始或带有非
+@racket[#f] @racket[end-pos] 的 @racket[pattern]，因为
+每个都限制了 peek 端口的数量。否则，请注意在匹配成功或
+失败之前，流的大部分可能被 peek（因此被拉入内存）。}
 
 
 @defproc[(regexp-match-positions [pattern (or/c regexp? byte-regexp? string? bytes?)]
@@ -589,19 +555,17 @@ fails.}
                                       #f)))
                 #f)]{
 
-Like @racket[regexp-match], but returns a list of number pairs (and
-@racket[#f]) instead of a list of strings. Each pair of numbers refers
-to a range of characters or bytes in @racket[input]. If the result for
-the same arguments with @racket[regexp-match] would be a list of byte
-strings, the resulting ranges correspond to byte ranges; in that case,
-if @racket[input] is a character string, the byte ranges correspond to
-bytes in the UTF-8 encoding of the string.
+类似于 @racket[regexp-match]，但返回数字对（和
+@racket[#f]）列表而不是字符串列表。每对数字指的是
+@racket[input] 中的字符或字节范围。如果对相同参数使用
+@racket[regexp-match] 的结果将是字节字符串列表，则结果
+范围对应字节范围；在这种情况下，如果 @racket[input] 是
+字符串，字节范围对应字符串 UTF-8 编码中的字节。
 
-Range results are returned in a @racket[substring]- and
-@racket[subbytes]-compatible manner, independent of
-@racket[start-pos]. In the case of an input port, the returned
-positions indicate the number of bytes that were read, including
-@racket[start-pos], before the first matching byte.
+范围结果以 @racket[substring] 和 @racket[subbytes] 兼容
+的方式返回，独立于 @racket[start-pos]。在输入端口的情况下，
+返回的位置表示在第一个匹配字节之前读取的字节数（包括
+@racket[start-pos]）。
 
 @examples[
 (regexp-match-positions #rx"x." "12x4x6")
@@ -609,12 +573,11 @@ positions indicate the number of bytes that were read, including
 (regexp-match-positions #rx"(-[0-9]*)+" "a-12--345b")
 ]
 
-Range results after the first one can include negative numbers if
-@racket[input-prefix] is non-empty and if @racket[pattern] includes a
-lookbehind pattern. Such ranges start in the @racket[input-prefix]
-instead of @racket[input]. More generally, when @racket[start-pos] is
-positive, then range results that are less than @racket[start-pos]
-start in @racket[input-prefix].
+如果 @racket[input-prefix] 非空且 @racket[pattern] 包含
+lookbehind 模式，则第一个之后的范围结果可能包含负数。
+这些范围从 @racket[input-prefix] 而不是 @racket[input]
+开始。更一般地，当 @racket[start-pos] 为正时，小于
+@racket[start-pos] 的范围结果从 @racket[input-prefix] 开始。
 
 @examples[
 (regexp-match-positions #rx"(?<=(.))." "a" 0 #f #f #"x")
@@ -622,10 +585,9 @@ start in @racket[input-prefix].
 (regexp-match-positions #rx"(?<=(..))." "_a" 1 #f #f #"x")
 ]
 
-Although @racket[input-prefix] is always a byte string, when the
-returned positions are string indices and they refer to a portion of
-@racket[input-prefix], then they correspond to a UTF-8 decoding of
-a tail of @racket[input-prefix].
+虽然 @racket[input-prefix] 总是字节字符串，但当返回的
+位置是字符串索引并且它们引用 @racket[input-prefix] 的
+一部分时，它们对应 @racket[input-prefix] 尾部的 UTF-8 解码。
 
 @examples[
 (bytes-length (string->bytes/utf-8 "\u3BB"))
@@ -645,17 +607,17 @@ a tail of @racket[input-prefix].
                (listof (listof (or/c #f (cons/c exact-nonnegative-integer?
                                                 exact-nonnegative-integer?)))))]{
 
-Like @racket[regexp-match-positions], but returns multiple matches
-like @racket[regexp-match*].
+类似于 @racket[regexp-match-positions]，但像
+@racket[regexp-match*] 一样返回多个匹配。
 
 @examples[
 (regexp-match-positions* #rx"x." "12x4x6")
 (regexp-match-positions* #rx"x(.)" "12x4x6" #:match-select cadr)
 ]
 
-Note that unlike @racket[regexp-match*], there is no
-@racket[#:gap-select?] input keyword, as this information can be easily
-inferred from the resulting matches.
+请注意，与 @racket[regexp-match*] 不同，没有
+@racket[#:gap-select?] 输入关键字，因为此信息可以很容易
+地从结果匹配中推断出来。
 }
 
 
@@ -667,8 +629,8 @@ inferred from the resulting matches.
                         [input-prefix bytes? #""])
            boolean?]{
 
-Like @racket[regexp-match], but returns merely @racket[#t] when the
-match succeeds, @racket[#f] otherwise.
+类似于 @racket[regexp-match]，但匹配成功时仅返回
+@racket[#t]，否则返回 @racket[#f]。
 
 @examples[
 (regexp-match? #rx"x." "12x4x6")
@@ -680,30 +642,29 @@ match succeeds, @racket[#f] otherwise.
                               [input (or/c string? bytes? path?)])
           boolean?]{
 
-Like @racket[regexp-match?], but @racket[#t] is only returned when the
-first found match is to the entire content of @racket[input].
+类似于 @racket[regexp-match?]，但仅当找到的第一个匹配
+是整个 @racket[input] 的内容时才返回 @racket[#t]。
 
 @examples[
 (regexp-match-exact? #rx"x." "12x4x6")
 (regexp-match-exact? #rx"1.*x." "12x4x6")
 ]
 
-Beware that @racket[regexp-match-exact?] can return @racket[#f] if
-@racket[pattern] generates a partial match for @racket[input] first, even if
-@racket[pattern] could also generate a complete match. To check if there is any
-match of @racket[pattern] that covers all of @racket[input], use
-@racket[regexp-match?] with @elem{@litchar{^(?:}@racket[pattern]@litchar{)$}}
-instead.
+请注意，如果 @racket[pattern] 先生成了对 @racket[input]
+的部分匹配，则 @racket[regexp-match-exact?] 可能返回
+@racket[#f]，即使 @racket[pattern] 也可以生成完整匹配。
+要检查是否存在覆盖整个 @racket[input] 的任何匹配，
+请使用带有 @elem{@litchar{^(?:}@racket[pattern]@litchar{)$}}
+的 @racket[regexp-match?]。
 
 @examples[
 (regexp-match-exact? #rx"a|ab" "ab")
 (regexp-match? #rx"^(?:a|ab)$" "ab")
 ]
 
-The @litchar{(?:)} grouping is necessary because concatenation has
-lower precedence than alternation; the regular expression without it,
-@litchar{^a|ab$}, matches any input that either starts with
-@litchar{a} or ends with @litchar{ab}.
+@litchar{(?:)} 分组是必要的，因为连接运算符的优先级低于
+选择运算符；没有它的正则表达式 @litchar{^a|ab$} 匹配
+任何以 @litchar{a} 开头或以 @litchar{ab} 结尾的输入。
 
 @examples[
 (regexp-match? #rx"^a|ab$" "123ab")
@@ -719,15 +680,15 @@ lower precedence than alternation; the regular expression without it,
           (or/c (cons/c bytes? (listof (or/c bytes? #f)))
                 #f)]{
 
-Like @racket[regexp-match] on input ports, but only peeks bytes from
-@racket[input] instead of reading them. Furthermore, instead of
-an output port, the optional @racket[progress] argument is a progress event for
-@racket[input] (see @racket[port-progress-evt]). If @racket[progress]
-becomes ready, then the match stops peeking from @racket[input]
-and returns @racket[#f]. The @racket[progress] argument can be
-@racket[#f], in which case the peek may continue with inconsistent
-information if another process meanwhile reads from
-@racket[input].
+类似于输入端口上的 @racket[regexp-match]，但只从
+@racket[input] peek 字节而不读取它们。此外，可选的
+@racket[progress] 参数（而不是 output port）是
+@racket[input] 的进度事件（参见
+@racket[port-progress-evt]）。如果 @racket[progress] 就绪，
+则匹配停止从 @racket[input] peek 并返回 @racket[#f]。
+@racket[progress] 参数可以是 @racket[#f]，在这种情况下，
+如果另一个进程同时从 @racket[input] 读取，peek 可能会以
+不一致的信息继续。
 
 @examples[
 (define p (open-input-string "a abcd"))
@@ -753,9 +714,9 @@ information if another process meanwhile reads from
                                       #f)))
                 #f)]{
 
-Like @racket[regexp-match-positions] on input ports, but only peeks
-bytes from @racket[input] instead of reading them, and with a
-@racket[progress] argument like @racket[regexp-match-peek].}
+类似于输入端口上的 @racket[regexp-match-positions]，但只
+从 @racket[input] peek 字节而不读取它们，并带有与
+@racket[regexp-match-peek] 类似的 @racket[progress] 参数。}
 
 
 @defproc[(regexp-match-peek-immediate [pattern (or/c regexp? byte-regexp? string? bytes?)]
@@ -767,10 +728,9 @@ bytes from @racket[input] instead of reading them, and with a
           (or/c (cons/c bytes? (listof (or/c bytes? #f)))
                 #f)]{
 
-Like @racket[regexp-match-peek], but it attempts to match only bytes
-that are available from @racket[input] without blocking.  The
-match fails if not-yet-available characters might be used to match
-@racket[pattern].}
+类似于 @racket[regexp-match-peek]，但仅尝试匹配无需阻塞
+即可从 @racket[input] 获取的字节。如果尚未可用的字符
+可能用于匹配 @racket[pattern]，则匹配失败。}
 
 
 @defproc[(regexp-match-peek-positions-immediate [pattern (or/c regexp? byte-regexp? string? bytes?)]
@@ -786,10 +746,9 @@ match fails if not-yet-available characters might be used to match
                                       #f)))
                 #f)]{
 
-Like @racket[regexp-match-peek-positions], but it attempts to match
-only bytes that are available from @racket[input] without
-blocking. The match fails if not-yet-available characters might be
-used to match @racket[pattern].}
+类似于 @racket[regexp-match-peek-positions]，但仅尝试匹配
+无需阻塞即可从 @racket[input] 获取的字节。如果尚未
+可用的字符可能用于匹配 @racket[pattern]，则匹配失败。}
 
 
 @defproc[(regexp-match-peek-positions*
@@ -806,8 +765,8 @@ used to match @racket[pattern].}
                (listof (listof (or/c #f (cons/c exact-nonnegative-integer?
                                                 exact-nonnegative-integer?)))))]{
 
-Like @racket[regexp-match-peek-positions], but returns multiple matches like
-@racket[regexp-match-positions*].}
+类似于 @racket[regexp-match-peek-positions]，但像
+@racket[regexp-match-positions*] 一样返回多个匹配。}
 
 @defproc[(regexp-match/end [pattern (or/c regexp? byte-regexp? string? bytes?)]
                        [input (or/c string? bytes? path? input-port?)]
@@ -823,15 +782,15 @@ Like @racket[regexp-match-peek-positions], but returns multiple matches like
               (or/c #f (cons/c bytes?  (listof (or/c bytes?  #f)))))
           (or/c #f bytes?))]{
 
-Like @racket[regexp-match], but with a second result: a byte
-string of up to @racket[count] bytes that correspond to the input
-(possibly including the @racket[input-prefix]) leading to the end of
-the match; the second result is @racket[#f] if no match is found.
+类似于 @racket[regexp-match]，但有第二个结果：一个最多
+@racket[count] 字节的字节字符串，对应于通向匹配末尾的输入
+（可能包括 @racket[input-prefix]）；如果未找到匹配，
+第二个结果为 @racket[#f]。
 
-The second result can be useful as an @racket[input-prefix] for
-attempting a second match on @racket[input] starting from the end of
-the first match. In that case, use @racket[regexp-max-lookbehind]
-to determine an appropriate value for @racket[count].}
+第二个结果可用作 @racket[input-prefix]，用于从第一个匹配
+的末尾开始在 @racket[input] 上尝试第二次匹配。在这种情况下，
+使用 @racket[regexp-max-lookbehind] 确定 @racket[count]
+的适当值。}
 
 @deftogether[(
 @defproc[(regexp-match-positions/end [pattern (or/c regexp? byte-regexp? string? bytes?)]
@@ -875,8 +834,8 @@ to determine an appropriate value for @racket[count].}
           (or/c #f bytes?))]
 )]{
 
-Like @racket[regexp-match-positions], etc., but with a second result
-like @racket[regexp-match/end].}
+类似于 @racket[regexp-match-positions] 等，但带有与
+@racket[regexp-match/end] 一样的第二个结果。}
 
 @;------------------------------------------------------------------------
 @section{Regexp Splitting}
@@ -891,24 +850,23 @@ like @racket[regexp-match/end].}
              (cons/c string? (listof string?))
              (cons/c bytes? (listof bytes?)))]{
 
-The complement of @racket[regexp-match*]: the result is a list of
-strings (if @racket[pattern] is a string or character regexp and
-@racket[input] is a string) or byte strings (otherwise) from
-@racket[input] that are separated by matches to
-@racket[pattern]. Adjacent matches are separated with @racket[""] or
-@racket[#""]. Zero-length matches are treated the same as for
-@racket[regexp-match*].
+@racket[regexp-match*] 的补集：结果是一个来自
+@racket[input] 的字符串列表（如果 @racket[pattern] 是
+字符串或字符 regexp 且 @racket[input] 是字符串）或字节
+字符串列表（否则），它们由对 @racket[pattern] 的匹配分隔。
+相邻匹配之间用 @racket[""] 或 @racket[#""] 分隔。
+零长度匹配的处理方式与 @racket[regexp-match*] 相同。
 
-If @racket[input] contains no matches (in the range @racket[start-pos]
-to @racket[end-pos]), the result is a list containing @racket[input]'s
-content (from @racket[start-pos] to @racket[end-pos]) as a single
-element. If a match occurs at the beginning of @racket[input] (at
-@racket[start-pos]), the resulting list will start with an empty
-string or byte string, and if a match occurs at the end (at
-@racket[end-pos]), the list will end with an empty string or byte
-string. The @racket[end-pos] argument can be @racket[#f], in which
-case splitting goes to the end of @racket[input] (which corresponds to
-an end-of-file if @racket[input] is an input port).
+如果 @racket[input]（在 @racket[start-pos] 到
+@racket[end-pos] 范围内）不包含匹配，则结果是一个包含
+@racket[input] 内容（从 @racket[start-pos] 到
+@racket[end-pos]）作为单个元素的列表。如果匹配发生在
+@racket[input] 的开头（在 @racket[start-pos] 处），则
+结果列表将以空字符串或字节字符串开头；如果匹配发生在末尾
+（在 @racket[end-pos] 处），则列表将以空字符串或字节
+字符串结尾。@racket[end-pos] 参数可以是 @racket[#f]，
+在这种情况下，分割进行到 @racket[input] 的末尾（如果
+@racket[input] 是输入端口，则对应文件结尾）。
 
 @examples[
 (regexp-split #rx" +" "12  34")
@@ -933,18 +891,16 @@ an end-of-file if @racket[input] is an input port).
              string?
              bytes?)]{
 
-Performs a match using @racket[pattern] on @racket[input], and then
-returns a string or byte string in which the matching portion of
-@racket[input] is replaced with @racket[insert].  If @racket[pattern]
-matches no part of @racket[input], then @racket[input] is returned
-unmodified.
+使用 @racket[pattern] 对 @racket[input] 执行匹配，然后
+返回一个字符串或字节字符串，其中 @racket[input] 的匹配部分
+被替换为 @racket[insert]。如果 @racket[pattern] 不匹配
+@racket[input] 的任何部分，则原样返回 @racket[input]。
 
-The @racket[insert] argument can be either a (byte) string, or a
-function that returns a (byte) string. In the latter case, the
-function is applied on the list of values that @racket[regexp-match]
-would return (i.e., the first argument is the complete match, and then
-one argument for each parenthesized sub-expression) to obtain a
-replacement (byte) string.
+@racket[insert] 参数可以是（字节）字符串，也可以是返回
+（字节）字符串的函数。在后一种情况下，函数应用于
+@racket[regexp-match] 将返回的值列表（即第一个参数是
+完整匹配，然后每个带括号的子表达式一个参数）以获取替换的
+（字节）字符串。
 
 If @racket[pattern] is a string or character regexp and @racket[input]
 is a string, then @racket[insert] must be a string or a procedure that
@@ -954,31 +910,30 @@ then @racket[insert] as a string is converted to a byte string,
 @racket[insert] as a procedure is called with a byte string, and the
 result is a byte string.
 
-If @racket[insert] contains @litchar{&}, then @litchar{&}
-is replaced with the matching portion of @racket[input] before it is
-substituted into the match's place.  If @racket[insert] contains
-@litchar{\}@nonterm{n} for some integer @nonterm{n}, then it is
-replaced with the @nonterm{n}th matching sub-expression from
-@racket[input]. A @litchar{&} and @litchar{\0} are aliases. If
-the @nonterm{n}th sub-expression was not used in the match, or if
-@nonterm{n} is greater than the number of sub-expressions in
-@racket[pattern], then @litchar{\}@nonterm{n} is replaced with the
-empty string.
+如果 @racket[insert] 包含 @litchar{&}，则在代入匹配位置
+之前，@litchar{&} 被替换为 @racket[input] 的匹配部分。
+如果 @racket[insert] 包含某个整数 @nonterm{n} 的
+@litchar{\}@nonterm{n}，则它被替换为 @racket[input] 中的
+第 @nonterm{n} 个匹配子表达式。@litchar{&} 和
+@litchar{\0} 是别名。如果第 @nonterm{n} 个子表达式未
+在匹配中使用，或者 @nonterm{n} 大于 @racket[pattern]
+中子表达式的数量，则 @litchar{\}@nonterm{n} 被替换为
+空字符串。
 
-To substitute a literal @litchar{&} or @litchar{\}, use
-@litchar{\&} and @litchar{\\}, respectively, in
-@racket[insert]. A @litchar{\$} in @racket[insert] is
-equivalent to an empty sequence; this can be used to terminate a
-number @nonterm{n} following @litchar{\}. If a @litchar{\} in
-@racket[insert] is followed by anything other than a digit,
-@litchar{&}, @litchar{\}, or @litchar{$}, then the @litchar{\}
-by itself is treated as @litchar{\0}.
+要替换字面的 @litchar{&} 或 @litchar{\}，分别在
+@racket[insert] 中使用 @litchar{\&} 和
+@litchar{\\}。@racket[insert] 中的 @litchar{\$}
+等同于空序列；这可以用来终止 @litchar{\} 后面的数字
+@nonterm{n}。如果 @racket[insert] 中的 @litchar{\}
+后跟数字、@litchar{&}、@litchar{\} 或 @litchar{$}
+以外的任何内容，则 @litchar{\} 本身被视为
+@litchar{\0}。
 
-Note that the @litchar{\} described in the previous paragraphs is a
-character or byte of @racket[insert]. To write such an @racket[insert]
-as a Racket string literal, an escaping @litchar{\} is needed
-before the @litchar{\}. For example, the Racket constant
-@racket["\\1"] is @litchar{\1}.
+请注意，前面段落中描述的 @litchar{\} 是
+@racket[insert] 的字符或字节。要将这样的
+@racket[insert] 写成 Racket 字符串字面量，需要在
+@litchar{\} 之前使用转义 @litchar{\}。例如，Racket
+常量 @racket["\\1"] 是 @litchar{\1}。
 
 @examples[
 (regexp-replace #rx"mi" "mi casa" "su")
@@ -1000,20 +955,19 @@ before the @litchar{\}. For example, the Racket constant
                           [input-prefix bytes? #""])
          (or/c string? bytes?)]{
 
-Like @racket[regexp-replace], except that every instance of
-@racket[pattern] in @racket[input] is replaced with @racket[insert],
-instead of just the first match. The result is @racket[input] only if
-there are no matches, @racket[start-pos] is @racket[0], and
-@racket[end-pos] is @racket[#f] or the length of @racket[input].
-Only non-overlapping instances of
-@racket[pattern] in @racket[input] are replaced, so instances of
-@racket[pattern] within inserted strings are @italic{not} replaced
-recursively. Zero-length matches are treated the same as in
-@racket[regexp-match*].
+类似于 @racket[regexp-replace]，但将 @racket[input] 中
+@racket[pattern] 的每个实例替换为 @racket[insert]，
+而不仅仅是第一个匹配。仅当没有匹配、
+@racket[start-pos] 为 @racket[0]、且
+@racket[end-pos] 为 @racket[#f] 或 @racket[input] 的长度
+时，结果才是 @racket[input]。只替换 @racket[input] 中
+@racket[pattern] 的非重叠实例，因此插入字符串中的
+@racket[pattern] 实例 @italic{不会}被递归替换。
+零长度匹配的处理方式与 @racket[regexp-match*] 相同。
 
-The optional @racket[start-pos] and @racket[end-pos] arguments select
-a portion of @racket[input] for matching; the default is the entire
-string or the stream up to an end-of-file.
+可选的 @racket[start-pos] 和 @racket[end-pos] 参数选择
+@racket[input] 的一部分进行匹配；默认为整个字符串或直到
+文件结尾的流。
 
 @examples[
 (regexp-replace* #rx"([Mm])i ([a-zA-Z]*)" "mi cerveza Mi Mi Mi"
@@ -1038,10 +992,10 @@ string or the stream up to an end-of-file.
                                           (bytes? bytes? ... . -> . bytes?))))])
          (or/c string? bytes?)]{
 
-Performs a chain of @racket[regexp-replace*] operations, where each
-element in @racket[replacements] specifies a replacement as a
-@racket[(list _pattern _insert)].  The replacements are done in
-order, so later replacements can apply to previous insertions.
+执行一系列 @racket[regexp-replace*] 操作，其中
+@racket[replacements] 中的每个元素指定一个替换，格式为
+@racket[(list _pattern _insert)]。替换按顺序进行，因此
+后面的替换可以应用于前面的插入。
 
 @examples[
 (regexp-replaces "zero-or-more?"
@@ -1053,11 +1007,11 @@ order, so later replacements can apply to previous insertions.
 @defproc*[([(regexp-replace-quote [str string?]) string?]
            [(regexp-replace-quote [bstr bytes?]) bytes?])]{
 
-Produces a string suitable for use as the third argument to
-@racket[regexp-replace] to insert the literal sequence of characters
-in @racket[str] or bytes in @racket[bstr] as a replacement.
-Concretely, every @litchar{\} and @litchar{&} in @racket[str] or
-@racket[bstr] is protected by a quoting @litchar{\}.
+生成适合作为 @racket[regexp-replace] 的第三个参数的字符串，
+用于将 @racket[str] 中的字面字符序列或 @racket[bstr] 中
+的字节作为替换插入。具体来说，@racket[str] 或
+@racket[bstr] 中的每个 @litchar{\} 和 @litchar{&} 都由
+引号 @litchar{\} 保护。
 
 @examples[
 (regexp-replace #rx"UT" "Go UT!" "A&M")
