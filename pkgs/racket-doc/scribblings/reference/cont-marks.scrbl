@@ -73,7 +73,7 @@
          (listof vector?)]{
 返回一个新创建的列表，包含 @racket[mark-set] 中 @racket[key-list] 各 key 对应的 mark 向量，直到 @racket[prompt-tag]，其中 @racket[mark-set] 的 @racket[#f] 值等同于 @racket[(current-continuation-marks prompt-tag)]。结果列表中每个向量的长度与 @racket[key-list] 的长度相同，特定位置的值是 @racket[key-list] 中对应 key 的值。仅当 @racket[mark-set] 中的 mark 用于同一 continuation 帧时，多个 key 的值才会出现在单个向量中。@racket[none-v] 参数用于向量元素表示值的缺失。生成结果所需的时间与 @racket[mark-set] 反映的 continuation 大小乘以 @racket[key-list] 的长度成正比。
 
-@history[#:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]
+@history[#:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]}
 
 
 @defproc[(continuation-mark-set->iterator
@@ -86,7 +86,7 @@
 类似于 @racket[continuation-mark-set->list*]，但不返回值列表，而是返回一个函数式迭代器，形式为一个过程，返回预期列表的一个元素以及剩余部分的新迭代器函数。当没有更多元素时，迭代器过程返回 @racket[#f] 而不是向量；在这种情况下，返回的迭代器函数与调用的那个相同，不再产生值。每一步所需的时间与 @racket[key-list] 的长度乘以 @racket[mark-set] 反映的 continuation 中各帧之间（包含 @racket[key-list] 中 key 的帧）的大小成正比。
 
 @history[#:added "7.5.0.7"
-         #:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]
+         #:changed "8.0.0.1" @elem{更改为允许 @racket[mark-set] 为 @racket[#f]。}]}
 
 
 @defproc[(continuation-mark-set-first 
@@ -99,7 +99,7 @@
 
 结果以（摊销）常数时间产生。通常，使用 @racket[continuation-mark-set-first] 可以比使用 @racket[continuation-mark-set->list] 或使用 @racket[continuation-mark-set->iterator] 仅迭代一次更快地计算此结果。
 
-虽然 @racket[#f] 和 @racket[(current-continuation-marks prompt-tag)] 对于 @racket[mark-set] 是等价的，但提供 @racket[#f] 作为 @racket[mark-set] 可以启用使其更快的快捷方式。
+虽然 @racket[#f] 和 @racket[(current-continuation-marks prompt-tag)] 对于 @racket[mark-set] 是等价的，但提供 @racket[#f] 作为 @racket[mark-set] 可以启用使其更快的快捷方式。}
 
 
 @defproc[(call-with-immediate-continuation-mark

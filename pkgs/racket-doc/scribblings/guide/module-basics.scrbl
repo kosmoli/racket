@@ -208,7 +208,7 @@ racket
 
  @item{当使用 @seclink["exe" #:doc '(lib "scribblings/raco/raco.scrbl")]{@exec{raco exe}} 和 @seclink["exe-dist" #:doc '(lib "scribblings/raco/raco.scrbl")]{@exec{raco distribute}} 创建在不同机器上运行的可执行文件时，当前机器的路径可能与目标机器的路径无关。@exec{raco exe} 工具对通过文件系统路径引用的模块与通过集合路径引用的模块处理方式不同，因为只有后者在运行时通过反射操作访问才有意义。
 
-       例如，如果 @exec{raco exe sort.rkt} 创建的可执行文件在运行时使用 @racket[(dynamic-require 'candy/db/lookup #f)]，那么当 @filepath{db/lookup.rkt} 在可执行文件创建时相对于文件系统路径 @racket{sort.rkt] 解析时，该 @racket[dynamic-require] 将失败。}
+       例如，如果 @exec{raco exe sort.rkt} 创建的可执行文件在运行时使用 @racket[(dynamic-require 'candy/db/lookup #f)]，那么当 @filepath{db/lookup.rkt} 在可执行文件创建时相对于文件系统路径 @racket{sort.rkt} 解析时，该 @racket[dynamic-require] 将失败。}
 
 ]
 

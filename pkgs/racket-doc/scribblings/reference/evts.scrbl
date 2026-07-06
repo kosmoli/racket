@@ -85,7 +85,7 @@ Returns @racket[#t] if @racket[v] 是 @tech{可同步事件}，否则返回 @rac
 
 @defproc[(sync/enable-break [evt evt?] ...) any]{
 
-类似于 @racket[sync]，但在等待 @racket[evt] 时启用 break（参见 @secref["breakhandler"]）。如果在调用 @racket[sync/enable-break] 时 break 被禁用，那么要么所有 @racket[evt] 都保持未选择状态，要么引发 @racket[exn:break] 异常，但不会同时发生。
+类似于 @racket[sync]，但在等待 @racket[evt] 时启用 break（参见 @secref["breakhandler"]）。如果在调用 @racket[sync/enable-break] 时 break 被禁用，那么要么所有 @racket[evt] 都保持未选择状态，要么引发 @racket[exn:break] 异常，但不会同时发生。}
 
 
 @defproc[(sync/timeout/enable-break [timeout (or/c #f (and/c real? (not/c negative?)) (-> any))]
@@ -156,7 +156,7 @@ Returns @racket[#t] if @racket[v] 是 @tech{可同步事件}，否则返回 @rac
 
 @racket[guard-evt] 返回的事件 @racket[_guard] 在 @racket[_guard] 与 @racket[sync] 一起使用时生成一个事件（或者当它是与 @racket[sync] 一起使用的 choice 事件的一部分时等），其中生成的事件是调用 @racket[maker] 的结果。对于给定的 @racket[sync] 调用，@racket[maker] 最多被调用一次，但如果在此之前已选择了就绪事件，则 @racket[_guard] 甚至不会被考虑，@racket[maker] 也不会被调用。
 
-如果 @racket[maker] 返回非事件值，则 @racket[maker] 的结果被替换为一个 @tech{就绪可同步} 的事件，其 @tech{同步结果} 为 @racket[_guard]。
+如果 @racket[maker] 返回非事件值，则 @racket[maker] 的结果被替换为一个 @tech{就绪可同步} 的事件，其 @tech{同步结果} 为 @racket[_guard]。}
 
 
 @defproc[(nack-guard-evt [maker (evt? . -> . (or/c evt? any/c))]) evt?]{

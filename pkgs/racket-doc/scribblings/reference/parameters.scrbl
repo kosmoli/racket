@@ -84,7 +84,8 @@
 (send-k)
 (thread (lambda () ((channel-get k-ch) p1)))
 (channel-get ch)
-]
+]}
+
 
 @defform[(parameterize* ((parameter-expr value-expr) ...)
            body ...+)]{

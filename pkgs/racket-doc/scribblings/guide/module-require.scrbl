@@ -54,7 +54,7 @@ less-filling?
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals (except-in)
-                 (except-in require-spec id ...]{
+                 (except-in require-spec id ...)]{
 
 此 form 是 @racket[only-in] 的补集：它从 @racket[require-spec] 指定的集合中排除特定绑定。
 
