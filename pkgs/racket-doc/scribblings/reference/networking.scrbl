@@ -585,13 +585,11 @@ Internet 地址。（对于大多数机器，答案对应于当前机器唯一�
 Internet 地址，但当机器服务多个地址时，结果是 connection-specific。）
 第二个字符串是连接另一端的 Internet 地址。
 
-If @racket[port-numbers?] is true, then four results are returned: a
-string for the local machine's address, an exact integer between
-@racket[1] and @racket[65535] for the local machine's port number 
-or @racket[0] if the socket is unbound, a
-string for the remote machine's address, and an exact integer between
-@racket[1] and @racket[65535] for the remote machine's port number 
-or @racket[0] if the socket is unconnected.
+如果 @racket[port-numbers?] 为真，则返回四个值：本地机器地址的字符串、
+本地机器端口号在 @racket[1] 到 @racket[65535] 之间的精确整数
+（如果 socket 未绑定则为 @racket[0]）、远程机器地址的字符串、
+以及远程机器端口号在 @racket[1] 到 @racket[65535] 之间的精确整数
+（如果 socket 未连接则为 @racket[0]）。
 
 如果提供的 port 已被关闭，则 @exnraise[exn:fail:network]。}
 
