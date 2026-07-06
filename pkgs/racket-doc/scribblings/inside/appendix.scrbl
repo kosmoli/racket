@@ -2,45 +2,38 @@
 @(require "utils.rkt"
           scribble/bnf)
 
-@title[#:style '(grouper toc) #:tag "appendix"]{Appendices}
+@title[#:style '(grouper toc) #:tag "appendix"]{附录}
 
 @local-table-of-contents[]
 
 @; ----------------------------------------
 
-@section[#:tag "src-build"]{Building Racket from Source}
+@section[#:tag "src-build"]{从源码构建 Racket}
 
-The normal Racket distribution includes @filepath{.rkt} sources for
-collection-based libraries. After modifying library files, run
-@exec{raco setup} (see @secref[#:doc '(lib
-"scribblings/raco/raco.scrbl") "setup"]) to rebuild installed
-libraries.
+正常的 Racket 发行版包含基于 collection 的库的 @filepath{.rkt} 源码。
+修改库文件后，运行 @exec{raco setup}（参见 @secref[#:doc '(lib
+"scribblings/raco/raco.scrbl") "setup"]）来重建已安装的库。
 
-The normal Racket distribution does not include the C sources for
-Racket's run-time system. To build Racket from scratch, download a
-source distribution from @url{http://download.racket-lang.org}.
-Detailed build instructions are in the @filepath{README.txt} file in
-the top-level @filepath{src} directory. You can also get the latest
-sources from the @tt{git} repository at
-@url{https://github.com/racket/racket}, but beware that the repository
-is one step away from a normal source distribution, and it provides
-build modes that are more suitable for developing Racket itself; see
-@filepath{build.md} in the @tt{git} repository for more information.
+正常的 Racket 发行版不包含 Racket 运行时系统的 C 源码。
+要从头构建 Racket，请从 @url{http://download.racket-lang.org} 下载源码发行版。
+详细的构建说明位于顶层 @filepath{src} 目录中的 @filepath{README.txt} 文件中。
+你也可以从 @url{https://github.com/racket/racket} 的 @tt{git} 仓库获取最新源码，
+但请注意，该仓库与正常的源码发行版略有不同，
+它提供了更适合开发 Racket 本身的构建模式；
+更多信息请参见 @tt{git} 仓库中的 @filepath{build.md}。
 
 @; ----------------------------------------
 
-@section[#:tag "ios-cross-compilation"]{Cross-compiling Racket Sources for iOS}
+@section[#:tag "ios-cross-compilation"]{为 iOS 交叉编译 Racket 源码}
 
-See @secref[#:doc raco-doc "cross-system"] for general information on
-using Racket in cross-build mode. Everything in this section can be
-adapted to other cross-compilation targets, but iOS is used to make
-the examples concrete.
+关于在交叉构建模式下使用 Racket 的一般信息，
+参见 @secref[#:doc raco-doc "cross-system"]。
+本节中的所有内容都可以适配到其他交叉编译目标，
+但为了使示例更具体，这里使用 iOS。
 
-After cross-compiling Racket CS for iOS according to the source
-distribution's @filepath{src/README.txt} file, you can use that build
-@nonterm{ios-racket-dir} in conjunction with the host build it was
-compiled by to cross-compile Racket modules for iOS by passing the
-following set of flags to the host executable:
+按照源码发行版的 @filepath{src/README.txt} 文件为 iOS 交叉编译 Racket CS 后，
+你可以将该构建 @nonterm{ios-racket-dir} 与编译它的主机构建结合使用，
+通过向主机可执行文件传递以下标志集来为 iOS 交叉编译 Racket 模块：
 
 @verbatim[#:indent 2]{
 racket  \
@@ -52,20 +45,16 @@ racket  \
   --collects @nonterm{ios-racket-dir}/collects
 }
 
-The above command runs the host Racket REPL with support for writing
-compiled code for both the host machine and for the @tt{tarm64osx}
-target. The first path to @DFlag{compiled} (before the @litchar{:})
-can be any absolute path, and @filepath{.zo} files for the host
-platform will be written there; specifying the path
-@filepath{@nonterm{ios-racket-dir}/src/build/cs/c/compiled} is meant
-to reuse the directory that was created during cross-compilation
-installation. The second path to @DFlag{compiled} (after @litchar{:})
-is empty, which causes target-platform @filepath{.zo} files to be
-written in the usual @filepath{compiled} subdirectory.
+上述命令运行主机 Racket REPL，支持同时为主机机器和 @tt{tarm64osx} 目标
+编写编译后的代码。@DFlag{compiled} 的第一个路径（在 @litchar{:} 之前）
+可以是任何绝对路径，主平台的 @filepath{.zo} 文件将写入该处；
+指定路径 @filepath{@nonterm{ios-racket-dir}/src/build/cs/c/compiled}
+旨在重用交叉编译安装期间创建的目录。
+@DFlag{compiled} 的第二个路径（在 @litchar{:} 之后）为空，
+这会导致目标平台的 @filepath{.zo} 文件写入通常的 @filepath{compiled} 子目录。
 
-Instruct the host Racket to run library code by
-passing the @Flag{l} flag.  For example, you can setup the target
-Racket's installation with the following command:
+通过传递 @Flag{l} 标志指示主机 Racket 运行库代码。
+例如，你可以使用以下命令设置目标 Racket 的安装：
 
 @verbatim[#:indent 2]{
 racket  \
@@ -79,10 +68,9 @@ racket  \
   raco setup
 }
 
-Finally, you can package up a Racket module and its dependencies for
-use with @cppi{racket_embedded_load_file} (after installing
-@filepath{compiler-lib} and @filepath{cext-lib} for the target Racket)
-with:
+最后，你可以将 Racket 模块及其依赖打包，供 @cppi{racket_embedded_load_file} 使用
+（在为目标 Racket 安装 @filepath{compiler-lib} 和 @filepath{cext-lib} 之后），
+命令如下：
 
 @verbatim[#:indent 2]{
 racket  \
@@ -98,26 +86,24 @@ racket  \
 
 @; ----------------------------------------
 
-@section[#:tag "link-dll"]{Linking to DLLs on Windows}
+@section[#:tag "link-dll"]{在 Windows 上链接到 DLL}
 
-Some Windows linking tools, such as MinGW-w64, accept a
-@filepath{.dll} for linking to generate an executable that refers to
-the @filepath{.dll}. Other tools, such as Microsoft Visual Studio,
-need a @filepath{.lib} stub library to describe the @filepath{.dll}
-that will be used. The Racket distribution does not include
-@filepath{.lib} stub libraries, but various tools exist to generate a
-@filepath{.lib} file from a @filepath{.dll} and @filepath{.def} file
-that is included in a racket distribution.
+某些 Windows 链接工具（如 MinGW-w64）接受 @filepath{.dll} 进行链接，
+生成引用该 @filepath{.dll} 的可执行文件。其他工具（如 Microsoft Visual Studio）
+需要 @filepath{.lib} 桩库（stub library）来描述将使用的 @filepath{.dll}。
+Racket 发行版不包含 @filepath{.lib} 桩库，
+但存在各种工具可以从 @filepath{.dll} 和 @filepath{.def} 文件
+（包含在 Racket 发行版中）生成 @filepath{.lib} 文件。
 
-To create a @filepath{@italic{x}.lib} using Microsoft Visual Studio
-tools (to link with @filepath{@italic{x}.dll}):
+要使用 Microsoft Visual Studio 工具创建 @filepath{@italic{x}.lib}
+（用于与 @filepath{@italic{x}.dll} 链接）：
 
 @itemlist[
 
- @item{Locate the file @filepath{@italic{x}.def} using the same
-       base name @italic{x} as in @filepath{@italic{x}.dll}.}
+ @item{使用与 @filepath{@italic{x}.dll} 中相同的基本名称 @italic{x}
+       定位文件 @filepath{@italic{x}.def}。}
 
-  @item{Generate @filepath{@italic{x}.lib} with this command:
+  @item{使用此命令生成 @filepath{@italic{x}.lib}：
 
         @commandline{lib /def:@italic{x}.def /out:@italic{x}.lib /machine:@italic{mach}}
 
@@ -128,22 +114,20 @@ tools (to link with @filepath{@italic{x}.dll}):
 
 @; ----------------------------------------
 
-@section[#:tag "segment-ideas"]{Embedding Files in Executable Sections}
+@section[#:tag "segment-ideas"]{将文件嵌入可执行文件段}
 
-Locating external files on startup, such as the boot files needed for
-Racket CS, can be troublesome. An alternative to having separate files
-is to embed the files in an ELF or Mach-O executable as data segments
-or in a Windows executable as a resource. Embedding files in that way
-requires using OS-specific linking steps and runtime libraries.
+在启动时定位外部文件（如 Racket CS 所需的引导文件）可能很麻烦。
+替代方案是将文件作为数据段嵌入 ELF 或 Mach-O 可执行文件中，
+或作为资源嵌入 Windows 可执行文件中。以这种方式嵌入文件
+需要使用操作系统特定的链接步骤和运行时库。
 
 @; ============================================================
 
-@subsection{Accessing ELF Sections on Linux}
+@subsection{在 Linux 上访问 ELF 段}
 
-On Linux and other ELF-based systems, you can add sections to an
-executable using @exec{objcopy}. For example, the following command
-copies @filepath{pre_run} to @cpp{run} while adding boot files as
-sections:
+在 Linux 和其他基于 ELF 的系统上，你可以使用 @exec{objcopy}
+向可执行文件添加段。例如，以下命令将 @filepath{pre_run} 复制到 @cpp{run}，
+同时将引导文件添加为段：
 
 @verbatim[#:indent 2]{
 objcopy --add-section .csboot1=petite.boot \
@@ -155,9 +139,8 @@ objcopy --add-section .csboot1=petite.boot \
         ./pre_run ./run
 }
 
-Here's an implementation for @filepath{pre_run} like the one in
-@secref["cs-embedding"], but where boot files are loaded from
-sections:
+以下是 @filepath{pre_run} 的实现，类似于 @secref["cs-embedding"] 中的版本，
+但引导文件从段加载：
 
 @filebox["main.c"]{
 @verbatim[#:indent 2]{
@@ -241,7 +224,7 @@ int main(int argc, char *argv[])
 
 @; ============================================================
 
-@subsection{Accessing Mac OS Sections}
+@subsection{访问 Mac OS 段}
 
 On Mac OS, sections can be added to a Mach-O executable using the
 @Flag{sectcreate} compiler flag. If @filepath{main.c} is compiled and
@@ -320,7 +303,7 @@ int main(int argc, char **argv)
 
 @; ============================================================
 
-@subsection{Accessing Windows Resources}
+@subsection{访问 Windows 资源}
 
 On Windows, data is most readily added to an executable as a resource.
 The following code demonstrates how to find the path to the current
