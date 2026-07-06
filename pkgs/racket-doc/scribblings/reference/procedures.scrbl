@@ -1,10 +1,9 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "procedures"]{Procedures}
+@title[#:tag "procedures"]{过程}
 
-@defproc[(procedure? [v any/c]) boolean?]{ Returns @racket[#t] if
-@racket[v] is a procedure, @racket[#f] otherwise.}
+@defproc[(procedure? [v any/c]) boolean?]{ 如果 @racket[v] 是过程则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(apply [proc procedure?]
@@ -13,17 +12,9 @@
 
 @guideintro["apply"]{@racket[apply]}
 
-Applies @racket[proc] using the content of @racket[(list* v ... lst)]
-as the (by-position) arguments. The @racket[#:<kw> kw-arg] sequence is
-also supplied as keyword arguments to @racket[proc], where
-@racket[#:<kw>] stands for any keyword.
+使用 @racket[(list* v ... lst)] 的内容作为（按位置的）参数来应用 @racket[proc]。@racket[#:<kw> kw-arg] 序列也作为关键字参数提供给 @racket[proc]，其中 @racket[#:<kw>] 代表任意关键字。
 
-The given @racket[proc] must accept as many arguments as the number of
-@racket[v]s plus length of @racket[lst], it must accept the supplied
-keyword arguments, and it must not require any other keyword
-arguments; otherwise, the @exnraise[exn:fail:contract]. The given
-@racket[proc] is called in tail position with respect to the
-@racket[apply] call.
+给定的 @racket[proc] 必须接受与 @racket[v] 的数量加上 @racket[lst] 长度相同数量的参数，它必须接受提供的关键字参数，并且不能要求任何其他关键字参数；否则 @exnraise[exn:fail:contract]。给定的 @racket[proc] 在相对于 @racket[apply] 调用的尾部位置被调用。
 
 @mz-examples[
 (apply + '(1 2 3))
@@ -35,18 +26,9 @@ arguments; otherwise, the @exnraise[exn:fail:contract]. The given
 @deftogether[(@defproc[(compose  [proc procedure?] ...) procedure?]
               @defproc[(compose1 [proc procedure?] ...) procedure?])]{
 
-Returns a procedure that composes the given functions, applying the last
-@racket[proc] first and the first @racket[proc] last.  The @racket[compose] function
-allows the given functions to consume and produce any number of values, as
-long as each function produces as many values as the preceding function
-consumes, while @racket[compose1] restricts the internal value passing to
-a single value.  In both cases, the input arity of the last function and
-the output arity of the first are unrestricted, and they become the
-corresponding arity of the resulting composition (including keyword
-arguments for the input side).
+返回一个组合给定函数的过程，最先应用最后一个 @racket[proc]，最后应用第一个 @racket[proc]。@racket[compose] 函数允许给定函数消费和产生任意数量的值，只要每个函数产生的值的数量与前一个函数消费的数量相同，而 @racket[compose1] 将内部值传递限制为单个值。在这两种情况下，最后一个函数的输入元数和第一个函数的输出元数不受限制，它们成为结果组合的相应元数（包括输入端的关键字参数）。
 
-When no @racket[proc] arguments are given, the result is
-@racket[values].  When exactly one is given, it is returned.
+当没有给出 @racket[proc] 参数时，结果是 @racket[values]。当恰好给出一个时，它被返回。
 
 @mz-examples[
 ((compose1 - sqrt) 10)
@@ -54,11 +36,7 @@ When no @racket[proc] arguments are given, the result is
 ((compose list split-path) (bytes->path #"/a" 'unix))
 ]
 
-Note that in many cases, @racket[compose1] is preferred.  For example,
-using @racket[compose] with two library functions may lead to problems
-when one function is extended to return two values, and the preceding
-one has an optional input with different semantics.  In addition,
-@racket[compose1] may create faster compositions.
+注意，在许多情况下，@racket[compose1] 更受推荐。例如，在两个库函数上使用 @racket[compose] 可能在一个函数被扩展为返回两个值而前一个函数具有不同语义的可选输入时导致问题。此外，@racket[compose1] 可能创建更快的组合。
 
 }
 
@@ -67,22 +45,9 @@ one has an optional input with different semantics.  In addition,
                            [realm symbol? 'racket])
          procedure?]{
 
-Returns a procedure that is like @racket[proc], except that its name
-as returned by @racket[object-name] (and as printed for debugging) is
-@racket[name] and its @tech{realm} (potentially used for adjusting
-error messages) is @racket[realm].
+返回一个类似于 @racket[proc] 的过程，除了它的名称（由 @racket[object-name] 返回，并用于调试打印）是 @racket[name]，并且它的 @tech{realm}（可能用于调整错误消息）是 @racket[realm]。
 
-The given @racket[name] and @racket[realm] are used for printing and adjusting
-an error message if the
-resulting procedure is applied to the wrong number of arguments.  In
-addition, if @racket[proc] is an @tech{accessor} or @tech{mutator}
-produced by @racket[struct],
-@racket[make-struct-field-accessor], or
-@racket[make-struct-field-mutator], the resulting procedure also uses
-@racket[name] when its (first) argument has the wrong type. More
-typically, however, @racket[name] is not used for reporting errors,
-since the procedure name is typically hard-wired into an internal
-check.
+给定的 @racket[name] 和 @racket[realm] 用于在结果过程被应用于错误数量的参数时打印和调整错误消息。此外，如果 @racket[proc] 是由 @racket[struct]、@racket[make-struct-field-accessor] 或 @racket[make-struct-field-mutator] 产生的 @tech{accessor} 或 @tech{mutator}，则结果过程在其（第一个）参数类型错误时也使用 @racket[name]。不过更典型的是，@racket[name] 不用于报告错误，因为过程名称通常被硬编码到内部检查中。
 
 @history[#:changed "8.4.0.2" @elem{Added the @racket[realm] argument.}]}
 
@@ -90,29 +55,21 @@ check.
 @defproc[(procedure-realm [proc procedure?])
          symbol?]{
 
-Reports the @tech{realm} of a procedure, which can depend on the
-module where the procedure was created, the
-@racket[current-compile-realm] value when the procedure's code was
-compiled, or a realm explicitly assigned through a function like
-@racket[procedure-rename].
+报告过程的 @tech{realm}，这可能取决于创建过程的模块、过程代码编译时的 @racket[current-compile-realm] 值，或通过 @racket[procedure-rename] 等函数显式分配的 realm。
 
 @history[#:added "8.4.0.2"]}
 
 
 @defproc[(procedure->method [proc procedure?]) procedure?]{
 
-Returns a procedure that is like @racket[proc] except that, when applied
-to the wrong number of arguments, the resulting error hides the first
-argument as if the procedure had been compiled with the
-@indexed-racket['method-arity-error] syntax property.}
+返回一个类似于 @racket[proc] 的过程，除了当应用于错误数量的参数时，产生的错误会隐藏第一个参数，就好像该过程是使用 @indexed-racket['method-arity-error] syntax property 编译的一样。}
 
 @defproc[(procedure-closure-contents-eq? [proc1 procedure?]
                                          [proc2 procedure?]) boolean?]{
-Compares the contents of the closures of @racket[proc1] and @racket[proc2]
-for equality by comparing closure elements pointwise using @racket[eq?]}
+通过使用 @racket[eq?] 逐点比较闭包元素来比较 @racket[proc1] 和 @racket[proc2] 的闭包内容是否相等}
 
 @; ----------------------------------------
-@section{Keywords and Arity}
+@section{关键字与元数}
 
 @defproc[(keyword-apply [proc procedure?]
                         [kw-lst (listof keyword?)]
@@ -124,22 +81,9 @@ for equality by comparing closure elements pointwise using @racket[eq?]}
 
 @guideintro["apply"]{@racket[keyword-apply]}
 
-Like @racket[apply], but @racket[kw-lst] and @racket[kw-val-lst]
-supply by-keyword arguments in addition to the by-position arguments
-of the @racket[v]s and @racket[lst], and in addition to the directly
-supplied keyword arguments in the @racket[#:<kw> kw-arg] sequence,
-where @racket[#:<kw>] stands for any keyword.
+类似于 @racket[apply]，但 @racket[kw-lst] 和 @racket[kw-val-lst] 除了 @racket[v] 和 @racket[lst] 的按位置参数以及直接提供在 @racket[#:<kw> kw-arg] 序列中的关键字参数之外，还提供按关键字的参数，其中 @racket[#:<kw>] 代表任意关键字。
 
-The given @racket[kw-lst] must be sorted using @racket[keyword<?].  No
-keyword can appear twice in @racket[kw-lst] or both in
-@racket[kw-lst] and as a @racket[#:<kw>], otherwise, the
-@exnraise[exn:fail:contract]. The given @racket[kw-val-lst] must have
-the same length as @racket[kw-lst], otherwise, the
-@exnraise[exn:fail:contract]. The given @racket[proc] must accept all
-of the keywords in @racket[kw-lst] plus the @racket[#:<kw>]s, it must
-not require any other keywords, and it must accept as many by-position
-arguments as supplied via the @racket[v]s and @racket[lst]; otherwise,
-the @exnraise[exn:fail:contract].
+给定的 @racket[kw-lst] 必须使用 @racket[keyword<?] 排序。没有关键字可以在 @racket[kw-lst] 中出现两次，或者同时在 @racket[kw-lst] 中和作为 @racket[#:<kw>] 出现，否则 @exnraise[exn:fail:contract]。给定的 @racket[kw-val-lst] 必须与 @racket[kw-lst] 具有相同的长度，否则 @exnraise[exn:fail:contract]。给定的 @racket[proc] 必须接受 @racket[kw-lst] 中的所有关键字加上 @racket[#:<kw>]，它不能要求任何其他关键字，并且它必须接受与通过 @racket[v] 和 @racket[lst] 提供的数量相同的按位置参数；否则 @exnraise[exn:fail:contract]。
 
 @examples[
 (eval:no-prompt
@@ -152,31 +96,23 @@ the @exnraise[exn:fail:contract].
 
 @defproc[(procedure-arity [proc procedure?]) normalized-arity?]{
 
-Returns information about the number of by-position arguments accepted
-by @racket[proc]. See also @racket[procedure-arity?],
-@racket[normalized-arity?], and @racket[procedure-arity-mask].}
+返回关于 @racket[proc] 接受的按位置参数数量的信息。另见 @racket[procedure-arity?]、@racket[normalized-arity?] 和 @racket[procedure-arity-mask]。}
 
 @defproc[(procedure-arity? [v any/c]) boolean?]{
 
-A valid arity @racket[_a] is one of the following:
+有效的元数 @racket[_a] 是以下之一：
 
 @itemize[
 
-  @item{An exact non-negative integer, which means that the procedure
-        accepts @racket[_a] arguments, only.}
+  @item{一个精确的非负整数，这意味着该过程仅接受 @racket[_a] 个参数。}
 
- @item{A @racket[arity-at-least] instance, which means that the
-       procedure accepts @racket[(arity-at-least-value _a)] or more
-       arguments.}
+ @item{一个 @racket[arity-at-least] 实例，这意味着该过程接受 @racket[(arity-at-least-value _a)] 或更多个参数。}
 
- @item{A list containing integers and @racket[arity-at-least]
-       instances, which means that the procedure accepts any number of
-       arguments that can match one of the elements of @racket[_a].}
+ @item{一个包含整数和 @racket[arity-at-least] 实例的列表，这意味着该过程接受可以匹配 @racket[_a] 中某个元素的任意数量的参数。}
 
 ]
 
-The result of @racket[procedure-arity] is always normalized in the sense of
-@racket[normalized-arity?].
+@racket[procedure-arity] 的结果始终按照 @racket[normalized-arity?] 的意义进行规范化。
 
 @mz-examples[
 (procedure-arity cons)
@@ -189,14 +125,9 @@ The result of @racket[procedure-arity] is always normalized in the sense of
 
 @defproc[(procedure-arity-mask [proc procedure?]) exact-integer?]{
 
-Returns the same information as @racket[procedure-arity], but encoded
-differently. The arity is encoded as an exact integer @racket[_mask]
-where @racket[(bitwise-bit-set? _mask _n)] returns true if @racket[proc]
-accepts @racket[_n] arguments.
+返回与 @racket[procedure-arity] 相同的信息，但编码方式不同。元数被编码为一个精确整数 @racket[_mask]，如果 @racket[proc] 接受 @racket[_n] 个参数，则 @racket[(bitwise-bit-set? _mask _n)] 返回 true。
 
-The mask encoding of an arity is often easier to test and manipulate,
-and @racket[procedure-arity-mask] is sometimes faster than
-@racket[procedure-arity] while always being at least as fast.
+元数的掩码编码通常更容易测试和操作，并且 @racket[procedure-arity-mask] 有时比 @racket[procedure-arity] 更快，同时至少一样快。
 
 @history[#:added "7.0.0.11"]}
 
@@ -205,10 +136,7 @@ and @racket[procedure-arity-mask] is sometimes faster than
                                     [kws-ok? any/c #f])
          boolean?]{
 
-Returns @racket[#t] if the procedure can accept @racket[k] by-position
-arguments, @racket[#f] otherwise.  If @racket[kws-ok?] is @racket[#f],
-the result is @racket[#t] only if @racket[proc] has no required
-keyword arguments.
+如果过程可以接受 @racket[k] 个按位置参数则返回 @racket[#t]，否则返回 @racket[#f]。如果 @racket[kws-ok?] 为 @racket[#f]，则仅当 @racket[proc] 没有必需的关键字参数时结果才为 @racket[#t]。
 
 @mz-examples[
 (procedure-arity-includes? cons 2)
@@ -223,26 +151,11 @@ keyword arguments.
                                  [realm symbol? 'racket])
          procedure?]{
 
-Returns a procedure that is the same as @racket[proc] (including
-the same name returned by @racket[object-name]), but that accepts
-only arguments consistent with @racket[arity]. In particular,
-when @racket[procedure-arity] is applied to the generated
-procedure, it returns a value that is @racket[equal?] to
-the normalized form of @racket[arity].
+返回一个与 @racket[proc] 相同的过程（包括 @racket[object-name] 返回的相同名称），但只接受与 @racket[arity] 一致的参数。特别是，当对生成的过程应用 @racket[procedure-arity] 时，它返回一个与 @racket[arity] 的规范化形式 @racket[equal?] 的值。
 
-If the @racket[arity] specification allows arguments that are not in
-@racket[(procedure-arity proc)], the @exnraise[exn:fail:contract].  If
-@racket[proc] accepts keyword argument, either the keyword arguments
-must be all optional (and they are not accepted in by the
-arity-reduced procedure) or @racket[arity] must be the empty list
-(which makes a procedure that cannot be called); otherwise, the
-@exnraise[exn:fail:contract].
+如果 @racket[arity] 规范允许不在 @racket[(procedure-arity proc)] 中的参数，则 @exnraise[exn:fail:contract]。如果 @racket[proc] 接受关键字参数，则关键字参数必须全部是可选的（并且它们在元数缩减后的过程中不被接受）或者 @racket[arity] 必须是空列表（这将产生一个无法调用的过程）；否则 @exnraise[exn:fail:contract]。
 
-If @racket[name] is not @racket[#f], then @racket[object-name] of the
-result procedure produces @racket[name], and @racket[procedure-realm]
-of the result produced produces @racket[realm]. Otherwise,
-@racket[object-name] and @racket[procedure-realm] of the result procedure
-produce the same result as for @racket[proc].
+如果 @racket[name] 不是 @racket[#f]，则结果过程的 @racket[object-name] 产生 @racket[name]，结果过程的 @racket[procedure-realm] 产生 @racket[realm]。否则，结果过程的 @racket[object-name] 和 @racket[procedure-realm] 产生与 @racket[proc] 相同的结果。
 
 @examples[
 (define my+ (procedure-reduce-arity + 2 ))
@@ -262,12 +175,9 @@ produce the same result as for @racket[proc].
                                       [realm symbol? 'racket])
          procedure?]{
 
-The same as @racket[procedure-reduce-arity], but using the
-representation of arity described with @racket[procedure-arity-mask].
+与 @racket[procedure-reduce-arity] 相同，但使用 @racket[procedure-arity-mask] 描述的元数表示。
 
-The mask encoding of an arity is often easier to test and manipulate,
-and @racket[procedure-reduce-arity-mask] is sometimes faster than
-@racket[procedure-reduce-arity] while always being at least as fast.
+元数的掩码编码通常更容易测试和操作，并且 @racket[procedure-reduce-arity-mask] 有时比 @racket[procedure-reduce-arity] 更快，同时至少一样快。
 
 @history[#:added "7.0.0.11"
          #:changed "8.4.0.2" @elem{Added the @racket[realm] argument.}]}
@@ -277,13 +187,7 @@ and @racket[procedure-reduce-arity-mask] is sometimes faster than
           (listof keyword?)
           (or/c (listof keyword?) #f))]{
 
-Returns information about the keyword arguments required and accepted
-by a procedure. The first result is a list of distinct keywords (sorted by
-@racket[keyword<?]) that are required when applying @racket[proc]. The
-second result is a list of distinct accepted keywords (sorted by
-@racket[keyword<?]), or @racket[#f] to mean that any keyword is
-accepted. When the second result is a list, every element in the first
-list is also in the second list.
+返回关于过程所需和接受的关键字参数的信息。第一个结果是一个列表，包含应用 @racket[proc] 时所需的不同关键字（按 @racket[keyword<?] 排序）。第二个结果是一个列表，包含被接受的不同关键字（按 @racket[keyword<?] 排序），或者为 @racket[#f] 表示接受任何关键字。当第二个结果是一个列表时，第一个列表中的每个元素也在第二个列表中。
 
 @mz-examples[
 (procedure-keywords +)
@@ -292,10 +196,7 @@ list is also in the second list.
 ]}
 
 @defproc[(procedure-result-arity [proc procedure?]) (or/c #f procedure-arity?)]{
- Returns the arity of the result of the procedure @racket[proc] or
- @racket[#f] if the number of results are not known, perhaps due to shortcomings
- in the implementation of @racket[procedure-result-arity] or
- because @racket[proc]'s behavior is not sufficiently simple.
+ 返回过程 @racket[proc] 结果的元数，如果结果数量未知（可能由于 @racket[procedure-result-arity] 的实现不足或 @racket[proc] 的行为不够简单），则返回 @racket[#f]。
 
  @mz-examples[(procedure-result-arity car)
               (procedure-result-arity values)
@@ -316,32 +217,13 @@ list is also in the second list.
           [plain-proc procedure? (lambda args (apply proc null null args))])
          procedure?]{
 
-Returns a procedure that accepts all keyword arguments (without
-requiring any keyword arguments).
+返回一个接受所有关键字参数（不要求任何关键字参数）的过程。
 
-When the procedure returned by @racket[make-keyword-procedure]
-is called with keyword arguments, then @racket[proc]
-is called; the first argument is a list of distinct keywords sorted by
-@racket[keyword<?], the second argument is a parallel list containing a
-value for each keyword, and the remaining arguments are the
-by-position arguments.
+当 @racket[make-keyword-procedure] 返回的过程被使用关键字参数调用时，则调用 @racket[proc]；第一个参数是按 @racket[keyword<?] 排序的不同关键字列表，第二个参数是包含每个关键字对应值的并行列表，其余参数是按位置参数。
 
-When the procedure returned by @racket[make-keyword-procedure]
-is called without keyword arguments, then
-@racket[plain-proc] is called---possibly more efficiently than
-dispatching through @racket[proc]. Normally, @racket[plain-proc]
-should have the same behavior as calling @racket[proc] with empty lists as
-the first two arguments, but that correspondence is in no way
-enforced.
+当 @racket[make-keyword-procedure] 返回的过程被不带关键字参数调用时，则调用 @racket[plain-proc]——可能比通过 @racket[proc] 分派更高效。通常，@racket[plain-proc] 应该具有与使用空列表作为前两个参数调用 @racket[proc] 相同的行为，但这种对应关系并不被强制执行。
 
-The result of @racket[procedure-arity] and @racket[object-name] on the
-new procedure is the same as for @racket[plain-proc], if
-@racket[plain-proc] is provided. Otherwise, the result of
-@racket[object-name] is the same as for @racket[proc],
-but the result of @racket[procedure-arity] is derived from that of
-@racket[proc] by reducing its arity by 2 (i.e., without the two prefix
-arguments that handle keyword arguments). See also
-@racket[procedure-reduce-keyword-arity] and @racket[procedure-rename].
+如果提供了 @racket[plain-proc]，则对新过程应用 @racket[procedure-arity] 和 @racket[object-name] 的结果与 @racket[plain-proc] 相同。否则，@racket[object-name] 的结果与 @racket[proc] 相同，但 @racket[procedure-arity] 的结果是通过将 @racket[proc] 的元数减少 2 来推导的（即，去掉处理关键字参数的两个前缀参数）。另见 @racket[procedure-reduce-keyword-arity] 和 @racket[procedure-rename]。
 
 @examples[
 (eval:no-prompt
@@ -371,16 +253,7 @@ arguments that handle keyword arguments). See also
                                          [realm symbol? 'racket])
          procedure?]{
 
-Like @racket[procedure-reduce-arity], but constrains the keyword
-arguments according to @racket[required-kws] and @racket[allowed-kws],
-which must be sorted using @racket[keyword<?] and contain no duplicates. If @racket[allowed-kws]
-is @racket[#f], then the resulting procedure still accepts any
-keyword, otherwise the keywords in @racket[required-kws] must be a
-subset of those in @racket[allowed-kws]. The original @racket[proc]
-must require no more keywords than the ones listed in
-@racket[required-kws], and it must allow at least the keywords in
-@racket[allowed-kws] (or it must allow all keywords if
-@racket[allowed-kws] is @racket[#f]).
+类似于 @racket[procedure-reduce-arity]，但根据 @racket[required-kws] 和 @racket[allowed-kws] 约束关键字参数，它们必须使用 @racket[keyword<?] 排序且不包含重复。如果 @racket[allowed-kws] 是 @racket[#f]，则结果过程仍然接受任何关键字，否则 @racket[required-kws] 中的关键字必须是 @racket[allowed-kws] 中关键字的子集。原始 @racket[proc] 不能要求比 @racket[required-kws] 中列出的更多的关键字，并且它必须至少允许 @racket[allowed-kws] 中的关键字（如果 @racket[allowed-kws] 是 @racket[#f]，则必须允许所有关键字）。
 
 @examples[
 (eval:no-prompt
@@ -406,8 +279,7 @@ must require no more keywords than the ones listed in
                                               [realm symbol? 'racket])
          procedure?]{
 
-The same as @racket[procedure-reduce-keyword-arity], but using the
-representation of arity described with @racket[procedure-arity-mask].
+与 @racket[procedure-reduce-keyword-arity] 相同，但使用 @racket[procedure-arity-mask] 描述的元数表示。
 
 @history[#:added "7.0.0.11"
          #:changed "8.4.0.2" @elem{Added the @racket[realm] argument.}]}
@@ -415,47 +287,16 @@ representation of arity described with @racket[procedure-arity-mask].
 
 @defstruct[arity-at-least ([value exact-nonnegative-integer?])]{
 
-A structure type used for the result of @racket[procedure-arity].
-See also @racket[procedure-arity?].}
+用于 @racket[procedure-arity] 结果的结构类型。另见 @racket[procedure-arity?]。}
 
 
 @defthing[prop:procedure struct-type-property?]{
 
-A @tech{structure type property} to identify structure types whose
-instances can be applied as procedures. In particular, when
-@racket[procedure?] is applied to the instance, the result will be
-@racket[#t], and when an instance is used in the function position of
-an application expression, a procedure is extracted from the instance
-and used to complete the procedure call.
+一个 @tech{structure type property}，用于标识其实例可以作为过程应用的结构类型。特别是，当对实例应用 @racket[procedure?] 时，结果将是 @racket[#t]，并且当实例用在应用表达式的函数位置时，会从实例中提取一个过程并用于完成过程调用。
 
-If the @racket[prop:procedure] property value is an exact non-negative integer, it
-designates a field within the structure that should contain a
-procedure. The integer must be between @racket[0] (inclusive) and the
-number of non-automatic fields in the structure type (exclusive, not
-counting supertype fields). The designated field must also be
-specified as immutable, so that after an instance of the structure is
-created, its procedure cannot be changed. (Otherwise, the arity and
-name of the instance could change, and such mutations are generally
-not allowed for procedures.) When the instance is used as the
-procedure in an application expression, the value of the designated
-field in the instance is used to complete the procedure call. (This
-procedure can be another structure that acts as a procedure; the
-immutability of procedure fields disallows cycles in the procedure
-graph, so that the procedure call will eventually continue with a
-non-structure procedure.) That procedure receives all of the arguments
-from the application expression. The procedure's name (see
-@racket[object-name]), arity (see @racket[procedure-arity]), and
-keyword protocol (see @racket[procedure-keywords]) are also used for
-the name, arity, and keyword protocol of the structure. If the value
-in the designated field is not a procedure, then the instance behaves
-like @racket[(case-lambda)] (i.e., a procedure which does not accept
-any number of arguments). See also @racket[procedure-extract-target].
+如果 @racket[prop:procedure] 属性值是一个精确的非负整数，它指定结构中应包含过程的字段。该整数必须在 @racket[0]（含）和结构类型中非自动字段的数量（不含，不计入超类型字段）之间。指定字段还必须被指定为不可变的，以便在创建结构实例后，其过程不能被更改。（否则，实例的元数和名称可能会改变，而过程通常不允许此类修改。）当实例在应用表达式中用作过程时，实例中指定字段的值用于完成过程调用。（此过程可以是另一个充当过程的结构；过程字段的不可变性禁止过程图中的循环，因此过程调用最终将使用非结构过程继续。）该过程接收应用表达式中的所有参数。过程的名称（见 @racket[object-name]）、元数（见 @racket[procedure-arity]）和关键字协议（见 @racket[procedure-keywords]）也用于结构的名称、元数和关键字协议。如果指定字段中的值不是过程，则实例的行为类似于 @racket[(case-lambda)]（即，不接受任何数量参数的过程）。另见 @racket[procedure-extract-target]。
 
-Providing an integer @racket[proc-spec] argument to
-@racket[make-struct-type] is the same as both supplying the value with
-the @racket[prop:procedure] property and designating the field as
-immutable (so that a property binding or immutable designation is
-redundant and disallowed).
+向 @racket[make-struct-type] 提供整数 @racket[proc-spec] 参数等同于同时使用 @racket[prop:procedure] 属性提供值并将该字段指定为不可变（因此属性的绑定或不可变指定是冗余的且不被允许）。
 
 @examples[
 (struct annotated-proc (base note)
@@ -470,26 +311,9 @@ redundant and disallowed).
 (annotated-proc-note plus1)
 ]
 
-When the @racket[prop:procedure] value is a procedure, it should
-accept at least one non-keyword argument. When an instance of the
-structure is used in an application expression, the property-value
-procedure is called with the instance as the first argument. The
-remaining arguments to the property-value procedure are the arguments
-from the application expression (including keyword arguments). Thus,
-if the application expression provides five non-keyword arguments, the
-property-value procedure is called with six non-keyword arguments. The
-name of the instance (see @racket[object-name]) and its keyword
-protocol (see @racket[procedure-keywords]) are unaffected by the
-property-value procedure, but the instance's arity is determined by
-subtracting one from every possible non-keyword argument count of the
-property-value procedure. If the property-value procedure cannot
-accept at least one argument, then the instance behaves like
-@racket[(case-lambda)].
+当 @racket[prop:procedure] 值是一个过程时，它应该接受至少一个非关键字参数。当结构的实例在应用表达式中使用时，属性值过程会被调用，实例作为第一个参数。属性值过程的其余参数是应用表达式中的参数（包括关键字参数）。因此，如果应用表达式提供五个非关键字参数，则属性值过程会被调用六个非关键字参数。实例的名称（见 @racket[object-name]）和关键字协议（见 @racket[procedure-keywords]）不受属性值过程的影响，但实例的元数是通过从属性值过程的每个可能的非关键字参数计数中减去一来确定的。如果属性值过程不能接受至少一个参数，则实例的行为类似于 @racket[(case-lambda)]。
 
-Providing a procedure @racket[proc-spec] argument to
-@racket[make-struct-type] is the same as supplying the value with the
-@racket[prop:procedure] property (so that a specific property binding
-is disallowed).
+向 @racket[make-struct-type] 提供过程 @racket[proc-spec] 参数等同于使用 @racket[prop:procedure] 属性提供值（因此特定的属性绑定不被允许）。
 
 @mz-examples[
 (struct fish (weight color)
@@ -507,45 +331,23 @@ is disallowed).
 (fish-weight wanda)
 ]
 
-If the value supplied for the @racket[prop:procedure] property is not
-an exact non-negative integer or a procedure, the
-@exnraise[exn:fail:contract].}
+如果为 @racket[prop:procedure] 属性提供的值不是精确的非负整数或过程，则 @exnraise[exn:fail:contract]。}
 
 @defproc[(procedure-struct-type? [type struct-type?]) boolean?]{
 
-Returns @racket[#t] if instances of the structure type represented by
-@racket[type] are procedures (according to @racket[procedure?]),
-@racket[#f] otherwise.}
+如果 @racket[type] 表示的结构类型的实例是过程（根据 @racket[procedure?]）则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(procedure-extract-target [proc procedure?]) (or/c #f procedure?)]{
 
-If @racket[proc] is an instance of a structure type with property
-@racket[prop:procedure], and if the property value indicates a field
-of the structure, and if the field value is a procedure, then
-@racket[procedure-extract-target] returns the field value. Otherwise,
-the result is @racket[#f].
+如果 @racket[proc] 是具有 @racket[prop:procedure] 属性的结构类型的实例，并且属性值指示结构的一个字段，并且该字段值是一个过程，则 @racket[procedure-extract-target] 返回该字段值。否则，结果为 @racket[#f]。
 
-When a @racket[prop:procedure] property value is a procedure, the
-procedure is @emph{not} returned by
-@racket[procedure-extract-target]. Such a procedure is different from
-one accessed through a structure field, because it consumes an extra
-argument, which is always the structure that was applied as a
-procedure. Keeping the procedure private ensures that is it always
-called with a suitable first argument.}
+当 @racket[prop:procedure] 属性值是一个过程时，该过程@emph{不会}被 @racket[procedure-extract-target] 返回。这样的过程与通过结构字段访问的过程不同，因为它消费一个额外的参数，该参数始终是被应用为过程的结构。保持过程的私有性确保它始终以合适的第一个参数被调用。}
 
 @defthing[prop:arity-string struct-type-property?]{
 
-A @tech{structure type property} that is used for reporting arity-mismatch errors when a
-structure type with the @racket[prop:procedure] property is applied to
-the wrong number of arguments. The value of the
-@racket[prop:arity-string] property must be a procedure that takes a
-single argument, which is the misapplied structure, and returns a
-string. The result string is used after the word ``expects,'' and it
-is followed in the error message by the number of actual arguments.
+一个 @tech{structure type property}，用于在具有 @racket[prop:procedure] 属性的结构类型被应用于错误数量的参数时报告元数不匹配错误。@racket[prop:arity-string] 属性的值必须是一个接受单个参数（即被误用的结构）并返回字符串的过程。结果字符串用于单词 "expects" 之后，并且在错误消息中后跟实际参数的数量。
 
-Arity-mismatch reporting automatically uses
-@racket[procedure-extract-target] when the @racket[prop:arity-string]
-property is not associated with a procedure structure type.
+当 @racket[prop:arity-string] 属性不与过程结构类型关联时，元数不匹配报告会自动使用 @racket[procedure-extract-target]。
 
 @examples[
 (struct evens (proc)
@@ -568,11 +370,7 @@ property is not associated with a procedure structure type.
 
 @defthing[prop:checked-procedure struct-type-property?]{
 
-A @tech{structure type property} that is used with
-@racket[checked-procedure-check-and-extract], which is a hook to allow
-the compiler to improve the performance of keyword arguments. The
-property can only be attached to a @tech{structure type} without a
-supertype and with at least two fields.}
+一个与 @racket[checked-procedure-check-and-extract] 一起使用的 @tech{structure type property}，它是一个钩子，允许编译器提高关键字参数的性能。该属性只能附加到没有超类型且至少有两个字段的 @tech{structure type}。}
 
 
 @defproc[(checked-procedure-check-and-extract [type struct-type?]
@@ -581,79 +379,53 @@ supertype and with at least two fields.}
                                               [v1 any/c]
                                               [v2 any/c]) any/c]{
 
-Extracts a value from @racket[v] if it is an instance of
-@racket[type], which must have the property
-@racket[prop:checked-procedure]. If @racket[v] is such an instance,
-then the first field of @racket[v] is extracted and applied to
-@racket[v1] and @racket[v2]; if the result is a true value, the result
-is the value of the second field of @racket[v].
+如果 @racket[v] 是 @racket[type] 的实例，则从中提取一个值，@racket[type] 必须具有 @racket[prop:checked-procedure] 属性。如果 @racket[v] 是这样的实例，则提取 @racket[v] 的第一个字段并将其应用于 @racket[v1] 和 @racket[v2]；如果结果为真值，则结果是 @racket[v] 的第二个字段的值。
 
-If @racket[v] is not an instance of @racket[type], or if the first
-field of @racket[v] applied to @racket[v1] and @racket[v2] produces
-@racket[#f], then @racket[proc] is applied to @racket[v], @racket[v1],
-and @racket[v2], and its result is returned by
-@racket[checked-procedure-check-and-extract].}
+如果 @racket[v] 不是 @racket[type] 的实例，或者 @racket[v] 的第一个字段应用于 @racket[v1] 和 @racket[v2] 产生 @racket[#f]，则将 @racket[proc] 应用于 @racket[v]、@racket[v1] 和 @racket[v2]，其结果由 @racket[checked-procedure-check-and-extract] 返回。}
 
 
 @defproc[(procedure-specialize [proc procedure?])
          procedure?]{
 
-Returns @racket[proc] or its equivalent, but provides a hint to the
-run-time system that it should spend extra time and memory to
-specialize the implementation of @racket[proc].
+返回 @racket[proc] 或其等价物，但向运行时系统提供一个提示，表示它应该花费额外的时间和内存来专门化 @racket[proc] 的实现。
 
-The hint is currently used when @racket[proc] is the value of a
-@racket[lambda] or @racket[case-lambda] form that references variables
-bound outside of the @racket[lambda] or @racket[case-lambda], and when
-@racket[proc] has not been previously applied.
+该提示当前在 @racket[proc] 是 @racket[lambda] 或 @racket[case-lambda] 形式的值（该形式引用了在 @racket[lambda] 或 @racket[case-lambda] 之外绑定的变量），并且 @racket[proc] 之前没有被应用过时使用。
 
 @history[#:added "6.3.0.10"]}
 
 @; ----------------------------------------------------------------------
 
-@section{Reflecting on Primitives}
+@section{反射原语}
 
-A @deftech{primitive procedure} is a built-in procedure that may be
-implemented in a lower-level language. Not all procedures of
-@racketmodname[racket/base] are primitives, but many are. The
-distinction between primitives and other procedures may be useful to
-other low-level code.
+@deftech{primitive procedure} 是一个内置过程，可能在较低级语言中实现。并非 @racketmodname[racket/base] 的所有过程都是原语，但很多是。原语与其他过程之间的区别可能对其他低级代码有用。
 
 @defproc[(primitive? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a primitive procedure,
-@racket[#f] otherwise.}
+如果 @racket[v] 是原语过程则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(primitive-closure? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is internally implemented as a
-primitive closure rather than a simple primitive procedure,
-@racket[#f] otherwise.}
+如果 @racket[v] 内部实现为原语闭包而非简单原语过程则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(primitive-result-arity [prim primitive?]) procedure-arity?]{
 
-Returns the arity of the result of the primitive procedure
-@racket[prim] (as opposed to the procedure's input arity as returned
-by @racket[procedure-arity]). For most primitives, this procedure
-returns @racket[1], since most primitives return a single value when
-applied.}
+返回原语过程 @racket[prim] 的结果的元数（与 @racket[procedure-arity] 返回的过程输入元数相对）。对于大多数原语，此过程返回 @racket[1]，因为大多数原语在应用时返回单个值。}
 
 @; ----------------------------------------
-@section{Additional Higher-Order Functions}
+@section{额外的高阶函数}
 
 @note-lib[racket/function]
 @(define fun-eval (make-base-eval))
 @examples[#:hidden #:eval fun-eval (require racket/function)]
 
 @defproc[(identity [v any/c]) any/c]{
-Returns @racket[v].
+返回 @racket[v]。
 }
 
 @defproc[(const [v any/c]) procedure?]{
 
-Returns a procedure that accepts any arguments (including keyword
-arguments) and returns @racket[v].
+返回一个接受任意参数（包括关键字参数）并返回 @racket[v] 的过程。
 
 @mz-examples[#:eval fun-eval
 ((const 'foo))
@@ -663,7 +435,7 @@ arguments) and returns @racket[v].
 
 @defproc[(const* [v any/c] ...) procedure?]{
 
-Similar to @racket[const], except it returns @racket[v]s.
+类似于 @racket[const]，但返回多个 @racket[v]。
 
 @mz-examples[#:eval fun-eval
 ((const*))
@@ -682,9 +454,7 @@ Similar to @racket[const], except it returns @racket[v]s.
 @deftogether[(@defform[(thunk  body ...+)]
               @defform[(thunk* body ...+)])]{
 
-The @racket[thunk] form creates a nullary function that evaluates the
-given body.  The @racket[thunk*] form is similar, except that the
-resulting function accepts any arguments (including keyword arguments).
+@racket[thunk] 形式创建一个对给定 body 进行求值的零元函数。@racket[thunk*] 形式类似，除了结果函数接受任意参数（包括关键字参数）。
 
 @examples[
 #:eval fun-eval
@@ -702,8 +472,7 @@ resulting function accepts any arguments (including keyword arguments).
 
 @defproc[(negate [proc procedure?]) procedure?]{
 
-Returns a procedure that is just like @racket[proc], except that it
-returns the @racket[not] of @racket[proc]'s result.
+返回一个与 @racket[proc] 类似的过程，除了它返回 @racket[proc] 结果的 @racket[not]。
 
 @mz-examples[#:eval fun-eval
 (filter (negate symbol?) '(1 a 2 b 3 c))
@@ -712,8 +481,7 @@ returns the @racket[not] of @racket[proc]'s result.
 
 @defproc[((conjoin [f procedure?] ...) [x any/c] ...) any]{
 
-Combines calls to each function with @racket[and].  Equivalent to
-@racket[(and (f x ...) ...)]
+使用 @racket[and] 组合对每个函数的调用。等价于 @racket[(and (f x ...) ...)]
 
 @examples[
 #:eval fun-eval
@@ -730,8 +498,7 @@ Combines calls to each function with @racket[and].  Equivalent to
 
 @defproc[((disjoin [f procedure?] ...) [x any/c] ...) any]{
 
-Combines calls to each function with @racket[or].  Equivalent to
-@racket[(or (f x ...) ...)]
+使用 @racket[or] 组合对每个函数的调用。等价于 @racket[(or (f x ...) ...)]
 
 @examples[
 #:eval fun-eval
@@ -749,12 +516,7 @@ Combines calls to each function with @racket[or].  Equivalent to
 @defproc*[([(curry [proc procedure?]) procedure?]
            [(curry [proc procedure?] [v any/c] ...+) any])]{
 
-The result of @racket[(curry proc)] is a procedure that is a curried
-version of @racket[proc]. When
-the resulting procedure is first applied, unless it is given the
-maximum number of arguments that it can accept according to
-@racket[(procedure-arity proc)], the result is a
-procedure to accept additional arguments.
+@racket[(curry proc)] 的结果是一个过程，它是 @racket[proc] 的柯里化版本。当结果过程首次被应用时，除非它被给定了根据 @racket[(procedure-arity proc)] 可以接受的最大数量的参数，否则结果是一个接受额外参数的过程。
 
 @mz-examples[#:eval fun-eval
 ((curry list) 1 2)
@@ -762,11 +524,7 @@ procedure to accept additional arguments.
 ((curry cons) 1 2)
 ]
 
-After the first application of the result of @racket[(curry proc)], each
-further application accumulates arguments until an acceptable number
-of arguments according to @racket[(procedure-arity proc)] have been
-accumulated, at which point the original
-@racket[proc] is called.
+在首次应用 @racket[(curry proc)] 的结果之后，每次进一步的应用都会累积参数，直到累积了根据 @racket[(procedure-arity proc)] 可接受的参数数量，此时原始的 @racket[proc] 被调用。
 
 @mz-examples[#:eval fun-eval
 (((curry list) 1 2) 3)
@@ -777,9 +535,7 @@ accumulated, at which point the original
 (((((foo) 1) 2)) 3)
 ]
 
-A function call @racket[(curry proc v ...)] is equivalent to
-@racket[((curry proc) v ...)]. In other words, @racket[curry] itself
-is curried.
+函数调用 @racket[(curry proc v ...)] 等价于 @racket[((curry proc) v ...)]。换句话说，@racket[curry] 本身是柯里化的。
 
 @mz-examples[#:eval fun-eval
   (map ((curry +) 10) '(1 2 3))
@@ -787,10 +543,7 @@ is curried.
   (map (compose (curry * 2) (curry + 10)) '(1 2 3))
 ]
 
-The @racket[curry] function also supports functions with keyword arguments:
-keyword arguments will be accumulated in the same way as positional arguments
-until all required keyword arguments according to @racket[(procedure-keywords proc)]
-have been supplied.
+@racket[curry] 函数也支持带关键字参数的函数：关键字参数将以与位置参数相同的方式累积，直到根据 @racket[(procedure-keywords proc)] 的所有必需关键字参数都已提供。
 
 @mz-examples[#:eval fun-eval
   (eval:no-prompt
@@ -806,9 +559,7 @@ have been supplied.
 @defproc*[([(curryr [proc procedure?]) procedure?]
            [(curryr [proc procedure?] [v any/c] ...+) any])]{
 
-Like @racket[curry], except that the arguments are collected in the
-opposite direction: the first step collects the rightmost group of
-arguments, and following steps add arguments to the left of these.
+类似于 @racket[curry]，但参数以相反方向收集：第一步收集最右边的一组参数，后续步骤将参数添加到这些参数的左侧。
 
 @mz-examples[#:eval fun-eval
   (map (curryr list 'foo) '(1 2 3))
@@ -816,20 +567,15 @@ arguments, and following steps add arguments to the left of these.
 
 @defproc[(normalized-arity? [arity any/c]) boolean?]{
 
-A normalized arity has one of the following forms:
+规范化的元数具有以下形式之一：
 @itemize[
-@item{the empty list;}
-@item{an exact non-negative integer;}
-@item{an @racket[arity-at-least] instance;}
-@item{a list of two or more strictly increasing, exact non-negative integers;
-or}
-@item{a list of one or more strictly increasing, exact non-negative integers
-followed by a single @racket[arity-at-least] instance whose value is greater
-than the preceding integer by at least 2.}
+@item{空列表；}
+@item{一个精确的非负整数；}
+@item{一个 @racket[arity-at-least] 实例；}
+@item{一个包含两个或更多严格递增的精确非负整数的列表；或}
+@item{一个包含一个或多个严格递增的精确非负整数，后跟一个 @racket[arity-at-least] 实例的列表，该实例的值比前一个整数至少大 2。}
 ]
-Every normalized arity is a valid procedure arity and satisfies
-@racket[procedure-arity?].  Any two normalized arity values that are
-@racket[arity=?] must also be @racket[equal?].
+每个规范化的元数都是有效的过程元数并满足 @racket[procedure-arity?]。任何两个 @racket[arity=?] 的规范化元数值也必须 @racket[equal?]。
 
 @mz-examples[#:eval fun-eval
 (normalized-arity? (arity-at-least 1))
@@ -844,8 +590,7 @@ Every normalized arity is a valid procedure arity and satisfies
 @defproc[(normalize-arity [arity procedure-arity?])
          (and/c normalized-arity? (lambda (x) (arity=? x arity)))]{
 
-Produces a normalized form of @racket[arity].  See also
-@racket[normalized-arity?] and @racket[arity=?].
+产生 @racket[arity] 的规范化形式。另见 @racket[normalized-arity?] 和 @racket[arity=?]。
 
 @mz-examples[#:eval fun-eval
 (normalize-arity 1)
@@ -863,10 +608,7 @@ Produces a normalized form of @racket[arity].  See also
 
 @defproc[(arity=? [a procedure-arity?] [b procedure-arity?]) boolean?]{
 
-Returns @racket[#true] if procedures with arity @racket[a] and @racket[b]
-accept the same numbers of arguments, and @racket[#false] otherwise.
-Equivalent to both @racket[(and (arity-includes? a b) (arity-includes? b a))]
-and @racket[(equal? (normalize-arity a) (normalize-arity b))].
+如果具有元数 @racket[a] 和 @racket[b] 的过程接受相同数量的参数则返回 @racket[#true]，否则返回 @racket[#false]。等价于 @racket[(and (arity-includes? a b) (arity-includes? b a))] 和 @racket[(equal? (normalize-arity a) (normalize-arity b))]。
 
 @mz-examples[#:eval fun-eval
 (arity=? 1 1)
@@ -888,8 +630,7 @@ and @racket[(equal? (normalize-arity a) (normalize-arity b))].
 
 @defproc[(arity-includes? [a procedure-arity?] [b procedure-arity?]) boolean?]{
 
-Returns @racket[#true] if procedures with arity @racket[a] accept any number of
-arguments that procedures with arity @racket[b] accept.
+如果具有元数 @racket[a] 的过程接受具有元数 @racket[b] 的过程所接受的任意数量的参数则返回 @racket[#true]。
 
 @mz-examples[#:eval fun-eval
 (arity-includes? 1 1)
