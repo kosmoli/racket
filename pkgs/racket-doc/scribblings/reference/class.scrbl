@@ -78,66 +78,96 @@
 @examples[#:hidden #:eval class-ctc-eval
           (require racket/class racket/contract)]
 
-@title[#:tag "mzlib:class" #:style 'toc]{类与对象}
+@title[#:tag "mzlib:class" #:style 'toc]{Classes and Objects}
 
-@guideintro["classes"]{类与对象}
+@guideintro["classes"]{classes and objects}
 
 @note-lib[racket/class #:use-sources (racket/private/class-internal)]
 
-一个 @deftech{class} 指定以下内容：
+A @deftech{class} specifies
 
 @itemize[
  
- @item{一组 field；}
+ @item{a collection of fields;}
 
- @item{一组 method；}
+ @item{a collection of methods;}
 
- @item{field 的初始值表达式；以及}
+ @item{initial value expressions for the fields;  and}
 
- @item{绑定到初始化参数的初始化变量。}
+ @item{initialization variables that are bound to initialization
+ arguments.}
 
 ]
 
-在 class 系统的上下文中，@defterm{object} 是根据 class 描述实例化的 field 绑定集合。
+In the context of the class system, an @defterm{object} is a
+collection of bindings for fields that are instantiated according to a
+class description.
 
-class 系统允许程序使用继承、覆盖和增强，基于已有 class(@deftech{superclass})来定义新的 class(@deftech{derived class})：
+The class system allows a program to define a new class (a
+@deftech{derived class}) in terms of an existing class (the
+@deftech{superclass}) using inheritance, overriding, and augmenting:
 
 @itemize[
 
- @item{@deftech{inheritance}：派生 class 的 object 支持派生 class 的 superclass 声明的 method 和实例化 field，以及派生 class 表达式中声明的 method 和 field。}
+ @item{@deftech{inheritance}: An object of a derived class supports
+ methods and instantiates fields declared by the derived class's
+ superclass, as well as methods and fields declared in the derived
+ class expression.}
 
- @item{@deftech{overriding}：superclass 中声明的某些 method 可以在派生 class 中被替换。superclass 中对被覆盖 method 的引用使用派生 class 中的实现。}
+ @item{@deftech{overriding}: Some methods declared in a superclass can
+ be replaced in the derived class. References to the overridden method
+ in the superclass use the implementation in the derived class.}
 
- @item{@deftech{augmenting}：superclass 中声明的某些 method 可以仅在派生 class 中被扩展。superclass method 显式地委托给派生 class 中的增强 method。}
+ @item{@deftech{augmenting}: Some methods declared in a superclass can
+ be merely extended in the derived class. The superclass method
+ specifically delegates to the augmenting method in the derived class.}
 
 ]
 
-@deftech{interface} 是一组需要由 class 实现的 method 名称，可能带有某些 method 的默认实现，并附带一个 @deftech{derivation requirement}。 A
+An @deftech{interface} is a collection of method names to be
+implemented by a class, potentially with default implementations
+some methods, combined with a @deftech{derivation requirement}. A
 class @deftech{implements} an interface when it
 
 @itemize[
 
- @item{为 interface 中的每个 method(在 interface 中没有实现的那些)声明(或继承)一个 public method；}
+ @item{declares (or inherits) a public method for each method in the
+ interface (that does not have an implementation in the interface);}
 
- @item{派生自该 interface 所要求的 class(如果有)；并且}
+ @item{is derived from the class required by the interface, if any; and}
 
- @item{显式声明其实现该 interface 的意图。}
+ @item{specifically declares its intention to implement the interface.}
 
 ]
 
-一个 class 可以实现任意数量的 interface。派生 class 自动实现其 superclass 所实现的任何 interface。每个 class 还实现一个与 class 关联的隐式定义的 interface。该隐式定义的 interface 包含该 class 的所有 public method 名称，并要求该 interface 的所有其他实现都派生自该 class。当某个 class 实现了一个 interface，但没有显式声明对在 interface 中有默认实现的 method 的实现时，则使用该默认实现。
+A class can implement any number of interfaces. A derived class
+automatically implements any interface that its superclass
+implements. Each class also implements an implicitly-defined interface
+that is associated with the class. The implicitly-defined interface
+contains all of the class's public method names, and it requires that
+all other implementations of the interface are derived from the class.
+When a class implements an interface but does not explicitly
+declare an implementation of a method that has a default implementation
+in the interface, then the default implementation is used for the class.
 
-一个新的 interface 可以 @deftech{extend} 一个或多个 interface 并添加额外的 method 名称；每个实现扩展后 interface 的 class 也实现原始 interface。原始 interface 的 derivation requirement 必须是一致的，扩展后的 interface 继承原始 interface 中最具体的 derivation requirement。
+A new interface can @deftech{extend} one or more interfaces with
+additional method names; each class that implements the extended
+interface also implements the original interfaces. The derivation
+requirements of the original interface must be consistent, and the
+extended interface inherits the most specific derivation requirement
+from the original interfaces.
 
-class、object 和 interface 都是值。然而，class 或 interface 不是 object(即不存在"元类"或"元接口")。
+Classes, objects, and interfaces are all values. However, a class or
+interface is not an object (i.e., there are no ``meta-classes'' or
+``meta-interfaces'').
 
 @local-table-of-contents[]
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "createinterface"]{创建 Interface}
+@section[#:tag "createinterface"]{Creating Interfaces}
 
-@guideintro["classes"]{class、object 与 interface}
+@guideintro["classes"]{classes, objects, and interfaces}
 
 @defform/subs[(interface (super-interface-expr ...) name-clause ...)
               ([name-clause
@@ -148,15 +178,43 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
                 (id contract-expr #:public impl-expr)
                 (id contract-expr #:override impl-expr)])]{
 
-创建一个 interface。@racket[id] 必须互不相同。
+Produces an interface. The @racket[id]s must be mutually distinct.
 
-当 @racket[interface] 表达式被求值时，每个 @racket[super-interface-expr](按顺序)被求值。每个 @racket[super-interface-expr] 的结果必须是 interface 值，否则 @exnraise[exn:fail:object]。@racket[super-interface-expr] 返回的 interface 是新 interface 的 superinterface，它们全部被新的 interface 扩展。任何实现新 interface 的 class 也实现所有 superinterface。
+Each @racket[super-interface-expr] is evaluated (in order) when the
+@racket[interface] expression is evaluated. The result of each
+@racket[super-interface-expr] must be an interface value, otherwise
+the @exnraise[exn:fail:object].  The interfaces returned by the
+@racket[super-interface-expr]s are the new interface's
+superinterfaces, which are all extended by the new interface. Any
+class that implements the new interface also implements all of the
+superinterfaces.
 
-@racket[interface] 表达式的结果是一个 interface，包含所有指定的 @racket[id] 以及所有 superinterface 中的标识符。给定的 @racket[id] 可以配有一个对应的 @racket[contract-expr]，也可以有一个 @racket[impl-expr]，后者提供 @racket[id] 的实现，供实现类继承或覆盖。每个 @racket[impl-expr] 必须是 @racket[_method-procedure]；参见 @secref["clmethoddefs"]。superinterface 之间的重复标识符名称将被忽略，只要对源自不同 interface 的每个标识符，其中不超过一个提供默认实现。
+The result of an @racket[interface] expression is an interface that
+includes all of the specified @racket[id]s, plus all identifiers from
+the superinterfaces. A given @racket[id] may be paired with
+a corresponding @racket[contract-expr], and it may have a @racket[impl-expr],
+which supplies an implementation of @racket[id] to be inherited or overridden
+in an implementing class. Each @racket[impl-expr] must
+be a @racket[_method-procedure]; see @secref["clmethoddefs"].
+Duplicate identifier names among the
+superinterfaces are ignored, as long as no more than one of them provides
+a default implementation for each identifier that originated in a
+different interface.
 
-如果没有任何 superinterface 有某个 method 的实现，interface 可以使用 @racket[#:public] 提供该 method 的实现，否则使用 @racket[#:override]。如果多个 superinterface 对源自不同祖先 interface 的 method 提供了实现，则该 method 必须被覆盖。在 interface method 实现中不支持 @racket[super] 形式。
+An interface can provide an implementation of a method using
+@racket[#:public] if no superinterface has an implementation of the
+method, or using @racket[#:override] otherwise. If multiple superinterfaces
+provide implementations of a method that originate from different ancestor
+interfaces, then the method must be overridden. The @racket[super]
+form is not supported within an interface method implementation.
 
-如果没有提供 @racket[super-interface-expr]，则结果 interface 的 @tech{derivation requirement} 是平凡的：实现该 interface 的任何 class 必须派生自 @racket[object%]。否则，结果 interface 的实现要求是其 superinterface 中最具体的要求。如果 superinterface 指定了不一致的 @tech{derivation requirements}，则引发 @exnraise[exn:fail:object]。
+If no @racket[super-interface-expr]s are provided, then the @tech{derivation
+requirement} of the resulting interface is trivial: any class that
+implements the interface must be derived from @racket[object%].
+Otherwise, the implementation requirement of the resulting interface
+is the most specific requirement from its superinterfaces. If the
+superinterfaces specify inconsistent @tech{derivation requirements}, then
+@exnraise[exn:fail:object] is raised.
 
 @examples[
 #:eval class-ctc-eval
@@ -192,9 +250,18 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
                 (id contract-expr #:public default-expr)
                 (id contract-expr #:override default-expr)])]{
 
-类似于 @racket[interface]，但还将 @racket[property-expr] 生成的 structure-type property 与对应的 @racket[val-expr] 关联到该 interface。
+Like @racket[interface], but also associates to the interface the
+structure-type properties produced by the @racket[property-expr]s with
+the corresponding @racket[val-expr]s.
 
-每当生成的 interface(或派生自它的子 interface)通过 @racket[class*] 形式被 class 显式实现时，每个 property 及其值会附加到一个 structure type 上，该 structure type 由 class 的实例来实例化。具体来说，property 附加到一个具有零个直接 field 的 structure type 上，该 structure type 被扩展以生成 class 实例的内部 structure type(这样一来 structure type property 的 guard(如果有)就无法访问关于 field 的信息)。
+Whenever the resulting interface (or a sub-interface derived from it)
+is explicitly implemented by a class through the @racket[class*] form,
+each property is attached with its value to a structure type that
+instantiated by instances of the class. Specifically, the property is
+attached to a structure type with zero immediate fields, which is
+extended to produce the internal structure type for instances of the
+class (so that no information about fields is accessible to the
+structure type property's guard, if any).
 
 @examples[
 #:eval class-eval
@@ -210,13 +277,16 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "createclass"]{创建 Class}
+@section[#:tag "createclass"]{Creating Classes}
 
-@guideintro["classes"]{类与对象}
+@guideintro["classes"]{classes and objects}
 
 @defthing[object% class?]{
 
-一个内置 class，没有 method 或 field，只实现其自身的 interface @racket[(class->interface object%)]，并且是透明的(即其 inspector 为 @racket[#f]，因此所有直接实例都是 @racket[equal?])。所有其他 class 都派生自 @racket[object%]。}
+A built-in class that has no methods fields, implements only its own
+interface @racket[(class->interface object%)], and is transparent
+(i.e,. its inspector is @racket[#f], so all immediate instances are
+@racket[equal?]). All other classes are derived from @racket[object%].}
 
 
 @defform/subs[
@@ -290,21 +360,72 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
   (chaperone-procedure method-procedure wrapper-proc
                        other-arg-expr ...)])]{
 
-创建一个 class 值。
+Produces a class value.
 
-@racket[superclass-expr] 表达式在 @racket[class*] 表达式被求值时求值。结果必须是 class 值(可能是 @racket[object%])，否则 @exnraise[exn:fail:object]。@racket[superclass-expr] 表达式的结果是新 class 的 superclass。
+The @racket[superclass-expr] expression is evaluated when the
+@racket[class*] expression is evaluated. The result must be a class
+value (possibly @racket[object%]), otherwise the
+@exnraise[exn:fail:object].  The result of the
+@racket[superclass-expr] expression is the new class's superclass.
 
-@racket[interface-expr] 表达式也在 @racket[class*] 表达式被求值时求值，在 @racket[superclass-expr] 求值之后。每个 @racket[interface-expr] 的结果必须是 interface 值，否则 @exnraise[exn:fail:object]。@racket[interface-expr] 返回的 interface 全部被 class 实现。对于每个 interface 中的每个标识符，class(或其祖先之一)必须声明一个同名的 public method，否则 @exnraise[exn:fail:object]。class 的 superclass 必须满足每个 interface 的实现要求，否则 @exnraise[exn:fail:object]。
+The @racket[interface-expr] expressions are also evaluated when the
+@racket[class*] expression is evaluated, after
+@racket[superclass-expr] is evaluated. The result of each
+@racket[interface-expr] must be an interface value, otherwise the
+@exnraise[exn:fail:object].  The interfaces returned by the
+@racket[interface-expr]s are all implemented by the class. For each
+identifier in each interface, the class (or one of its ancestors) must
+declare a public method with the same name, otherwise the
+@exnraise[exn:fail:object]. The class's superclass must satisfy the
+implementation requirement of each interface, otherwise the
+@exnraise[exn:fail:object].
 
-@racket[inspect] 子句为 class 扩展选择一个 inspector(参见 @secref["inspectors"])。当 @racket[class*] 形式被求值时，@racket[inspector-expr] 必须求值为一个 inspector 或 @racket[#f]。与 structure type 一样，inspector 控制对 class field(包括 private field)的访问，也会影响使用 @racket[equal?] 的比较。如果没有提供 @racket[inspect] 子句，对 class 的访问由当前 inspector 的父级控制(参见 @secref["inspectors"])。如果指定了多个 @racket[inspect] 子句，则报告语法错误。
+An @racket[inspect] @racket[class-clause] selects an inspector (see
+@secref["inspectors"]) for the class extension. The
+@racket[inspector-expr] must evaluate to an inspector or @racket[#f]
+when the @racket[class*] form is evaluated. Just as for structure
+types, an inspector controls access to the class's fields, including
+private fields, and also affects comparisons using @racket[equal?]. If
+no @racket[inspect] clause is provided, access to the class is
+controlled by the parent of the current inspector (see
+@secref["inspectors"]). A syntax error is reported if more than one
+@racket[inspect] clause is specified.
 
-其他 @racket[class-clause] 定义初始化参数、public 和 private field，以及 public 和 private method。对于 @racket[public]、@racket[override]、@racket[augment]、@racket[pubment]、@racket[overment]、@racket[augride]、@racket[public-final]、@racket[override-final]、@racket[augment-final] 或 @racket[private] 子句中的每个 @racket[id] 或 @racket[maybe-renamed]，必须有一个 @racket[method-definition]。所有其他定义性 @racket[class-clause] 创建 private field。所有剩余的 @racket[expr] 是初始化表达式，在 class 被实例化时求值(参见 @secref["objcreation"])。
+The other @racket[class-clause]s define initialization arguments,
+public and private fields, and public and private methods. For each
+@racket[id] or @racket[maybe-renamed] in a @racket[public],
+@racket[override], @racket[augment], @racket[pubment],
+@racket[overment], @racket[augride], @racket[public-final],
+@racket[override-final], @racket[augment-final], or @racket[private]
+clause, there must be one @racket[method-definition]. All other
+definition @racket[class-clause]s create private fields. All remaining
+@racket[expr]s are initialization expressions to be evaluated when the
+class is instantiated (see @secref["objcreation"]).
 
-@racket[class*] 表达式的结果是一个新的 class，派生自指定的 superclass 并实现指定的 interface。class 的实例使用 @racket[instantiate] 形式或 @racket[make-object] 过程创建，如 @secref["objcreation"] 中所述。
+The result of a @racket[class*] expression is a new class, derived
+from the specified superclass and implementing the specified
+interfaces. Instances of the class are created with the
+@racket[instantiate] form or @racket[make-object] procedure, as
+described in @secref["objcreation"].
 
-每个 @racket[class-clause] 会被(部分)macro 展开以揭示其形状。如果 @racket[class-clause] 是 @racket[begin] 表达式，其子表达式会从 @racket[begin] 中提升出来并作为 @racket[class-clause] 处理，就像 @racket[begin] 对顶层定义和嵌套定义进行扁平化处理一样。每个 @racket[class-clause] 在展开前，其 @tech{syntax property} @racket['class-body] 被设置为 true。
+Each @racket[class-clause] is (partially) macro-expanded to reveal its
+shapes. If a @racket[class-clause] is a @racket[begin] expression, its
+sub-expressions are lifted out of the @racket[begin] and treated as
+@racket[class-clause]s, in the same way that @racket[begin] is
+flattened for top-level and embedded definitions. Each @racket[class-clause]
+has the @tech{syntax property} @racket['class-body] set to true before
+expansion.
 
-在新 class 实例的 @racket[class*] 形式中，@racket[this] 绑定到 object 本身；@racket[this%] 绑定到该 object 的 class；@racket[super-instantiate]、@racket[super-make-object] 和 @racket[super-new] 绑定到用于初始化 superclass 中 field 的形式(参见 @secref["objcreation"])；@racket[super] 可用于调用 superclass method(参见 @secref["clmethoddefs"])；@racket[inner] 可用于调用 subclass 对 method 的增强(参见 @secref["clmethoddefs"])。}
+Within a @racket[class*] form for instances of the new class,
+@racket[this] is bound to the object itself;
+@racket[this%] is bound to the class of the object;
+@racket[super-instantiate], @racket[super-make-object], and
+@racket[super-new] are bound to forms to initialize fields in the
+superclass (see @secref["objcreation"]); @racket[super] is
+available for calling superclass methods (see
+@secref["clmethoddefs"]); and @racket[inner] is available for
+calling subclass augmentations of methods (see
+@secref["clmethoddefs"]).}
 
 @history[#:changed "8.8.0.10"
          @elem{Added the @racket['class-body] syntax property
@@ -312,7 +433,7 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
 
 @defform[(class superclass-expr class-clause ...)]{
 
-类似于 @racket[class*]，但省略 @racket[_interface-expr]，适用于不需要 interface 的情况。
+Like @racket[class*], but omits the @racket[_interface-expr]s, for the case that none are needed.
 
 @examples[
 #:eval class-eval
@@ -327,7 +448,10 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
 
 @defidform[this]{
 
-@index['("self")]{在} @racket[class*] 形式中，@racket[this] 引用当前 object(即正在初始化的 object 或其 method 被调用的 object)。在 @racket[class*] 形式外部使用会导致语法错误。
+@index['("self")]{Within} a @racket[class*] form, @racket[this] refers
+to the current object (i.e., the object being initialized or whose
+method was called). Use outside the body of a @racket[class*] form is
+a syntax error.
 
 @examples[
 #:eval class-eval
@@ -344,7 +468,10 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
 
 @defidform[this%]{
                   
-在 @racket[class*] 形式中，@racket[this%] 引用当前 object 的 class(即正在初始化的 object 或其 method 被调用的 object 的 class)。在 @racket[class*] 形式外部使用会导致语法错误。
+Within a @racket[class*] form, @racket[this%] refers to the class
+of the current object (i.e., the object being initialized or whose
+method was called).  Use outside the body of a @racket[class*] form is
+a syntax error.
 
 @examples[
 #:eval class-eval
@@ -617,146 +744,403 @@ class、object 和 interface 都是值。然而，class 或 interface 不是 obj
   ...)
 ]{
 
-类似于 @racket[class*]，但包含一个子表达式，用作 class 定义中所有语法错误的来源。例如，@racket[define-serializable-class] 展开为 @racket[class/derived]，这样 class 体中的错误会以 @racket[define-serializable-class] 而非 @racket[class] 的形式报告。
+Like @racket[class*], but includes a sub-expression to be used as the
+source for all syntax errors within the class definition. For example,
+@racket[define-serializable-class] expands to @racket[class/derived]
+so that errors in the body of the class are reported in terms of
+@racket[define-serializable-class] instead of @racket[class].
 
-@racket[original-datum] 是用于报告错误的原始表达式。
+The @racket[original-datum] is the original expression to use for
+reporting errors.
 
-@racket[name-id] 用于命名结果 class；如果为 @racket[#f]，class 名称会被推断。
+The @racket[name-id] is used to name the resulting class; if it
+is @racket[#f], the class name is inferred.
 
-@racket[super-expr]、@racket[interface-expr] 和 @racket[class-clause] 与 @racket[class*] 的相同。
+The @racket[super-expr], @racket[interface-expr]s, and
+@racket[class-clause]s are as for @racket[class*].
 
-如果 @racket[deserialize-id-expr] 不是字面的 @racket[#f]，则生成一个可序列化的 class，结果是两个值而不是一个：class 和由 @racket[make-deserialize-info] 生成的 deserialize-info structure。@racket[deserialize-id-expr] 应产生一个适合作为 @racket[make-serialize-info] 第二个参数的值，并且它应引用一个其值为 deserialize-info structure 的导出。
+If the @racket[deserialize-id-expr] is not literally @racket[#f], then
+a serializable class is generated, and the result is two values
+instead of one: the class and a deserialize-info structure produced by
+@racket[make-deserialize-info]. The @racket[deserialize-id-expr]
+should produce a value suitable as the second argument to
+@racket[make-serialize-info], and it should refer to an export whose
+value is the deserialize-info structure.
 
-未来可选的 form 可能被添加到当前以 @racket[deserialize-id-expr] 结尾的序列中。}
+Future optional forms may be added to the sequence that currently ends
+with @racket[deserialize-id-expr].}
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-@subsection[#:tag "clinitvars"]{初始化变量}
+@subsection[#:tag "clinitvars"]{Initialization Variables}
 
-class 的初始化变量通过 @racket[init]、@racket[init-field] 和 @racket[init-rest] 声明，为 class 的每个 object 实例化。初始化变量可以在 field 的初始值表达式、初始化参数的默认值表达式以及初始化表达式中使用。只有用 @racket[init-field] 声明的初始化变量才能从 method 中访问；从 method 中访问任何其他初始化变量是语法错误。
+A class's initialization variables, declared with @racket[init],
+@racket[init-field], and @racket[init-rest], are instantiated
+for each object of a class. Initialization variables can be used in
+the initial value expressions of fields, default value expressions
+for initialization arguments, and in initialization expressions.  Only
+initialization variables declared with @racket[init-field] can be
+accessed from methods; accessing any other initialization variable
+from a method is a syntax error.
 
-绑定到初始化变量的值是：
+The values bound to initialization variables are
 
 @itemize[
 
- @item{使用 @racket[instantiate] 提供的参数或传递给 @racket[make-object] 的参数，如果 object 作为 class 的直接实例创建；或者，}
+ @item{the arguments provided with @racket[instantiate] or passed to
+ @racket[make-object], if the object is created as a direct instance
+ of the class; or,}
 
- @item{传递给 superclass 初始化 form 或过程的参数，如果 object 作为派生 class 的实例创建。}
+ @item{the arguments passed to the superclass initialization form or
+ procedure, if the object is created as an instance of a derived
+ class.}
 
 ]
 
-如果某个初始化变量有关联的 @racket[_default-value-expr] 但没有提供初始化参数，则求值 @racket[_default-value-expr] 表达式以获取该变量的值。@racket[_default-value-expr] 仅在其变量没有提供参数时求值。@racket[_default-value-expr] 的环境包括所有初始化变量、所有 field 以及 class 的所有 method。如果求值多个 @racket[_default-value-expr]，它们从左到右求值。object 创建和 field 初始化在 @secref["objcreation"] 中详细描述。
+If an initialization argument is not provided for an initialization
+variable that has an associated @racket[_default-value-expr], then the
+@racket[_default-value-expr] expression is evaluated to obtain a value
+for the variable. A @racket[_default-value-expr] is only evaluated when
+an argument is not provided for its variable. The environment of
+@racket[_default-value-expr] includes all of the initialization
+variables, all of the fields, and all of the methods of the class. If
+multiple @racket[_default-value-expr]s are evaluated, they are
+evaluated from left to right. Object creation and field initialization
+are described in detail in @secref["objcreation"].
 
-如果某个初始化变量没有 @racket[_default-value-expr]，则 object 创建或 superclass 初始化调用必须为该变量提供参数，否则 @exnraise[exn:fail:object]。
+If an initialization variable has no @racket[_default-value-expr], then
+the object creation or superclass initialization call must supply an
+argument for the variable, otherwise the @exnraise[exn:fail:object].
 
-初始化参数可以按名称或按位置提供。初始化变量的外部名称可以用于 @racket[instantiate] 或 superclass 初始化 form。这些 form 也接受按位置参数。@racket[make-object] 过程和 superclass 初始化过程仅接受按位置参数。
+Initialization arguments can be provided by name or by position.  The
+external name of an initialization variable can be used with
+@racket[instantiate] or with the superclass initialization form. Those
+forms also accept by-position arguments. The @racket[make-object]
+procedure and the superclass initialization procedure accept only
+by-position arguments.
 
-按位置提供的参数使用 @racket[init] 和 @racket[init-field] 子句的顺序以及每个子句内变量的顺序转换为按名称参数。当 @racket[instantiate] 形式同时提供按位置和按名称参数时，转换后的参数放在按名称参数之前。(顺序可能很重要；另请参见 @secref["objcreation"]。)
+Arguments provided by position are converted into by-name arguments
+using the order of @racket[init] and @racket[init-field] clauses and
+the order of variables within each clause. When an @racket[instantiate]
+form provides both by-position and by-name arguments, the converted
+arguments are placed before by-name arguments. (The order can be
+significant; see also @secref["objcreation"].)
 
-除非 class 包含 @racket[init-rest] 子句，否则当按位置参数的数量超过声明的初始化变量数量时，superclass(以及沿 superclass 链向上)中变量的顺序决定按名称转换。
+Unless a class contains an @racket[init-rest] clause, when the number
+of by-position arguments exceeds the number of declared initialization
+variables, the order of variables in the superclass (and so on, up the
+superclass chain) determines the by-name conversion.
 
-如果 class 表达式包含 @racket[init-rest] 子句，则必须只有一个，且必须是最后一个。如果它声明了一个变量，则该变量以 list 形式接收额外的按位置初始化参数(类似于过程中的"rest argument")。@racket[init-rest] 变量可以接收派生 class 的按名称转换中剩余的按位置初始化参数。当派生 class 的 superclass 初始化提供更多按位置参数时，它们会被添加到迄今为止累积的按位置参数之前。
+If a class expression contains an @racket[init-rest] clause, there
+must be only one, and it must be last. If it declares a variable, then
+the variable receives extra by-position initialization arguments as a
+list (similar to a dotted ``rest argument'' in a procedure).  An
+@racket[init-rest] variable can receive by-position initialization
+arguments that are left over from a by-name conversion for a derived
+class. When a derived class's superclass initialization provides even
+more by-position arguments, they are prefixed onto the by-position
+arguments accumulated so far.
 
-如果向 object 创建或 superclass 初始化提供了过少或过多的按位置初始化参数，则 @exnraise[exn:fail:object]。类似地，如果向具有 @racket[init-rest] 子句的 class 提供了额外的按位置参数，则 @exnraise[exn:fail:object]。
+If too few or too many by-position initialization arguments are
+provided to an object creation or superclass initialization, then the
+@exnraise[exn:fail:object]. Similarly, if extra by-position arguments
+are provided to a class with an @racket[init-rest] clause, the
+@exnraise[exn:fail:object].
 
-未使用的(按名称)参数将被传播到 superclass，如 @secref["objcreation"] 中所述。如果 class 派生中包含多个(在不同 class 中)具有相同名称的初始化变量声明，则多个初始化参数可以使用相同的名称。更多细节请参见 @secref["objcreation"]。
+Unused (by-name) arguments are to be propagated to the superclass, as
+described in @secref["objcreation"].  Multiple initialization
+arguments can use the same name if the class derivation contains
+multiple declarations (in different classes) of initialization
+variables with the name. See @secref["objcreation"] for further
+details.
 
-关于内部和外部名称的信息，另请参见 @secref["extnames"]。
+See also @secref["extnames"] for information about internal and
+external names.
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-@subsection[#:tag "clfields"]{Field}
+@subsection[#:tag "clfields"]{Fields}
 
-class 中的每个 @racket[field]、@racket[init-field] 和非 method 的 @racket[define-values] 子句为 class 声明一个或多个新的 field。使用 @racket[field] 或 @racket[init-field] 声明的 field 是 public 的。public field 可以由 subclass 使用 @racket[inherit-field] 访问和修改。public field 也可以通过 @racket[class-field-accessor] 在 class 外部访问，通过 @racket[class-field-mutator] 修改(参见 @secref["ivaraccess"])。使用 @racket[define-values] 声明的 field 只能在 class 内部访问。
+Each @racket[field], @racket[init-field], and non-method
+@racket[define-values] clause in a class declares one or more new
+fields for the class. Fields declared with @racket[field] or
+@racket[init-field] are public. Public fields can be accessed and
+mutated by subclasses using @racket[inherit-field]. Public fields are
+also accessible outside the class via @racket[class-field-accessor]
+and mutable via @racket[class-field-mutator] (see
+@secref["ivaraccess"]). Fields declared with @racket[define-values]
+are accessible only within the class.
 
-使用 @racket[init-field] 声明的 field 既是 public field 也是初始化变量。关于初始化变量的信息，请参见 @secref["clinitvars"]。
+A field declared with @racket[init-field] is both a public field and
+an initialization variable. See @secref["clinitvars"] for
+information about initialization variables.
 
-@racket[inherit-field] 声明使 superclass 定义的 public field 在 class 表达式中可以直接访问。如果指定的 field 没有在 superclass 中定义，求值 class 表达式时 @exnraise[exn:fail:object]。superclass 中的每个 field 都存在于派生 class 中，即使它没有在派生 class 中用 @racket[inherit-field] 声明。@racket[inherit-field] 子句不控制继承，仅控制 class 表达式内的词法作用域。
+An @racket[inherit-field] declaration makes a public field defined by
+a superclass directly accessible in the class expression. If the
+indicated field is not defined in the superclass, the
+@exnraise[exn:fail:object] when the class expression is evaluated.
+Every field in a superclass is present in a derived class, even if it
+is not declared with @racket[inherit-field] in the derived class. The
+@racket[inherit-field] clause does not control inheritance, but merely
+controls lexical scope within a class expression.
 
-当 object 初次创建时，其所有 field 都具有 @|undefined-const| 值(参见 @secref["void"])。class 的 field 在与 class 的初始化表达式求值的同一时间被初始化；更多信息请参见 @secref["objcreation"]。
+When an object is first created, all of its fields have the
+@|undefined-const| value (see @secref["void"]). The fields of a
+class are initialized at the same time that the class's initialization
+expressions are evaluated; see @secref["objcreation"] for more
+information.
 
-关于内部和外部名称的信息，另请参见 @secref["extnames"]。
+See also @secref["extnames"] for information about internal and
+external names.
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-@subsection[#:tag "clmethods"]{Method}
+@subsection[#:tag "clmethods"]{Methods}
 
-@subsubsection[#:tag "clmethoddefs"]{Method 定义}
+@subsubsection[#:tag "clmethoddefs"]{Method Definitions}
 
-class 中的每个 @racket[public]、@racket[override]、@racket[augment]、@racket[pubment]、@racket[overment]、@racket[augride]、@racket[public-final]、@racket[override-final]、@racket[augment-final] 和 @racket[private] 子句声明一个或多个 method 名称。每个 method 名称必须有对应的 @racket[_method-definition]。@racket[public]、@|etc| 子句及其对应定义的顺序(在它们之间，以及相对于 class 中的其他子句)不重要。
+Each @racket[public], @racket[override], @racket[augment],
+@racket[pubment], @racket[overment], @racket[augride],
+@racket[public-final], @racket[override-final],
+@racket[augment-final], and @racket[private]
+clause in a class declares one or more method names. Each method name
+must have a corresponding @racket[_method-definition]. The order of
+@racket[public], @|etc|, clauses and their corresponding definitions
+(among themselves, and with respect to other clauses in the class)
+does not matter.
 
-如 @racket[class*] 的语法所示，method 定义在语法上限于某些 procedure form，如 @racket[_method-procedure] 的语法所定义；在 @racket[_method-procedure] 的最后两种形式中，body @racket[id] 必须是由 @racket[let-values] 或 @racket[letrec-values] 绑定的 @racket[id] 之一。@racket[_method-procedure] 表达式不会直接被求值。相反，对于每个 method，会创建一个特定于 class 的 method procedure；它接受一个初始 object 参数，此外还接受如果直接求值 @racket[_method-procedure] 表达式该 procedure 将接受的参数。procedure 的 body 会被转换，以通过 object 参数访问 method 和 field。
+As shown in the grammar for @racket[class*], a method definition is
+syntactically restricted to certain procedure forms, as defined by the
+grammar for @racket[_method-procedure]; in the last two forms of
+@racket[_method-procedure], the body @racket[id] must be one of the
+@racket[id]s bound by @racket[let-values] or @racket[letrec-values]. A
+@racket[_method-procedure] expression is not evaluated
+directly. Instead, for each method, a class-specific method procedure
+is created; it takes an initial object argument, in addition to the
+arguments the procedure would accept if the @racket[_method-procedure]
+expression were evaluated directly. The body of the procedure is
+transformed to access methods and fields through the object argument.
 
-使用 @racket[public]、@racket[pubment] 或 @racket[public-final] 声明的 method 向 class 中引入一个新 method。该 method 必须尚未存在于 superclass 中，也不应在任何 superinterface 中有实现，否则求值 class 表达式时 @exnraise[exn:fail:object]。使用 @racket[public] 声明的 method 可以在使用 @racket[override]、@racket[overment] 或 @racket[override-final] 的 subclass 中被覆盖。使用 @racket[pubment] 声明的 method 可以在使用 @racket[augment]、@racket[augride] 或 @racket[augment-final] 的 subclass 中被增强。使用 @racket[public-final] 声明的 method 不能在 subclass 中被覆盖或增强。
+A method declared with @racket[public], @racket[pubment], or
+@racket[public-final] introduces a new method into a class. The method
+must not be present already in the superclass or have an implementation
+in any superinterface, otherwise the
+@exnraise[exn:fail:object] when the class expression is evaluated. A
+method declared with @racket[public] can be overridden in a subclass
+that uses @racket[override], @racket[overment], or
+@racket[override-final].  A method declared with @racket[pubment] can
+be augmented in a subclass that uses @racket[augment],
+@racket[augride], or @racket[augment-final]. A method declared with
+@racket[public-final] cannot be overridden or augmented in a subclass.
 
-使用 @racket[override]、@racket[overment] 或 @racket[override-final] 声明的 method 覆盖 superclass 或 superinterface 中已经存在的定义。如果该 method 尚不存在，求值 class 表达式时 @exnraise[exn:fail:object]。使用 @racket[override] 声明的 method 可以在使用 @racket[override]、@racket[overment] 或 @racket[override-final] 的 subclass 中再次被覆盖。使用 @racket[overment] 声明的 method 可以在使用 @racket[augment]、@racket[augride] 或 @racket[augment-final] 的 subclass 中被增强。使用 @racket[override-final] 声明的 method 不能在 subclass 中进一步被覆盖或增强。
+A method declared with @racket[override], @racket[overment], or
+@racket[override-final] overrides a definition already present in the
+superclass or a superinterface. If the method is not already present, the
+@exnraise[exn:fail:object] when the class expression is evaluated.  A
+method declared with @racket[override] can be overridden again in a
+subclass that uses @racket[override], @racket[overment], or
+@racket[override-final].  A method declared with @racket[overment] can
+be augmented in a subclass that uses @racket[augment],
+@racket[augride], or @racket[augment-final]. A method declared with
+@racket[override-final] cannot be overridden further or augmented in a
+subclass.
 
-使用 @racket[augment]、@racket[augride] 或 @racket[augment-final] 声明的 method 增强 superclass 中已经存在的定义。如果该 method 尚不存在，求值 class 表达式时 @exnraise[exn:fail:object]。使用 @racket[augment] 声明的 method 可以在使用 @racket[augment]、@racket[augride] 或 @racket[augment-final] 的 subclass 中进一步被增强。使用 @racket[augride] 声明的 method 可以在使用 @racket[override]、@racket[overment] 或 @racket[override-final] 的 subclass 中被覆盖。(这种覆盖仅替换增强，而不是被增强的 method。)使用 @racket[augment-final] 声明的 method 不能在 subclass 中进一步被覆盖或增强。
+A method declared with @racket[augment], @racket[augride], or
+@racket[augment-final] augments a definition already present in the
+superclass. If the method is not already present, the
+@exnraise[exn:fail:object] when the class expression is evaluated.  A
+method declared with @racket[augment] can be augmented further in a
+subclass that uses @racket[augment], @racket[augride], or
+@racket[augment-final]. A method declared with @racket[augride] can be
+overridden in a subclass that uses @racket[override],
+@racket[overment], or @racket[override-final]. (Such an override
+merely replaces the augmentation, not the method that is augmented.)
+A method declared with @racket[augment-final] cannot be overridden or
+augmented further in a subclass.
 
-使用 @racket[private] 声明的 method 在 class 表达式外部不可访问，不能被覆盖，也永远不会覆盖 superclass 中的 method。
+A method declared with @racket[private] is not accessible outside the
+class expression, cannot be overridden, and never overrides a method
+in the superclass.
 
-当 method 使用 @racket[override]、@racket[overment] 或 @racket[override-final] 声明时，可以使用 @racket[super] 形式调用该 method 的 superclass 或 superinterface 实现。如果多个 superinterface 提供了被覆盖 method 的实现，则在求值时 @racket[super] 会引发 @racket[exn:fail:object]。
+When a method is declared with @racket[override], @racket[overment],
+or @racket[override-final], then the superclass or superinterface implementation of the
+method can be called using @racket[super] form. If multiple superinterfaces
+provide an implementation of the overridden method, then @racket[super]
+raises @racket[exn:fail:object] when it is evaluated.
 
-当 method 使用 @racket[pubment]、@racket[augment] 或 @racket[overment] 声明时，可以使用 @racket[inner] 形式调用 subclass 增强 method。@racket[public-final] 和没有对应 @racket[inner] 的 @racket[pubment] 之间的唯一区别是，@racket[public-final] 阻止声明会被忽略的增强 method。
+When a method is declared with @racket[pubment], @racket[augment], or
+@racket[overment], then a subclass augmenting method can be called
+using the @racket[inner] form. The only difference between
+@racket[public-final] and @racket[pubment] without a corresponding
+@racket[inner] is that @racket[public-final] prevents the declaration
+of augmenting methods that would be ignored.
 
-使用 @racket[abstract] 声明的 method 必须在没有实现的情况下声明。subclass 可以通过 @racket[override]、@racket[overment] 或 @racket[override-final] 形式实现 abstract method。任何包含或继承任何 abstract method 的 class 被视为 abstract，不能被实例化。
+A method declared with @racket[abstract] must be declared without
+an implementation. Subclasses may implement abstract methods via the
+@racket[override], @racket[overment], or @racket[override-final]
+forms. Any class that contains or inherits any abstract methods is
+considered abstract and cannot be instantiated.
 
 @defform*[[(super id arg ...)
            (super id arg ... . arg-list-expr)]]{
 
-始终访问 superclass method 或 superinterface method，无论该方法是否在 subclass 中再次被覆盖。在 @racket[class*] 外部使用 @racket[super] 形式是语法错误。每个 @racket[arg] 与 @racket[#%app] 的相同：@racket[_arg-expr] 或 @racket[_keyword _arg-expr]。
+Always accesses the superclass method or a superinterface method, independent of whether the
+method is overridden again in subclasses. Using the @racket[super]
+form outside of @racket[class*] is a syntax error. Each @racket[arg]
+is as for @racket[#%app]: either @racket[_arg-expr] or
+@racket[_keyword _arg-expr].
 
-第二种形式类似于在 procedure 上使用 @racket[apply]；@racket[arg-list-expr] 不能是带括号的表达式。}
+The second form is analogous to using @racket[apply] with a procedure;
+the @racket[arg-list-expr] must not be a parenthesized expression.}
 
 @defform*[[(inner default-expr id arg ...)
            (inner default-expr id arg ... . arg-list-expr)]]{
 
-如果 object 的 class 不提供增强 method，则求值 @racket[default-expr]，而 @racket[arg] 表达式不求值。否则，以 @racket[arg] 的结果作为参数调用增强 method，而 @racket[default-expr] 不求值。如果特定 method 没有求值任何 @racket[inner] 调用，则 subclass 提供的增强 method 永远不会被使用。在 @racket[class*] 外部使用 @racket[inner] 形式是语法错误。
+If the object's class does not supply an augmenting method, then
+@racket[default-expr] is evaluated, and the @racket[arg] expressions
+are not evaluated. Otherwise, the augmenting method is called with the
+@racket[arg] results as arguments, and @racket[default-expr] is not
+evaluated. If no @racket[inner] call is evaluated for a particular
+method, then augmenting methods supplied by subclasses are never
+used. Using the @racket[inner] form outside of @racket[class*] is an
+syntax error.
 
-第二种形式类似于在 procedure 上使用 @racket[apply]；@racket[arg-list-expr] 不能是带括号的表达式。}
+The second form is analogous to using @racket[apply] with a procedure;
+the @racket[arg-list-expr] must not be a parenthesized expression.}
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-@subsubsection[#:tag "classinherit"]{继承和 Superclass Method}
+@subsubsection[#:tag "classinherit"]{Inherited and Superclass Methods}
 
-每个 @racket[inherit]、@racket[inherit/super]、@racket[inherit/inner]、@racket[rename-super] 和 @racket[rename-inner] 子句声明一个或多个在 class 中定义但必须存在于 superclass 中的 method。@racket[rename-super] 和 @racket[rename-inner] 声明很少使用，因为 @racket[inherit/super] 和 @racket[inherit/inner] 提供相同的访问。此外，superclass 和增强 method 通常通过 @racket[super] 和 @racket[inner] 在同时声明这些 method 的 class 中访问，而不是通过 @racket[inherit/super]、@racket[inherit/inner]、@racket[rename-super] 或 @racket[rename-inner]。
+Each @racket[inherit], @racket[inherit/super], @racket[inherit/inner],
+@racket[rename-super], and @racket[rename-inner] clause declares one
+or more methods that are defined in the class, but must be present in
+the superclass. The @racket[rename-super] and @racket[rename-inner]
+declarations are rarely used, since @racket[inherit/super] and
+@racket[inherit/inner] provide the same access. Also, superclass and
+augmenting methods are typically accessed through @racket[super] and
+@racket[inner] in a class that also declares the methods, instead of
+through @racket[inherit/super], @racket[inherit/inner],
+@racket[rename-super], or @racket[rename-inner].
 
-使用 @racket[inherit]、@racket[inherit/super] 或 @racket[inherit/inner] 声明的 method 名称在运行时访问覆盖声明(如果有)。使用 @racket[inherit/super] 声明的 method 名称也可以与 @racket[super] 形式一起使用以访问 superclass 实现，使用 @racket[inherit/inner] 声明的 method 名称也可以与 @racket[inner] 形式一起使用以访问增强 method(如果有)。
+Method names declared with @racket[inherit], @racket[inherit/super],
+or @racket[inherit/inner] access overriding declarations, if any, at
+run time. Method names declared with @racket[inherit/super] can also
+be used with the @racket[super] form to access the superclass
+implementation, and method names declared with @racket[inherit/inner]
+can also be used with the @racket[inner] form to access an augmenting
+method, if any.
  
-使用 @racket[rename-super] 声明的 method 名称在运行时始终访问 superclass 的实现。使用 @racket[rename-inner] 声明的 method 访问 subclass 的增强 method(如果有)，并且必须使用以下形式调用
+Method names declared with @racket[rename-super] always access the
+superclass's implementation at run-time. Methods declared with
+@racket[rename-inner] access a subclass's augmenting method, if any,
+and must be called with the form
 
 @racketblock[
 (_id (lambda () _default-expr) _arg ...)
 ]
 
-这样当没有增强 method 可用时，@racket[default-expr] 可供求值。在这种形式中，@racket[lambda] 是一个字面标识符，用于将 @racket[default-expr] 与 @racket[arg] 分开。当增强 method 可用时，它接收 @racket[arg] 表达式的结果作为参数。
+so that a @racket[default-expr] is available to evaluate when no
+augmenting method is available. In such a form, @racket[lambda] is a
+literal identifier to separate the @racket[default-expr] from the
+@racket[arg]. When an augmenting method is available, it receives the
+results of the @racket[arg] expressions as arguments.
 
-superclass 中存在但未使用 @racket[inherit]、@racket[inherit/super]、@racket[inherit/inner] 或 @racket[rename-super] 声明的 method 在 class 中不能直接访问(尽管它们可以通过 @racket[send] 调用)。superclass 中的每个 public method 都存在于派生 class 中，即使它没有在派生 class 中用 @racket[inherit] 声明；@racket[inherit] 子句不控制继承，仅控制 class 表达式内的词法作用域。
+Methods that are present in the superclass but not declared with
+@racket[inherit], @racket[inherit/super], or @racket[inherit/inner] or
+@racket[rename-super] are not directly accessible in the class
+(though they can be called with @racket[send]).  Every public method
+in a superclass is present in a derived class, even if it is not
+declared with @racket[inherit] in the derived class; the
+@racket[inherit] clause does not control inheritance, but merely
+controls lexical scope within a class expression.
 
-如果使用 @racket[inherit]、@racket[inherit/super]、@racket[inherit/inner]、@racket[rename-super] 或 @racket[rename-inner] 声明的 method 不存在于 superclass 中，求值 class 表达式时 @exnraise[exn:fail:object]。
+If a method declared with @racket[inherit], @racket[inherit/super],
+@racket[inherit/inner], @racket[rename-super], or
+@racket[rename-inner] is not present in the superclass, the
+@exnraise[exn:fail:object] when the class expression is evaluated.
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-@subsubsection[#:tag "extnames"]{内部和外部名称}
+@subsubsection[#:tag "extnames"]{Internal and External Names}
 
-使用 @racket[public]、@racket[override]、@racket[augment]、@racket[pubment]、@racket[overment]、@racket[augride]、@racket[public-final]、@racket[override-final]、@racket[augment-final]、@racket[inherit]、@racket[inherit/super]、@racket[inherit/inner]、@racket[rename-super] 和 @racket[rename-inner] 声明的每个 method 在声明方法时可以使用 @racket[(internal-id external-id)] 来设置单独的内部和外部名称。内部名称用于在 class 表达式内直接访问 method(包括在 @racket[super] 或 @racket[inner] 形式中)，而外部名称与 @racket[send] 和 @racket[generic] 一起使用(参见 @secref["ivaraccess"])。如果为 method 声明提供了单个 @racket[id]，则该标识符同时用于内部和外部名称。
+Each method declared with @racket[public], @racket[override],
+@racket[augment], @racket[pubment], @racket[overment],
+@racket[augride], @racket[public-final], @racket[override-final],
+@racket[augment-final], @racket[inherit], @racket[inherit/super],
+@racket[inherit/inner], @racket[rename-super], and
+@racket[rename-inner] can have separate internal and external names
+when @racket[(internal-id external-id)] is used for declaring the
+method. The internal name is used to access the method directly within
+the class expression (including within @racket[super] or
+@racket[inner] forms), while the external name is used with
+@racket[send] and @racket[generic] (see @secref["ivaraccess"]).  If
+a single @racket[id] is provided for a method declaration, the
+identifier is used for both the internal and external names.
 
-method 的继承、覆盖和增强仅基于外部名称。@racket[rename-super] 和 @racket[rename-inner] 需要单独的内部和外部名称(主要是历史原因)。
+Method inheritance, overriding, and augmentation are based on external
+names only.  Separate internal and external names are required for
+@racket[rename-super] and @racket[rename-inner] (for historical
+reasons, mainly).
 
-每个 @racket[init]、@racket[init-field]、@racket[field] 或 @racket[inherit-field] 变量同样具有内部和外部名称。内部名称在 class 内部用于访问变量，而外部名称在 class 外部用于提供初始化参数(例如传递给 @racket[instantiate])、继承 field 或外部访问 field(例如使用 @racket[class-field-accessor])。与 method 一样，当使用 @racket[inherit-field] 继承 field 时，外部名称与 superclass 中的外部 field 名称匹配，而内部名称在 @racket[class] 表达式中绑定。
+Each @racket[init], @racket[init-field], @racket[field], or
+@racket[inherit-field] variable similarly has an internal and an
+external name. The internal name is used within the class to access
+the variable, while the external name is used outside the class when
+providing initialization arguments (e.g., to @racket[instantiate]),
+inheriting a field, or accessing a field externally (e.g., with
+@racket[class-field-accessor]). As for methods, when inheriting a
+field with @racket[inherit-field], the external name is matched to an
+external field name in the superclass, while the internal name is
+bound in the @racket[class] expression.
 
-单个标识符可以同时用作内部标识符和外部标识符，也可以将同一标识符用作不同绑定的内部和外部标识符。此外，在单个 class 中，单个名称可以用作外部 method 名称、外部 field 名称和外部初始化参数名称。总体而言，每个内部标识符必须与所有其他内部标识符不同，每个外部 method 名称必须与所有其他 method 名称不同，每个外部 field 名称必须与所有其他 field 名称不同，每个初始化参数名称必须与所有其他初始化参数名称不同。
+A single identifier can be used as an internal identifier and an
+external identifier, and it is possible to use the same identifier as
+internal and external identifiers for different bindings. Furthermore,
+within a single class, a single name can be used as an external method
+name, an external field name, and an external initialization argument
+name. Overall, each internal identifier must be distinct from all
+other internal identifiers, each external method name must be distinct
+from all other method names, each external field name must be distinct
+from all other field names, and each initialization argument name must
+be distinct from all other initialization argument names.
 
-默认情况下，外部名称没有词法作用域，这意味着，例如，外部 method 名称在 @racket[send] 的所有使用中匹配相同的语法符号。@racket[define-local-member-name] 和 @racket[define-member-name] 形式引入了有作用域的外部名称。
+By default, external names have no lexical scope, which means, for
+example, that an external method name matches the same syntactic
+symbol in all uses of @racket[send]. The
+@racket[define-local-member-name] and @racket[define-member-name] forms
+introduce scoped external names.
 
-当 @racket[class] 表达式被编译时，用于替代外部名称的标识符在符号上必须不同(当相应的外部名称要求不同时)，否则报告语法错误。当没有外部名称被 @racket[define-member-name] 绑定时，实际外部名称在 @racket[class] 表达式求值时保证是不同的。当任何外部名称被 @racket[define-member-name] 绑定时，如果实际外部名称不相同，则 @racket[class] 会 @exnraise[exn:fail:object]。
+When a @racket[class] expression is compiled, identifiers used in
+place of external names must be symbolically distinct (when the
+corresponding external names are required to be distinct), otherwise a
+syntax error is reported. When no external name is bound by
+@racket[define-member-name], then the actual external names are
+guaranteed to be distinct when @racket[class] expression is evaluated.
+When any external name is bound by @racket[define-member-name], the
+@exnraise[exn:fail:object] by @racket[class] if the actual external
+names are not distinct.
 
 
 @defform[(define-local-member-name id ...)]{
 
-除非作为顶层定义出现，否则绑定每个 @racket[id]，使得在定义的范围内，每个 @racket[id] 作为外部名称的每次使用都被解析为由 @racket[define-local-member-name] 声明生成的隐藏名称。因此，使用这样的外部名称 @racket[id] 声明的 method、field 和初始化参数只能在 @racket[define-local-member-name] 声明的范围内访问。作为顶层定义，@racket[define-local-member-name] 将 @racket[id] 绑定到其符号形式。
+Unless it appears as the top-level definition, binds each @racket[id]
+so that, within the scope of the definition, each use of each
+@racket[id] as an external name is resolved to a hidden name generated
+by the @racket[define-local-member-name] declaration. Thus, methods,
+fields, and initialization arguments declared with such external-name
+@racket[id]s are accessible only in the scope of the
+@racket[define-local-member-name] declaration.  As a top-level
+definition, @racket[define-local-member-name] binds @racket[id] to its
+symbolic form.
 
-@racket[define-local-member-name] 引入的绑定是一个 syntax binding，可以通过 @racket[module] 导出和导入。每次求值 @racket[define-local-member-name] 声明都会生成一个不同的隐藏名称(作为顶层定义时除外)。@racket[interface->method-names] 过程不暴露隐藏名称。
+The binding introduced by @racket[define-local-member-name] is a
+syntax binding that can be exported and imported with
+@racket[module]s. Each evaluation of a
+@racket[define-local-member-name] declaration generates a distinct
+hidden name (except as a top-level definition). The
+@racket[interface->method-names] procedure does not expose hidden
+names.
 
 @examples[
 #:eval class-eval
@@ -779,29 +1163,39 @@ r
 
 @defform[(define-member-name id key-expr)]{
 
-将单个外部名称映射到由表达式确定的外部名称。@racket[key-expr] 的值必须是 @racket[member-name-key] 表达式或 @racket[generate-member-key] 调用的结果。}
+Maps a single external name to an external name that is determined by
+an expression. The value of @racket[key-expr] must be the result of either a
+@racket[member-name-key] expression or a @racket[generate-member-key] call.}
 
 
 @defform[(member-name-key identifier)]{
 
-在 @racket[member-name-key] 表达式的环境中生成 @racket[id] 的外部名称表示。}
+Produces a representation of the external name for @racket[id] in the
+environment of the @racket[member-name-key] expression.}
 
 @defproc[(generate-member-key) member-name-key?]{
 
-生成一个隐藏名称，就像 @racket[define-local-member-name] 的绑定一样。}
+Produces a hidden name, just like the binding for
+@racket[define-local-member-name].}
 
 @defproc[(member-name-key? [v any/c]) boolean?]{
 
-对于由 @racket[member-name-key] 和 @racket[generate-member-key] 生成的值返回 @racket[#t]，否则返回 @racket[#f]。}
+Returns @racket[#t] for values produced by @racket[member-name-key]
+and @racket[generate-member-key], @racket[#f]
+otherwise.}
 
 @defproc[(member-name-key=? [a-key member-name-key?] [b-key member-name-key?]) boolean?]{
 
-如果 member-name key @racket[a-key] 和 @racket[b-key] 表示相同的外部名称，则生成 @racket[#t]，否则为 @racket[#f]。}
+Produces @racket[#t] if member-name keys @racket[a-key] and
+@racket[b-key] represent the same external name, @racket[#f]
+otherwise.}
 
 
 @defproc[(member-name-key-hash-code [a-key member-name-key?]) integer?]{
 
-生成一个与 @racket[member-name-key=?] 比较一致的整数哈希码，类似于 @racket[equal-hash-code]。}
+Produces an integer hash code consistent with
+@racket[member-name-key=?]  comparisons, analogous to
+@racket[equal-hash-code].}
 
 @examples[
 #:eval class-eval
@@ -832,41 +1226,89 @@ r
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objcreation"]{创建 Object}
+@section[#:tag "objcreation"]{Creating Objects}
 
-@racket[make-object] 过程使用按位置初始化参数创建新的 object，@racket[new] 形式使用按名称初始化参数创建新的 object，@racket[instantiate] 形式使用按位置和按名称初始化参数创建新的 object。
+The @racket[make-object] procedure creates a new object with
+by-position initialization arguments, the @racket[new] form
+creates a new object with by-name initialization arguments, and
+the @racket[instantiate] form creates a new object with both
+by-position and by-name initialization arguments.
 
 
-新创建的 object 中的所有 field 最初被绑定到特殊的 @|undefined-const| 值(参见 @secref["void"])。具有默认值表达式(且没有提供值)的初始化变量也被初始化为 @|undefined-const|。在参数值被赋值给初始化变量之后，@racket[field] 子句中的表达式、没有提供参数的 @racket[init-field] 子句、没有提供参数的 @racket[init] 子句、private field 定义以及其他表达式被求值。这些表达式按照它们在 class 表达式中出现的顺序从左到右求值。
+All fields in the newly created object are initially bound to the
+special @|undefined-const| value (see
+@secref["void"]). Initialization variables with default value
+expressions (and no provided value) are also initialized to
+@|undefined-const|. After argument values are assigned to
+initialization variables, expressions in @racket[field] clauses,
+@racket[init-field] clauses with no provided argument,
+@racket[init] clauses with no provided argument, private field
+definitions, and other expressions are evaluated. Those
+expressions are evaluated as they appear in the class expression,
+from left to right.
 
-在表达式求值期间的某个时刻，必须使用 @racket[super-make-object] 过程、@racket[super-new] 形式或 @racket[super-instantiate] 形式对 superclass 声明的初始化进行一次求值。
+Sometime during the evaluation of the expressions,
+superclass-declared initializations must be evaluated once by
+using the @racket[super-make-object] procedure,
+@racket[super-new] form, or @racket[super-instantiate] form.
 
-没有匹配的初始化变量的按名称初始化参数会被隐式地作为按名称参数添加到 @racket[super-make-object]、@racket[super-new] 或 @racket[super-instantiate] 调用中，位于显式参数之后。如果为同一名称提供了多个初始化参数，则使用第一个(如果有)，未使用的参数被传播到 superclass。(请注意，转换后的按位置参数始终放在显式按名称参数之前。)@racket[object%] class 的初始化过程接受零个初始化参数；如果它接收到任何按名称初始化参数，则 @exnraise[exn:fail:object]。
+By-name initialization arguments to a class that have no matching
+initialization variable are implicitly added as by-name arguments
+to a @racket[super-make-object], @racket[super-new], or
+@racket[super-instantiate] invocation, after the explicit
+arguments.  If multiple initialization arguments are provided for
+the same name, the first (if any) is used, and the unused
+arguments are propagated to the superclass. (Note that converted
+by-position arguments are always placed before explicit by-name
+arguments.)  The initialization procedure for the
+@racket[object%] class accepts zero initialization arguments; if
+it receives any by-name initialization arguments, then
+@exnraise[exn:fail:object].
 
-如果层次结构中的任何 class 在未调用 superclass 初始化的情况下到达了初始化的末尾，则 @exnraise[exn:fail:object]。此外，如果 superclass 初始化被调用超过一次，则 @exnraise[exn:fail:object]。
+If the end of initialization is reached for any class in the
+hierarchy without invoking the superclass's initialization, the
+@exnraise[exn:fail:object]. Also, if superclass initialization is
+invoked more than once, the @exnraise[exn:fail:object].
 
-从 superclass 继承的 field 在 superclass 的初始化过程被调用之前不会被初始化。相比之下，所有 method 在 object 创建后立即可用；method 的覆盖不受初始化影响(与 C++ 中的 object 不同)。
+Fields inherited from a superclass are not initialized until the
+superclass's initialization procedure is invoked. In contrast,
+all methods are available for an object as soon as the object is
+created; the overriding of methods is not affected by
+initialization (unlike objects in C++).
 
 
 
 @defproc[(make-object [class class?] [init-v any/c] ...) object?]{
 
-创建 @racket[class] 的一个实例。@racket[init-v] 被作为初始化参数传递，绑定到 @racket[class] 的初始化变量，如 @secref["clinitvars"] 中所述。如果 @racket[class] 不是 class，则 @exnraise[exn:fail:contract]。}
+Creates an instance of @racket[class]. The @racket[init-v]s are
+passed as initialization arguments, bound to the initialization
+variables of @racket[class] for the newly created object as
+described in @secref["clinitvars"]. If @racket[class] is not a
+class, the @exnraise[exn:fail:contract].}
 
 @defform[(new class-expr (id by-name-expr) ...)]{
 
-创建 @racket[class-expr] 值的一个实例(该值必须是 class)，每个 @racket[by-name-expr] 的值作为对应 @racket[id] 的按名称参数提供。}
+Creates an instance of the value of @racket[class-expr] (which
+must be a class), and the value of each @racket[by-name-expr] is
+provided as a by-name argument for the corresponding
+@racket[id].}
 
 @defform[(instantiate class-expr (by-pos-expr ...) (id by-name-expr) ...)]{
 
-创建 @racket[class-expr] 值的一个实例(该值必须是 class)，@racket[by-pos-expr] 的值作为按位置初始化参数提供。此外，每个 @racket[by-name-expr] 的值作为对应 @racket[id] 的按名称参数提供。}
+Creates an instance of the value of @racket[class-expr] (which
+must be a class), and the values of the @racket[by-pos-expr]s are
+provided as by-position initialization arguments. In addition,
+the value of each @racket[by-name-expr] is provided as a by-name
+argument for the corresponding @racket[id].}
 
 @defproc[(dynamic-instantiate [cls class?]
                               [pos-vs list?]
                               [named-vs (listof (cons/c symbol? any/c))])
          object?]{
 
-类似于 @racket[(apply make-object cls pos-vs)]，但 @racket[named-vs] 除了 @racket[pos-vs] 提供的按位置参数外，还提供命名参数。
+Like @racket[(apply make-object cls pos-vs)], but @racket[named-vs]
+supplies named arguments in addition to the by-position arguments
+supplied by @racket[pos-vs].
 
 @(examples
   #:eval class-eval
@@ -881,73 +1323,101 @@ r
 
 @defidform[super-make-object]{
 
-生成一个接受按位置参数并调用 superclass 初始化的 procedure。更多信息请参见 @secref["objcreation"]。}
+Produces a procedure that takes by-position arguments an invokes
+superclass initialization. See @secref["objcreation"] for more
+information.}
 
 
 @defform[(super-instantiate (by-pos-expr ...) (id by-expr ...) ...)]{
 
 
-使用指定的按位置和按名称参数调用 superclass 初始化。更多信息请参见 @secref["objcreation"]。}
+Invokes superclass initialization with the specified by-position and
+by-name arguments. See @secref["objcreation"] for more
+information.}
 
 
 @defform[(super-new (id by-name-expr ...) ...)]{
 
-使用指定的按名称参数调用 superclass 初始化。更多信息请参见 @secref["objcreation"]。}
+Invokes superclass initialization with the specified by-name
+arguments. See @secref["objcreation"] for more information.}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "ivaraccess"]{Field 和 Method 访问}
+@section[#:tag "ivaraccess"]{Field and Method Access}
 
-在 class 定义的表达式中，class 的初始化变量、field 和 method 都是环境的一部分。在 method 体内，只能引用 class 的 field 和其他 method；对任何其他 class 引入的标识符的引用是语法错误。在 class 内的其他地方，所有 class 引入的标识符都可用，field 和初始化变量可以使用 @racket[set!] 进行修改。
+In expressions within a class definition, the initialization
+variables, fields, and methods of the class are all part of the
+environment. Within a method body, only the fields and other methods
+of the class can be referenced; a reference to any other
+class-introduced identifier is a syntax error.  Elsewhere within the
+class, all class-introduced identifiers are available, and fields and
+initialization variables can be mutated with @racket[set!].
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-@subsection[#:tag "methodcalls"]{Method}
+@subsection[#:tag "methodcalls"]{Methods}
 
-class 内部使用的 method 名称只能用于应用程序表达式的 procedure 位置；任何其他使用都是语法错误。
+Method names used within a class can only be used in the procedure position
+of an application expression; any other use is a syntax error.
 
-为了允许 method 应用于参数列表，method 应用可以具有以下形式：
+To allow methods to be applied to lists of arguments, a method
+application can have the following form:
 
 @specsubform[
 (method-id arg ... . arg-list-expr)
 ]
 
-这种形式以类似于 @racket[(apply _method-id _arg ... _arg-list-expr)] 的方式调用 method。@racket[arg-list-expr] 不能是带括号的表达式。
+This form calls the method in a way analogous to @racket[(apply
+_method-id _arg ... _arg-list-expr)]. The @racket[arg-list-expr]
+must not be a parenthesized expression.
 
-在 class 外部使用 @racket[send]、@racket[send/apply] 和 @racket[send/keyword-apply] 形式调用 method。
+Methods are called from outside a class with the @racket[send],
+@racket[send/apply], and @racket[send/keyword-apply] forms.
 
 @defform*[[(send obj-expr method-id arg ...)
            (send obj-expr method-id arg ... . arg-list-expr)]]{
 
-求值 @racket[obj-expr] 获取一个 object，并在该 object 上调用具有(外部)名称 @racket[method-id] 的 method，将 @racket[arg] 的结果作为参数提供。每个 @racket[arg] 与 @racket[#%app] 的相同：@racket[_arg-expr] 或 @racket[_keyword _arg-expr]。在第二种形式中，@racket[arg-list-expr] 不能是带括号的表达式。
+Evaluates @racket[obj-expr] to obtain an object, and calls the method
+with (external) name @racket[method-id] on the object, providing the
+@racket[arg] results as arguments. Each @racket[arg] is as for
+@racket[#%app]: either @racket[_arg-expr] or @racket[_keyword
+_arg-expr]. In the second form, @racket[arg-list-expr] cannot be a
+parenthesized expression.
 
-如果 @racket[obj-expr] 没有产生 object，则 @exnraise[exn:fail:contract]。如果 object 没有名为 @racket[method-id] 的 public method，则 @exnraise[exn:fail:object]。}
+If @racket[obj-expr] does not produce an object, the
+@exnraise[exn:fail:contract]. If the object has no public method named
+@racket[method-id], the @exnraise[exn:fail:object].}
 
 @defform[(send/apply obj-expr method-id arg ... arg-list-expr)]{
 
-类似于 @racket[send] 的 dotted 形式，但 @racket[arg-list-expr] 可以是任何表达式。}
+Like the dotted form of @racket[send], but @racket[arg-list-expr] can
+be any expression.}
 
 @defform[(send/keyword-apply obj-expr method-id 
                              keyword-list-expr value-list-expr 
                              arg ... arg-list-expr)]{
 
-类似于 @racket[send/apply]，但使用类似于 @racket[keyword-apply] 的关键字和参数列表表达式。}
+Like @racket[send/apply], but with expressions for keyword and
+argument lists like @racket[keyword-apply].}
 
 @defproc[(dynamic-send [obj object?] 
                        [method-name symbol?]
                        [v any/c] ...
                        [#:<kw> kw-arg any/c] ...) any]{
 
-在 @racket[obj] 上调用名称匹配 @racket[method-name] 的 method，传递所有给定的 @racket[v] 和 @racket[kw-arg]。}
+Calls the method on @racket[obj] whose name matches
+@racket[method-name], passing along all given @racket[v]s and
+@racket[kw-arg]s.}
 
 
 @defform/subs[(send* obj-expr msg ...+)
               ([msg (method-id arg ...)
                     (method-id arg ... . arg-list-expr)])]{
 
-按顺序调用同一 object 的多个 method。每个 @racket[msg] 对应于 @racket[send] 的一次使用。
+Calls multiple methods (in order) of the same object. Each
+@racket[msg] corresponds to a use of @racket[send].
 
-例如，
+For example,
 
 @racketblock[
 (send* edit (begin-edit-sequence)
@@ -956,7 +1426,7 @@ class 内部使用的 method 名称只能用于应用程序表达式的 procedur
             (end-edit-sequence))
 ]
 
-等同于
+is the same as
 
 @racketblock[
 (let ([o edit])
@@ -970,9 +1440,12 @@ class 内部使用的 method 名称只能用于应用程序表达式的 procedur
               ([msg (method-id arg ...)
                     (method-id arg ... . arg-list-expr)])]{
 
-按顺序调用 method，从 @racket[obj-expr] 产生的 object 开始。每个 method 调用将在上一个 method 调用的结果上调用，该结果预期是 object。每个 @racket[msg] 对应于 @racket[send] 的一次使用。
+Calls methods (in order) starting with the object produced by
+@racket[obj-expr]. Each method call will be invoked on the result of
+the last method call, which is expected to be an object. Each
+@racket[msg] corresponds to a use of @racket[send].
 
-这是 @racket[send*] 的函数式对应。
+This is the functional analogue of @racket[send*].
 
 @examples[#:eval class-eval
 (eval:no-prompt
@@ -997,9 +1470,14 @@ class 内部使用的 method 名称只能用于应用程序表达式的 procedur
 @defform[(with-method ([id (obj-expr method-id)] ...)
            body ...+)]{
 
-从 object 中提取 method，并为每个 method 绑定一个可以直接应用的本地名称(与 class 内部声明的 method 相同)。每个 @racket[obj-expr] 必须产生一个 object，该 object 必须有由相应 @racket[method-id] 命名的 public method。相应的 @racket[id] 被绑定以便可以直接应用(参见 @secref["methodcalls"])。
+Extracts methods from an object and binds a local name that can be
+applied directly (in the same way as declared methods within a class)
+for each method. Each @racket[obj-expr] must produce an object,
+which must have a public method named by the corresponding
+@racket[method-id]. The corresponding @racket[id] is bound so that it
+can be applied directly (see @secref["methodcalls"]).
 
-示例：
+Example:
 
 @racketblock[
 (let ([s (new stack%)])
@@ -1010,7 +1488,7 @@ class 内部使用的 method 名称只能用于应用程序表达式的 procedur
     (pop)))
 ]
 
-等同于
+is the same as
 
 @racketblock[
 (let ([s (new stack%)])
@@ -1021,52 +1499,74 @@ class 内部使用的 method 名称只能用于应用程序表达式的 procedur
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-@subsection{Field}
+@subsection{Fields}
 
 @defform[(get-field id obj-expr)]{
 
-从 @racket[obj-expr] 的值中提取具有(外部)名称 @racket[id] 的 field。
+Extracts the field with (external) name @racket[id] from the value of
+@racket[obj-expr].
 
-如果 @racket[obj-expr] 没有产生 object，则 @exnraise[exn:fail:contract]。 If the object has no @racket[id] field,
+If @racket[obj-expr] does not produce an object, the
+@exnraise[exn:fail:contract]. If the object has no @racket[id] field,
 the @exnraise[exn:fail:object].}
 
 @defproc[(dynamic-get-field [field-name symbol?] [obj object?]) any/c]{
 
-从 @racket[obj] 中提取(外部)名称匹配 @racket[field-name] 的 field。如果 object 没有匹配 @racket[field-name] 的 field，则 @exnraise[exn:fail:object]。}
+Extracts the field from @racket[obj] with the (external) name that
+matches @racket[field-name]. If the object has no field matching @racket[field-name],
+the @exnraise[exn:fail:object].}
 
 @defform[(set-field! id obj-expr expr)]{
 
-将 @racket[obj-expr] 的值中具有(外部)名称 @racket[id] 的 field 设置为 @racket[expr] 的值。
+Sets the field with (external) name @racket[id] from the value of
+@racket[obj-expr] to the value of @racket[expr].
 
-如果 @racket[obj-expr] 没有产生 object，则 @exnraise[exn:fail:contract]。如果 object 没有 @racket[id] field，则 @exnraise[exn:fail:object]。}
+If @racket[obj-expr] does not produce an object, the
+@exnraise[exn:fail:contract].  If the object has no @racket[id] field,
+the @exnraise[exn:fail:object].}
 
 @defproc[(dynamic-set-field! [field-name symbol?] [obj object?] [v any/c]) void?]{
 
-将 @racket[obj] 中(外部)名称匹配 @racket[field-name] 的 field 设置为 @racket[v]。如果 object 没有匹配 @racket[field-name] 的 field，则 @exnraise[exn:fail:object]。}
+Sets the field from @racket[obj] with the (external) name that
+matches @racket[field-name] to @racket[v]. If the object has no field matching @racket[field-name],
+the @exnraise[exn:fail:object].}
 
 @defform[(field-bound? id obj-expr)]{
 
-如果 @racket[obj-expr] 的 object 结果具有(外部)名称 @racket[id] 的 field，则生成 @racket[#t]，否则为 @racket[#f]。
+Produces @racket[#t] if the object result of @racket[obj-expr] has a
+field with (external) name @racket[id], @racket[#f] otherwise.
 
-如果 @racket[obj-expr] 没有产生 object，则 @exnraise[exn:fail:contract]。}
+If @racket[obj-expr] does not produce an object, the
+@exnraise[exn:fail:contract].}
 
 @defform[(class-field-accessor class-expr field-id)]{
 
-返回一个 accessor procedure，该 procedure 接受由 @racket[class-expr] 生成的 class 的实例，并返回该 object 中具有(外部)名称 @racket[field-id] 的 field 的值。
+Returns an accessor procedure that takes an instance of the class
+produced by @racket[class-expr] and returns the value of the object's
+field with (external) name @racket[field-id].
 
-如果 @racket[class-expr] 没有产生 class，则 @exnraise[exn:fail:contract]。如果 class 没有 @racket[field-id] field，则 @exnraise[exn:fail:object]。}
+If @racket[class-expr] does not produce a class, the
+@exnraise[exn:fail:contract]. If the class has no @racket[field-id]
+field, the @exnraise[exn:fail:object].}
 
 @defform[(class-field-mutator class-expr field-id)]{
 
-返回一个 mutator procedure，该 procedure 接受由 @racket[class-expr] 生成的 class 的实例和一个值，并将该 object 中具有(外部)名称 @racket[field-id] 的 field 的值设置为给定的值。结果为 @|void-const|。
+Returns a mutator procedure that takes an instance of the class
+produced by @racket[class-expr] and a value, and sets the value of the
+object's field with (external) name @racket[field-id] to the given
+value. The result is @|void-const|.
 
-如果 @racket[class-expr] 没有产生 class，则 @exnraise[exn:fail:contract]。如果 class 没有 @racket[field-id] field，则 @exnraise[exn:fail:object]。}
+If @racket[class-expr] does not produce a class, the
+@exnraise[exn:fail:contract]. If the class has no @racket[field-id]
+field, the @exnraise[exn:fail:object].}
 
 @; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-@subsection[#:tag "sec:generics"]{Generic}
+@subsection[#:tag "sec:generics"]{Generics}
 
-@deftech{generic} 可以用来代替 method 名称，以避免在 class 内按名称重定位 method 的开销，使 method 调用更高效。
+A @deftech{generic} can be used instead of a method name to avoid the
+cost of relocating a method by name within a class, making method
+invocation more efficient.
 
 @examples[
  #:eval class-eval
@@ -1097,49 +1597,78 @@ the @exnraise[exn:fail:object].}
 
 @defform[(generic class-or-interface-expr id)]{
 
-生成一个 generic，该 generic 作用于由 @racket[class-or-interface-expr] 生成的 class 或 interface 的实例(或派生自 @racket[class-or-interface] 的 class/interface 的实例)，以调用具有(外部)名称 @racket[id] 的 method。
+Produces a generic that works on instances of the class or interface
+produced by @racket[class-or-interface-expr] (or an instance of a
+class/interface derived from @racket[class-or-interface]) to call the
+method with (external) name @racket[id].
 
-如果 @racket[class-or-interface-expr] 没有产生 class 或 interface，则 @exnraise[exn:fail:contract]。如果结果 class 或 interface 不包含名为 @racket[id] 的 method，则 @exnraise[exn:fail:object]。
+If @racket[class-or-interface-expr] does not produce a class or
+interface, the @exnraise[exn:fail:contract]. If the resulting class or
+interface does not contain a method named @racket[id], the
+@exnraise[exn:fail:object].
 
-一些示例请参见 @secref["sec:generics"] 的介绍。
+See the introduction to @secref["sec:generics"] for some examples.
 }
 
 @defform*[[(send-generic obj-expr generic-expr arg ...)
            (send-generic obj-expr generic-expr arg ... . arg-list-expr)]]{
 
-如 @racket[generic-expr] 生成的 generic 所示，调用 @racket[obj-expr] 生成的 object 的 method。每个 @racket[arg] 与 @racket[#%app] 的相同：@racket[_arg-expr] 或 @racket[_keyword _arg-expr]。第二种形式类似于使用 @racket[apply] 调用 procedure，其中 @racket[arg-list-expr] 不是带括号的表达式。
+Calls a method of the object produced by @racket[obj-expr] as
+indicated by the generic produced by @racket[generic-expr]. Each
+@racket[arg] is as for @racket[#%app]: either @racket[_arg-expr] or
+@racket[_keyword _arg-expr]. The second form is analogous to calling a
+procedure with @racket[apply], where @racket[arg-list-expr] is not a
+parenthesized expression.
 
-如果 @racket[obj-expr] 没有产生 object，或者 @racket[generic-expr] 没有产生 generic，则 @exnraise[exn:fail:contract]。如果 @racket[obj-expr] 的结果不是 @racket[generic-expr] 结果所封装的 class 或 interface 的实例，则 @exnraise[exn:fail:object]。
+If @racket[obj-expr] does not produce an object, or if
+@racket[generic-expr] does not produce a generic, the
+@exnraise[exn:fail:contract]. If the result of @racket[obj-expr] is
+not an instance of the class or interface encapsulated by the result
+of @racket[generic-expr], the @exnraise[exn:fail:object].
 
-一些示例请参见 @secref["sec:generics"] 的介绍。
+See the introduction to @secref["sec:generics"] for some examples.
 }
 
 @defproc[(make-generic [type (or/c class? interface?)]
                        [method-name symbol?])
          generic?]{
 
-类似于 @racket[generic] 形式，但作为接受符号化 method 名称的 procedure。}
+Like the @racket[generic] form, but as a procedure that accepts a
+symbolic method name.}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "mixins"]{Mixin}
+@section[#:tag "mixins"]{Mixins}
 
 @defform[(mixin (interface-expr ...) (interface-expr ...)
            class-clause ...)]{
 
-生成一个 @deftech{mixin}，这是一个封装了 class 扩展的 procedure，superclass 保持未指定。每次将 mixin 应用于特定 superclass 时，它使用封装的扩展生成一个新的派生 class。
+Produces a @deftech{mixin}, which is a procedure that encapsulates a
+class extension, leaving the superclass unspecified.  Each time that a
+mixin is applied to a specific superclass, it produces a new derived
+class using the encapsulated extension.
 
-给定的 class 必须实现第一组 @racket[interface-expr] 生成的 interface。该 procedure 的结果是给定 class 的 subclass，该 subclass 实现第二组 @racket[interface-expr] 生成的 interface。@racket[class-clause] 与 @racket[class*] 的相同，用于定义 mixin 封装的 class 扩展。
+The given class must implement interfaces produced by the first set of
+@racket[interface-expr]s.  The result of the procedure is a subclass
+of the given class that implements the interfaces produced by the
+second set of @racket[interface-expr]s. The @racket[class-clause]s are
+as for @racket[class*], to define the class extension encapsulated by
+the mixin.
 
-@racket[mixin] 形式的求值会检查 @racket[class-clause] 是否与两组 @racket[interface-expr] 一致。}
+Evaluation of a @racket[mixin] form checks that the
+@racket[class-clause]s are consistent with both sets of
+@racket[interface-expr]s.}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "trait"]{Trait}
+@section[#:tag "trait"]{Traits}
 
 @note-lib-only[racket/trait]
 
-@deftech{trait} 是一组 method 的集合，可以转换为 @tech{mixin}，然后应用于 @tech{class}。在 trait 转换为 mixin 之前，trait 的 method 可以单独重命名，多个 trait 可以合并形成新的 trait。
+A @deftech{trait} is a collection of methods that can be converted to
+a @tech{mixin} and then applied to a @tech{class}. Before a trait is
+converted to a mixin, the methods of a trait can be individually
+renamed, and multiple traits can be merged to form a new trait.
 
 @defform/subs[#:literals (public pubment public-final override override-final overment augment augride
                           augment-final private inherit inherit/super inherit/inner rename-super
@@ -1162,19 +1691,42 @@ the @exnraise[exn:fail:object].}
                              (field field-declaration ...)
                              (inherit-field maybe-renamed ...)])]{
 
-创建一个 @tech{trait}。@racket[trait] 形式的 body 类似于 @racket[class*] 形式的 body，但限于非 private 的 method 定义。特别地，@racket[maybe-renamed]、@racket[method-definition] 和 @racket[field-declaration] 的语法与 @racket[class*] 的相同，每个 @racket[method-definition] 必须有对应的声明(@racket[public]、@racket[override] 等之一)。与 @racket[class] 一样，在直接调用、@racket[super] 调用和 @racket[inner] 调用中使用 method 名称依赖于通过 @racket[inherit]、@racket[inherit/super]、@racket[inherit/inner] 以及同一 trait 中的其他 method 声明将 method 名称引入作用域；与 @racket[class] 相比，一个例外是 @racket[overment] 仅在对应的 method 中绑定 method 名称，而不在同一 trait 的其他 method 中。最后，@racket[public*] 和 @racket[define/public] 等 macro 在 @racket[trait] 中的工作方式与 @racket[class] 中一样。
+Creates a @tech{trait}.  The body of a @racket[trait] form is similar to the
+body of a @racket[class*] form, but restricted to non-private method
+definitions.  In particular, the grammar of
+@racket[maybe-renamed], @racket[method-definition], and
+@racket[field-declaration] are the same as for @racket[class*], and
+every @racket[method-definition] must have a corresponding declaration
+(one of @racket[public], @racket[override], etc.).  As in
+@racket[class], uses of method names in direct calls, @racket[super]
+calls, and @racket[inner] calls depend on bringing method names into
+scope via @racket[inherit], @racket[inherit/super],
+@racket[inherit/inner], and other method declarations in the same
+trait; an exception, compared to @racket[class] is that
+@racket[overment] binds a method name only in the corresponding
+method, and not in other methods of the same trait. Finally, macros
+such as @racket[public*] and @racket[define/public] work in
+@racket[trait] as in @racket[class].
 
-@racket[trait]、@racket[trait-exclude]、@racket[trait-exclude-field]、@racket[trait-alias]、@racket[trait-rename] 和 @racket[trait-rename-field] 形式中的外部标识符可以通过 @racket[define-member-name] 和 @racket[define-local-member-name] 进行绑定。虽然 @racket[private] method 或 field 不允许出现在 @racket[trait] 形式中，但可以通过使用 @racket[public] 或 @racket[field] 声明以及作用域限于 @racket[trait] 形式的名称来模拟。}
+External identifiers in @racket[trait], @racket[trait-exclude],
+@racket[trait-exclude-field], @racket[trait-alias],
+@racket[trait-rename], and @racket[trait-rename-field] forms are
+subject to binding via @racket[define-member-name] and
+@racket[define-local-member-name]. Although @racket[private] methods
+or fields are not allowed in a @racket[trait] form, they can be
+simulated by using a @racket[public] or @racket[field] declaration and
+a name whose scope is limited to the @racket[trait] form.}
 
 
 @defproc[(trait? [v any/c]) boolean?]{
 
-如果 @racket[v] 是 trait，则返回 @racket[#t]，否则返回 @racket[#f]。}
+Returns @racket[#t] if @racket[v] is a trait, @racket[#f] otherwise.}
 
 
 @defproc[(trait->mixin [tr trait?]) (class? . -> . class?)]{
 
-将 @tech{trait} 转换为 @tech{mixin}，后者可应用于 @tech{class} 以生成新的 @tech{class}。以下形式的表达式
+Converts a @tech{trait} to a @tech{mixin}, which can be applied to a
+@tech{class} to produce a new @tech{class}. An expression of the form
 
 @racketblock[
 (trait->mixin
@@ -1182,7 +1734,7 @@ the @exnraise[exn:fail:object].}
    _trait-clause ...))
 ]
 
-等价于
+is equivalent to
 
 @racketblock[
 (lambda (%)
@@ -1191,13 +1743,14 @@ the @exnraise[exn:fail:object].}
     (super-new)))
 ]
 
-然而，通常在转换为 mixin 之前，trait 的 method 会被修改并与其他 trait 组合。}
+Normally, however, a trait's methods are changed and combined with
+other traits before converting to a mixin.}
 
 
 @defproc[(trait-sum [tr trait?] ...+) trait?]{
 
 Produces a @tech{trait} that combines all of the methods of the given
-@racket[tr]s. 例如，
+@racket[tr]s. For example,
 
 @racketblock[
 (define t1
@@ -1209,7 +1762,7 @@ Produces a @tech{trait} that combines all of the methods of the given
 (define t3 (trait-sum t1 t2))
 ]
 
-creates a trait @racket[t3] that 等价于
+creates a trait @racket[t3] that is equivalent to
 
 @racketblock[
 (trait
@@ -1217,14 +1770,34 @@ creates a trait @racket[t3] that 等价于
   (define/public (m2) 2))
 ]
 
-但 @racket[t1] 和 @racket[t2] 仍然可以单独使用或与其他 trait 组合。
+but @racket[t1] and @racket[t2] can still be used individually or
+combined with other traits.
 
-当 trait 使用 @racket[trait-sum] 组合时，如果另一个 trait 为相同的 method 或 field 名称提供了定义，则组合会丢弃 @racket[inherit]、@racket[inherit/super]、@racket[inherit/inner] 和 @racket[inherit-field] 声明。如果要组合的任何 trait 定义了同名的 method 或 field，或者要丢弃的 @racket[inherit/super] 或 @racket[inherit/inner] 声明与提供的定义不一致，则 @racket[trait-sum] 操作会失败(@exnraise[exn:fail:contract])。换句话说，使用 @racket[inherit]、@racket[inherit/super] 或 @racket[inherit/inner] 声明 method 不算作定义 method；同时，例如，包含 method @racket[m] 的 @racket[inherit/super] 声明的 trait 不能与将 @racket[m] 定义为 @racket[augment] 的 trait 组合，因为当 trait 稍后转换为 mixin 并应用于 class 时，没有 class 能同时满足 @racket[augment] 和 @racket[inherit/super] 的要求。}
+When traits are combined with @racket[trait-sum], the combination
+drops @racket[inherit], @racket[inherit/super],
+@racket[inherit/inner], and @racket[inherit-field] declarations when a
+definition is supplied for the same method or field name by another
+trait. The @racket[trait-sum] operation fails (the
+@exnraise[exn:fail:contract]) if any of the traits to combine define a
+method or field with the same name, or if an @racket[inherit/super] or
+@racket[inherit/inner] declaration to be dropped is inconsistent with
+the supplied definition. In other words, declaring a method with
+@racket[inherit], @racket[inherit/super], or @racket[inherit/inner],
+does not count as defining the method; at the same time, for example,
+a trait that contains an @racket[inherit/super] declaration for a
+method @racket[m] cannot be combined with a trait that defines
+@racket[m] as @racket[augment], since no class could satisfy the
+requirements of both @racket[augment] and @racket[inherit/super] when
+the trait is later converted to a mixin and applied to a class.}
 
 
 @defform[(trait-exclude trait-expr id)]{
 
-生成一个新的 @tech{trait}，类似于 @racket[trait-expr] 的 @tech{trait} 结果，但移除了由 @racket[id] 命名的 method 定义；当 method 定义被移除时，会添加一个 @racket[inherit]、@racket[inherit/super] 或 @racket[inherit/inner] 声明：
+Produces a new @tech{trait} that is like the @tech{trait} result of
+@racket[trait-expr], but with the definition of a method named by
+@racket[id] removed; as the method definition is removed, either an
+@racket[inherit], @racket[inherit/super], or @racket[inherit/inner]
+declaration is added:
 
 @itemize[
 
@@ -1243,31 +1816,52 @@ creates a trait @racket[t3] that 等价于
 
 ]
 
-如果 @racket[trait-expr] 生成的 trait 没有 @racket[id] 的 method 定义，则 @exnraise[exn:fail:contract]。}
+If the trait produced by @racket[trait-expr] has no method definition for
+@racket[id], the @exnraise[exn:fail:contract].}
 
 
 @defform[(trait-exclude-field trait-expr id)]{
 
-生成一个新的 @tech{trait}，类似于 @racket[trait-expr] 的 @tech{trait} 结果，但移除了由 @racket[id] 命名的 field 定义；当 field 定义被移除时，会添加一个 @racket[inherit-field] 声明。}
+Produces a new @tech{trait} that is like the @tech{trait} result of
+@racket[trait-expr], but with the definition of a field named by
+@racket[id] removed; as the field definition is removed, an
+@racket[inherit-field] declaration is added.}
 
 
 @defform[(trait-alias trait-expr id new-id)]{
 
-生成一个新的 @tech{trait}，类似于 @racket[trait-expr] 的 @tech{trait} 结果，但由 @racket[id] 命名的 method 的定义和声明被复制为名称 @racket[new-id]。结果 trait 的一致性要求与 @racket[trait-sum] 相同，否则 @exnraise[exn:fail:contract]。此操作不会重命名 @racket[id] 的任何其他使用，例如 method 调用(甚至是 @racket[new-id] 克隆定义中的 @racket[identifier] method 调用)。}
+Produces a new @tech{trait} that is like the @tech{trait} result of
+@racket[trait-expr], but the definition and declaration of the method
+named by @racket[id] is duplicated with the name @racket[new-id]. The
+consistency requirements for the resulting trait are the same as for
+@racket[trait-sum], otherwise the @exnraise[exn:fail:contract]. This
+operation does not rename any other use of @racket[id], such as in
+method calls (even method calls to @racket[identifier] in the cloned
+definition for @racket[new-id]).}
 
 
 @defform[(trait-rename trait-expr id new-id)]{
 
-生成一个新的 @tech{trait}，类似于 @racket[trait-expr] 的 @tech{trait} 结果，但所有名为 @racket[id] 的 method 的定义和引用被替换为名为 @racket[new-id] 的 method 的定义和引用。结果 trait 的一致性要求与 @racket[trait-sum] 相同，否则 @exnraise[exn:fail:contract]。}
+Produces a new @tech{trait} that is like the @tech{trait} result of
+@racket[trait-expr], but all definitions and references to methods
+named @racket[id] are replaced by definitions and references to
+methods named by @racket[new-id]. The consistency requirements for the
+resulting trait are the same as for @racket[trait-sum], otherwise the
+@exnraise[exn:fail:contract].}
 
 
 @defform[(trait-rename-field trait-expr id new-id)]{
 
-生成一个新的 @tech{trait}，类似于 @racket[trait-expr] 的 @tech{trait} 结果，但所有名为 @racket[id] 的 field 的定义和引用被替换为名为 @racket[new-id] 的 field 的定义和引用。结果 trait 的一致性要求与 @racket[trait-sum] 相同，否则 @exnraise[exn:fail:contract]。}
+Produces a new @tech{trait} that is like the @tech{trait} result of
+@racket[trait-expr], but all definitions and references to fields
+named @racket[id] are replaced by definitions and references to fields
+named by @racket[new-id]. The consistency requirements for the
+resulting trait are the same as for @racket[trait-sum], otherwise the
+@exnraise[exn:fail:contract].}
 
 @; ------------------------------------------------------------------------
 
-@section{Object 和 Class Contract}
+@section{Object and Class Contracts}
 
 @defform/subs[
 #:literals (field init init-field inherit inherit-field super inner override augment augride absent)
@@ -1302,17 +1896,32 @@ creates a trait @racket[t3] that 等价于
  [absent-spec
   method-id
   (field field-id ...)])]{
-生成 class 的 contract。
+为类生成合约。
 
-@racket[class/c] 形式中列出了两大类 contract：外部和内部 contract。外部 contract 控制从 class 实例化 object 时或通过该 class 的 object 访问 method 或 field 时的行为。内部 contract 控制 class 层次结构内部访问 method 或 field 时的行为。这种分离允许对 class 客户端使用更强的 contract，对 subclass 使用更弱的 contract。
+有两种主要类别的合同列在 @racket[class/c]
+form: external and internal contracts. External contracts govern behavior
+when an object is instantiated from a class or when methods or fields are
+accessed via an object of that class. Internal contracts govern behavior
+when method or fields are accessed within the class hierarchy. This
+separation allows for stronger contracts for class clients and weaker
+contracts for subclasses. Method contracts must contain an additional initial argument which corresponds
+to the implicit @racket[this] parameter of the method.  This allows for
+contracts which discuss the state of the object when the method is called
+(or, for dependent contracts, in other parts of the contract).  Alternative
+contract forms, such as @racket[->m], are provided as a shorthand
+for writing method contracts.
 
-method contract 必须包含一个额外的初始参数，该参数对应于 method 的隐式 @racket[this] 参数。这允许 contract 讨论 method 被调用时 object 的状态(或者对于依赖 contract，在 contract 的其他部分)。提供了替代的 contract 形式，例如 @racket[->m]，作为编写 method contract 的简写。
+Methods and fields listed in an @racket[absent] clause must @emph{not} be present in the class.
 
-在 @racket[absent] 子句中列出的 method 和 field @emph{不得} 存在于 class 中。
+A class contract can be specified to be @emph{opaque} with the @racket[#:opaque]
+keyword. An opaque class contract will only accept a class that defines
+exactly the external methods and fields specified by the contract. A contract error
+is raised if the contracted class contains any methods or fields that are
+not specified. Methods or fields with local member names (i.e., defined with
+@racket[define-local-member-name]) are ignored for this check if
+@racket[#:ignore-local-member-names] is provided.
 
-class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}。opaque class contract 只接受精确定义了 contract 指定的外部 method 和 field 的 class。如果受约束的 class 包含任何未指定的 method 或 field，则会引发 contract 错误。具有本地成员名称的 method 或 field(即使用 @racket[define-local-member-name] 定义的)在提供了 @racket[#:ignore-local-member-names] 时会在此检查中被忽略。
-
-外部 contract 如下：
+The external contracts are as follows:
 
 @itemize[
  @item{An external method contract without a tag describes the behavior
@@ -1321,7 +1930,7 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
    checked in subclasses until the contracted class's implementation is
    no longer the entry point for dynamic dispatch.
    
-   If only the field name is present, this 等价于 insisting only
+   If only the field name is present, this is equivalent to insisting only
    that the method is present in the class.
    
    @examples[#:eval class-eval
@@ -1346,7 +1955,7 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
    are checked on any external access (via @racket[get-field])
    and external mutations (via @racket[set-field!]) of the field.
 
-   If only the field name is present, this 等价于 using the 
+   If only the field name is present, this is equivalent to using the 
    contract @racket[any/c] (but it is checked more efficiently).
    
    @examples[#:eval class-eval
@@ -1381,7 +1990,7 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
    form is applied to the first value tagged with that name in the list
    of initialization arguments, and so on.
    
-   If only the initialization argument name is present, this 等价于 using the 
+   If only the initialization argument name is present, this is equivalent to using the 
    contract @racket[any/c] (but it is checked more efficiently).
    
    @examples[#:eval class-eval
@@ -1409,15 +2018,26 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
                                  [init-hat-location 'slinkys-mouth])))]
    
    }
- @item{@racket[init-field] 部分中列出的 contract 被视为每个 contract 同时出现在 @racket[init] 部分和 @racket[field] 部分中。}
+ @item{The contracts listed in an @racket[init-field] section are
+   treated as if each contract appeared in an @racket[init] section and
+   a @racket[field] section.}
 ]
 
-内部 contract 限制 class 与其 subclass 之间的 method 调用行为；此类调用不受上述 class contract 的控制。 
+The internal contracts restrict the behavior of method calls
+made between classes and their subclasses; such calls are not
+controlled by the class contracts described above. 
 
-与外部 contract 一样，当指定了 method 或 field 名称但没有出现 contract 时，仅凭相应 field 或 method 的存在就满足 contract。
+As with the external contracts, when a method or field name is specified
+ but no contract appears, the contract is satisfied merely with the
+ presence of the corresponding field or method.
 
 @itemize[
- @item{带有 @racket[inherit] 标签的 method contract 描述了在受约束 class 的任何 subclass 中直接调用 method 时的行为(即通过 @racket[inherit])。这个 contract 与外部 method contract 一样，在受约束 class 的 method 实现不再是动态分派的入口点之前一直适用。
+ @item{A method contract tagged with @racket[inherit] describes the
+   behavior of the method when invoked directly (i.e., via
+   @racket[inherit]) in any subclass of the contracted class.  This
+   contract, like external method contracts, applies until the
+   contracted class's method implementation is no longer the entry point
+   for dynamic dispatch.
    
    @examples[#:eval class-eval
                 (new (class woody+c%
@@ -1434,9 +2054,17 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
                         (printf "woody sez: ~a\n" (draw "evil dr porkchop")))))]
    
    }
-  @item{带有 @racket[super] 标签的 method contract 描述了 @racket[method-id] 在 subclass 中被 @racket[super] 形式调用时的行为。此 contract 仅影响调用受约束 class 的 @racket[method-id] 实现的 subclass 中的 @racket[super] 调用。
+  @item{A method contract tagged with @racket[super] describes the behavior of
+   @racket[method-id] when called by the @racket[super] form in a
+   subclass.  This contract only affects @racket[super] calls in
+   subclasses which call the contract class's implementation of
+   @racket[method-id].
    
-   这个例子展示了如何扩展 @racket[draw] method，使得如果传递了两个参数，它会合并对原始 @racket[draw] method 的两次调用，但带有一个控制 @racket[super] method 如何被调用的 contract。
+   This example shows how to extend the @racket[draw] method
+   so that if it is passed two arguments, it combines two
+   calls to the original @racket[draw] method, but with a 
+   contract the controls how the @racket[super] methods must
+   be invoked.
    
    @examples[#:eval class-eval
                 (eval:no-prompt
@@ -1465,10 +2093,26 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
    there is no contract checking the initial @racket[draw] call and
    the super-call violates its contract. 
    }
- @item{带有 @racket[inner] 标签的 method contract 描述了 class 对 subclass 中增强 method 的期望行为。此 contract 影响 subclass 中 @racket[method-id] 的任何实现，这些实现可以通过受约束 class 中的 @racket[inner] 调用。这意味着通过 @racket[augment] 或 @racket[overment] 实现 @racket[method-id] 的 subclass 会使未来的 subclass 不再受此 contract 影响，因为进一步的扩展无法通过受约束 class 到达。}
- @item{带有 @racket[override] 标签的 method contract 描述了受约束 class 对 @racket[method-id] 在直接调用时期望的行为(即通过应用程序 @racket[(method-id ...)])。此形式只能在 subclass 中覆盖 method 会改变动态分派链的入口点时使用(即 method 从未可增强)。
+ @item{A method contract tagged with @racket[inner] describes the
+   behavior the class expects of an augmenting method in a subclass.
+   This contract affects any implementations of @racket[method-id] in
+   subclasses which can be called via @racket[inner] from the contracted
+   class.  This means a subclass which implements @racket[method-id] via
+   @racket[augment] or @racket[overment] stop future subclasses from
+   being affected by the contract, since further extension cannot be
+   reached via the contracted class.}
+ @item{A method contract tagged with @racket[override] describes the
+   behavior expected by the contracted class for @racket[method-id] when
+   called directly (i.e. by the application @racket[(method-id ...)]).
+   This form can only be used if overriding the method in subclasses
+   will change the entry point to the dynamic dispatch chain (i.e., the
+   method has never been augmentable).
    
-   这一次，我们不是覆盖 @racket[draw] 来支持两个参数，而是创建一个新的 method @racket[draw2]，它接受两个参数并调用 @racket[draw]。我们还添加了一个 contract 来确保覆盖 @racket[draw] 不会破坏 @racket[draw2]。   
+   This time, instead of overriding @racket[draw] to support
+   two arguments, we can make a new method, @racket[draw2] that
+   takes the two arguments and calls @racket[draw]. We also
+   add a contract to make sure that overriding @racket[draw]
+   doesn't break @racket[draw2].   
    
    @examples[#:eval class-eval
                 (eval:no-prompt
@@ -1495,8 +2139,21 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
    
    
    }
- @item{带有 @racket[augment] 或 @racket[augride] 标签的 method contract 描述了受约束 class 为 @racket[method-id] 提供的、在 subclass 中直接调用时的行为。这些形式只能在 method 此前是可增强的情况下使用，这意味着任何增强或覆盖实现都不会改变动态分派链的入口点。@racket[augment] 用于 subclass 可以增强 method 的情况，@racket[augride] 用于 subclass 可以覆盖当前增强的情况。}
- @item{带有 @racket[inherit-field] 标签的 field contract 描述了该 field 中包含的值在受约束 class 的任何 subclass 中直接访问时(即通过 @racket[inherit-field])的行为。由于 field 可能被修改，这些 contract 在此类 subclass 中的任何 field 访问和/或修改时都会被检查。}
+ @item{A method contract tagged with either @racket[augment] or
+   @racket[augride] describes the behavior provided by the contracted
+   class for @racket[method-id] when called directly from subclasses.
+   These forms can only be used if the method has previously been
+   augmentable, which means that no augmenting or overriding
+   implementation will change the entry point to the dynamic dispatch
+   chain.  @racket[augment] is used when subclasses can augment the
+   method, and @racket[augride] is used when subclasses can override the
+   current augmentation.}
+ @item{A field contract tagged with @racket[inherit-field] describes
+   the behavior of the value contained in that field when accessed
+   directly (i.e., via @racket[inherit-field]) in any subclass of the
+   contracted class.  Since fields may be mutated, these contracts are
+   checked on any access and/or mutation of the field that occurs in
+   such subclasses.}
 
 @history[#:changed "6.1.1.8"
          @string-append{Opaque class/c now optionally ignores local
@@ -1504,24 +2161,40 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
 ]}
 
 @defform[(absent absent-spec ...)]{
-参见 @racket[class/c]；在 @racket[class/c] 形式外部使用是语法错误。
+See @racket[class/c];在 @racket[class/c] 表单是语法错误。
 }
 
 @defform[(->m dom ... range)]{
-类似于 @racket[->]，但结果 contract 的 domain 比声明的 domain 多一个元素，其中第一个(隐式)参数使用 @racket[any/c] 进行约束。当不需要检查 @racket[this] 的任何属性时，此 contract 可用于编写更简单的 method contract。}
+类似于 @racket[->]，但由此产生的合同的域名
+包含比所述域多一个元素，其中第一个
+（隐式）参数收缩于 @racket[any/c]。本合同为
+当没有属性时，对于编写更简单的方法合约非常有用
+@racket[this] 待完善。}
 
 @defform[(->*m (mandatory-dom ...) (optional-dom ...) rest range)]{
-类似于 @racket[->*]，但结果 contract 的 mandatory domain 比声明的 domain 多一个元素，其中第一个(隐式)参数使用 @racket[any/c] 进行约束。当不需要检查 @racket[this] 的任何属性时，此 contract 可用于编写更简单的 method contract。}
+类似于 @racket[->*]，除了的强制性域
+生成的合约比指定的域多包含一个元素，
+其中第一个（隐式）参数收缩于
+@racket[any/c]。此合约对于编写更简单的方法很有用
+合同，当没有任何属性 @racket[this] 待完善。}
 
 @defform[(case->m (-> dom ... rest range) ...)]{
-类似于 @racket[case->]，但结果 contract 每种情况的 mandatory domain 比声明的 domain 多一个元素，其中第一个(隐式)参数使用 @racket[any/c] 进行约束。当不需要检查 @racket[this] 的任何属性时，此 contract 可用于编写更简单的 method contract。}
+类似于 @racket[case->]，除了每个的强制性域
+产生的合同的案例包含比所述元素多一个元素
+域，其中第一个（隐式）参数与
+@racket[any/c]。此合约对于编写更简单的方法很有用
+合同，当没有任何属性 @racket[this] 待完善。}
 
 @defform[(->dm (mandatory-dependent-dom ...)
                (optional-dependent-dom ...)
                dependent-rest
                pre-cond
                dep-range)]{
-类似于 @racket[->d]，但结果 contract 的 mandatory domain 比声明的 domain 多一个元素，其中第一个(隐式)参数使用 @racket[any/c] 进行约束。此外，@racket[this] 在 contract body 中被正确绑定。当不需要检查 @racket[this] 的任何属性时，此 contract 可用于编写更简单的 method contract。}
+类似于 @racket[->d]，但由此产生的合同的强制性域名
+包含比所述域多一个元素，其中第一个（隐式）参数收缩
+与 @racket[any/c]此外， @racket[this] 在合同正文中得到适当约束。
+当没有属性时，此合约对于编写更简单的方法合约非常有用
+的 @racket[this] 待完善。}
 
 @defform/subs[
 #:literals (field)
@@ -1542,33 +2215,76 @@ class contract 可以使用 @racket[#:opaque] 关键字指定为 @emph{opaque}�
  [field-spec
   field-id
   (field-id contract-expr)])]{
-为 object 生成 contract。 Each field and method is checked
-against the supplied contract. Note that each method contract should
-be written to accept an extra, “this” argument; consider using @racket[->m]
-or @racket[->*m] contract combinators.
+生成对象的合约。 检查每个字段和方法
+根据所提供的合同。 请注意，每个方法合约都应
+被写入以接受额外的“this”参数；考虑使用 @racket[->m]
+or @racket[->*m] 合约组合器。
 
- 如果存在，@racket[opaque-expr] 控制如何处理 object 中存在但未在 contract 中列出的 method：
+ 如果存在， @racket[opaque-expr] 控制方法如何
+ 存在于对象中，但未列在
+ 合同的处理：
  @itemlist[
- @item{如果 @racket[opaque-expr] 跟随关键字 @racket[#:opaque] 且求值为 @racket[#f]，则始终允许调用此类 method。}
- @item{如果它跟随 @racket[#:opaque] 且求值为 @racket[#t]，则永远不允许此类 method。}
- @item{如果它跟随 @racket[#:opaque] 且求值为由 @racket[make-impersonator-property] 生成的谓词 procedure，则允许设置了该 property 的 method procedure。}
- @item{如果 @racket[opaque-expr] 跟随关键字 @racket[#:opaque-except]，则它必须求值为由 @racket[make-impersonator-property] 生成的谓词 procedure。在这种情况下，具有该 property 的 method 被禁止，其他 method 被允许。}
- @item{ 如果没有 @racket[opaque-expr]，则始终允许调用未在 contract 中列出的 method。}]
+ @item{If the @racket[opaque-expr] follows the keyword
+   @racket[#:opaque] and it evaluates to @racket[#f], then
+   calls to such methods are always allowed.}
+ @item{If it follows @racket[#:opaque] and it evaluates to
+   @racket[#t], then such methods are never allowed.}
+ @item{If it follows @racket[#:opaque] and it
+   evaluates to a predicate procedure produced by
+   @racket[make-impersonator-property], then method procedures
+   that have that property set are allowed.}
+ @item{If the @racket[opaque-expr]
+   follows the keyword @racket[#:opaque-except] then
+   it must evaluate to a predicate procedure produced by
+   @racket[make-impersonator-property]. In that case, methods that have
+   that property are disallowed and others are allowed.}
+ @item{ If no @racket[opaque-expr] is not present, then
+   method methods calls to methods not listed in the contract
+   are always allowed.}]
 
- 以类似于 @racket[opaque-expr] 但针对 field 的方式，@racket[opaque-fields-expr] 控制如何处理 object 中存在但未在 contract 中列出的 field：
+ 方式类似于 @racket[opaque-expr] 但对于字段，
+ @racket[opaque-fields-expr] 控制字段是如何
+ 存在于对象中，但未在合同中列出，
+ 已处理：
  @itemlist[
- @item{如果 @racket[opaque-fields-expr] 存在且求值为 @racket[#true]，则不允许访问未在 contract 中列出的 field。}
- @item{如果 @racket[opaque-fields-expr] 存在且求值为 @racket[#false]，则允许访问此类 field。}
- @item{ 如果 @racket[opaque-fields-expr] 不存在且 @racket[opaque-expr] 求值为由 @racket[make-impersonator-property] 生成的谓词 procedure，则在 @racket[#:opaque] 存在时禁止 field，在 @racket[#:opaque-except] 存在时允许。 }
- @item{如果 @racket[opaque-fields-expr] 不存在但 @racket[opaque-expr] 存在，则 @racket[opaque-fields-expr] 基于 @racket[opaque-expr] 的值默认：如果 @racket[opaque-expr] 禁止 method，则禁止 field；如果不禁止则允许。 }]
+ @item{If @racket[opaque-fields-expr] is present and
+   evaluates to @racket[#true], fields not listed in the
+   contract are not allowed to be accessed.}
+ @item{If @racket[opaque-fields-expr] is present and
+   evaluates to @racket[#false], such fields are allowed to be
+   accessed.}
+ @item{ If @racket[opaque-fields-expr] is not present and
+   @racket[opaque-expr] evaluates to a predicate procedure
+   produced by @racket[make-impersonator-property] then the
+   fields are disallowed if @racket[#:opaque] is present and
+   allowed if @racket[#:opaque-except] is present. }
+ @item{If @racket[opaque-fields-expr] is not present but
+   @racket[opaque-expr] is, then @racket[opaque-fields-expr]
+   defaults based on the value of @racket[opaque-expr],
+   disallowing fields if @racket[opaque-expr] disallowed
+   methods and allowing them if it does not. }]
 
- 如果 @racket[opaque-fields-expr] 和 @racket[opaque-expr] 都不存在，则允许访问所有未列出的 field 和 method。
+ 如果两者都不是 @racket[opaque-fields-expr] nor
+ @racket[opaque-expr] 存在，所有未列出的字段和
+ 方法。
 
- 如果存在 @racket[#:do-not-check-class-field-accessor-or-mutator-access]，则始终允许通过 @racket[class-field-mutator] 和 @racket[class-field-accessor] 返回的 procedure 进行 field 访问，即使它们本来会被禁止(要么因为不允许 field 访问，要么因为 field 违反了 contract)。这种行为是有疑问的，但对应于在以前版本的 @racket[object/c] 中存在了十多年的一个 bug，因此此选项在这里是为了在过渡到正确检查的 contract 的时间安排上提供灵活性。
+ 如果
+ @racket[#:do-not-check-class-field-accessor-or-mutator-access]
+ 存在，然后字段通过过程访问访问
+ 返回自 @racket[class-field-mutator] and
+ @racket[class-field-accessor] 始终允许，即使
+ 否则它们将被拨号（要么是因为字段
+ 不允许访问或因为该字段违反了
+ 合同）。这种行为是可疑的，但对应于
+ 早期版本中存在的漏洞 @racket[object/c]
+ 十多年来，此选项旨在提供
+ 在向过渡的时机上具有灵活性，
+ 经过适当检查的合同。
 
 }
 @defproc[(instanceof/c [class-contract contract?]) contract?]{
-为 object 生成 contract，该 object 是符合 @racket[class-contract] 的 class 的实例。
+为对象生成合约，其中对象是
+符合以下条件的类实例： @racket[class-contract].
 }
 
 @defproc[(dynamic-object/c [method-names (listof symbol?)]
@@ -1576,7 +2292,10 @@ or @racket[->*m] contract combinators.
                            [field-names (listof symbol?)]
                            [field-contracts (listof contract?)])
          contract?]{
-为 object 生成 contract，类似于 @racket[object/c]，但 method 和 field 的名称和 contract 都可以动态计算。method 和 field 的名称和 contract 列表必须分别具有相同的长度。
+为对象生成合约，类似于 @racket[object/c] 但是
+其中方法和字段的名称和合约可以
+动态计算。两者的名称和合约列表
+方法和字段必须具有相同的长度。
 }
 
 @defform/subs[
@@ -1615,48 +2334,73 @@ or @racket[->*m] contract combinators.
  [post-cond (code:line) (code:line #:post-cond boolean-expr)]
 )]{
 
-为 object 生成 contract。
+生成对象的合约。
 
-每个 method 的 contract 具有与相应 function contract 相同的语义，但 method contract 的语法必须直接写在 object-contract 的 body 中——就像 class 定义中的 method 使用与常规 function 定义相同的语法，但不能是任意 procedure。与 @racket[class/c] 的 method contract 不同，隐式的 @racket[this] 参数不是 contract 的一部分。为了允许在依赖 contract 中使用 @racket[this]，@racket[->d] contract 隐式地将 @racket[this] 绑定到 object 本身。}
+方法的每个合约的语义都与
+对应的函数契约，但语法
+方法合约必须直接写在
+object-contract---非常类似于类中的方法
+定义使用与常规函数相同的语法
+定义，但不能是任意过程。与
+方法合约，用于 @racket[class/c]，隐式 @racket[this]
+参数不是合同的一部分。允许使用
+@racket[this] 在从属合同中， @racket[->d] 合同
+隐式绑定 @racket[this] 到对象本身。}
 
 
 @defthing[mixin-contract contract?]{
 
-一个识别 mixin 的 @tech{function contract}。它保证 function 的输入是 class，function 的结果是输入的 subclass。}
+A @tech{function contract} 识别混音。它保证
+函数的输入是一个类，函数的结果是
+输入的子类。}
 
 @defproc[(make-mixin-contract [type (or/c class? interface?)] ...) contract?]{
 
-生成一个 @tech{function contract}，保证 function 的输入是实现/子类化每个 @racket[type] 的 class，并且 function 的结果是输入的 subclass。}
+产生 @tech{function contract} 这保证了输入到
+function是一个类，它实现/子类每个 @racket[type]，和
+函数的结果是输入的子类。}
 
 @defproc[(is-a?/c [type (or/c class? interface?)]) flat-contract?]{
 
-接受 class 或 interface，返回一个 flat contract，该 contract 识别实例化该 class/interface 的 object。
+接受类或接口，并返回
+识别实例化类/接口的对象。
 
-参见 @racket[is-a?]。}
+查看 @racket[is-a?].}
 
 @defproc[(implementation?/c [interface interface?]) flat-contract?]{
 
-返回一个 flat contract，该 contract 识别实现 @racket[interface] 的 class。
+返回一个平面合约，该合约识别实现
+@racket[interface].
 
-参见 @racket[implementation?]。}
+See @racket[implementation?].}
 
 @defproc[(subclass?/c [class class?]) flat-contract?]{
 
-返回一个 flat contract，该 contract 识别是 @racket[class] 的 subclass 的 class。
+返回一个固定合约，该合约识别
+是的子类 @racket[class].
 
-参见 @racket[subclass?]。}
+See @racket[subclass?].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objectequality"]{Object 相等和哈希}
+@section[#:tag "objectequality"]{对象相等和哈希}
 
-默认情况下，不同 class 实例的 object 或非透明 class 实例的 object 仅在它们是 @racket[eq?] 时才是 @racket[equal?] 的。与透明 structure 一样，如果两个 object 是同一透明 class 的实例(即该 class 的每个 superclass 都以 @racket[#f] 作为其 inspector)，当它们的 field 值 @racket[equal?] 时，它们就是 @racket[equal?] 的。
+By default, objects that are instances of different classes or that
+are instances of a non-transparent class are @racket[equal?] only if
+they are @racket[eq?]. Like transparent structures, two objects that
+are instances of the same transparent class (i.e., every superclass of
+the class has @racket[#f] as its inspector) are @racket[equal?] when
+their field values are @racket[equal?].
 
-要自定义 class 实例通过 @racket[equal?] 与其他实例比较的方式，实现 @racket[equal<%>] interface。
+To customize the way that a class instance is compared to other
+instances by @racket[equal?], implement the @racket[equal<%>]
+interface.
 
 @definterface[equal<%> ()]{
 
-@racket[equal<%>] interface 包含三个 method，类似于为具有 @racket[prop:equal+hash] 的 structure type 提供的函数：
+The @racket[equal<%>] 接口包括三个方法，它们是
+类似于为结构类型提供的功能，
+@racket[prop:equal+hash]:
 
 @itemize[
 
@@ -1681,11 +2425,17 @@ or @racket[->*m] contract combinators.
 
 ]
 
-@racket[equal<%>] interface 的不寻常之处在于，声明 interface 的实现与继承该 interface 是不同的。只有当两个 object 是其最具体的显式实现 @racket[equal<%>] 的祖先为同一祖先的 class 的实例时，它们才能相等。
+The @racket[equal<%>] 接口是不寻常的，因为声明
+接口的实现不同于继承
+接口。只有当两个对象是
+类，其最具体的祖先要显式实现
+@racket[equal<%>] 是同一个祖先。
 
-关于相等性比较和哈希码的更多信息，请参见 @racket[prop:equal+hash]。@racket[equal<%>] interface 使用 @racket[interface*] 和 @racket[prop:equal+hash] 实现。}
+查看 @racket[prop:equal+hash] 了解有关平等的更多信息
+比较和哈希代码。 @racket[equal<%>] 接口是
+通过以下方式实现： @racket[interface*] and @racket[prop:equal+hash].}
 
-示例：
+Example:
 @codeblock|{
 #lang racket
 
@@ -1724,7 +2474,7 @@ or @racket[->*m] contract combinators.
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objectserialize"]{Object 序列化}
+@section[#:tag "objectserialize"]{Object Serialization}
 
 @defform[
 (define-serializable-class* class-id superclass-expr 
@@ -1732,27 +2482,62 @@ or @racket[->*m] contract combinators.
   class-clause ...)
 ]{
 
-将 @racket[class-id] 绑定到一个 class，其中 @racket[superclass-expr]、@racket[interface-expr] 和 @racket[class-clause] 与 @racket[class*] 中的相同。
+Binds @racket[class-id] 到一个类，其中 @racket[superclass-expr],
+the @racket[interface-expr]s和 @racket[class-clause]s如
+@racket[class*].
 
-此形式只能在顶层使用，无论是在 module 内部还是外部。@racket[class-id] 标识符绑定到新的 class，并且 @racketidfont{deserialize-info:}@racket[class-id] 也被定义；如果定义在 module 内部，则后者通过 @racket[module+] 从 @racket[deserialize-info] submodule 提供。
+此表单只能在顶层使用，无论是在模块中
+或户外。该 @racket[class-id] 标识符绑定到新的
+类，以及 @racketidfont{deserialize-info:}@racket[class-id] 也是
+定义；如果定义在模块内，则后者是
+由a提供 @racket[deserialize-info] 子模块通过 @racket[module+].
 
-class 的序列化以两种方式之一工作：
+类的序列化可通过以下两种方式之一进行：
 
 @itemize[
 
- @item{如果 class 实现了内置 interface @racket[externalizable<%>]，则 object 通过调用其 @racket[externalize] method 进行序列化；结果可以是任何可序列化的内容(但显然不应该是 object 本身)。反序列化创建 class 的一个没有初始化参数的实例，然后使用 @racket[externalize] 的结果(或者更精确地说，是先前调用的序列化结果的反序列化版本)调用 object 的 @racket[internalize] method。
+ @item{If the class implements the built-in interface
+       @racket[externalizable<%>], then an object is serialized by
+       calling its @racket[externalize] method; the result can be
+       anything that is serializable (but, obviously, should not be
+       the object itself). Deserialization creates an instance of the
+       class with no initialization arguments, and then calls the
+       object's @racket[internalize] method with the result of
+       @racket[externalize] (or, more precisely, a deserialized
+       version of the serialized result of a previous call).
 
-       要支持这种序列化形式，class 必须可以在没有初始化参数的情况下实例化。此外，仅涉及 class(及其他此类 class)实例的循环不能被序列化。}
+       To support this form of serialization, the class must be
+       instantiable with no initialization arguments. Furthermore,
+       cycles involving only instances of the class (and other such
+       classes) cannot be serialized.}
 
- @item{如果 class 没有实现 @racket[externalizable<%>]，则该 class 的每个 superclass 必须是可序列化的或透明的(即以 @racket[#f] 作为其 inspector)。序列化和反序列化完全自动，可能涉及实例循环。
+ @item{If the class does not implement @racket[externalizable<%>],
+       then every superclass of the class must be either serializable
+       or transparent (i.e,. have @racket[#f] as its
+       inspector). Serialization and deserialization are fully
+       automatic, and may involve cycles of instances.
 
-       为了支持实例循环，反序列化可能创建一个所有 field 均为 undefined 值的实例，然后修改 object 以设置 field 值。序列化支持不会以其他方式使 object 的 field 变为可变的。}
+       To support cycles of instances, deserialization may create an
+       instance of the call with all fields as the undefined value,
+       and then mutate the object to set the field
+       values. Serialization support does not otherwise make an
+       object's fields mutable.}
 
 ]
 
-在第二种情况下，可序列化的 subclass 可以实现 @racket[externalizable<%>]，在这种情况下，@racket[externalize] method 负责所有序列化(即 subclass 的实例失去了自动序列化)。在第一种情况下，所有可序列化的 subclass 都实现 @racket[externalizable<%>]，因为 subclass 实现其父 class 的所有 interface。
+在第二种情况下，可序列化的子类可以实现
+@racket[externalizable<%>]，在这种情况下， @racket[externalize]
+方法负责所有序列化（即自动
+子类的实例的序列化丢失）。在第一个
+案例中，所有可序列化的子类都实现了
+@racket[externalizable<%>]，因为子类实现了所有
+其父类的接口。
 
-在任何一种情况下，如果 object 是 subclass(该 subclass 本身不可序列化)的直接实例，则该 object 像可序列化 class 的直接实例一样被序列化。特别地，对于不可序列化 subclass 的实例，@racket[externalize] method 的覆盖声明被忽略。}
+在任何一种情况下，如果对象是子类的直接实例，
+（它本身不可序列化） ，对象被序列化，就好像它
+是可序列化类的直接实例。特别是，
+覆盖声明 @racket[externalize] 方法被忽略
+用于不可序列化子类的实例。}
 
 
 @defform[
@@ -1760,38 +2545,58 @@ class 的序列化以两种方式之一工作：
   class-clause ...)
 ]{
 
-类似于 @racket[define-serializable-class*]，但没有 interface 表达式(类似于 @racket[class])。}
+Like @racket[define-serializable-class*]，但没有接口
+表达式（类似于 @racket[class]).}
 
 
 @definterface[externalizable<%> ()]{
 
-@racket[externalizable<%>] interface 仅包含 @racket[externalize] 和 @racket[internalize] method。更多信息请参见 @racket[define-serializable-class*]。}
+The @racket[externalizable<%>] 接口仅包括
+@racket[externalize] and @racket[internalize] 方法。请参阅
+@racket[define-serializable-class*] 想要查询更多的信息。}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objectprinting"]{Object 打印}
+@section[#:tag "objectprinting"]{Object Printing}
 
-要自定义 class 实例通过 @racket[print]、@racket[write] 和 @racket[display] 打印的方式，实现 @racket[printable<%>] interface。
+To customize the way that a class instance is printed by
+@racket[print], @racket[write] and @racket[display], implement the
+@racket[printable<%>] interface.
 
 @defthing[printable<%> interface?]{
 
-@racket[printable<%>] interface 仅包含 @racket[custom-print]、@racket[custom-write] 和 @racket[custom-display] method。@racket[custom-print] method 接受两个参数：目标 port 和当前 @racket[quasiquote] 深度(作为精确非负整数)。@racket[custom-write] 和 @racket[custom-display] method 各接受一个参数，即要将 object @racket[write] 或 @racket[display] 到的目标 port。
+The @racket[printable<%>] 接口仅包括
+@racket[custom-print], @racket[custom-write], and
+@racket[custom-display] 方法。该 @racket[custom-print] 方法
+接受两个参数：目的端口和当前端口
+@racket[quasiquote] 深度作为精确的非负整数。
+@racket[custom-write] and @racket[custom-display] 方法，每个接受
+单个参数，即目的端口 @racket[write] or
+@racket[display] 对象。
 
-调用 @racket[custom-print]、@racket[custom-write] 或 @racket[custom-display] method 就像调用通过 @racket[prop:custom-write] property 附加到 structure type 的 procedure。特别地，递归打印可能触发从调用中逃逸。
+致电 @racket[custom-print], @racket[custom-write], or
+@racket[custom-display] 方法类似于对附加过程的调用，
+到结构类型，通过 @racket[prop:custom-write]
+属性。特别是，递归打印可以触发从
+通话。
 
-更多信息请参见 @racket[prop:custom-write]。@racket[printable<%>] interface 使用 @racket[interface*] 和 @racket[prop:custom-write] 实现。}
+查看 @racket[prop:custom-write] 欲了解更多详情，
+@racket[printable<%>] 接口通过以下方式实现：
+@racket[interface*] and @racket[prop:custom-write].}
 
 @defthing[writable<%> interface?]{
 
-类似于 @racket[printable<%>]，但仅包含 @racket[custom-write] 和 @racket[custom-display] method。@racket[print] 请求被定向到 @racket[custom-write]。}
+Like @racket[printable<%>]，但仅包括
+@racket[custom-write] and @racket[custom-display] 方法。
+A @racket[print] 请求被定向到 @racket[custom-write].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objectutils"]{Object、Class 和 Interface 工具}
+@section[#:tag "objectutils"]{对象、类和接口实用程序}
 
 @defproc[(object? [v any/c]) boolean?]{
 
-如果 @racket[v] 是 object，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 什么是 “对象” @racket[#f] 否则
 
 @examples[#:eval class-eval
   (object? (new object%))
@@ -1802,7 +2607,7 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(class? [v any/c]) boolean?]{
 
-如果 @racket[v] 是 class，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 什么是 “类” @racket[#f] 否则
 
 @examples[#:eval class-eval
   (class? object%)
@@ -1814,7 +2619,7 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(interface? [v any/c]) boolean?]{
 
-如果 @racket[v] 是 interface，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 是一个接口， @racket[#f] 否则
 
 @examples[#:eval class-eval
   (interface? (interface () empty cons first rest))
@@ -1825,7 +2630,7 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(generic? [v any/c]) boolean?]{
 
-如果 @racket[v] 是 @tech{generic}，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] is a @tech{generic}, @racket[#f] 否则
 
 @examples[#:eval class-eval
   (define c%
@@ -1842,9 +2647,14 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(object=? [a object?] [b object?]) boolean?]{
 
-确定 @racket[a] 和 @racket[b] 是否由同一次 @racket[new] 调用返回。如果两个 object 具有 field，此 procedure 确定修改一个的 field 是否会改变另一个中对应的 field。
+确定是否 @racket[a] and @racket[b] 已从以下位置退回：
+相同的呼叫 @racket[new] 或者不是。如果两个对象
+有字段，此过程确定是否改变字段
+其中一个会改变另一个的字段。
 
-此 procedure 在精神上类似于 @racket[eq?]，但与 contract 一起使用时也能正确工作(并且有更强的保证)。
+该程序在精神上类似于
+@racket[eq?] 但也能与合同正常配合
+（并有更强的保证）。
 
 @examples[#:eval class-ctc-eval
   (define obj-1 (new object%))
@@ -1863,7 +2673,8 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(object-or-false=? [a (or/c object? #f)] [b (or/c object? #f)]) boolean?]{
 
-类似于 @racket[object=?]，但接受任一参数为 @racket[#f]，如果两个参数都是 @racket[#f] 则返回 @racket[#t]。
+Like @racket[object=?]，但接受 @racket[#f] 对于任一参数和
+returns @racket[#t] 如果两个参数都是 @racket[#f].
 
 @examples[#:eval class-ctc-eval
    (object-or-false=? #f (new object%))
@@ -1874,13 +2685,15 @@ class 的序列化以两种方式之一工作：
 @history[#:added "6.1.1.8"]}
 
 @defproc[(object=-hash-code [o object?]) fixnum?]{
- 返回 @racket[o] 的哈希码，该哈希码对应相等关系 @racket[object=?]。
+ 返回的哈希代码 @racket[o] 对应于
+ 平等关系 @racket[object=?].
 
 @history[#:added "7.1.0.6"]}
 
 @defproc[(object->vector [object object?] [opaque-v any/c #f]) vector?]{
 
-返回表示 @racket[object] 的 vector，显示其可检查的 field，类似于 @racket[struct->vector]。
+返回一个矢量，表示 @racket[object] 显示其
+可检查字段，类似于 @racket[struct->vector].
 
 @examples[#:eval class-eval
   (object->vector (new object%))
@@ -1892,7 +2705,7 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(class->interface [class class?]) interface?]{
 
-返回由 @racket[class] 隐式定义的 interface。
+返回隐式定义的接口 @racket[class].
 
 @examples[#:eval class-eval
   (class->interface object%)
@@ -1901,7 +2714,8 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(object-interface [object object?]) interface?]{
 
-返回由 @racket[object] 的 class 隐式定义的 interface。
+返回由类隐式定义的接口
+@racket[object].
 
 @examples[#:eval class-eval
   (object-interface (new object%))
@@ -1910,7 +2724,9 @@ class 的序列化以两种方式之一工作：
  
 @defproc[(is-a? [v any/c] [type (or/c interface? class?)]) boolean?]{
 
-如果 @racket[v] 是 class @racket[type] 的实例或实现 interface @racket[type] 的 class 的实例，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 是类的实例
+@racket[type] 或实现接口的类 @racket[type],
+@racket[#f] 否则
 
 @examples[#:eval class-eval
   (define point<%> (interface () get-x get-y))
@@ -1930,7 +2746,8 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(subclass? [v any/c] [cls class?]) boolean?]{
 
-如果 @racket[v] 是派生自 @racket[cls](或等于 @racket[cls])的 class，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 是派生自（或等于）的类
+至） @racket[cls], @racket[#f] 否则
 
 @examples[#:eval class-eval
   (subclass? (class object% (super-new)) object%)
@@ -1941,7 +2758,8 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(implementation? [v any/c] [intf interface?]) boolean?]{
 
-如果 @racket[v] 是实现 @racket[intf] 的 class，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 是一个实现
+@racket[intf], @racket[#f] 否则
 
 @examples[#:eval class-eval
   (define i<%> (interface () go))
@@ -1957,7 +2775,8 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(interface-extension? [v any/c] [intf interface?]) boolean?]{
 
-如果 @racket[v] 是扩展 @racket[intf] 的 interface，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[v] 是一个可扩展的接口，
+@racket[intf], @racket[#f] 否则
 
 @examples[#:eval class-eval
   (define point<%> (interface () get-x get-y))
@@ -1971,7 +2790,9 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(method-in-interface? [sym symbol?] [intf interface?]) boolean?]{
 
-如果 @racket[intf](或其任何祖先 interface)包含名称为 @racket[sym] 的成员，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[intf] （或其任何祖先
+接口）包括具有以下名称的成员 @racket[sym], @racket[#f]
+否则
 
 @examples[#:eval class-eval
   (define i<%> (interface () get-x get-y))
@@ -1982,7 +2803,10 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(interface->method-names [intf interface?]) (listof symbol?)]{
 
-返回 @racket[intf] 中 method 名称的 symbol 列表，包括从 superinterface 继承的 method，但不包括名称是本地的 method(即使用 @racket[define-local-member-name] 声明的)。
+返回中的方法名称的符号列表 @racket[intf],
+包括从超接口继承的方法，但不包括
+名称为本地的方法（即，用
+@racket[define-local-member-name]).
 
 @examples[#:eval class-eval
   (define i<%> (interface () get-x get-y))
@@ -1993,7 +2817,8 @@ class 的序列化以两种方式之一工作：
 @defproc[(object-method-arity-includes? [object object?] [sym symbol?] [cnt exact-nonnegative-integer?])
          boolean?]{
 
-如果 @racket[object] 具有名为 @racket[sym] 且接受 @racket[cnt] 个参数的 method，则返回 @racket[#t]，否则返回 @racket[#f]。
+Returns @racket[#t] if @racket[object] 有一个方法名为 @racket[sym]
+接受 @racket[cnt] 论证（arguments） @racket[#f] 否则
 
 @examples[#:eval class-eval
 (define c%
@@ -2011,7 +2836,10 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(field-names [object object?]) (listof symbol?)]{
 
-返回 @racket[object] 中所有 field 名称的列表，包括从 superinterface 继承的 field，但不包括名称是本地的 field(即使用 @racket[define-local-member-name] 声明的)。
+返回绑定在其中的所有字段名称的列表
+@racket[object]，包括从超级接口继承的字段，但
+不包括名称是本地的字段（即，用
+@racket[define-local-member-name]).
 
 @examples[#:eval class-eval
   (field-names (new object%))
@@ -2021,7 +2849,8 @@ class 的序列化以两种方式之一工作：
 
 @defproc[(object-info [object object?]) (values (or/c class? #f) boolean?)]{
 
-返回两个值，类似于 @racket[struct-info] 的返回值：
+返回两个值，类似于返回值
+的值 @racket[struct-info]:
 @itemize[
 
   @item{@racket[_class]: a class or @racket[#f]; the result is
@@ -2044,7 +2873,8 @@ class 的序列化以两种方式之一工作：
                  (or/c class? #f)
                  boolean?)]{
 
-返回七个值，类似于 @racket[struct-type-info] 的返回值：
+返回七个值，类似于返回值
+的值 @racket[struct-type-info]:
 
 @itemize[
 
@@ -2079,7 +2909,8 @@ class 的序列化以两种方式之一工作：
 
 @defstruct[(exn:fail:object exn:fail) ()]{
 
-针对 @racket[class] 相关失败引发，例如尝试调用 object 不提供的 method。
+需要创建违规记录的情况： @racket[class]-相关故障，例如试图致电
+不是由对象提供的方法。
 
 }
 
@@ -2092,11 +2923,21 @@ class 的序列化以两种方式之一工作：
                      [member-proc (-> class? (listof symbol?) any)])
          class?]{
 
-向给定 class 添加一个由 symbol @racket[key] 标识的 seal。给定的 @racket[unsealed-inits]、@racket[unsealed-fields] 和 @racket[unsealed-methods] 列出不受 sealing 影响的相应 class 成员。
+向使用符号键的给定类添加印章 @racket[key]。该
+given @racket[unsealed-inits], @racket[unsealed-fields], and
+@racket[unsealed-methods] 列出对应的类成员
+不受密封的影响。
 
-当 class 有任何 seal 时，@racket[inst-proc] procedure 在实例化时被调用(通常用于在实例化时引发错误)，当 subclass 尝试添加未在 unsealed 列表中列出的 class 成员时，@racket[member-proc] 函数被调用(同样，通常用于引发错误)。
+当一个班级有任何印章时， @racket[inst-proc] 过程被调用
+实例化时（通常，这用于在
+实例化）和 @racket[member-proc] 函数被调用
+（同样，这通常用于引发错误）当子类
+尝试添加未在未密封列表中列出的类成员。
 
-@racket[inst-proc] 被调用时传入尝试实例化的 class 值。@racket[member-proc] 被调用时传入 class 值以及初始化参数、field 或 method 名称的列表。
+这 @racket[inst-proc] 使用类值调用，在该类值上
+已尝试实例化。 @racket[member-proc] 通过以下方式调用
+类值和初始化参数列表、字段或
+方法名称。
 }
 
 @defproc[(class-unseal [class class?]
@@ -2104,9 +2945,14 @@ class 的序列化以两种方式之一工作：
                        [wrong-key-proc (-> class? any)])
          class?]{
 
-移除先前使用 @racket[class-seal] 函数和给定 @racket[key] 密封的 class 上的 seal。
+移除先前已用密封件密封的类别上的密封件
+@racket[class-seal] 函数和给定的 @racket[key].
 
-如果 unseal 移除了 class 中的所有 seal，class 值可以自由地实例化或子类化。如果给定的 class 值不包含任何 seal 或不包含具有给定 key 的任何 seal，则使用 class 值调用 @racket[wrong-key-proc] 函数。
+如果开封拆除了班级中的所有封条，班级
+值可以自由实例化或子类化。如果给定
+类值不包含或任何密封或不包含
+任何带有给定密钥的密封件， @racket[wrong-key-proc] 函数
+使用类值调用。
 }
 
 @; ----------------------------------------------------------------------
