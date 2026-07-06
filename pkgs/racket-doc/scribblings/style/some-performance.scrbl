@@ -7,7 +7,7 @@
 
 @; -----------------------------------------------------------------------------
 
-@title{Language and Performance}
+@title{语言与性能}
 
 When you write a module, you first pick a language. In Racket you can
  choose a lot of languages. The most important choice concerns @rkt/base[]
@@ -28,54 +28,42 @@ Conversely, you should use @rkt[] (or even @rkt/gui[]) when you just want a
 @; -----------------------------------------------------------------------------
 @section{Library Interfaces}
 
-Imagine you are working on a library. You start with one module, but before
-you know it the set of modules grows to a decent size. Client programs are
-unlikely to use all of your library's exports and modules. If, by default,
-your library includes all features, you may cause unnecessary mental stress
-and run-time cost that clients do not actually use. 
+想象你正在开发一个库。你从一个模块开始，但在不知不觉中模块集合
+已增长到相当大的规模。客户端程序不太可能使用你库的所有导出和模块。
+如果默认情况下你的库包含所有特性，可能会造成不必要的心理负担和
+客户端实际上并不使用的运行时代价。
 
-In building the Racket language, we have found it useful to factor
-libraries into different layers so that client programs can selectively
-import from these bundles. The specific Racket practice is to use the most
-prominent name as the default for the module that includes everything. When
-it comes to languages, this is the role of @rkt[]. A programmer who wishes
-to depend on a small part of the language chooses to @rkt/base[] instead;
-this name refers to the basic foundation of the language. Finally, some of
-Racket's constructs are not even included in @rkt[]---consider
-@racketmodname[racket/require] for example---and must be required
-explicitly in programs.
+在构建 Racket 语言的过程中，我们发现将库分解为不同层次是有用的，
+这样客户端程序可以从这些包中有选择地导入。Racket 的具体做法是：
+使用最显眼的名字作为包含所有特性的模块的默认名称。对于语言而言，
+这 @rkt[] 的角色。希望依赖语言一小部分的程序员会选择 @rkt/base[]；
+这个名称指代语言的基本基础。最后，有些 Racket 构造甚至不包含在
+@rkt[] 中——例如 @racketmodname[racket/require]——必须在程序中
+显式地 require。
 
-Other Racket libraries choose to use the default name for the small
-core. Special names then refer to the complete library. 
+其他 Racket 库选择使用小核心的默认名称。特殊名称则指代完整的库。
 
-We encourage library developers to think critically about these
-decisions and decide on a practice that fits their taste and
-understanding of the users of their library. We encourage developers
-to use the following names for different places on the "size"
-hierarchy:
+我们鼓励库开发者批判性地思考这些决定，并选择适合其品味以及对
+库用户理解的做法。我们鼓励开发者在"大小"层次结构中使用以下名称：
 
 @itemlist[
 
-@item{@racket[library/kernel], the bare minimal conceivable for the
-library to be usable;}
+@item{@racket[library/kernel]，库可用的最低限度；}
 
-@item{@racket[library/base], a basic set of functionality.}
+@item{@racket[library/base]，基本功能集。}
 
-@item{@racket[library], an appropriate "default" of functionality
-corresponding to either @racket[library/base] or @racket[library/full].}
+@item{@racket[library]，对应于 @racket[library/base] 或 @racket[library/full]
+的适当的"默认"功能集。}
 
 @item{@racket[library/full], the full library functionality.}  
 ] 
-Keep two considerations in mind as you decide which parts of your library
-should be in which files: dependency and logical ordering.  The smaller
-files should depend on fewer dependencies. Try to organize the levels so
-that, in principle, the larger libraries can be implemented in terms of the
-public interfaces of the smaller ones. 
+在决定库的哪些部分应该包含在哪些文件中时，请记住两个考虑因素：
+依赖关系和逻辑顺序。较小的文件应该依赖较少的依赖项。
+尝试组织各层，以便原则上较大库可以根据较小库的公共接口来实现。
 
-Finally, the advice of the previous section, to use @rkt/base[] when
-building a library, generalizes to other libraries: by being more
-specific in your dependencies, you are a responsible citizen and
-enable others to have a small (transitive) dependency set.
+最后，关于在构建库时使用 @rkt/base[] 的建议可推广到其他库：
+通过在依赖关系上更加明确，你就是一个负责任的贡献者，
+并使他人的（传递）依赖集保持较小。
 
 @; -----------------------------------------------------------------------------
 @section{Macros: Space and Performance}
@@ -130,41 +118,37 @@ racket
 ]
 ]
 
-As you can see, the macro on the left calls a function with a list of the
-searchable values and a function that encapsulates the body. Every
-expansion is a single function call. In contrast, the macro on the right
-expands to many nested definitions and expressions every time it is used.
+如你所见，左侧宏调用一个函数，参数是可搜索值的列表和封装了体的函数。
+每次展开都是单个函数调用。相反，右侧宏每次使用时都会展开为许多
+嵌套的定义和表达式。
 
 @; -----------------------------------------------------------------------------
 @section{No Contracts}
 
-Adding contracts to a library is good. 
+向库添加 contract 是有益的。
 
-On some occasions, contracts impose a significant performance penalty. 
-For such cases, we recommend organizing the module into a main module as
-usual and a submodule called @tt{no-contract} so that
+在某些情况下，contract 会带来显著的性能损失。
+对于这种情况，建议将模块组织为一个常规模块和一个
+@tt{no-contract} 子模块，使得
 @itemlist[
 
-@item{the @tt{no-contract} submodule @racket[provide]s the functionality @emph{without} contracts,}
-@item{the main module @racket[provide]s the functionality @emph{with} contracts.}
+@item{@tt{no-contract} 子模块 @racket[provide] @emph{无} contract 的功能，}
+@item{主模块 @racket[provide] @emph{带} contract 的功能。}
 ]
-This section explains three strategies for three different situations and
-levels of implementation complexity. 
+本节解释针对三种不同情况和实现复杂度的三种策略。
 
 @margin-note*{We will soon supply a Reference section in the Evaluation Model chapter that
 explains the basics of our understanding of ``safety'' and link to it.}
 @; 
-@bold{Warning} Splitting contracted functionality into two modules in
-this way renders the code in the @tt{no-contract} module @bold{unsafe}. The
-creator of the original code might have assumed certain constraints on some
-functions' arguments, and the contracts checked these constraints. While
-the documentation of the @tt{no-contract} submodule is likely to state
-these constraints, it is left to the client to check them.  If the client
-code doesn't check the constraints and the arguments don't satisfy them,
-the code in the @tt{no-contract} submodule may go wrong in various ways.
+@bold{警告} 将带 contract 的功能以这种方式拆分为两个模块会使
+@tt{no-contract} 模块中的代码变得 @bold{unsafe}。
+原始代码的作者可能假设了对某些函数参数的约束，而 contract 会检查这些约束。
+虽然 @tt{no-contract} 子模块的文档可能会说明这些约束，但检查它们的责任
+留给了客户端。如果客户端代码不检查这些约束，且参数不满足它们，
+@tt{no-contract} 子模块中的代码可能会以各种方式出错。
 
-The @emph{first} and simplest way to create a @tt{no-contract} submodule is to use
-the @racket[#:unprotected-submodule] functionality of @racket[contract-out].
+创建 @tt{no-contract} 子模块的第一种最简单的方法是使用
+@racket[contract-out] 的 @racket[#:unprotected-submodule] 功能。
 
 @compare0[#:right "fast"
 @;%
@@ -221,15 +205,12 @@ the @racket[#:unprotected-submodule] functionality of @racket[contract-out].
    ((general 'tra) x)))
 ]
 
-The module called @tt{good} illustrates what the code might look
-like originally. Every exported functions come with contracts, and the
-definitions of these functions can be found below the @racket[provide]
-specification in the module body. The @tt{fast} module on the right
-requests the creation of a submodule named @tt{no-contract}, which exports
-the same identifiers as the original module but without contracts. 
+名为 @tt{good} 的模块说明了代码最初的样子。每个导出的函数都附带 contract，
+这些函数的定义可以在模块体中 @racket[provide] 规范的下方找到。
+右侧的 @tt{fast} 模块请求创建一个名为 @tt{no-contract} 的子模块，
+该子模块导出与原始模块相同的标识符但没有 contract。
 
-Once the submodule exists, using the library with or without contracts is
-straightforward:
+子模块一旦存在，带或不带 contract 使用该库就很简单了：
 @compare0[#:left "needs-goodness" #:right "needs-speed"
 @;%
 (racketmod0
@@ -262,16 +243,14 @@ straightforward:
  (define action*
    (map human state*))))
 ]
-Both modules @racket[require] the @tt{fast} module, but @tt{needs-goodness}
-on the left goes through the contracted @racket[provide] while
-@tt{needs-speed} on the right uses the @tt{no-contract} submodule. Technically,
-the left module imports @racket[human] with contracts; the right one
-imports the same function without contract and thus doesn't have to pay the
-performance penalty.
+两个模块都 @racket[require] @tt{fast} 模块，但左侧的 @tt{needs-goodness}
+通过带 contract 的 @racket[provide]，而右侧的 @tt{needs-speed} 使用
+@tt{no-contract} 子模块。从技术上讲，左侧模块带 contract 导入 @racket[human]；
+右侧不带 contract 导入同一函数，因此不必付出性能代价。
 
-Notice, however, that when you run these two client modules---assuming you
-saved them with the correct names in some folder---the left one raises a
-contract error while the right one binds @racket[action*] to
+然而请注意，当你运行这两个客户端模块时——假设你将它们以
+正确的名称保存在某个文件夹中——左侧模块会引发 contract 错误，
+而右侧模块将 @racket[action*] 绑定到
 
 @;%
 @(begin
@@ -281,8 +260,8 @@ contract error while the right one binds @racket[action*] to
 ))
 @;%
 
-The @tt{no-contract} submodule generated by this first, easy approach
-retains the dependency on @racketmodname[#, 'racket/contract] at both compile and run time. 
+通过这种第一种简单方法生成的 @tt{no-contract} 子模块在编译和运行时都保留
+对 @racketmodname[#, 'racket/contract] 的依赖。
 Here is a variant of the above module that demonstrates this point: 
 @;%
 @(racketmod0 #:file
@@ -305,21 +284,18 @@ Here is a variant of the above module that demonstrates this point:
 
 (define ai (general 'tra)))
 @;%
-Even though the @racket[contract-out] specification seems to remove the
-contracts, requiring the @tt{no-contract} still raises a contract error: 
+即使 @racket[contract-out] 规范似乎移除了 contract，require @tt{no-contract}
+仍然引发 contract 错误：
 @;%
 @(racketblock
 (require (submod "." server no-contract))
 )
 @;%
-@bold{Explanation} The @tt{no-contract} submodule depends on the main
-module, so the require runs the body of the main module, and doing so
-checks the first-order properties of the exported values. Because
-@racket[human] is not a function, this evaluation raises a contract error.
+@bold{解释} @tt{no-contract} 子模块依赖于主模块，因此 require 运行主模块的体，
+这样做会检查导出值的一阶属性。由于 @racket[human] 不是函数，该求值引发 contract 错误。
 
-The @emph{second} way to create a @tt{no-contract} submodule requires
-systematic work from the developer and eliminates the run-time dependency
-on @racketmodname[#, 'racket/contract]. Here are the two modules from
+创建 @tt{no-contract} 子模块的第二种方法需要开发者系统性的工作，
+并消除了对 @racketmodname[#, 'racket/contract] 的运行依赖。 Here are the two modules from
 above, with the right one derived manually from the one on the left: 
 @compare0[#:left "good2" #:right "fast2"
 @;%
@@ -381,64 +357,54 @@ above, with the right one derived manually from the one on the left:
  (require 'no-contract)
 )
 ]
-The @tt{fast2} module on the right encapsulates the
-definitions in a submodule called @tt{no-contract}; the @racket[provide] in
-this submodule exports the exact same identifiers as the @tt{good2} module
-on the left.  The main module @racket[require]s the submodule immediately,
-making the identifiers available in the outer scope so that the contracted
-@code{provide} can re-export them.
+右侧的 @tt{fast2} 模块将定义封装在名为 @tt{no-contract} 的子模块中；
+该子模块中的 @racket[provide] 导出与左侧 @tt{good2} 模块完全相同的标识符。
+主模块立即 @racket[require] 该子模块，使标识符在外层作用域中可用，
+以便带 contract 的 @code{provide} 可以重新导出它们。
 
-While this second way of creating a @tt{no-contract} submodule eliminates
-the run-time dependency on @racketmodname[#, 'racket/contract], its
-compilation---as a part of the outer module---still depends on this
-library, which is problematic in a few remaining situations. 
+虽然这种创建 @tt{no-contract} 子模块的第二种方法消除了
+对 @racketmodname[#, 'racket/contract] 的运行依赖，但它的编译——
+作为外部模块的一部分——仍然依赖于该库，这在少数剩余情况下是有问题的。
 
-The @emph{third} and last way to create a @tt{no-contract} submodule is
-useful when contracts prevents a module from being used in a context where
-contracts aren't available at all---neither at compile nor at run time. One
-example is @rkt/base[]; another is the contracts library itself. Again, you
-may wish you had the same library without contracts. For these cases, we
-recommend a file-based strategy one. Assuming the library is located at
-@tt{a/b/c}, we recommend
+创建 @tt{no-contract} 子模块的第三种也是最后一种方法在 contract 阻止
+模块在完全没有任何 contract 的环境中编译和运行时很有用——既没有编译时
+也没有运行时。一个例子是 @rkt/base[]；另一个例子是 contract 库本身。
+同样，你可能希望不带 contract。对于这些情况，我们推荐基于文件的策略。
+假设库位于 @tt{a/b/c}，我们推荐
 
 @itemlist[#:style 'ordered
 
-@item{creating a @tt{c/} sub-directory with the file @tt{no-contract.rkt},}
+@item{创建一个包含 @tt{no-contract.rkt} 文件的 @tt{c/} 子目录，}
 
-@item{placing the functionality into @tt{no-contract.rkt},}
+@item{将功能放入 @tt{no-contract.rkt}，}
 
-@item{adding @racket[(require "c/no-contract.rkt")] to @tt{c.rkt}, and}
+@item{将 @racket[(require "c/no-contract.rkt")] 添加到 @tt{c.rkt}，}
 
-@item{exporting the functionality from there with contracts.}
+@item{从那里导出并为其添加 contract。}
 
 ]
 
-Once this arrangement is set up, a client module in a special context
-@rkt/base[] or for @racketmodname[#, 'racket/contract] can use @racket[(require
-a/b/c/no-contract)]. In a regular module, though, it would suffice
-to write @racket[(require a/b/c)] and doing so would import contracted
-identifiers. 
+一旦这种安排就位，在特殊环境 @rkt/base[] 中或用于
+@racketmodname[#, 'racket/contract] 的客户端模块可以使用
+@racket[(require a/b/c/no-contract)]。不过，在普通模块中只需编写
+@racket[(require a/b/c)]，这样做会导入带 contract 的标识符。
 
 @; -----------------------------------------------------------------------------
 @section{Unsafe: Beware}
 
-Racket provides a number of unsafe operations that behave
-like their related, safe variants but only when given valid inputs.
-They differ in that they eschew checking for performance reasons
-and thus behave unpredictably on invalid inputs.
+Racket 提供许多 unsafe 操作，它们的行为类似于相关的安全变体，
+但仅在给定有效输入时。它们的不同之处在于，由于性能原因省略了检查，
+因此在无效输入上的行为不可预测。
 
-As one example, consider @racket[fx+] and @racket[unsafe-fx+].
-When @racket[fx+] is applied to a non-@racket[fixnum?], it raises
-an error. In contrast, when @racket[unsafe-fx+] is applied to a non-@racket[fixnum?],
-it does not raise an error. Instead it either returns a strange result
-that may violate invariants of the run-time system and may cause
-later operations (such as printing out the value) to crash Racket itself.
+举一个例子，考虑 @racket[fx+] 和 @racket[unsafe-fx+]。
+当 @racket[fx+] 应用于非 @racket[fixnum?] 时，它引发一个错误。
+相反，当 @racket[unsafe-fx+] 应用于非 @racket[fixnum?] 时，它不会引发错误。
+相反，它要么返回一个可能违反运行时系统不变量的奇怪结果，
+可能导致后续操作（如输出该值）使 Racket 崩溃。
 
-Do not use unsafe operations in your programs unless you are writing
-software that builds proofs that the unsafe operations receive only
-valid inputs (e.g., a type system like Typed Racket) or you are building
-an abstraction that always inserts the right checks very close to
-the unsafe operation (e.g., a macro like @racket[for]). And even in these
-situations, avoid unsafe operations unless you have done a careful performance
-analysis to be sure that the performance improvement outweighs
-the risk of using the unsafe operations.
+不要在你的程序中使用 unsafe 操作，除非你在编写证明 unsafe 操作
+只接收有效输入的软件（如 Typed Racket 这样的类型系统），或者
+你在构建一个总是在紧靠 unsafe 操作的位置插入正确检查的抽象
+（如 @racket[for] 这样的宏）。即使在这些情况下，除非你已做了仔细的
+性能分析来确保性能提升超过使用 unsafe 操作的风险，否则也要避免
+使用 unsafe 操作。
