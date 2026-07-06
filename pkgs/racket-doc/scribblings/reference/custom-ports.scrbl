@@ -1,13 +1,9 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "customport"]{Custom Ports}
+@title[#:tag "customport"]{自定义端口}
 
-The @racket[make-input-port] and @racket[make-output-port] procedures
-create @deftech{custom ports} with arbitrary control procedures (much like
-implementing a device driver). Custom ports are mainly useful to
-obtain fine control over the action of committing bytes as read or
-written.
+@racket[make-input-port] 和 @racket[make-output-port] 过程创建具有任意控制过程的 @deftech{custom ports}（很像实现设备驱动程序）。自定义端口主要用于精细控制提交字节作为读取或写入的操作。
 
 @defproc[(make-input-port [name any/c]
                           [read-in (or/c
@@ -50,90 +46,41 @@ written.
                                        #f])
          input-port?]{
 
-Creates an input port, which is immediately open for reading. If
-@racket[close] procedure has no side effects, then the port need not
-be explicitly closed. See also @racket[make-input-port/read-to-peek].
+创建一个输入端口，该端口立即可用于读取。如果 @racket[close] 过程没有副作用，则端口无需显式关闭。另请参见 @racket[make-input-port/read-to-peek]。
 
-The arguments implement the port as follows:
+参数实现端口的方式如下：
 
 @itemize[
 
-  @item{@racket[name] --- the name for the input port.}
+  @item{@racket[name] —— 输入端口的名称。}
 
-  @item{@racket[read-in] --- either an input port, in which case reads
-    are redirected to the given port, or a procedure that takes a single
-    argument:
-    a mutable byte string to receive read bytes. The procedure's
-    result is one of the following:
+  @item{@racket[read-in] —— 要么是一个输入端口（此时读取被重定向到给定端口），要么是一个接受单个参数的过程：一个可变的 byte string 用于接收读取的字节。该过程的结果是以下之一：
     @itemize[
 
-      @item{the number of bytes read, as an exact, non-negative integer;}
+      @item{读取的字节数，为一个 exact、非负整数；}
 
-      @item{@racket[eof];}
+      @item{@racket[eof]；}
 
       @item{a procedure of arity four (representing a ``special''
-      result, as discussed @elemref["special"]{further below}),
-      but a procedure result is allowed only
-      when @racket[peek] is not @racket[#f];}
+      结果，如下文 @elemref["special"]{进一步讨论} 所述），但过程结果仅在 @racket[peek] 不是 @racket[#f] 时才允许；}
 
-      @item{a @techlink{pipe} input port that supplies bytes to be
-      used as long as the pipe has content (see
-      @racket[pipe-content-length]) or until @racket[read-in] or
-      @racket[peek] is called again; or}
+      @item{一个 @techlink{pipe} 输入端口，只要 pipe 有内容就提供字节（参见 @racket[pipe-content-length]），或直到 @racket[read-in] 或 @racket[peek] 再次被调用；或}
 
-      @item{a @tech{synchronizable event} (see @secref["sync"]) other
-      than a pipe input port or procedure of arity four; the event
-      becomes ready when the read is complete (roughly): the event's
-      value can be one of the above four results or another event like
-      itself; in the last case, a reading process loops with
-      @racket[sync] until it gets a non-event result.}
+      @item{一个 @tech{synchronizable event}（参见 @secref["sync"]），不是 pipe 输入端口或四元数过程；当读取完成时（大致上）事件变为就绪：事件的值可以是以上四种结果之一，或另一个像自身一样的事件；在最后一种情况下，读取过程用 @racket[sync] 循环直到获得非事件结果。}
 
     ]
 
-    The @racket[read-in] procedure must not block indefinitely. If no
-    bytes are immediately available for reading, the @racket[read-in]
-    must return @racket[0] or an event, and preferably an event (to
-    avoid busy waits). The @racket[read-in] should not return
-    @racket[0] (or an event whose value is @racket[0]) when data is
-    available in the port, otherwise polling the port will behave
-    incorrectly. An event result from an event can also break polling.
+    @racket[read-in] 过程不得无限期阻塞。如果没有立即可供读取的字节，@racket[read-in] 必须返回 @racket[0] 或一个事件，最好是事件（以避免忙等待）。当端口中有可用数据时，@racket[read-in] 不应返回 @racket[0]（或其值为 @racket[0] 的事件），否则轮询端口将表现不正确。事件产生的事件结果也可能破坏轮询。
 
-    If the result of a @racket[read-in] call is not one of the above
-    values, the @exnraise[exn:fail:contract]. If a returned integer is
-    larger than the supplied byte string's length, the
-    @exnraise[exn:fail:contract]. If @racket[peek] is @racket[#f] and
-    a procedure for a @elemref["special"]{special} result is returned,
-    the @exnraise[exn:fail:contract].
+    如果 @racket[read-in] 调用的结果不是上述值之一，则 @exnraise[exn:fail:contract]。如果返回的整数大于提供的 byte string 的长度，则 @exnraise[exn:fail:contract]。如果 @racket[peek] 是 @racket[#f] 且返回了 @elemref["special"]{special} 结果的过程，则 @exnraise[exn:fail:contract]。
 
-    The @racket[read-in] procedure can report an error by raising an
-    exception, but only if no bytes are read. Similarly, no bytes
-    should be read if @racket[eof], an event, or a procedure is
-    returned. In other words, no bytes should be lost due to spurious
-    exceptions or non-byte data.
+    @racket[read-in] 过程可以通过引发异常来报告错误，但仅在未读取任何字节的情况下。类似地，如果返回了 @racket[eof]、事件或过程，则不应读取任何字节。换句话说，不应因虚假异常或非字节数据而丢失字节。
 
-    A port's reading procedure may be called in multiple threads
-    simultaneously (if the port is accessible in multiple threads),
-    and the port is responsible for its own internal
-    synchronization. Note that improper implementation of such
-    synchronization mechanisms might cause a non-blocking read
-    procedure to block indefinitely.
+    端口的读取过程可能同时在多个线程中被调用（如果端口在多个线程中可访问），端口负责自己的内部同步。注意，此类同步机制的不正确实现可能导致非阻塞读取过程无限期阻塞。
 
-    If the result is a pipe input port, then previous
-    @racket[get-progress-evt] calls whose event is not yet ready must
-    have been the pipe input port itself. Furthermore,
-    @racket[get-progress-evt] must continue to return the pipe as long
-    as it contains data, or until the @racket[read-in] or
-    @racket[peek-in] procedure is called again (instead of using the
-    pipe, for whatever reason). If @racket[read-in] or
-    @racket[peek-in] is called, any previously associated pipe (as
-    returned by a previous call) is disassociated from the
-    port and is not in use by any other thread as a result of the
-    previous association.
+    如果结果是 pipe 输入端口，则之前 @racket[get-progress-evt] 调用的事件尚未就绪的必须是 pipe 输入端口本身。此外，只要 pipe 包含数据，@racket[get-progress-evt] 必须继续返回该 pipe，或直到 @racket[read-in] 或 @racket[peek-in] 过程再次被调用（因任何原因而不使用 pipe 时）。如果调用了 @racket[read-in] 或 @racket[peek-in]，任何先前关联的 pipe（由之前的调用返回）将与端口解除关联，且不会因先前的关联而被任何其他线程使用。
 
-    If @racket[peek], @racket[get-progress-evt], and
-    @racket[commit] are all provided and
-    non-@racket[#f], then the following is an acceptable implementation
-    of @racket[read-in]:
+    如果 @racket[peek]、@racket[get-progress-evt] 和 @racket[commit] 都提供了且非 @racket[#f]，则以下是 @racket[read-in] 的一个可接受实现：
 
 @racketblock[
 (code:line
@@ -152,253 +99,106 @@ The arguments implement the port as follows:
              0)]))) (code:comment #,(t "try again"))
 )]
 
-    An implementor may choose not to implement the @racket[peek],
-    @racket[get-progress-evt], and @racket[commit]
-    procedures, however, and even an implementor who does supply
-    them may provide a different @racket[read-in]
-    that uses a fast path for non-blocking reads.
+    然而，实现者可以选择不实现 @racket[peek]、@racket[get-progress-evt] 和 @racket[commit] 过程，即使提供了这些过程的实现者也可以提供使用快速路径进行非阻塞读取的不同 @racket[read-in]。
 
-    In an input port is provided for @racket[read-in], then an input port
-    must also be provided for @racket[peek].}
+    如果为 @racket[read-in] 提供了输入端口，则也必须为 @racket[peek] 提供输入端口。}
 
 
-  @item{@racket[peek] --- either @racket[#f], an input port (in which
-   case peeks are redirected to the given port), or a procedure
-   that takes three arguments:
+  @item{@racket[peek] —— 要么是 @racket[#f]，要么是输入端口（此时 peek 被重定向到给定端口），要么是接受三个参数的过程：
 
      @itemize[
 
-     @item{a mutable byte string to receive peeked bytes;}
+     @item{一个可变的 byte string 用于接收 peek 的字节；}
 
-     @item{a non-negative number of bytes (or
-     @elemref["special"]{specials}) to skip before peeking; and}
+     @item{peek 前要跳过的非负字节数（或 @elemref["special"]{specials}）；以及}
 
-     @item{either @racket[#f] or a progress event produced by
-     @racket[get-progress-evt].}
+     @item{要么是 @racket[#f]，要么是由 @racket[get-progress-evt] 生成的 progress event。}
 
      ]
 
-    The results and conventions for @racket[peek] are mostly the same
-    as for @racket[read-in]. The main difference is in the handling of
-    the progress event, if it is not @racket[#f].  If the given
-    progress event becomes ready, the @racket[peek] must abort any
-    skip attempts and not peek any values. In particular,
-    @racket[peek] must not peek any values if the progress event is
-    initially ready. If the port has been closed, the progress event
-    should be ready, in which case @racket[peek] should complete
-    (instead of failing because the port is closed).
+    @racket[peek] 的结果和约定与 @racket[read-in] 大致相同。主要区别在于 progress event 的处理（如果它不是 @racket[#f]）。如果给定的 progress event 变为就绪，@racket[peek] 必须中止任何跳过尝试且不 peek 任何值。特别是，如果 progress event 初始时就绪，@racket[peek] 不得 peek 任何值。如果端口已被关闭，progress event 应该就绪，此时 @racket[peek] 应该完成（而不是因为端口关闭而失败）。
     
-    Unlike @racket[read-in], @racket[peek] should produce
-    @racket[#f] (or an event whose value is @racket[#f]) if no bytes
-    were peeked because the progress event became ready. Like
-    @racket[read-in], a @racket[0] result indicates that another
-    attempt is likely to succeed, so @racket[0] is inappropriate when
-    the progress event is ready. Also like @racket[read-in],
-    @racket[peek] must not block indefinitely. An event produced by
-    @racket[peek] is polled (in the sense of @racket[poll-guard-evt])
-    by an option like @racket[byte-ready?] or @racket[peek-bytes-avail*!].
+    与 @racket[read-in] 不同，如果因为 progress event 变为就绪而没有 peek 到字节，@racket[peek] 应产生 @racket[#f]（或其值为 @racket[#f] 的事件）。与 @racket[read-in] 一样，@racket[0] 结果表示另一次尝试可能成功，因此当 progress event 就绪时 @racket[0] 是不合适的。也与 @racket[read-in] 一样，@racket[peek] 不得无限期阻塞。@racket[peek] 产生的事件由 @racket[byte-ready?] 或 @racket[peek-bytes-avail*!] 等选项轮询（在 @racket[poll-guard-evt] 的意义上）。
 
-    The skip count provided to @racket[peek] is a number of bytes (or
-    @elemref["special"]{specials}) that must remain present in the
-    port---in addition to the peek results---when the peek results are
-    reported. If the skip count requests reading data that is past an eof,
-    it should not, and instead produce @racket[eof] (until the eof is
-    consumed).
+    提供给 @racket[peek] 的跳过计数是在报告 peek 结果时必须保留在端口中的字节数（或 @elemref["special"]{specials}）——除了 peek 结果之外。如果跳过计数请求读取超出 eof 的数据，则不应这样做，而应产生 @racket[eof]（直到 eof 被消费）。
 
-    If a progress event is supplied, then the peek is
-    effectively canceled when another process reads data before the
-    given number can be skipped. If a progress event is not supplied
-    and data is read, then the peek must effectively restart with the
-    original skip count.
+    如果提供了 progress event，则当另一个过程在给定数量可以被跳过之前读取数据时，peek 实际上被取消。如果未提供 progress event 且数据被读取，则 peek 必须有效地以原始跳过计数重新开始。
 
-    The system does not check that multiple peeks return consistent
-    results, or that peeking and reading produce consistent results,
-    although they must.
+    系统不检查多次 peek 是否返回一致的结果，或 peek 和读取是否产生一致的结果，尽管它们必须如此。
 
-    If @racket[peek] is @racket[#f], then peeking for the port is
-    implemented automatically in terms of reads, but with several
-    limitations. First, the automatic implementation is not
-    thread-safe. Second, the automatic implementation cannot handle
-    @elemref["special"]{special} results (non-byte and non-eof), so
-    @racket[read-in] cannot return a procedure for a
-    @elemref["special"]{special} when @racket[peek] is
-    @racket[#f]. Finally, the automatic peek implementation is
-    incompatible with progress events, so if @racket[peek] is
-    @racket[#f], then @racket[get-progress-evt] and @racket[commit] must
-    be @racket[#f]. See also @racket[make-input-port/read-to-peek],
-    which implements peeking in terms of @racket[read-in] without
-    these constraints.
+    如果 @racket[peek] 是 @racket[#f]，则端口的 peek 根据读取自动实现，但有几个限制。首先，自动实现不是线程安全的。其次，自动实现无法处理 @elemref["special"]{special} 结果（非字节和非 eof），因此当 @racket[peek] 是 @racket[#f] 时，@racket[read-in] 不能为 @elemref["special"]{special} 返回过程。最后，自动 peek 实现与 progress events 不兼容，因此如果 @racket[peek] 是 @racket[#f]，则 @racket[get-progress-evt] 和 @racket[commit] 必须是 @racket[#f]。另请参见 @racket[make-input-port/read-to-peek]，它根据 @racket[read-in] 实现 peeking 而没有这些约束。
 
-    In an input port is provided for @racket[peek], then an input port
-    must also be provided for @racket[read-in].}
+    如果为 @racket[peek] 提供了输入端口，则也必须为 @racket[read-in] 提供输入端口。}
 
-  @item{@racket[close] --- a procedure of zero arguments that is
-    called to close the port. The port is not considered closed until
-    the closing procedure returns. The port's procedures will never be
-    used again via the port after it is closed. However, the closing
-    procedure can be called simultaneously in multiple threads (if the
-    port is accessible in multiple threads), and it may be called
-    during a call to the other procedures in another thread; in the
-    latter case, any outstanding reads and peeks should be terminated
-    with an error.}
+  @item{@racket[close] —— 一个零参数的过程，被调用以关闭端口。在关闭过程返回之前，端口不被视为已关闭。端口关闭后，其过程将永远不会再通过该端口被使用。然而，关闭过程可以同时在多个线程中被调用（如果端口在多个线程中可访问），并且它可能在另一个线程调用其他过程期间被调用；在后一种情况下，任何未完成的读取和 peek 应该以错误终止。}
 
-  @item{@racket[get-progress-evt] --- either @racket[#f] (the
-    default), or a procedure that takes no arguments and returns an
-    event. The event must become ready only after data is next read
-    from the port or the port is closed. If the port is already closed,
-    the event must be ready. After the event becomes
-    ready, it must remain so. See the description of @racket[read-in]
-    for information about the allowed results of this function when
-    @racket[read-in] returns a pipe input port. See also
-    @racket[semaphore-peek-evt], which is sometimes useful for
-    implementing @racket[get-progress-evt].
+  @item{@racket[get-progress-evt] —— 要么是 @racket[#f]（默认值），要么是接受零个参数并返回事件的过程。事件必须仅在下次从端口读取数据或端口关闭之后才变为就绪。如果端口已经关闭，事件必须就绪。事件变为就绪后，必须保持就绪。关于当 @racket[read-in] 返回 pipe 输入端口时此函数允许的结果，请参见 @racket[read-in] 的描述。另请参见 @racket[semaphore-peek-evt]，它有时对实现 @racket[get-progress-evt] 有用。
 
-    If @racket[get-progress-evt] is @racket[#f], then
-    @racket[port-provides-progress-evts?] applied to the port will
-    produce @racket[#f], and the port will not be a valid argument to
-    @racket[port-progress-evt].
+    如果 @racket[get-progress-evt] 是 @racket[#f]，则对端口应用 @racket[port-provides-progress-evts?] 将产生 @racket[#f]，并且端口将不是 @racket[port-progress-evt] 的有效参数。
 
-    The result event will not be exposed directly by
-    @racket[port-progress-evt]. Instead, it will be wrapped in an
-    event for which @racket[progress-evt?] returns true.}
+    结果事件不会直接由 @racket[port-progress-evt] 暴露。相反，它将被包装在一个 @racket[progress-evt?] 返回 true 的事件中。}
 
-  @item{@racket[commit] --- either @racket[#f] (the
-    default), or a procedure that takes three arguments: 
+  @item{@racket[commit] —— 要么是 @racket[#f]（默认值），要么是接受三个参数的过程： 
 
      @itemize[
 
-     @item{an exact, positive integer @math{k_r};}
+     @item{一个 exact 的正整数 @math{k_r}；}
 
-     @item{a progress event produced by @racket[get-progress-evt];}
+     @item{由 @racket[get-progress-evt] 生成的 progress event；}
 
-     @item{an event, @racket[_done], that is either a channel-put
-           event, channel, semaphore, semaphore-peek event, always
-           event, or never event.}
+     @item{一个事件 @racket[_done]，它是 channel-put 事件、channel、semaphore、semaphore-peek 事件、always 事件或 never 事件之一。}
 
      ]
 
-     A @defterm{commit} corresponds to removing data from the stream
-     that was previously peeked, but only if no other process removed
-     data first. (The removed data does not need to be reported,
-     because it has been peeked already.) More precisely, assuming
-     that @math{k_p} bytes, @elemref["special"]{specials}, and
-     mid-stream @racket[eof]s have been previously peeked or skipped
-     at the start of the port's stream, @racket[commit] must satisfy
-     the following constraints:
+     @defterm{commit} 对应于从流中移除先前 peek 的数据，但仅当没有其他过程先移除数据时。（被移除的数据不需要报告，因为它已经被 peek 了。）更准确地说，假设 @math{k_p} 字节、@elemref["special"]{specials} 和流中间的 @racket[eof] 先前已在端口流的开头被 peek 或跳过，@racket[commit] 必须满足以下约束：
 
      @itemize[
 
-     @item{It must return only when the commit is complete or when the
-     given progress event becomes ready.}
+     @item{它必须仅在 commit 完成或给定 progress event 变为就绪时返回。}
 
-     @item{It must commit only if @math{k_p} is positive.}
+     @item{它必须仅在 @math{k_p} 为正时 commit。}
 
-     @item{If it commits, then it must do so with either @math{k_r} items
-     or @math{k_p} items, whichever is smaller, and only if @math{k_p} is
-     positive.}
+     @item{如果它 commit，则必须 commit @math{k_r} 项或 @math{k_p} 项中较小的那个，且仅当 @math{k_p} 为正时。}
 
-     @item{It must never choose @racket[_done] in a synchronization
-     after the given progress event is ready, or after @racket[_done]
-     has been synchronized once.}
+     @item{在给定 progress event 就绪后，或在 @racket[_done] 已被同步一次后，它不得在同步中选择 @racket[_done]。}
 
-     @item{It must not treat any data as read from the port unless
-     @racket[_done] is chosen in a synchronization.}
+     @item{除非在同步中选择了 @racket[_done]，否则它不得将任何数据视为从端口读取。}
 
-     @item{It must not block indefinitely if @racket[_done] is ready;
-     it must return soon after the read completes or soon after the
-     given progress event is ready, whichever is first.}
+     @item{如果 @racket[_done] 就绪，它不得无限期阻塞；它必须在读取完成后或给定 progress event 就绪后尽快返回，以先到者为准。}
 
-     @item{It can report an error by raising an exception, but only if
-      no data has been committed. In other words, no data should be lost due to
-      an exception, including a break exception.}
+     @item{它可以通过引发异常来报告错误，但仅当没有数据被 commit 时。换句话说，不应因异常（包括 break 异常）而丢失数据。}
 
-     @item{It must return a true value if data has been committed,
-     @racket[#f] otherwise. When it returns a value, the given
-     progress event must be ready (perhaps because data has just been
-     committed).}
+     @item{如果数据已被 commit，它必须返回 true 值，否则返回 @racket[#f]。当它返回一个值时，给定的 progress event 必须就绪（可能是因为数据刚刚被 commit）。}
 
-     @item{It should return a byte string as a true result when line
-     counting is enabled and @racket[get-location] is @racket[#f] (so
-     that line counting is implemented the default way); the result
-     byte string represents the data that was committed for the
-     purposes of character and line counting. If any other true result
-     is returned when a byte string is expected, it is treated like a
-     byte string where each byte corresponds to a non-newline
-     character.}
+     @item{当启用行计数且 @racket[get-location] 是 @racket[#f] 时（以便以默认方式实现行计数），它应返回一个 byte string 作为 true 结果；结果 byte string 表示为了字符和行计数目的而 commit 的数据。如果在期望 byte string 时返回了任何其他 true 结果，它被当作一个 byte string 处理，其中每个字节对应一个非换行字符。}
 
-     @item{It must raise an exception if no data (including
-     @racket[eof]) has been peeked from the beginning of the port's
-     stream, or if it would have to block indefinitely to wait for the
-     given progress event to become ready.}
+     @item{如果没有数据（包括 @racket[eof]）从端口流的开头被 peek，或者它必须无限期阻塞以等待给定 progress event 变为就绪，则它必须引发异常。}
 
      ]
 
-    A call to @racket[commit] is @racket[parameterize-break]ed to
-    disable breaks.}
+    对 @racket[commit] 的调用被 @racket[parameterize-break] 以禁用 break。}
 
-  @item{@racket[get-location] --- either @racket[#f] (the
-    default), or a procedure that takes no arguments and returns three
-    values: the line number for the next item in the port's stream (a
-    positive number or @racket[#f]), the column number for the next
-    item in the port's stream (a non-negative number or @racket[#f]),
-    and the position for the next item in the port's stream (a
-    positive number or @racket[#f]). See also @secref["linecol"].  
+  @item{@racket[get-location] —— 要么是 @racket[#f]（默认值），要么是接受零个参数并返回三个值的过程：端口流中下一项的行号（正数或 @racket[#f]）、端口流中下一项的列号（非负数或 @racket[#f]）以及端口流中下一项的位置（正数或 @racket[#f]）。另请参见 @secref["linecol"]。  
 
-    This procedure is called to implement @racket[port-next-location],
-    but only if line counting is enabled for the port via
-    @racket[port-count-lines!] (in which case @racket[count-lines!] is
-    called). The @racket[read] and @racket[read-syntax] procedures
-    assume that reading a non-whitespace character increments the
-    column and position by one.}
+    此过程被调用来实现 @racket[port-next-location]，但仅在通过 @racket[port-count-lines!] 为端口启用了行计数时才调用（此时 @racket[count-lines!] 被调用）。@racket[read] 和 @racket[read-syntax] 过程假设读取非空白字符会使列和位置增加一。}
 
-  @item{@racket[count-lines!] --- a procedure of no arguments
-    that is called if and when line counting is enabled for the port.
-    The default procedure is @racket[void].}
+  @item{@racket[count-lines!] —— 一个零参数的过程，在端口启用行计数时被调用。默认过程是 @racket[void]。}
 
-  @item{@racket[init-position] --- normally an exact, positive integer
-    that determines the position of the port's first item, which is
-    used by @racket[file-position] or when line counting is
-    @italic{not} enabled for the port. The default is @racket[1].  If
-    @racket[init-position] is @racket[#f], the port is treated as
-    having an unknown position. If @racket[init-position] is a port,
-    then the given port's position is always used for the new port's
-    position. If @racket[init-position] is a procedure, it is called
-    as needed to obtain the port's position.}
+  @item{@racket[init-position] —— 通常是一个 exact 的正整数，确定端口第一个项目的位置，由 @racket[file-position] 使用，或在端口未启用行计数时使用。默认值为 @racket[1]。如果 @racket[init-position] 是 @racket[#f]，则端口被视为具有未知位置。如果 @racket[init-position] 是一个端口，则始终使用给定端口的位置作为新端口的位置。如果 @racket[init-position] 是一个过程，则在需要时调用它以获取端口的位置。}
 
-  @item{@racket[buffer-mode] --- either @racket[#f] (the default) or a
-    procedure that accepts zero or one arguments. If
-    @racket[buffer-mode] is @racket[#f], then the resulting port does
-    not support a buffer-mode setting. Otherwise, the procedure is
-    called with one symbol argument (@racket['block] or
-    @racket['none]) to set the buffer mode, and it is called with zero
-    arguments to get the current buffer mode. In the latter case, the
-    result must be @racket['block], @racket['none], or @racket[#f]
-    (unknown). See @secref["port-buffers"] for more information on
-    buffer modes.}
+  @item{@racket[buffer-mode] —— 要么是 @racket[#f]（默认值），要么是接受零个或一个参数的过程。如果 @racket[buffer-mode] 是 @racket[#f]，则生成的端口不支持 buffer-mode 设置。否则，该过程以一个符号参数（@racket['block] 或 @racket['none]）调用以设置 buffer mode，并以零个参数调用以获取当前 buffer mode。在后一种情况下，结果必须是 @racket['block]、@racket['none] 或 @racket[#f]（未知）。关于 buffer modes 的更多信息，请参见 @secref["port-buffers"]。}
 
  ]
 
  @elemtag["special"]{@bold{``Special'' results:}} When
  @racket[read-in] or @racket[peek] (or an event produced by one of
  these) returns a procedure, the procedure is used to obtain a
- non-byte result. (This non-byte result is @italic{not} intended to
- return a character or @racket[eof]; in particular, @racket[read-char]
- raises an exception if it encounters a special-result procedure, even
- if the procedure produces a byte.) A special-result procedure must
- accept four arguments that represent a source location. The first
- argument is @racket[#f] when the special read is triggered by @racket[read]
- or @racket[read/recursive].
+ 非字节结果。（此非字节结果 @italic{不是} 用于返回字符或 @racket[eof]；特别是，如果 @racket[read-char] 遇到特殊结果过程，即使该过程产生字节，它也会引发异常。）特殊结果过程必须接受四个表示源位置的参数。当特殊读取由 @racket[read] 或 @racket[read/recursive] 触发时，第一个参数为 @racket[#f]。
 
- The special-value procedure can return an arbitrary value, and it
- will be called zero or one times (not necessarily before further
- reads or peeks from the port). See @secref["reader-procs"] for
- more details on the procedure's result.
+ 特殊值过程可以返回任意值，它将被调用零次或一次（不一定在下一次从端口读取或 peek 之前）。关于该过程结果的更多细节，请参见 @secref["reader-procs"]。
 
- If @racket[read-in] or @racket[peek] returns a special
- procedure when called by any reading procedure other than
- @racket[read], @racket[read-syntax], @racket[read-char-or-special],
- @racket[peek-char-or-special], @racket[read-byte-or-special], or
- @racket[peek-byte-or-special], then the @exnraise[exn:fail:contract].}
+ 如果 @racket[read-in] 或 @racket[peek] 在被除 @racket[read]、@racket[read-syntax]、@racket[read-char-or-special]、@racket[peek-char-or-special]、@racket[read-byte-or-special] 或
+ @racket[peek-byte-or-special] 之外的任何读取过程调用时返回特殊过程，则 @exnraise[exn:fail:contract]。}
 
 @(begin
 #reader scribble/comment-reader
@@ -734,285 +534,121 @@ s
                                         #f])
           output-port?]{
 
-Creates an output port, which is immediately open for
-writing. If @racket[close] procedure has no side effects, then
-the port need not be explicitly closed. The port can buffer data
-within its @racket[write-out] and @racket[write-out-special]
-procedures.
+创建一个输出端口，该端口立即可用于写入。如果 @racket[close] 过程没有副作用，则端口无需显式关闭。端口可以在其 @racket[write-out] 和 @racket[write-out-special] 过程中缓冲数据。
 
  @itemize[
 
    @item{@racket[name] --- the name for the output port.}
 
-   @item{@racket[evt] --- a synchronization event (see @secref["sync"];
-    e.g., a semaphore or another port). The event is used in place of
-    the output port when the port is supplied to synchronization
-    procedures like @racket[sync].  Thus, the event should be
-    unblocked when the port is ready for writing at least one byte
-    without blocking, or ready to make progress in flushing an
-    internal buffer without blocking. The event must not unblock
-    unless the port is ready for writing; otherwise, the guarantees of
-    @racket[sync] will be broken for the output port. Use
-    @racket[always-evt] if writes to the port always succeed without
-    blocking.}
+   @item{@racket[evt] —— 一个同步事件（参见 @secref["sync"]；例如，semaphore 或另一个端口）。当端口被提供给像 @racket[sync] 这样的同步过程时，此事件代替输出端口使用。因此，当端口已准备好无阻塞地写入至少一个字节，或准备好无阻塞地在刷新内部缓冲区方面取得进展时，事件应该解除阻塞。除非端口已准备好写入，否则事件不得解除阻塞；否则，@racket[sync] 的保证将对输出端口被破坏。如果对端口的写入总是无阻塞地成功，请使用 @racket[always-evt]。}
 
-   @item{@racket[write-out] --- either an output port, which indicates that
-         writes should be redirected to the given port, or a procedure
-         of five arguments:
+   @item{@racket[write-out] —— 要么是一个输出端口（表示写入应被重定向到给定端口），要么是一个五个参数的过程：
 
      @itemize[
 
-     @item{an immutable byte string containing bytes to write;}
+     @item{一个包含要写入字节的不可变 byte string；}
 
-     @item{a non-negative exact integer for a starting offset
-     (inclusive) into the byte string;}
+     @item{byte string 中的起始偏移量（包含）的非负 exact 整数；}
 
-     @item{a non-negative exact integer for an ending offset
-     (exclusive) into the byte string;}
+     @item{byte string 中的结束偏移量（不包含）的非负 exact 整数；}
 
-     @item{a boolean; @racket[#f] indicates that the port is allowed
-     to keep the written bytes in a buffer, and that it is
-     allowed to block indefinitely; @racket[#t] indicates that the
-     write should not block, and that the port should attempt to flush
-     its buffer and completely write new bytes instead of
-     buffering them;}
+     @item{一个 boolean；@racket[#f] 表示允许端口将写入的字节保留在缓冲区中，并且允许无限期阻塞；@racket[#t] 表示写入不应该阻塞，且端口应尝试刷新其缓冲区并完全写入新字节，而不是缓冲它们；}
 
-     @item{a boolean; @racket[#t] indicates that if the port blocks
-     for a write, then it should enable breaks while blocking (e.g.,
-     using @racket[sync/enable-break]); this argument is always
-     @racket[#f] if the fourth argument is @racket[#t].}
+     @item{一个 boolean；@racket[#t] 表示如果端口因写入而阻塞，则应在阻塞时启用 break（例如使用 @racket[sync/enable-break]）；如果第四个参数是 @racket[#t]，则此参数始终为 @racket[#f]。}
 
      ]
 
-    The procedure returns one of the following:
+    该过程返回以下之一：
 
      @itemize[
 
-     @item{a non-negative exact integer representing the number of
-     bytes written or buffered;}
+     @item{表示已写入或缓冲的字节数的非负 exact 整数；}
 
-     @item{@racket[#f] if no bytes could be written, perhaps because
-     the internal buffer could not be completely flushed;}
+     @item{如果没有字节可以写入（可能是因为内部缓冲区无法完全刷新），则为 @racket[#f]；}
 
-     @item{a @techlink{pipe} output port (when buffering is allowed
-     and not when flushing) for buffering bytes as long as the pipe is
-     not full and until @racket[write-out] or
-     @racket[write-out-special] is called; or}
+     @item{一个 @techlink{pipe} 输出端口（当允许缓冲时，而不是在刷新时），用于缓冲字节，只要 pipe 未满且直到 @racket[write-out] 或 @racket[write-out-special] 被调用；或}
 
-     @item{a synchronizable event (see @secref["sync"]) other than a
-     pipe output port that acts like the result of
-     @racket[write-bytes-avail-evt] to complete the write.}
+     @item{一个同步事件（参见 @secref["sync"]），不是 pipe 输出端口，其行为类似于 @racket[write-bytes-avail-evt] 的结果以完成写入。}
 
      ]
 
-    Since @racket[write-out] can produce an event, an acceptable
-    implementation of @racket[write-out] is to pass its first three
-    arguments to the port's @racket[get-write-evt]. Some port
-    implementors, however, may choose not to provide
-    @racket[get-write-evt] (perhaps because writes cannot be
-    made atomic), or may implement @racket[write-out] to
-    enable a fast path for non-blocking writes or to
-    enable buffering.
+    由于 @racket[write-out] 可以产生事件，@racket[write-out] 的一个可接受实现是将其前三个参数传递给端口的 @racket[get-write-evt]。然而，一些端口实现者可能选择不提供 @racket[get-write-evt]（可能是因为写入不能做成原子的），或可能实现 @racket[write-out] 以启用非阻塞写入的快速路径或启用缓冲。
 
-    From a user's perspective, the difference between buffered and
-    completely written data is (1) buffered data can be lost in the
-    future due to a failed write, and (2) @racket[flush-output] forces
-    all buffered data to be completely written. Under no circumstances
-    is buffering required.
+    从用户的角度来看，缓冲数据与完全写入数据之间的区别是：(1) 缓冲数据可能在将来因写入失败而丢失，(2) @racket[flush-output] 强制所有缓冲数据被完全写入。在任何情况下都不需要缓冲。
     
-    If the start and end indices are the same, then the fourth
-    argument to @racket[write-out] will be @racket[#f], and the write
-    request is actually a flush request for the port's buffer (if
-    any), and the result should be @racket[0] for a successful flush
-    (or if there is no buffer).
+    如果起始和结束索引相同，则 @racket[write-out] 的第四个参数将是 @racket[#f]，写入请求实际上是端口缓冲区的刷新请求（如果有的话），成功刷新（或如果没有缓冲区）的结果应为 @racket[0]。
 
-    The result should never be @racket[0] if the start and end indices
-    are different, otherwise the @exnraise[exn:fail:contract].
-    Similarly, the @exnraise[exn:fail:contract] if @racket[write-out]
-    returns a pipe output port when buffering is disallowed or when it
-    is called for flushing.  If a returned integer is larger than the
-    supplied byte-string range, the @exnraise[exn:fail:contract].
+    如果起始和结束索引不同，结果永远不应是 @racket[0]，否则 @exnraise[exn:fail:contract]。类似地，如果 @racket[write-out] 在禁止缓冲或为刷新而调用时返回 pipe 输出端口，则 @exnraise[exn:fail:contract]。如果返回的整数大于提供的 byte-string 范围，则 @exnraise[exn:fail:contract]。
 
-    The @racket[#f] result should be avoided, unless the next write
-    attempt is likely to work. Otherwise, if data cannot be written,
-    return an event instead.
+    应避免 @racket[#f] 结果，除非下一次写入尝试可能成功。否则，如果数据无法写入，改为返回事件。
 
-    An event returned by @racket[write-out] can return @racket[#f] or
-    another event like itself, in contrast to events produced by
-    @racket[write-bytes-avail-evt] or @racket[get-write-evt].
-    A writing process loops with @racket[sync] until it obtains a
-    non-event result.
+    @racket[write-out] 返回的事件可以返回 @racket[#f] 或另一个像自身一样的事件，与 @racket[write-bytes-avail-evt] 或 @racket[get-write-evt] 产生的事件形成对比。写入过程用 @racket[sync] 循环直到获得非事件结果。
 
-    The @racket[write-out] procedure is always called with breaks
-    disabled, independent of whether breaks were enabled when the write
-    was requested by a client of the port. If breaks were enabled for
-    a blocking operation, then the fifth argument to @racket[write-out]
-    will be @racket[#t], which indicates that @racket[write-out] should
-    re-enable breaks while blocking.
+    @racket[write-out] 过程总是在禁用 break 的情况下被调用，无论端口的客户端请求写入时是否启用了 break。如果阻塞操作启用了 break，则 @racket[write-out] 的第五个参数将是 @racket[#t]，这表示 @racket[write-out] 应在阻塞时重新启用 break。
 
-    If the writing procedure raises an exception, due to write
-    or commit operations, it must not have committed any bytes
-    (though it may have committed previously buffered bytes).
+    如果写入过程因写入或 commit 操作而引发异常，它不得 commit 任何字节（尽管它可能已 commit 先前缓冲的字节）。
 
-    A port's writing procedure may be called in multiple threads
-    simultaneously (if the port is accessible in multiple
-    threads). The port is responsible for its own internal
-    synchronization. Note that improper implementation of such
-    synchronization mechanisms might cause a non-blocking write
-    procedure to block.}
+    端口的写入过程可能同时在多个线程中被调用（如果端口在多个线程中可访问）。端口负责自己的内部同步。注意，此类同步机制的不正确实现可能导致非阻塞写入过程阻塞。}
 
-  @item{@racket[close] --- a procedure of zero arguments that is
-    called to close the port. The port is not considered closed until
-    the closing procedure returns. The port's procedures will never be
-    used again via the port after it is closed. However, the closing
-    procedure can be called simultaneously in multiple threads (if the
-    port is accessible in multiple threads), and it may be called
-    during a call to the other procedures in another thread; in the
-    latter case, any outstanding writes or flushes should be
-    terminated immediately with an error.}
+  @item{@racket[close] —— 一个零参数的过程，被调用以关闭端口。在关闭过程返回之前，端口不被视为已关闭。端口关闭后，其过程将永远不会再通过该端口被使用。然而，关闭过程可以同时在多个线程中被调用（如果端口在多个线程中可访问），并且它可能在另一个线程调用其他过程期间被调用；在后一种情况下，任何未完成的写入或刷新应立即以错误终止。}
 
-  @item{@racket[write-out-special] --- either @racket[#f] (the
-    default), an output port (which indicates that
-    special writes should be redirected to the given port),
-    or a procedure to handle @racket[write-special] calls
-    for the port. If @racket[#f], then the port does not support
-    special output, and @racket[port-writes-special?] will return
-    @racket[#f] when applied to the port.
+  @item{@racket[write-out-special] —— 要么是 @racket[#f]（默认值），要么是输出端口（表示特殊写入应被重定向到给定端口），要么是处理端口 @racket[write-special] 调用的过程。如果是 @racket[#f]，则端口不支持特殊输出，对端口应用 @racket[port-writes-special?] 将返回 @racket[#f]。
 
-    If a procedure is supplied, it takes three arguments: the special
-    value to write, a boolean that is @racket[#f] if the procedure can
-    buffer the special value and block indefinitely, and a boolean
-    that is @racket[#t] if the procedure should enable breaks while
-    blocking. The result is one of the following:
+    如果提供了过程，它接受三个参数：要写入的特殊值；一个 boolean，如果过程可以缓冲特殊值并无期限阻塞则为 @racket[#f]；一个 boolean，如果过程应在阻塞时启用 break 则为 @racket[#t]。结果是以下之一：
 
      @itemize[
 
-     @item{a non-event true value, which indicates that the special is
-      written;}
+     @item{一个非事件的 true 值，表示特殊值已写入；}
 
-     @item{@racket[#f] if the special could not be written, perhaps
-     because an internal buffer could not be completely flushed;}
+     @item{如果特殊值无法写入（可能是因为内部缓冲区无法完全刷新），则为 @racket[#f]；}
 
-     @item{a synchronizable event (see @secref["sync"]) that acts like
-     the result of @racket[get-write-special-evt] to complete the write.}
+     @item{一个同步事件（参见 @secref["sync"]），其行为类似于 @racket[get-write-special-evt] 的结果以完成写入。}
 
      ]
 
-    Since @racket[write-out-special] can return an event,
-    passing the first argument to an implementation of
-    @racket[get-write-special-evt] is acceptable as a
-    @racket[write-out-special].
+    由于 @racket[write-out-special] 可以返回事件，将第一个参数传递给 @racket[get-write-special-evt] 的实现作为 @racket[write-out-special] 是可接受的。
 
-    As for @racket[write-out], the @racket[#f] result is discouraged,
-    since it can lead to busy waiting. Also as for @racket[write-out],
-    an event produced by @racket[write-out-special] is allowed
-    to produce @racket[#f] or another event like itself.  The
-    @racket[write-out-special] procedure is always called with
-    breaks disabled, independent of whether breaks were enabled when
-    the write was requested by a client of the port.}
+    与 @racket[write-out] 一样，@racket[#f] 结果是不鼓励的，因为它可能导致忙等待。也与 @racket[write-out] 一样，@racket[write-out-special] 产生的事件允许产生 @racket[#f] 或另一个像自身一样的事件。@racket[write-out-special] 过程总是在禁用 break 的情况下被调用，无论端口的客户端请求写入时是否启用了 break。}
 
-   @item{@racket[get-write-evt] --- either @racket[#f] (the
-   default) or a procedure of three arguments:
+   @item{@racket[get-write-evt] —— 要么是 @racket[#f]（默认值），要么是一个三个参数的过程：
 
      @itemize[
 
-     @item{an immutable byte string containing bytes to write;}
+     @item{一个包含要写入字节的不可变 byte string；}
 
-     @item{a non-negative exact integer for a starting offset
-     (inclusive) into the byte string; and}
+     @item{byte string 中的起始偏移量（包含）的非负 exact 整数；以及}
 
-     @item{a non-negative exact integer for an ending offset
-     (exclusive) into the byte string.}
+     @item{byte string 中的结束偏移量（不包含）的非负 exact 整数。}
 
      ]
 
-    The result is a synchronizable event (see @secref["sync"]) to act as
-    the result of @racket[write-bytes-avail-evt] for the port (i.e.,
-    to complete a write or flush), which becomes available only as
-    data is committed to the port's underlying device, and whose
-    result is the number of bytes written.
+    结果是一个同步事件（参见 @secref["sync"]），作为端口的 @racket[write-bytes-avail-evt] 的结果（即完成写入或刷新），仅在数据被 commit 到端口的底层设备时才变为可用，其结果值是写入的字节数。
 
-    If @racket[get-write-evt] is @racket[#f], then
-    @racket[port-writes-atomic?] will produce @racket[#f] when applied
-    to the port, and the port will not be a valid argument to
-    procedures such as @racket[write-bytes-avail-evt].
-    Otherwise, an event returned by @racket[get-write-evt] must
-    not cause data to be written to the port unless the event is
-    chosen in a synchronization, and it must write to the port if the
-    event is chosen (i.e., the write must appear atomic with respect
-    to the synchronization).
+    如果 @racket[get-write-evt] 是 @racket[#f]，则对端口应用 @racket[port-writes-atomic?] 将产生 @racket[#f]，并且端口将不是 @racket[write-bytes-avail-evt] 等过程的有效参数。否则，@racket[get-write-evt] 返回的事件不得导致数据写入端口，除非事件在同步中被选择，并且如果事件被选择，它必须写入端口（即写入必须在同步方面看起来是原子的）。
 
-    If the event's result integer is larger than the supplied
-    byte-string range, the @exnraise[exn:fail:contract] by a wrapper
-    on the event. If the start and end indices are the same (i.e., no
-    bytes are to be written), then the event should produce @racket[0]
-    when the buffer is completely flushed. (If the port has no buffer,
-    then it is effectively always flushed.)
+    如果事件的结果整数大于提供的 byte-string 范围，则通过事件上的包装器 @exnraise[exn:fail:contract]。如果起始和结束索引相同（即没有字节要写入），则当缓冲区完全刷新时事件应产生 @racket[0]。（如果端口没有缓冲区，则它实际上始终是已刷新的。）
 
-    If the event raises an exception, due to write or commit
-    operations, it must not have committed any new bytes (though it
-    may have committed previously buffered bytes).
+    如果事件因写入或 commit 操作而引发异常，它不得 commit 任何新字节（尽管它可能已 commit 先前缓冲的字节）。
 
-    Naturally, a port's events may be used in multiple threads
-    simultaneously (if the port is accessible in multiple
-    threads). The port is responsible for its own internal
-    synchronization.}
+    自然地，端口的事件可能同时在多个线程中使用（如果端口在多个线程中可访问）。端口负责自己的内部同步。}
 
-  @item{@racket[get-write-special-evt] --- either @racket[#f]
-    (the default), or a procedure to handle @racket[write-special-evt]
-    calls for the port. This argument must be @racket[#f] if either
-    @racket[write-out-special] or @racket[get-write-evt]
-    is @racket[#f], and it must be a procedure if both of those
-    arguments are procedures.
+  @item{@racket[get-write-special-evt] —— 要么是 @racket[#f]（默认值），要么是处理端口 @racket[write-special-evt] 调用的过程。如果 @racket[write-out-special] 或 @racket[get-write-evt] 是 @racket[#f]，则此参数必须为 @racket[#f]；如果这两个参数都是过程，则此参数必须是一个过程。
 
-    If it is a procedure, it takes one argument: the special value to
-    write. The resulting event (with its constraints) is analogous to
-    the result of @racket[get-write-evt].
+    如果它是一个过程，它接受一个参数：要写入的特殊值。结果事件（及其约束）类似于 @racket[get-write-evt] 的结果。
 
-    If the event raises an exception, due to write or commit
-    operations, it must not have committed the special value (though
-    it may have committed previously buffered bytes and values).}
+    如果事件因写入或 commit 操作而引发异常，它不得 commit 特殊值（尽管它可能已 commit 先前缓冲的字节和值）。}
 
 
 
-  @item{@racket[get-location] --- either @racket[#f] (the
-    default), or a procedure that takes no arguments and returns three
-    values: the line number for the next item written to the port's
-    stream (a positive number or @racket[#f]), the column number for
-    the next item written to port's stream (a non-negative number or
-    @racket[#f]), and the position for the next item written to port's
-    stream (a positive number or @racket[#f]). See also
-    @secref["linecol"].
+  @item{@racket[get-location] —— 要么是 @racket[#f]（默认值），要么是接受零个参数并返回三个值的过程：写入端口流中下一项的行号（正数或 @racket[#f]）、写入端口流中下一项的列号（非负数或 @racket[#f]）以及写入端口流中下一项的位置（正数或 @racket[#f]）。另请参见 @secref["linecol"]。
 
-    This procedure is called to implement @racket[port-next-location]
-    for the port, but only if line counting is enabled for the port
-    via @racket[port-count-lines!] (in which case
-    @racket[count-lines!] is called).}
+    此过程被调用来为端口实现 @racket[port-next-location]，但仅在通过 @racket[port-count-lines!] 为端口启用了行计数时才调用（此时 @racket[count-lines!] 被调用）。}
 
-  @item{@racket[count-lines!] --- a procedure of no arguments
-    that is called if and when line counting is enabled for the port.
-    The default procedure is @racket[void].}
+  @item{@racket[count-lines!] —— 一个零参数的过程，在端口启用行计数时被调用。默认过程是 @racket[void]。}
 
-  @item{@racket[init-position] --- normally an exact, positive integer
-    that determines the position of the port's first item, which is
-    used by @racket[file-position] or when line counting is
-    @italic{not} enabled for the port. The default is @racket[1].  If
-    @racket[init-position] is @racket[#f], the port is treated as
-    having an unknown position. If @racket[init-position] is a port,
-    then the given port's position is always used for the new port's
-    position. If @racket[init-position] is a procedure, it is called
-    as needed to obtain the port's position.}
+  @item{@racket[init-position] —— 通常是一个 exact 的正整数，确定端口第一个项目的位置，由 @racket[file-position] 使用，或在端口未启用行计数时使用。默认值为 @racket[1]。如果 @racket[init-position] 是 @racket[#f]，则端口被视为具有未知位置。如果 @racket[init-position] 是一个端口，则始终使用给定端口的位置作为新端口的位置。如果 @racket[init-position] 是一个过程，则在需要时调用它以获取端口的位置。}
 
-  @item{@racket[buffer-mode] --- either @racket[#f] (the
-    default) or a procedure that accepts zero or one arguments. If
-    @racket[buffer-mode] is @racket[#f], then the resulting
-    port does not support a buffer-mode setting. Otherwise, the
-    procedure is called with one symbol argument (@racket['block],
-    @racket['line], or @racket['none]) to set the buffer mode, and it is
-    called with zero arguments to get the current buffer mode. In the
-    latter case, the result must be @racket['block], @racket['line],
-    @racket['none], or @racket[#f] (unknown). See @secref["port-buffers"]
-    for more information on buffer modes.}
+  @item{@racket[buffer-mode] —— 要么是 @racket[#f]（默认值），要么是接受零个或一个参数的过程。如果 @racket[buffer-mode] 是 @racket[#f]，则生成的端口不支持 buffer-mode 设置。否则，该过程以一个符号参数（@racket['block]、@racket['line] 或 @racket['none]）调用以设置 buffer mode，并以零个参数调用以获取当前 buffer mode。在后一种情况下，结果必须是 @racket['block]、@racket['line]、@racket['none] 或 @racket[#f]（未知）。关于 buffer modes 的更多信息，请参见 @secref["port-buffers"]。}
 
  ]
 }
