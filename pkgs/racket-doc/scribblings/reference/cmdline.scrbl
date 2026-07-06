@@ -3,7 +3,7 @@
           (for-label racket/cmdline)
           (only-in scribble/core element))
 
-@title{Command-Line Parsing}
+@title{命令行解析}
 
 @note-lib[racket/cmdline]
 
@@ -22,14 +22,14 @@
                             (code:line #:usage-help string ...)
                             (code:line #:help-labels string ...)
                             (code:line #:ps string ...)]
-                [flag-spec (flags id ... help-spec body ...+)
+                [flag-spec (flags id ... help-spec body ...)
                            (flags => handler-expr help-expr)]
                 [flags flag-string
                        (flag-string ...+)]
                 [help-spec string
                            (string-expr ...+)]
                 [finish-clause code:blank
-                               (code:line #:args arg-formals body ...+)
+                               (code:line #:args arg-formals body ...)
                                (code:line #:handlers handlers-exprs)]
                 [arg-formals rest-id
                              (arg ...)
@@ -41,151 +41,63 @@
                                 (code:line finish-expr arg-strings-expr help-expr
                                            unknown-expr)])]{
 
-Parses a command line according to the specification in the
-@racket[flag-clause]s.
+根据 @racket[flag-clause] 中的规范解析命令行。
 
-The @racket[name-expr], if provided, should produce a path or string
-to be used as the program name for reporting errors when the
-command-line is ill-formed. It defaults to @racket[(find-system-path
-'run-file)]. When a path is provided, only the last element of the
-path is used to report an error.
+如果提供了 @racket[name-expr]，它应生成一个路径或字符串，用于在命令行格式错误时作为程序名称报告错误。它默认为 @racket[(find-system-path 'run-file)]。当提供路径时，仅使用路径的最后一个元素来报告错误。
 
-The @racket[argv-expr], if provided, must evaluate to a list or a
-vector of strings. It defaults to
-@racket[(current-command-line-arguments)].
+如果提供了 @racket[argv-expr]，它必须评估为字符串列表或向量。它默认为 @racket[(current-command-line-arguments)]。
 
-The command-line is disassembled into flags, each possibly with
-flag-specific arguments, followed by (non-flag)
-arguments. Command-line strings starting with @litchar{-} or
-@litchar{+} are parsed as flags, but arguments to flags are never
-parsed as flags, and integers and decimal numbers that start with
-@litchar{-} or @litchar{+} are not treated as flags. Non-flag
-arguments in the command-line must appear after all flags and the
-flags' arguments. No command-line string past the first non-flag
-argument is parsed as a flag. The built-in @Flag{-} flag signals the
-end of command-line flags; any command-line string past the @Flag{-}
-flag is parsed as a non-flag argument.
+命令行被拆解为标志（每个标志可能有标志特定参数）后跟（非标志）参数。以 @litchar{-} 或 @litchar{+} 开头的命令行字符串被解析为标志，但标志的参数永远不会被解析为标志，以 @litchar{-} 或 @litchar{+} 开头的整数和十进制数字不被视为标志。命令行中的非标志参数必须出现在所有标志及其参数之后。第一个非标志参数之后的任何命令行字符串都不会被解析为标志。内置的 @Flag{-} 标志表示命令行标志的结束；@Flag{-} 标志之后的任何命令行字符串都被解析为非标志参数。
 
-A @racket[#:multi], @racket[#:once-each], @racket[#:once-any], or
-@racket[#:final] clause introduces a set of command-line flag
-specifications. The clause tag indicates how many times the flag can
-appear on the command line:
+@racket[#:multi]、@racket[#:once-each]、@racket[#:once-any] 或 @racket[#:final] 子句引入一组命令行标志规范。子句标签指示标志可以在命令行上出现的次数：
 
 @itemize[
 
- @item{@racket[#:multi] --- Each flag specified in the set can be
- represented any number of times on the command line; i.e., the flags
- in the set are independent and each flag can be used multiple times.}
+ @item{@racket[#:multi] --- 集合中指定的每个标志可以在命令行上出现任意次数；即集合中的标志是独立的，每个标志可以使用多次。}
 
- @item{@racket[#:once-each] --- Each flag specified in the set can be
- represented once on the command line; i.e., the flags in the set are
- independent, but each flag should be specified at most once. If a
- flag specification is represented in the command line more than once,
- the @exnraise[exn:fail].}
+ @item{@racket[#:once-each] --- 集合中指定的每个标志可以在命令行上出现一次；即集合中的标志是独立的，但每个标志最多应指定一次。如果标志规范在命令行中出现多次，则 @exnraise[exn:fail]。}
 
- @item{@racket[#:once-any] --- Only one flag specified in the set can
- be represented on the command line; i.e., the flags in the set are
- mutually exclusive. If the set is represented in the command line
- more than once, the @exnraise[exn:fail].}
+ @item{@racket[#:once-any] --- 集合中指定的只有一个标志可以在命令行上出现；即集合中的标志是互斥的。如果集合在命令行中出现多次，则 @exnraise[exn:fail]。}
 
- @item{@racket[#:final] --- Like @racket[#:multi], except that no
- argument after the flag is treated as a flag. Note that multiple
- @racket[#:final] flags can be specified if they have short names; for
- example, if @Flag{a} is a @racket[#:final] flag, then @Flag{aa} combines
- two instances of @Flag{a} in a single command-line argument.}
+ @item{@racket[#:final] --- 类似于 @racket[#:multi]，但标志之后的任何参数都不被视为标志。注意，如果 @racket[#:final] 标志有短名称，则可以指定多个；例如，如果 @Flag{a} 是 @racket[#:final] 标志，则 @Flag{aa} 在单个命令行参数中组合了两个 @Flag{a} 实例。}
 
 ]
 
-A normal flag specification has four parts:
+正常的标志规范有四个部分：
 
 @itemize[
 
- @item{@racket[flags] --- a flag string, or a set of flag strings.  If
- a set of flags is provided, all of the flags are equivalent.  Each
- flag string must be of the form
- @racketvalfont{"-}@racketvarfont{x}@racketvalfont{"} or
- @racketvalfont{"+}@racketvarfont{x}@racketvalfont{"} for some
- character @racketvarfont{x}, or
- @racketvalfont[@element[#f]{"--}]@racketvarfont{x}@racketvalfont{"} or
- @racketvalfont{"++}@racketvarfont{x}@racketvalfont{"} for some
- sequence of characters @racketvarfont{x}. An @racketvarfont{x} cannot
- contain only digits or digits plus a single decimal point, since
- simple (signed) numbers are not treated as flags. In addition, the
- flags @racket["--"], @racket["-h"], and @racket["--help"] are
- predefined and cannot be changed.}
+ @item{@racket[flags] --- 标志字符串或标志字符串集合。如果提供了一组标志，则所有标志都是等效的。每个标志字符串必须为 @racketvalfont{"-}@racketvarfont{x}@racketvalfont{"} 或 @racketvalfont{"+}@racketvarfont{x}@racketvalfont{"} 形式，其中字符为 @racketvarfont{x}，或为 @racketvarfont[@element[#f]{"--}]@racketvarfont{x}@racketvalfont{"} 或 @racketvarfont{"++}@racketvarfont{x}@racketvalfont{"} 形式，其中字符序列为 @racketvarfont{x}。@racketvarfont{x} 不能仅包含数字或数字加单个小数点，因为简单（有符号）数字不被视为标志。此外，标志 @racket["--"]、@racket["-h"] 和 @racket["--help"] 是预定义的，不能更改。}
 
- @item{@racket[id]s --- identifier that are bound to the flag's
- arguments. The number of identifiers determines how many arguments
- can be provided on the command line with the flag, and the names of
- these identifiers will appear in the help message describing the
- flag. The @racket[id]s are bound to string values in the
- @racket[body]s for handling the flag.}
+ @item{@racket[id]s --- 绑定到标志参数的标识符。标识符的数量确定可以在命令行上为该标志提供的参数数量，这些标识符的名称将出现在描述标志的帮助消息中。@racket[id]s 在用于处理标志的 @racket[body]s 中绑定到字符串值。}
 
- @item{@racket[help-spec] --- a string or sequence of strings that
- describes the flag. This string is used in the help message generated
- by the handler for the built-in @Flag{h} (or @DFlag{help}) flag. A
- single literal string can be provided, or any number of expressions
- that produce strings; in the latter case, strings after the first one
- are displayed on subsequent lines.}
+ @item{@racket[help-spec] --- 描述标志的字符串或字符串序列。此字符串由内置 @Flag{h}（或 @DFlag{help}）标志的处理程序生成的帮助消息中使用。可以提供单个字面字符串，或任意数量的生成字符串的表达式；在后一种情况下，第一个字符串之后的字符串显示在后续行上。}
 
- @item{@racket[body]s --- expressions that are evaluated when one of
- the @racket[flags] appears on the command line. The flags are parsed
- left-to-right, and each sequence of @racket[body]s is evaluated as
- the corresponding flag is encountered. When the @racket[body]s are
- evaluated, the preceding @racket[id]s are bound to the arguments
- provided for the flag on the command line.}
+ @item{@racket[body]s --- 当 @racket[flags] 之一出现在命令行上时评估的表达式。标志从左到右解析，每个 @racket[body]s 序列在遇到相应标志时评估。当评估 @racket[body]s 时，前面的 @racket[id]s 绑定到命令行上为该标志提供的参数。}
 
 ]
 
-A flag specification using @racket[=>] escapes to a more general
-method of specifying the handler and help strings. In this case, the
-handler procedure and help string list returned by
-@racket[handler-expr] and @racket[help-expr] are used as in the
-@racket[_table] argument of @racket[parse-command-line].
+使用 @racket[=>] 的标志规范转义到更通用的指定处理程序和帮助字符串的方法。在这种情况下，@racket[handler-expr] 和 @racket[help-expr] 返回的处理程序过程和帮助字符串列表用作 @racket[parse-command-line] 的 @racket[_table] 参数。
 
-A @racket[#:usage-help] clause inserts text lines immediately after
-the usage line.  Each string in the clause provides a separate line
-of text.
+@racket[#:usage-help] 子句在用例行之后立即插入文本行。子句中的每个字符串提供单独一行文本。
 
-A @racket[#:help-labels] clause inserts text lines into the help table
-of command-line flags. Each string in the clause provides a separate
-line of text.
+@racket[#:help-labels] 子句将文本行插入命令行标志的帮助表中。子句中的每个字符串提供单独一行文本。
 
-A @racket[#:ps] clause inserts text lines at the end of the help
-output. Each string in the clause provides a separate
-line of text.
+@racket[#:ps] 子句在帮助输出末尾插入文本行。子句中的每个字符串提供单独一行文本。
 
-After the flag clauses, a final clause handles command-line arguments
-that are not parsed as flags:
+在标志子句之后，最终子句处理未解析为标志的命令行参数：
 
 @itemize[
 
- @item{Supplying no finish clause is the same as supplying
- @racket[#:args () (void)].}
+ @item{不提供最终子句等同于提供 @racket[#:args () (void)]。}
 
- @item{For an @racket[#:args] finish clause, identifiers in
- @racket[arg-formals] are bound to the leftover command-line strings
- in the same way that identifiers are bound for a @racket[lambda]
- expression. Thus, specifying a single @racket[id] (without
- parentheses) collects all of the leftover arguments into a list. The
- effective arity of the @racket[arg-formals] specification determines
- the number of extra command-line arguments that the user can provide,
- and the names of the identifiers in @racket[arg-formals] are used in
- the help string. When the command-line is parsed, if the number of
- provided arguments cannot be matched to identifiers in
- @racket[arg-formals], the @exnraise[exn:fail]. Otherwise,
- @racket[args] clause's @racket[body]s are evaluated to handle the
- leftover arguments, and the result of the last @racket[body] is the
- result of the @racket[command-line] expression.}
+ @item{对于 @racket[#:args] 最终子句，@racket[arg-formals] 中的标识符绑定到剩余的命令行字符串，方式与 @racket[lambda] 表达式中标识符的绑定方式相同。因此，指定单个 @racket[id]（不带括号）将所有剩余参数收集到列表中。@racket[arg-formals] 规范的有效 arity 确定用户可以提供的额外命令行参数数量，@racket[arg-formals] 中标识符的名称用于帮助字符串。当解析命令行时，如果提供的参数数量无法匹配 @racket[arg-formals] 中的标识符，则 @exnraise[exn:fail]。否则，@racket[args] 子句的 @racket[body]s 被评估以处理剩余参数，最后一个 @racket[body] 的结果是 @racket[command-line] 表达式的结果。}
 
- @item{A @racket[#:handlers] finish clause escapes to a more general
- method of handling the leftover arguments. In this case, the values
- of the expressions are used like the last two to four arguments
- @racket[parse-command-line].}
+ @item{@racket[#:handlers] 最终子句转义到更通用的处理剩余参数的方法。在这种情况下，表达式的值用作 @racket[parse-command-line] 的最后两到四个参数。}
 
 ]
 
-Example:
+示例：
 
 @racketblock[
 (define verbose-mode (make-parameter #f))
@@ -215,7 +127,7 @@ Example:
    #:args (filename) (code:comment @#,t{expect one command-line argument: <filename>})
    (code:comment @#,t{return the argument as a filename to compile})
    filename))
-]}
+]
 
 @; ----------------------------------------------------------------------
 
@@ -228,94 +140,31 @@ Example:
                              [unknown-proc (string? . -> . any) (lambda (str) ...)])
          any]{
 
-Parses a command-line using the specification in @racket[table]. For
-an overview of command-line parsing, see the @racket[command-line]
-form, which provides a more convenient notation for most purposes.
+使用 @racket[table] 中的规范解析命令行。有关命令行解析的概述，参见 @racket[command-line] 形式，它为大多数目的提供了更方便的表示法。
 
-The @racket[table] argument to this procedural form encodes the
-information in @racket[command-line]'s clauses, except for the
-@racket[args] clause.  Instead, arguments are handled by the
-@racket[finish-proc] procedure, and help information about non-flag
-arguments is provided in @racket[arg-help-strs]. In addition, the
-@racket[finish-proc] procedure receives information accumulated while
-parsing flags. The @racket[help-proc] and @racket[unknown-proc]
-arguments allow customization that is not possible with
-@racket[command-line].
+此过程形式的 @racket[table] 参数编码 @racket[command-line] 子句中的信息，除了 @racket[args] 子句。相反，参数由 @racket[finish-proc] 过程处理，非标志参数的帮助信息在 @racket[arg-help-strs] 中提供。此外，@racket[finish-proc] 过程接收解析标志时累积的信息。@racket[help-proc] 和 @racket[unknown-proc] 参数允许无法通过 @racket[command-line] 实现的自定义。
 
-When there are no more flags, @racket[finish-proc] is called with a
-list of information accumulated for command-line flags (see below) and
-the remaining non-flag arguments from the command-line. The arity of
-@racket[finish-proc] determines the number of non-flag arguments
-accepted and required from the command-line. For example, if
-@racket[finish-proc] accepts either two or three arguments, then
-either one or two non-flag arguments must be provided on the
-command-line. The @racket[finish-proc] procedure can have any arity
-(see @racket[procedure-arity]) except @racket[0] or a list of
-@racket[0]s (i.e., the procedure must at least accept one or more
-arguments).
+当没有更多标志时，@racket[finish-proc] 调用时接收为命令行标志累积的信息列表（见下文）和命令行中剩余的非标志参数。@racket[finish-proc] 的 arity 确定接受和要求的非标志参数数量。例如，如果 @racket[finish-proc] 接受两或三个参数，则命令行上必须提供一或两个非标志参数。@racket[finish-proc] 过程可以有任何 arity（参见 @racket[procedure-arity]），除了 @racket[0] 或 @racket[0] 的列表（即过程必须至少接受一个或多个参数）。
 
-The @racket[arg-help-strs] argument is a list of strings identifying
-the expected (non-flag) command-line arguments, one for each
-argument. If an arbitrary number of arguments are allowed, the last
-string in @racket[arg-help-strs] represents all of them.
+@racket[arg-help-strs] 参数是标识预期（非标志）命令行参数的字符串列表，每个参数一个。如果允许任意数量的参数，@racket[arg-help-strs] 中的最后一个字符串代表所有这些参数。
 
-The @racket[help-proc] procedure is called with a help string if the
-@Flag{h} or @DFlag{help} flag is included on the command line.  If an
-unknown flag is encountered, the @racket[unknown-proc] procedure is
-called just like a flag-handling procedure (as described below); it
-must at least accept one argument (the unknown flag), but it may also
-accept more arguments. The default @racket[help-proc] displays the
-string and exits and the default @racket[unknown-proc] raises the
-@racket[exn:fail] exception.
+@racket[help-proc] 过程在命令行包含 @Flag{h} 或 @DFlag{help} 标志时调用帮助字符串。如果遇到未知标志，则 @racket[unknown-proc] 过程调用，就像标志处理过程一样（如下所述）；它必须至少接受一个参数（未知标志），但也可以接受更多参数。默认 @racket[help-proc] 显示字符串并退出，默认 @racket[unknown-proc] 引发 @racket[exn:fail] 异常。
 
-A @racket[table] is a list of flag specification sets. Each set is
-represented as a pair of two items: a mode symbol and a list of either
-help strings or flag specifications.  A mode symbol is one of
-@racket['once-each], @racket['once-any], @racket['multi],
-@racket['final], @racket['help-labels], @racket['usage-help], or
-@racket['ps] with the same meanings as the corresponding clause tags
-in @racket[command-line]. For the @racket['help-labels],
-@racket['usage-help] or @racket['ps] mode, a list of help strings is
-provided. For the other modes, a list of flag specifications is
-provided, where each specification maps a number of flags to a single
-handler procedure. A specification is a list of three items:
+@racket[table] 是标志规范集合的列表。每个集合表示为两个项目的对：模式符号和帮助字符串列表或标志规格列表。模式符号是 @racket['once-each]、@racket['once-any]、@racket['multi]、@racket['final]、@racket['help-labels]、@racket['usage-help] 或 @racket['ps] 之一，与 @racket[command-line] 中的相应子句标签含义相同。对于 @racket['help-labels]、@racket['usage-help] 或 @racket['ps] 模式，提供帮助字符串列表。对于其他模式，提供标志规格列表，其中每个规格将多个标志映射到单个处理程序过程。规格是三个项目的列表：
 
 @itemize[
 
- @item{A list of strings for the flags defined by the spec. See
- @racket[command-line] for information about the format of flag
- strings.}
+ @item{规格定义的标志字符串列表。参见 @racket[command-line] 了解标志字符串的格式信息。}
 
- @item{A procedure to handle the flag and its arguments when one of
- the flags is found on the command line. The arity of this handler
- procedure determines the number of arguments consumed by the flag:
- the handler procedure is called with a flag string plus the next few
- arguments from the command line to match the arity of the handler
- procedure. The handler procedure must accept at least one argument to
- receive the flag. If the handler accepts arbitrarily many arguments,
- all of the remaining arguments are passed to the handler.  A handler
- procedure's arity must either be a number or an
- @racket[arity-at-least] value.
+ @item{当在命令行上找到标志时处理标志及其参数的过程。此处理程序过程的 arity 确定标志消耗的参数数量：处理程序过程调用时传入标志字符串加上命令行中接下来的几个参数，以匹配处理程序过程的 arity。处理程序过程必须至少接受一个参数以接收标志。如果处理程序接受任意多个参数，则所有剩余参数传递给处理程序。处理程序过程的 arity 必须是数字或 @racket[arity-at-least] 值。
 
- The return value from the handler is added to a list that is
- eventually passed to @racket[finish-proc]. If the handler returns
- @|void-const|, no value is added onto this list. For all
- non-@|void-const| values returned by handlers, the order of the
- values in the list is the same as the order of the arguments on the
- command-line.}
+ 处理程序的返回值添加到最终传递给 @racket[finish-proc] 的列表中。如果处理程序返回 @|void-const|，则不向此列表添加任何值。对于处理程序返回的所有非 @|void-const| 值，列表中值的顺序与命令行上参数的顺序相同。}
 
- @item{A non-empty list for constructing help information for the
- spec. The first element of the list describes the flag; it can be a
- string or a non-empty list of strings, and in the latter case, each
- string is shown on its own line. Additional elements of the main
- list must be strings to name the expected arguments for the flag. The
- number of extra help strings provided for a spec must match the
- number of arguments accepted by the spec's handler procedure.}
+ @item{用于为规格构造帮助信息的非空列表。列表的第一个元素描述标志；它可以是字符串或非空字符串列表，在后一种情况下，每个字符串显示在单独一行上。主列表的其他元素必须是命名标志预期参数的字符串。规格提供的额外帮助字符串数量必须与规格处理程序过程接受的参数数量匹配。}
 
 ]
 
-The following example is the same as the core example for
-@racket[command-line], translated to the procedural form:
+以下示例是与 @racket[command-line] 的核心示例相同，转换为过程形式：
 
 @racketblock[
 (parse-command-line "compile" (current-command-line-arguments)
@@ -337,7 +186,7 @@ The following example is the same as the core example for
     (multi
      [("-l" "--link-flags")
       ,(lambda (flag lf) (link-flags (cons lf (link-flags))))
-      ("Add a flag <lf> for the linker" "lf")]))
+      ("Add a flag <lf> for the linker" "lf"))])
    (lambda (flag-accum file) file)
    '("filename"))
-]}
+]
