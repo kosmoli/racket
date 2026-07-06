@@ -12,11 +12,7 @@
                                           (syntax-local-phase-level)])
          boolean?]{
 
-Returns @racket[#t] if the identifier @racket[a-id] would bind
-@racket[b-id] (or vice versa) if the identifiers were substituted in a
-suitable expression context at the @tech{phase level} indicated by
-@racket[phase-level], @racket[#f] otherwise. A @racket[#f] value for
-@racket[phase-level] corresponds to the @tech{label phase level}.
+如果标识符 @racket[a-id] 在由 @racket[phase-level] 指示的 @tech{phase level} 的合适表达式上下文中替换时会绑定 @racket[b-id]（或反之），返回 @racket[#t]，否则返回 @racket[#f]。@racket[phase-level] 的 @racket[#f] 值对应于 @tech{label phase level}。
 
 @examples[
 #:eval stx-eval
@@ -40,20 +36,9 @@ suitable expression context at the @tech{phase level} indicated by
                                            a-phase-level])
          boolean?]{
 
-Returns @racket[#t] if @racket[a-id] and @racket[b-id] access the same
-@tech{local binding}, @tech{module binding}, or @tech{top-level
-binding}---perhaps via @tech{rename transformers}---at the @tech{phase
-levels} indicated by @racket[a-phase-level] and
-@racket[b-phase-level], respectively. A @racket[#f] value for
-@racket[a-phase-level] or @racket[b-phase-level] corresponds to the
-@tech{label phase level}.
+如果 @racket[a-id] 和 @racket[b-id] 在 @racket[a-phase-level] 和 @racket[b-phase-level] 指示的 @tech{phase levels} 上访问相同的 @tech{local binding}、@tech{module binding} 或 @tech{top-level binding}（可能通过 @tech{rename transformers}），返回 @racket[#t]。@racket[a-phase-level] 或 @racket[b-phase-level] 的 @racket[#f] 值对应于 @tech{label phase level}。
 
-``Same module binding'' means that the identifiers refer to the same
-original definition site, and not necessarily to the same
-@racket[require] or @racket[provide] site. Due to renaming in
-@racket[require] and @racket[provide], or due to a transformer binding
-to a @tech{rename transformer}, the identifiers may return distinct
-results with @racket[syntax-e].
+"相同的 module binding" 标识符指的是相同的原始定义位置，而不一定是相同的 @racket[require] 或 @racket[provide] 位置。由于在 @racket[require] 和 @racket[provide] 中的重命名，或者由于绑定到 @tech{rename transformer} 的 transformer binding，标识符可能通过 @racket[syntax-e] 返回不同的结果。
 
 @examples[
 #:eval stx-eval
@@ -73,25 +58,21 @@ results with @racket[syntax-e].
 
 @defproc[(free-transformer-identifier=? [a-id identifier?] [b-id identifier?]) boolean?]{
 
-Same as @racket[(free-identifier=? a-id b-id (add1 (syntax-local-phase-level)))].}
+与 @racket[(free-identifier=? a-id b-id (add1 (syntax-local-phase-level)))] 相同。}
 
 @defproc[(free-template-identifier=? [a-id identifier?] [b-id identifier?]) boolean?]{
 
-Same as @racket[(free-identifier=? a-id b-id (sub1 (syntax-local-phase-level)))].}
+与 @racket[(free-identifier=? a-id b-id (sub1 (syntax-local-phase-level)))] 相同。}
 
 @defproc[(free-label-identifier=? [a-id identifier?] [b-id identifier?]) boolean?]{
 
-Same as @racket[(free-identifier=? a-id b-id #f)].}
+与 @racket[(free-identifier=? a-id b-id #f)] 相同。}
 
 
 @defproc[(check-duplicate-identifier [ids (listof identifier?)])
          (or/c identifier? #f)]{
 
-Compares each identifier in @racket[ids] with every other identifier
-in the list with @racket[bound-identifier=?]. If any comparison
-returns @racket[#t], one of the duplicate identifiers is returned (the
-first one in @racket[ids] that is a duplicate), otherwise the result
-is @racket[#f].}
+使用 @racket[bound-identifier=?] 将 @racket[ids] 中的每个标识符与列表中的其他每个标识符进行比较。如果任何比较返回 @racket[#t]，则返回其中一个重复的标识符（@racket[ids] 中第一个重复的），否则结果为 @racket[#f]。}
 
 
 @defproc[(identifier-binding [id-stx identifier?]
@@ -110,110 +91,45 @@ is @racket[#f].}
                        phase+space?)
                (list/c symbol?))]{
 
-Returns one of three (if @racket[top-level-symbol?] is @racket[#f])
-or four (if @racket[top-level-symbol?] is true) kinds of values, depending on the binding of
-@racket[id-stx] at the @tech{phase level} indicated by
-@racket[phase-level] (where a @racket[#f] value for
-@racket[phase-level] corresponds to the @tech{label phase level}):
+根据 @racket[id-stx] 在 @racket[phase-level] 指示的 @tech{phase level}（其中 @racket[phase-level] 的 @racket[#f] 值对应于 @tech{label phase level}）的绑定，返回三种（如果 @racket[top-level-symbol?] 为 @racket[#f]）或四种（如果 @racket[top-level-symbol?] 为真）值：
 
 @itemize[ 
 
-      @item{The result is @indexed-racket['lexical] if @racket[id-stx]
-      has a @tech{local binding}.}
+      @item{如果 @racket[id-stx] 有 @tech{local binding}，结果为 @indexed-racket['lexical]。}
 
-      @item{The result is a list of seven items when @racket[id-stx]
-      has a @tech{module binding}: @racket[(list _from-mod _from-sym
-      _nominal-from-mod _nominal-from-sym _from-phase _import-phase+space-shift
-      _nominal-export-phase)].
+      @item{如果 @racket[id-stx] 有 @tech{module binding}，结果是一个七项列表：@racket[(list _from-mod _from-sym _nominal-from-mod _nominal-from-sym _from-phase _import-phase+space-shift _nominal-export-phase)]。
 
         @itemize[
 
-        @item{@racket[_from-mod] is a module path index (see
-        @secref["modpathidx"]) that indicates the defining module. It
-        is the ``self'' module path index if the binding refers to a
-        definition in the enclosing module of @racket[id-stx].}
+        @item{@racket[_from-mod] 是一个 module path index（参见 @secref["modpathidx"]），指示定义模块。如果绑定指向 @racket[id-stx] 的封闭模块中的定义，则为 "self" module path index。}
 
-        @item{@racket[_from-sym] is a symbol for the identifier's name
-        at its definition site in the originating module. This can be
-        different from the local name returned by
-        @racket[syntax->datum] for several reasons: the identifier is
-        renamed on import, it is renamed on export, or it is
-        implicitly renamed because the binding site was generated by a
-        macro invocation. In that last case, it may be an
-        @tech{unreadable symbol}, and it may be different from the
-        result of @racket[syntax->datum] on the identifier in the
-        original source definition.}
+        @item{@racket[_from-sym] 是一个符号，表示标识符在源模块定义位置的名称。由于以下原因，这可能与 @racket[syntax->datum] 返回的本地名称不同：标识符在 import 时被重命名，在 export 时被重命名，或者因为绑定位置由 macro invocation 生成而隐式重命名。最后一种情况下，它可能是 @tech{unreadable symbol}，并且可能与在原始 source definition 上调用 @racket[syntax->datum] 的结果不同。}
 
-        @item{@racket[_nominal-from-mod] is a module path index (see
-        @secref["modpathidx"]) that indicates the binding's module as
-        it appears locally in the source around @racket[id-stx]: it
-        indicates a module @racket[require]d into the context of
-        @racket[id-stx] to provide its binding, or it is the same
-        ``self'' as @racket[_from-mod] for a binding that refers to a
-        definition in the enclosing module of @racket[id-stx]. It can
-        be different from @racket[_from-mod] due to a re-export in
-        @racket[_nominal-from-mod] of some imported identifier. If the
-        same binding is imported in multiple ways, an arbitrary
-        representative is chosen.}
+        @item{@racket[_nominal-from-mod] 是一个 module path index（参见 @secref["modpathidx"]），指示绑定模块在 @racket[id-stx] 周围的 source 中本地显示的方式：它指示被 @racket[require] 到 @racket[id-stx] 的上下文中以提供其绑定的模块，或者对于指向 @racket[id-stx] 的封闭模块中定义的绑定，指示与 @racket[_from-mod] 相同。它可能与 @racket[_from-mod] 不同，因为 @racket[_nominal-from-mod] 重新导入了某些标识符。如果同一绑定以多种方式导入，则选择一个代表性绑定。}
 
-        @item{@racket[_nominal-from-sym] is a symbol for the binding's
-        identifier as it appears locally in the source around
-        @racket[id-stx]: it is the identifier's name as exported by
-        @racket[_nominal-from-mod], or it is the source identifier's
-        symbol for a definition within the enclosing module of
-        @racket[id-stx]. It can be different from @racket[_from-sym]
-        due to a renaming @racket[provide], even if @racket[_from-mod]
-        and @racket[_nominal-from-mod] are the same, or due to a
-        definition that was introduced by a macro expansion.}
+        @item{@racket[_nominal-from-sym] 是一个符号，表示绑定的标识符在 @racket[id-stx] 周围的 source 中本地显示的方式：它是 @racket[_nominal-from-mod] 导出的标识符的名称，或者对于 @racket[id-stx] 的封闭模块内的定义，它是源标识符的 symbol。它可能与 @racket[_from-sym] 不同，因为 @racket[provide] 重命名，即使 @racket[_from-mod] 和 @racket[_nominal-from-mod] 相同，或者因为定义是由 macro expansion 引入的。}
 
-        @item{@racket[_from-phase] is an exact non-negative integer
-        representing the originating phase. For example, it is
-        @racket[1] if the definition is for-syntax.}
+        @item{@racket[_from-phase] 是一个精确的表示起始 phase 的非负整数。例如，如果定义是 for-syntax，则为 @racket[1]。}
 
-        @item{@racket[_import-phase+space-shift] is @racket[0] if the binding
-        import of @racket[_nominal-from-mode] is from a definition
-        or a plain @racket[require], @racket[1] if it is from a
-        @racket[for-syntax] import, a phase combined with a space name if it
-        is from a @racket[for-space] import, etc.}
+        @item{@racket[_import-phase+space-shift] 在 @racket[_nominal-from-mode] 的定义或 plain @racket[require] 导入绑定时为 @racket[0]，在 @racket[for-syntax] 导入时为 @racket[1]，在带有 phase 和 space 的 @racket[for-space] 导入时为 phase 与 space 的组合，等等。}
 
-        @item{@racket[_nominal-export-phase+space] is the @tech{phase level}
-        and @tech{binding space}
-        of the export from @racket[_nominal-from-mod] for an
-        imported binding, or it is the phase level of the definition for a
-        binding from the enclosing module of @racket[id-stx].}
+        @item{@racket[_nominal-export-phase+space] 是从导入绑定的 @racket[_nominal-from-mod] 导出的 @tech{phase level} 和 @tech{binding space}，或者是 @racket[id-stx] 封闭模块中定义的 phase level。}
 
         ]}
 
-      @item{The result is @racket[(list _top-sym)] if @racket[id-stx]
-            has a @tech{top-level binding} and
-            @racket[top-level-symbol?] is true. The @racket[_top-sym]
-            can be different from the name returned by
-            @racket[syntax->datum] when the binding definition was
-            generated by a macro invocation.}
+      @item{如果 @racket[id-stx] 有 @tech{top-level binding} 且 @racket[top-level-symbol?] 为真，结果为 @racket[(list _top-sym)]。当绑定定义由 macro invocation 生成时，@racket[_top-sym] 可能与 @racket[syntax->datum] 返回的名称不同。}
 
-      @item{The result is @racket[#f] if @racket[id-stx] has a
-            @tech{top-level binding} and @racket[top-level-symbol?] is
-            @racket[#f] or if @racket[id-stx] is @tech{unbound}. An
-            unbound identifier is typically treated the same as an
-            identifier whose top-level binding is a variable.}
+      @item{如果 @racket[id-stx] 有 @tech{top-level binding} 且 @racket[top-level-symbol?] 为 @racket[#f]，或者 @racket[id-stx] 是 @tech{unbound}，结果为 @racket[#f]。未绑定的标识符通常被视为顶级绑定为变量的标识符。}
 
       ]
 
-If @racket[id-stx] is bound to a @tech{rename-transformer}, the result
-from @racket[identifier-binding] is for the identifier in the
-transformer, so that @racket[identifier-binding] is consistent with
-@racket[free-identifier=?].
+如果 @racket[id-stx] 绑定到 @tech{rename-transformer}，@racket[identifier-binding] 的结果是关于 transformer 中的标识符的，以便 @racket[identifier-binding] 与 @racket[free-identifier=?] 一致。
 
-If @racket[exact-scopes?] is a true value, then the result is
-@racket[#f] unless the binding for @racket[id-stx] has exactly the
-@tech{scopes} of @racket[id-stx]. An exact-scopes check is useful for
-detecting whether an identifier is already bound in a specific
-definition context, for example.
+如果 @racket[exact-scopes?] 为真值，则除非 @racket[id-stx] 的绑定具有与 @racket[id-stx] 完全相同的 @tech{scopes}，否则结果为 @racket[#f]。exact-scopes 检查可用于检测标识符是否已在特定定义上下文中绑定。
 
-@history[#:changed "6.6.0.4" @elem{Added the @racket[top-level-symbol?] argument to report
-                                   information on top-level bindings.}
-        #:changed "8.2.0.3" @elem{Generalized phase results to phase--space combinations.}
-        #:changed "8.6.0.9" @elem{Added the @racket[exact-scopes?] argument.}]}
+@history[#:changed "6.6.0.4" @elem{添加了 @racket[top-level-symbol?] 参数以报告 top-level bindings 的信息。}
+        #:changed "8.2.0.3" @elem{将 phase 结果推广为 phase--space 组合。}
+        #:changed "8.6.0.9" @elem{添加了 @racket[exact-scopes?] 参数。}]}
 
 
 @defproc[(identifier-transformer-binding [id-stx identifier?]
@@ -229,9 +145,9 @@ definition context, for example.
                        phase+space-shift?
                        phase+space?))]{
 
-Same as @racket[(identifier-binding id-stx (and rt-phase-level (add1 rt-phase-level)))].
+与 @racket[(identifier-binding id-stx (and rt-phase-level (add1 rt-phase-level)))] 相同。
 
-@history[#:changed "8.2.0.3" @elem{Generalized phase results to phase--space combinations.}]}
+@history[#:changed "8.2.0.3" @elem{将 phase 结果推广为 phase--space 组合。}]}
 
 
 @defproc[(identifier-template-binding [id-stx identifier?])
@@ -245,9 +161,9 @@ Same as @racket[(identifier-binding id-stx (and rt-phase-level (add1 rt-phase-le
                        phase+space-shift?
                        phase+space?))]{
 
-Same as @racket[(identifier-binding id-stx (sub1 (syntax-local-phase-level)))].
+与 @racket[(identifier-binding id-stx (sub1 (syntax-local-phase-level)))] 相同。
 
-@history[#:changed "8.2.0.3" @elem{Generalized phase results to phase--space combinations.}]}
+@history[#:changed "8.2.0.3" @elem{将 phase 结果推广为 phase--space 组合。}]}
 
 
 @defproc[(identifier-label-binding [id-stx identifier?])
@@ -261,9 +177,9 @@ Same as @racket[(identifier-binding id-stx (sub1 (syntax-local-phase-level)))].
                        phase+space-shift?
                        phase+space?))]{
 
-Same as @racket[(identifier-binding id-stx #f)].
+与 @racket[(identifier-binding id-stx #f)] 相同。
 
-@history[#:changed "8.2.0.3" @elem{Generalized phase results to phase--space combinations.}]}
+@history[#:changed "8.2.0.3" @elem{将 phase 结果推广为 phase--space 组合。}]}
 
 
 @defproc[(identifier-distinct-binding [id-stx identifier?]
@@ -282,15 +198,10 @@ Same as @racket[(identifier-binding id-stx #f)].
                        phase+space?)
                (list/c symbol?))]{
 
-Like @racket[(identifier-binding id-stx phase-level top-level-symbol?)], but the result
-is @racket[#f] if the binding for @racket[id-stx] has scopes that are
-a subset of the scopes for @racket[wrt-id-stx]. That is, if
-@racket[id-stx] and @racket[wrt-id-stx] have the same symbolic name, a
-binding for @racket[id-stx] is returned only if the binding does not
-also apply to @racket[wrt-id-stx].
+类似于 @racket[(identifier-binding id-stx phase-level top-level-symbol?)]，但如果 @racket[id-stx] 的绑定具有的作用域是 @racket[wrt-id-stx] 作用域的子集，则结果为 @racket[#f]。即，如果 @racket[id-stx] 和 @racket[wrt-id-stx] 具有相同的符号名称，则仅当该绑定不适用于 @racket[wrt-id-stx] 时，才返回 @racket[id-stx] 的绑定。
 
 @history[#:added "8.3.0.8"
-         #:changed "8.8.0.2" @elem{Added the @racket[top-level-symbol?] argument.}]}
+         #:changed "8.8.0.2" @elem{添加了 @racket[top-level-symbol?] 参数。}]}
 
 
 @defproc[(identifier-binding-symbol [id-stx identifier?]
@@ -298,16 +209,9 @@ also apply to @racket[wrt-id-stx].
                                                  (syntax-local-phase-level)])
          symbol?]{
 
-Like @racket[identifier-binding], but produces a symbol that
-corresponds to the binding. The symbol result is the same for any
-identifiers that are @racket[free-identifier=?], but the result may
-also be the same for identifiers that are not
-@racket[free-identifier=?] (i.e., different symbols imply different
-bindings, but the same symbol does not imply the same binding).
+类似于 @racket[identifier-binding]，但产生一个对应于绑定的 symbol。symbol 结果对任何 @racket[free-identifier=?] 的标识符都相同，但对于非 @racket[free-identifier=?] 的标识符也可能相同（即，不同的 symbol 意味着不同的绑定，但相同的 symbol 并不意味着相同的绑定）。
 
-When @racket[identifier-binding] would produce a list, then the second
-element of that list is the result that
-@racket[identifier-binding-symbol] produces.}
+当 @racket[identifier-binding] 产生一个列表时，该列表的第二个元素就是 @racket[identifier-binding-symbol] 产生的结果。}
 
 
 @defproc[(identifier-binding-portal-syntax [id-stx identifier?]
@@ -315,12 +219,7 @@ element of that list is the result that
                                                         (syntax-local-phase-level)])
          (or/c #f syntax?)]{
 
-If @racket[id-stx] is bound at @racket[phase-level] to @tech{portal
-syntax}, either via @racket[define-syntax] or @racket[#%require], then
-the portal syntax content is returned. The module that binds
-@racket[id-stx] must be declared, but it need not be instantiated at
-the relevant phase, and @racket[identifier-binding-portal-syntax] does
-not instantiate the module.
+如果 @racket[id-stx] 在 @racket[phase-level] 绑定到 @tech{portal syntax}（无论是通过 @racket[define-syntax] 还是 @racket[#%require]），则返回 portal syntax 的内容。绑定 @racket[id-stx] 的模块必须被声明，但不需要在相关 phase 实例化，@racket[identifier-binding-portal-syntax] 不会实例化模块。
 
 @history[#:added "8.3.0.8"]}
 
@@ -330,14 +229,10 @@ not instantiate the module.
                                [exact-scopes? any/c #f])
          (listof symbol?)]{
 
-Returns a list of all @tech{interned} symbols for which
-@racket[(identifier-binding (datum->syntax stx _sym) phase-level #f exact-scopes?)]
-would produce a non-@racket[#f] value. This procedure takes time
-proportional to the number of scopes on @racket[stx] plus the length
-of the result list.
+返回所有 @tech{interned} symbols 的列表，对于这些 symbols，@racket[(identifier-binding (datum->syntax stx _sym) phase-level #f exact-scopes?)] 会产生一个非 @racket[#f] 值。此过程所花的时间与 @racket[stx] 的 scopes 数量加上结果列表的长度成正比。
 
 @history[#:added "8.6.0.6"
-         #:changed "8.6.0.9" @elem{Added the @racket[exact-scopes?] argument.}]}
+         #:changed "8.6.0.9" @elem{添加了 @racket[exact-scopes?] 参数。}]}
 
 
 @defproc[(syntax-bound-interned-scope-symbols [stx syntax?]
@@ -346,11 +241,7 @@ of the result list.
                                               [exact-scopes? any/c #f])
          (listof symbol?)]{
 
-Returns a list of @racket[_sym] names of @tech{interned scopes} for which
-@racket[(identifier-binding ((make-interned-syntax-introducer _sym) stx) phase-level #f exact-scopes?)]
-could produce a non-@racket[#f] value. This procedure takes time
-proportional to the number of scopes on @racket[stx] plus the length
-of the result list.
+返回所有 @tech{interned scopes} 的 @racket[_sym] 名称的列表，对于这些名称，@racket[(identifier-binding ((make-interned-syntax-introducer _sym) stx) phase-level #f exact-scopes?)] 可能会产生一个非 @racket[#f] 值。此过程所花的时间与 @racket[stx] 的 scopes 数量加上结果列表的长度成正比。
 
 @history[#:added "8.13.0.8"]}
 
@@ -358,9 +249,7 @@ of the result list.
 @defproc[(syntax-bound-phases [stx syntax?])
          (listof (or/c exact-integer? #f))]{
 
-Returns a list that includes all @racket[_phase-level]s for which
-@racket[(syntax-bound-symbols stx _phase-level)] might produce a
-non-empty list.
+返回一个列表，包含所有 @racket[_phase-level]s，对于这些 levels，@racket[(syntax-bound-symbols stx _phase-level)] 可能会产生非空列表。
 
 @examples[
 #:eval stx-eval
