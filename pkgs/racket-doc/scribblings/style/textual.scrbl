@@ -6,21 +6,15 @@
   (good form code ...)
   (racketmod #:file (tt "good") racket form code ...))
 
-@title{Textual Matters}
+@title{文本规范}
 
-Simple textual conventions help eyes find pieces of code quickly. Here are
-some of those that are easy to check---some automatically and some
-manually. If you find yourself editing a file that violates some of the
-constraints below, edit it into the proper
-shape. @margin-note{@bold{Warning}: On rare occasion a unit test may depend
-on the indentation of a file. This is extremely rare and must be noted at
-the top so that readers do not accidentally re-indent the file.}
+简单的文本约定有助于快速定位代码片段。以下是一些易于检查的约定——部分可自动检查，部分需手动检查。如果你发现自己正在编辑的文件违反了以下某些约束，请将其修改为正确的
+格式。@margin-note{@bold{警告}：极少数情况下，单元测试可能依赖于文件的缩进。这种情况极为罕见，必须在文件顶部注明，以免读者意外重新缩进该文件。}
 
 @; -----------------------------------------------------------------------------
-@section{Where to Put Parentheses}
+@section{括号的位置}
 
-Racket isn't C. Put all closing parentheses on one line, the last line of
-your code.
+Racket 不是 C。将所有右括号放在同一行，即代码的最后一行。
 
 @compare0[#:right "really bad"
  @racketmod0[
@@ -37,8 +31,7 @@ your code.
  }
 ]
 
-You are allowed to place all closing parenthesis on a line by itself at the
-end of long sequences, be those definitions or pieces of data.
+允许将全部右括号单独放在一行，位于长序列（无论是定义还是数据）的末尾。
 
 @compare0[#:left "acceptable" #:right "also acceptable"
  @racketmod0[
@@ -67,22 +60,18 @@ end of long sequences, be those definitions or pieces of data.
      ))
  }
 ]
- Doing so is most useful when you expect to add, delete, or swap items in
- such sequences.
+ 这样做在你预期会添加、删除或交换序列中的项时最为有用。
 
 @; -----------------------------------------------------------------------------
 @section{Indentation}
 
-DrRacket indents code and it is the only tool that everyone in PLT agrees
- on. So use DrRacket's indentation style. Here is what this means.
+DrRacket 会对代码进行缩进，它是 PLT 中所有人都认同的唯一工具。因此要使用 DrRacket 的缩进风格。其含义如下。
  @nested[#:style 'inset]{
- For every file in the repository, DrRacket's "indent all" functions leaves
- the file alone.}
+ 对于仓库中的每个文件，DrRacket 的"indent all"功能不会动该文件。}
 
-If you prefer to use some other editor (emacs, vi/m, etc), program it so
-that it follows DrRacket's indentation style.
+如果你偏好使用其他编辑器（emacs、vi/m 等），请将其配置为遵循 DrRacket 的缩进风格。
 
-Examples:
+示例：
 
 @compare0[
  @racketmod0[
@@ -104,58 +93,39 @@ Examples:
  ]
 ]
 
-@bold{Caveat 1}: Until language specifications come with fixed indentation
-rules, we need to use the @emph{default} settings of DrRacket's indentation
-for this rule to make sense. If you add new constructs, say a for loop,
-please contact Robby for advice on how to add a default setting for the
-indentation functionality. If you add entire languages, say something on
-the order of Typed Racket, see
-@seclink[#:indirect? #t #:doc '(lib "scribblings/tools/tools.scrbl") "lang-languages-customization"]{@elem{DrRacket support for @tt{#lang}-based Languages}}
-for how to implement tabbing.
+@bold{注意事项 1}：直到语言规范自带固定的缩进规则之前，我们需要使用 DrRacket 缩进的 @emph{默认}设置，这条规则才有意义。如果你添加了新构造，比如 for 循环，请联系 Robby 获取如何为缩进功能添加默认设置的建议。如果你添加了完整的语言，比如 Typed Racket，参见
+@seclink[#:indirect? #t #:doc '(lib "scribblings/tools/tools.scrbl") "lang-languages-customization"]{@elem{DrRacket 对 @tt{#lang}-based Languages 的支持}}
+了解如何实现 tab 缩进。
 
-@bold{Caveat 2}: This rule does not apply to scribble code.
+@bold{注意事项 2}：此规则不适用于 scribble 代码。
 
 @; -----------------------------------------------------------------------------
-@section{Tabs}
+@section{制表符}
 
-Do not use tab characters in your code.  Tabs make it hard to use textual
- tools like Git or diff effectively.  To disable tabs,
+不要在代码中使用制表符。制表符会使 Git 或 diff 等文本难以有效使用。要禁用制表符：
 @itemlist[
-@item{in DrRacket: you are all set. It doesn't insert tabs.}
-@item{in Emacs: add @tt{(setq indent-tabs-mode nil)} to your emacs initialization file.}
-@item{in vi: @tt{:set expandtab}}
+@item{在 DrRacket 中：已默认关闭，不会插入制表符。}
+@item{在 Emacs 中：在初始化文件中添加 @tt{(setq indent-tabs-mode nil)}。}
+@item{在 vi 中：@tt{:set expandtab}}
 ]
 
 @; -----------------------------------------------------------------------------
-@section{Line Width}
+@section{行宽}
 
-A line in a Racket file is at most @LINEWIDTH[] characters wide.
+Racket 文件中每行最多 @LINEWIDTH[] 个字符宽。
 
-If you prefer a narrower width than @LINEWIDTH[], and if you stick to this
-width ``religiously,'' add a note to the top of the file---right below the
-purpose statement---that nobody should violate your file-local rule.
+如果你希望宽度小于 @LINEWIDTH[]，并且会"严格遵守"这一宽度，请在文件顶部——紧接在目的说明之后——添加一条注释，说明不要违反你的文件本地规则。
 
-This number is a compromise. People used to recommend a line width of 80 or
-72 column. The number is a historical artifact. It is also a good number
-for several different reasons: printing code in text mode, displaying code
-at reasonable font sizes, comparing several different pieces of code on a
-monitor, and possibly more. So age doesn't make it incorrect. We regularly
-read code on monitors that accommodate close to 250 columns, and on
-occasion, our monitors are even wider. It is time to allow for somewhat
-more width in exchange for meaningful identifiers.
+这个数字是一个折中方案。过去人们推荐 80 或 72 列的宽度。该数字是历史遗迹。出于多种不同原因它也是一个好数字：在文本模式下打印代码、在合理字体大小下显示代码、在监视器上比较多个不同代码片段等等。因此年代久远不代表它不正确。我们经常在接近 250 列的监视器上阅读代码，有时甚至更宽。现在可以在有意义的标识符方面允许稍多一些宽度。
 
-So, when you create a file, add a line with @litchar{;; } followed by ctrl-U 99
-and @litchar{-}. @margin-note*{In Vi, the command is 99a- followed by Esc.} When
-you separate "sections" of code in a file, insert the same line. These lines
-help both writers and readers to orient themselves in a file. In Scribble use
-@litchar|{@; }| as the prefix.
+因此，创建文件时，添加一个包含 @litchar{;; } 的行后跟 ctrl-U 99 和 @litchar{-}。@margin-note*{在 Vi 中，命令为 99a- 后跟 Esc。}当你在文件中分隔代码"段"时，插入同样的行。这些行帮助写作者和读者在文件中定位。在 Scribble 中使用 @litchar|{@; }| 作为前缀。
 
 @; -----------------------------------------------------------------------------
-@section{Line Breaks}
+@section{换行}
 
-Next to indentation, proper line breaks are critical.
+除了缩进之外，正确的换行至关重要。
 
-For an @scheme[if] expression, put each alternative on a separate line.
+对于 @scheme[if] 表达式，将每个分支放在单独一行。
 
 @compare0[
 @racketmod0[
@@ -174,8 +144,7 @@ racket
 ]
 ]
 
-It is acceptable to have an entire @racket[if] expressions on one line if
-it fits within the specified line width (@LINEWIDTH[]):
+如果整个 @racket[if] 表达式能容纳在指定的行宽 (@LINEWIDTH[]) 内，则可以将其放在一行：
 @codebox0[#:label "also good"
 @racketmod0[
 racket
@@ -184,7 +153,7 @@ racket
 ]
 ]
 
-Each definition and each local definition deserves at least one line.
+每个定义和每个局部定义都应独占一行。
 
 @compare0[
 @racketmod0[
@@ -205,9 +174,7 @@ racket
 ]
 ]
 
-All of the arguments to a function belong on a single line unless the line
-becomes too long, in which case you want to put each argument expression on
-its own line
+函数的所有参数应在同一行，除非该行太长，此时应将每个参数表达式单独放在一行：
 
 @compare0[
 @racketmod0[
@@ -231,7 +198,7 @@ racket
 
 ]]
 
-Here is an exception:
+这是一个例外：
 @codebox0[
 @racketmod0[
 racket
@@ -240,15 +207,13 @@ racket
                 10 10
                 (rectangle 10 100 "solid" "red"))
 ]]
- In this case, the two arguments on line 2 are both conceptually
- related and short.
+ 在这种情况下，第 2 行的两个参数概念上相关且较短。
 
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "names"]{Names}
+@section[#:tag "names"]{命名}
 
-Use meaningful names. The Lisp convention is to use full English words
-separated by dashes. Racket code benefits from the same convention.
+使用有意义的名称。Lisp 约定是用完整的英文单词以连字符分隔。Racket 代码同样遵循此约定。
 
 @compare0[
 @;%
@@ -273,19 +238,15 @@ sendMessageToClient
 traverse_forest)
 ]
 @;
- Note that _ (the underline character) is also classified as bad
- Racketeering within names. It is an acceptable placeholder in syntax
- patterns, match patterns, and parameters that don't matter.
+ 注意，_（下划线）在命名中被视为不良风格。在 syntax pattern、match pattern 和不重要的参数中，它是可接受的占位符。
 
-Another widely used convention is to @emph{prefix} a function name with the data
- type of the main argument. This convention generalizes the selector-style
- naming scheme of @racket[struct].
+另一种广泛使用的约定是在函数名 @emph{前缀}中使用主参数的数据类型。这种约定是 @racket[struct] 选择器式命名方案的推广。
 @codebox0[
 (racketmod0
 racket
 
 board-free-spaces      board-closed-spaces    board-serialize)]
- In contrast, variables use a @emph{suffix} that indicates their type:
+ 相反，variables 使用 @emph{后缀}来表示其类型：
 @codebox0[
 (racketmod0
 racket
@@ -296,56 +257,40 @@ racket
   (define name-string      (game-state-name game-state))
   (define name-symbol      (string->symbol name-string))
   ...))]
- The convention is particularly helpful when the same piece of data shows
- up in different guises, say, symbols and strings.
+ 当同一份数据以不同形式出现时（如 symbols 和 strings），这种约定特别有帮助。
 
-Names are bad if they heavily depend on knowledge about the context of the
- code. It prevents readers from understanding a piece of functionality at
- an approximate level without also reading large chunks of the surrounding
- and code.
+当名称严重依赖于代码的上下文知识时，就是不好的命名。它会阻止读者在近似级别理解某块功能，同时还需要阅读大量周围的代码。
 
-Finally, in addition to regular alphanumeric characters, Racketeers use a
- few special characters by convention, and these characters indicate
- something about the name:
+最后，除了常规的字母数字字符外，Racketeers 还按约定使用少数特殊字符，这些字符传达名称的某些含义：
 
 @row-table[
- @row[Character Kind Example]
- @row[?    "predicates and boolean-valued functions" boolean?]
- @row[!    "setters and field mutators"              set!]
+ @row[字符 类型 示例]
+ @row[?    "predicates 和 boolean 值函数" boolean?]
+ @row[!    "setters 和字段 mutators"              set!]
  @row[%    "classes"                                 game-state%]
  @row[<%>  "interfaces"                              dc<%>]
  @row[^    "unit signatures"                         game-context^]
  @row["@"  "units"                                   testing-context@]
- @row["#%" "kernel identifiers"                      #%app]
- @row["/"  "\"with\" (a preposition)"                call/cc]
+ @row["#%""kernel identifiers"                      #%app]
+ @row["/"  "\"with\"（介词）"               call/cc]
 ]
- @margin-note*{Identifiers with the @litchar{#%} prefix are mostly used in modules that
- define new languages.}  The use of @litchar{#%} to prefix names from the kernel
- language warns readers that these identifiers are extremely special and
- they need to watch out for subtleties. No other identifiers start with
- @litchar{#} and, in particular, all tokens starting with @litchar{#:} are keywords.
+ @margin-note*{带 @litchar{#%} 前缀的标识符主要用于定义新语言的模块中。}
+ 使用 @litchar{#%} 作为 kernel 语言的名称前缀警告读者这些标识符极为特殊，需要注意细微之处。没有其他标识符以 @litchar{#} 开头，特别地，所有以 @litchar{#:} 开头的 token 都是 keywords。
 
 @; -----------------------------------------------------------------------------
 @section{Graphical Syntax}
 
-Do not use graphical syntax (comment boxes, XML boxes, etc).
+不要使用图形化语法（注释框、XML 框等）。
 
-The use of graphical syntax makes it impossible to read files in
-alternative editors. It also messes up some revision control systems.
-When we figure out how to save such files in an editor-compatible way, we
-may relax this constraint.
+使用图形化语法使得无法在替代编辑器中读取文件。它还会干扰某些版本控制系统。当我们找到以编辑器兼容方式保存此类文件的方法时，可能会放宽此限制。
 
-@section{Spaces}
+@section{空格}
 
-Don't pollute your code with spaces at the end of lines.
+不要用行尾空格污染代码。
 
-If you find yourself breaking long blocks of code with blank lines to aid
-readability, consider refactoring your program to introduce auxiliary
-functions so that you can shorten these long blocks of code. If nothing
-else helps, consider using (potentially) empty comment lines.
+如果发现自己用空行来分隔长代码块以提高可读性，可以考虑重构程序并引入辅助函数，以缩短这些长代码块。如果没有其他帮助，可以考虑使用（可能为空的）注释行。
 
-In addition, every pair of expressions on a line should have at least one
-space between the two, even if they’re separated by parentheses.
+另外，一行上的每对表达式之间应至少有一个空格，即使它们之间隔了括号。
 
 @compare0[
  @racketmod0[
@@ -364,6 +309,6 @@ space between the two, even if they’re separated by parentheses.
 
 
 @; -----------------------------------------------------------------------------
-@section{End of File}
+@section{文件末尾}
 
-End files with a newline.
+文件以换行结尾。
