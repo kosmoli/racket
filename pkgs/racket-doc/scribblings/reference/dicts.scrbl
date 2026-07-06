@@ -5,43 +5,33 @@
 @examples[#:hidden #:eval dict-eval
           (require racket/dict racket/generic racket/contract racket/string)]
 
-@title[#:tag "dicts"]{Dictionaries}
+@title[#:tag "dicts"]{字典}
 
-A @deftech{dictionary} is an instance of a datatype that maps keys to
-values. The following datatypes are all dictionaries:
+@deftech{字典}是一种将键映射到值的数据类型的实例。以下数据类型都是字典：
 
 @itemize[
 
- @item{@techlink{hash tables};}
+ @item{@techlink{哈希表}；}
 
- @item{@techlink{vectors} (using only exact integers as keys);}
+ @item{@techlink{向量}（仅使用精确整数作为键）；}
 
- @item{@techlink{lists} of @techlink{pairs} as an @deftech{association
-       list} using @racket[equal?] to compare keys, which must be distinct; and}
+ @item{使用 @racket[equal?] 比较键的 @techlink{pairs} 列表，作为 @deftech{关联列表}，其中键必须互不相同；以及}
 
- @item{@techlink{structures} whose types implement the @racket[gen:dict]
-       @tech{generic interface}.}
+ @item{类型实现了 @racket[gen:dict] @tech{generic interface} 的 @techlink{结构体}。}
 
 ]
 
-When list of pairs is used as @tech{association list} but does not
-have distinct keys (so it's not an association list), operations like
-@racket[dict-ref] and @racket[dict-remove] operate on the first
-instance of the key, while operations like @racket[dict-map] and
-@racket[dict-keys] produce an element for every instance of the key.
+当 pairs 列表被用作 @tech{关联列表}但没有互不相同的键（因此它不是关联列表）时，@racket[dict-ref] 和 @racket[dict-remove] 等操作作用于键的第一个实例，而 @racket[dict-map] 和 @racket[dict-keys] 等操作为键的每个实例生成一个元素。
 
 @note-lib[racket/dict]
 
-@section{Dictionary Predicates and Contracts}
+@section{字典谓词与契约}
 
 @defproc[(dict? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{dictionary}, @racket[#f]
-otherwise.
+如果 @racket[v] 是 @tech{dictionary} 则返回 @racket[#t]，否则返回 @racket[#f]。
 
-Beware that @racket[dict?] is not a constant-time test on pairs, since
-checking that @racket[v] is an @tech{association list} may require
-traversing the list.
+请注意，@racket[dict?] 在 pairs 上不是常量时间测试，因为检查 @racket[v] 是否为 @tech{关联列表}可能需要遍历列表。
 
 @examples[
 #:eval dict-eval
@@ -53,10 +43,7 @@ traversing the list.
 
 @defproc[(dict-implements? [d dict?] [sym symbol?] ...) boolean?]{
 
-Returns @racket[#t] if @racket[d] implements all of the methods from
-@racket[gen:dict] named by the @racket[sym]s; returns @racket[#f] otherwise.
-Fallback implementations do not affect the result; @racket[d] may support the
-given methods via fallback implementations yet produce @racket[#f].
+如果 @racket[d] 实现了由 @racket[sym] 命名的所有来自 @racket[gen:dict] 的方法，则返回 @racket[#t]；否则返回 @racket[#f]。回退实现不影响结果；@racket[d] 可能通过回退实现支持给定的方法但仍然产生 @racket[#f]。
 
 @examples[
 #:eval dict-eval
@@ -72,9 +59,7 @@ given methods via fallback implementations yet produce @racket[#f].
 
 @defproc[(dict-implements/c [sym symbol?] ...) flat-contract?]{
 
-Recognizes dictionaries that support all of the methods from @racket[gen:dict]
-named by the @racket[sym]s. Note that the generated contract is not similar to
-@racket[hash/c], but closer to @racket[dict-implements?].
+识别支持由 @racket[sym] 命名的所有 @racket[gen:dict] 方法的字典。请注意，生成的契约不类似于 @racket[hash/c]，而更接近于 @racket[dict-implements?]。
 @examples[
  #:eval dict-eval
  (struct deformed-dict ()
@@ -92,8 +77,7 @@ named by the @racket[sym]s. Note that the generated contract is not similar to
 
 @defproc[(dict-mutable? [d dict?]) boolean?]{
 
-Returns @racket[#t] if @racket[d] is mutable via @racket[dict-set!],
-@racket[#f] otherwise.
+如果 @racket[d] 通过 @racket[dict-set!] 可变则返回 @racket[#t]，否则返回 @racket[#f]。
 
 Equivalent to @racket[(dict-implements? d 'dict-set!)].
 
@@ -110,9 +94,7 @@ Equivalent to @racket[(dict-implements? d 'dict-set!)].
 
 @defproc[(dict-can-remove-keys? [d dict?]) boolean?]{
 
-Returns @racket[#t] if @racket[d] supports removing mappings via
-@racket[dict-remove!] and/or @racket[dict-remove], @racket[#f]
-otherwise.
+如果 @racket[d] 支持通过 @racket[dict-remove!] 和/或 @racket[dict-remove] 移除映射则返回 @racket[#t]，否则返回 @racket[#f]。
 
 Equivalent to
 @racket[(or (dict-implements? d 'dict-remove!) (dict-implements? d 'dict-remove))].
@@ -127,8 +109,7 @@ Equivalent to
 
 @defproc[(dict-can-functional-set? [d dict?]) boolean?]{
 
-Returns @racket[#t] if @racket[d] supports functional update via
-@racket[dict-set], @racket[#f] otherwise.
+如果 @racket[d] 支持通过 @racket[dict-set] 进行函数式更新则返回 @racket[#t]，否则返回 @racket[#f]。
 
 Equivalent to @racket[(dict-implements? d 'dict-set)].
 
@@ -140,15 +121,11 @@ Equivalent to @racket[(dict-implements? d 'dict-set)].
 (dict-can-functional-set? '((a . "apple") (b . "banana")))
 ]}
 
-@section{Generic Dictionary Interface}
+@section{泛型字典接口}
 
 @defidform[gen:dict]{
 
-A @tech{generic interface} (see @secref["struct-generics"]) that
-supplies dictionary method implementations for a structure type via the
-@racket[#:methods] option of @racket[struct] definitions.  This interface can
-be used to implement any of the methods documented as
-@secref["primitive-dict-methods"] and @secref["derived-dict-methods"].
+一种 @tech{generic interface}（参见 @secref["struct-generics"]），通过 @racket[struct] 定义的 @racket[#:methods] 选项为结构体类型提供字典方法实现。此接口可用于实现在 @secref["primitive-dict-methods"] 和 @secref["derived-dict-methods"] 中记录的任何方法。
 
 @examples[#:eval dict-eval
 (struct alist (v)
@@ -174,10 +151,7 @@ be used to implement any of the methods documented as
 }
 
 @defthing[prop:dict struct-type-property?]{
-  A structure type property used to define custom extensions
-  to the dictionary API. Using the @racket[prop:dict] property is
-  discouraged; use the @racket[gen:dict] @tech{generic interface}
-  instead. Accepts a vector of 10 method implementations:
+  一种用于定义字典 API 自定义扩展的结构体类型属性。不鼓励使用 @racket[prop:dict] 属性；请改用 @racket[gen:dict] @tech{generic interface}。接受一个包含 10 个方法实现的向量：
 
   @itemize[
            @item{@racket[dict-ref]}
@@ -193,10 +167,9 @@ be used to implement any of the methods documented as
            ]
 }
 
-@subsection[#:tag "primitive-dict-methods"]{Primitive Dictionary Methods}
+@subsection[#:tag "primitive-dict-methods"]{基本字典方法}
 
-These methods of @racket[gen:dict] have no fallback implementations; they are
-only supported for dictionary types that directly implement them.
+@racket[gen:dict] 的这些方法没有回退实现；它们仅受直接实现它们的字典类型支持。
 
 @defproc[(dict-ref [dict dict?]
                    [key any/c]
@@ -204,16 +177,13 @@ only supported for dictionary types that directly implement them.
                                    (lambda () (raise (make-exn:fail ....)))])
          any]{
 
-Returns the value for @racket[key] in @racket[dict]. If no value
-is found for @racket[key], then @racket[failure-result] determines the
-result:
+返回 @racket[dict] 中 @racket[key] 的值。如果没有找到 @racket[key] 的值，则 @racket[failure-result] 决定结果：
 
 @itemize[
 
- @item{If @racket[failure-result] is a procedure, it is called
-       (through a tail call) with no arguments to produce the result.}
+ @item{如果 @racket[failure-result] 是一个过程，则（通过尾调用）无参数地调用它来产生结果。}
 
- @item{Otherwise, @racket[failure-result] is returned as the result.}
+ @item{否则，返回 @racket[failure-result] 作为结果。}
 
 ]
 
@@ -232,12 +202,7 @@ result:
                     [key any/c]
                     [v any/c]) void?]{
 
-Maps @racket[key] to @racket[v] in @racket[dict], overwriting any
-existing mapping for @racket[key]. The update can fail with a
-@racket[exn:fail:contract] exception if @racket[dict] is not mutable
-or if @racket[key] is not an allowed key for the dictionary (e.g., not
-an exact integer in the appropriate range when @racket[dict] is a
-@tech{vector}).
+在 @racket[dict] 中将 @racket[key] 映射到 @racket[v]，覆盖 @racket[key] 的任何现有映射。如果 @racket[dict] 不可变，或者 @racket[key] 不是字典允许的键（例如当 @racket[dict] 是 @tech{vector} 时不是适当范围内的精确整数），则更新可能失败并抛出 @racket[exn:fail:contract] 异常。
 
 @examples[
 #:eval dict-eval
@@ -254,12 +219,7 @@ v
                    [v any/c])
           (and/c dict? immutable?)]{
 
-Functionally extends @racket[dict] by mapping @racket[key] to
-@racket[v], overwriting any existing mapping for @racket[key], and
-returning an extended dictionary. The update can fail with a
-@racket[exn:fail:contract] exception if @racket[dict] does not support
-functional extension or if @racket[key] is not an allowed key for the
-dictionary.
+通过将 @racket[key] 映射到 @racket[v] 来函数式地扩展 @racket[dict]，覆盖 @racket[key] 的任何现有映射，并返回扩展后的字典。如果 @racket[dict] 不支持函数式扩展，或者 @racket[key] 不是字典允许的键，则更新可能失败并抛出 @racket[exn:fail:contract] 异常。
 
 @examples[
 #:eval dict-eval
@@ -274,9 +234,7 @@ dictionary.
                        [key any/c])
          void?]{
 
-Removes any existing mapping for @racket[key] in @racket[dict]. The
-update can fail if @racket[dict] is not mutable or does not support
-removing keys (as is the case for @tech{vectors}, for example).
+移除 @racket[dict] 中 @racket[key] 的任何现有映射。如果 @racket[dict] 不可变或不支持移除键（例如 @tech{vectors}），则更新可能失败。
 
 @examples[
 #:eval dict-eval
@@ -291,10 +249,7 @@ h]}
                       [key any/c])
          (and/c dict? immutable?)]{
 
-Functionally removes any existing mapping for @racket[key] in
-@racket[dict], returning the fresh dictionary.  The update can fail
-if @racket[dict] does not support functional update or does not
-support removing keys.
+函数式地移除 @racket[dict] 中 @racket[key] 的任何现有映射，返回新的字典。如果 @racket[dict] 不支持函数式更新或不支持移除键，则更新可能失败。
 
 @examples[
 #:eval dict-eval
@@ -310,10 +265,7 @@ h
 
 @defproc[(dict-iterate-first [dict dict?]) any/c]{
 
-Returns @racket[#f] if @racket[dict] contains no elements, otherwise
-it returns a non-@racket[#f] value that is an index to the first
-element in the dict table; ``first'' refers to an unspecified ordering
-of the dictionary elements. For a mutable @racket[dict], this index is
+如果 @racket[dict] 不包含任何元素则返回 @racket[#f]，否则返回一个非 @racket[#f] 的值，该值是字典表中第一个元素的索引；"第一个"指的是字典元素的未指定顺序。 For a mutable @racket[dict], this index is
 guaranteed to refer to the first item only as long as no mappings are
 added to or removed from @racket[dict].
 
@@ -330,9 +282,7 @@ added to or removed from @racket[dict].
                             [pos any/c])
          any/c]{
 
-Returns either a non-@racket[#f] that is an index to the element in
-@racket[dict] after the element indexed by @racket[pos] or @racket[#f]
-if @racket[pos] refers to the last element in @racket[dict]. If
+返回一个非 @racket[#f] 的值，该值是在 @racket[pos] 索引的元素之后 @racket[dict] 中元素的索引；或者如果 @racket[pos] 引用 @racket[dict] 中的最后一个元素，则返回 @racket[#f]。 If
 @racket[pos] is not a valid index, then the
 @exnraise[exn:fail:contract]. For a mutable @racket[dict], the result
 index is guaranteed to refer to its item only as long as no items are
@@ -353,9 +303,7 @@ i
                            [pos any/c])
          any]{
 
-Returns the key for the element in @racket[dict] at index
-@racket[pos]. If @racket[pos] is not a valid index for @racket[dict],
-the @exnraise[exn:fail:contract]. The @racket[dict-iterate-key]
+返回 @racket[dict] 中索引 @racket[pos] 处元素的键。如果 @racket[pos] 不是 @racket[dict] 的有效索引，则引发 @exnraise[exn:fail:contract]。 The @racket[dict-iterate-key]
 operation should take constant time.
 
 @examples[
@@ -372,9 +320,7 @@ operation should take constant time.
                              [pos any/c])
          any]{
 
-Returns the value for the element in @racket[dict] at index
-@racket[pos]. If @racket[pos] is not a valid index for @racket[dict],
-the @exnraise[exn:fail:contract]. The @racket[dict-iterate-key]
+返回 @racket[dict] 中索引 @racket[pos] 处元素的值。如果 @racket[pos] 不是 @racket[dict] 的有效索引，则引发 @exnraise[exn:fail:contract]。 The @racket[dict-iterate-key]
 operation should take constant time.
 
 @examples[
@@ -385,19 +331,16 @@ operation should take constant time.
 (dict-iterate-value h (dict-iterate-next h i))
 ]}
 
-@subsection[#:tag "derived-dict-methods"]{Derived Dictionary Methods}
+@subsection[#:tag "derived-dict-methods"]{派生字典方法}
 
-These methods of @racket[gen:dict] have fallback implementations in terms of
-the other methods; they may be supported even by dictionary types that do not
-directly implement them.
+@racket[gen:dict] 的这些方法具有基于其他方法的回退实现；即使是未直接实现它们的字典类型也可能支持它们。
 
 @defproc[(dict-has-key? [dict dict?] [key any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[dict] contains a value for the given
-@racket[key], @racket[#f] otherwise.
+如果 @racket[dict] 包含给定 @racket[key] 的值则返回 @racket[#t]，否则返回 @racket[#f]。
 
-Supported for any @racket[dict] that implements @racket[dict-ref].
+适用于任何实现了 @racket[dict-ref] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -415,15 +358,9 @@ Supported for any @racket[dict] that implements @racket[dict-ref].
                      ...
                      ...) void?]{
 
-Maps each @racket[key] to each @racket[v] in @racket[dict], overwriting any
-existing mapping for each @racket[key]. The update can fail with a
-@racket[exn:fail:contract] exception if @racket[dict] is not mutable
-or if any @racket[key] is not an allowed key for the dictionary (e.g., not
-an exact integer in the appropriate range when @racket[dict] is a
-@tech{vector}). The update takes place from the left, so later mappings overwrite
-earlier mappings.
+在 @racket[dict] 中将每个 @racket[key] 映射到每个 @racket[v]，覆盖每个 @racket[key] 的任何现有映射。如果 @racket[dict] 不可变，或者任何 @racket[key] 不是字典允许的键（例如当 @racket[dict] 是 @tech{vector} 时不是适当范围内的精确整数），则更新可能失败并抛出 @racket[exn:fail:contract] 异常。更新从左到右进行，因此后面的映射覆盖前面的映射。
 
-Supported for any @racket[dict] that implements @racket[dict-set!].
+适用于任何实现了 @racket[dict-set!] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -445,15 +382,9 @@ v2
                     ...)
           (and/c dict? immutable?)]{
 
-Functionally extends @racket[dict] by mapping each @racket[key] to
-each @racket[v], overwriting any existing mapping for each @racket[key], and
-returning an extended dictionary. The update can fail with a
-@racket[exn:fail:contract] exception if @racket[dict] does not support
-functional extension or if any @racket[key] is not an allowed key for the
-dictionary. The update takes place from the left, so later mappings overwrite
-earlier mappings.
+通过将每个 @racket[key] 映射到每个 @racket[v] 来函数式地扩展 @racket[dict]，覆盖每个 @racket[key] 的任何现有映射，并返回扩展后的字典。如果 @racket[dict] 不支持函数式扩展，或者任何 @racket[key] 不是字典允许的键，则更新可能失败并抛出 @racket[exn:fail:contract] 异常。更新从左到右进行，因此后面的映射覆盖前面的映射。
 
-Supported for any @racket[dict] that implements @racket[dict-set].
+适用于任何实现了 @racket[dict-set] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -469,15 +400,9 @@ Supported for any @racket[dict] that implements @racket[dict-set].
                     [to-set any/c])
          any]{
 
-Returns the value for @racket[key] in @racket[dict]. If no value
-is found for @racket[key], then @racket[to-set] determines the
-result as in @racket[dict-ref] (i.e., it is either a thunk that computes a value
-or a plain value), and this result is stored in @racket[dict] for the
-@racket[key].  (Note that if @racket[to-set] is a thunk, it is not
-invoked in tail position.)
+返回 @racket[dict] 中 @racket[key] 的值。如果没有找到 @racket[key] 的值，则 @racket[to-set] 如 @racket[dict-ref] 中一样决定结果（即，它要么是计算一个值的 thunk，要么是一个普通值），并且此结果被存储在 @racket[dict] 中以供 @racket[key] 使用。（注意，如果 @racket[to-set] 是一个 thunk，它不在尾位置被调用。）
 
-Supported for any @racket[dict] that implements @racket[dict-ref] and
-@racket[dict-set!].
+适用于任何实现了 @racket[dict-ref] 和 @racket[dict-set!] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -495,13 +420,9 @@ Supported for any @racket[dict] that implements @racket[dict-ref] and
                        [failure-result failure-result/c
                                        (lambda () (raise (make-exn:fail ....)))]) void?]{
 
-Composes @racket[dict-ref] and @racket[dict-set!] to update an
-existing mapping in @racket[dict], where the optional @racket[failure-result]
-argument is used as in @racket[dict-ref] when no mapping exists for
-@racket[key] already.
+组合 @racket[dict-ref] 和 @racket[dict-set!] 来更新 @racket[dict] 中的现有映射，其中可选的 @racket[failure-result] 参数在 @racket[key] 尚无映射时如 @racket[dict-ref] 中一样使用。
 
-Supported for any @racket[dict] that implements @racket[dict-ref] and
-@racket[dict-set!].
+适用于任何实现了 @racket[dict-ref] 和 @racket[dict-set!] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -522,10 +443,7 @@ v
                                       (lambda () (raise (make-exn:fail ....)))])
           (and/c dict? immutable?)]{
 
-Composes @racket[dict-ref] and @racket[dict-set] to functionally
-update an existing mapping in @racket[dict], where the optional @racket[failure-result]
-argument is used as in @racket[dict-ref] when no mapping exists for
-@racket[key] already.
+组合 @racket[dict-ref] 和 @racket[dict-set] 来函数式地更新 @racket[dict] 中的现有映射，其中可选的 @racket[failure-result] 参数在 @racket[key] 尚无映射时如 @racket[dict-ref] 中一样使用。
 
 Supported for any @racket[dict] that implements @racket[dict-ref] and
 @racket[dict-set].
@@ -542,14 +460,9 @@ Supported for any @racket[dict] that implements @racket[dict-ref] and
                    [proc (any/c any/c . -> . any/c)])
          (listof any/c)]{
 
-Applies the procedure @racket[proc] to each element in
-@racket[dict] in an unspecified order, accumulating the results
-into a list. The procedure @racket[proc] is called each time with a
-key and its value.
+以未指定顺序将过程 @racket[proc] 应用于 @racket[dict] 中的每个元素，将结果累积到一个列表中。每次调用过程 @racket[proc] 时都传入一个键及其值。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], @racket[dict-iterate-key], and
-@racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next]、@racket[dict-iterate-key] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -561,12 +474,7 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
                         [proc (any/c any/c . -> . (values any/c any/c))])
          dict?]{
 
-Applies the procedure @racket[proc] to each element in
-@racket[dict] in an unspecified order, accumulating the results
-into a dict of the same kind.
-The procedure @racket[proc] is called each time with a key
-and its value, and must return a corresponding key and
-value.
+以未指定顺序将过程 @racket[proc] 应用于 @racket[dict] 中的每个元素，将结果累积到同类型的字典中。每次调用过程 @racket[proc] 时都传入一个键及其值，并且必须返回一个对应的键和值。
 
 Supported for any @racket[dict] that implements
 @racket[dict-iterate-first], @racket[dict-iterate-next],
@@ -587,13 +495,9 @@ and either @racket[dict-set] and @racket[dict-clear], or
                         [proc (any/c any/c . -> . any)])
          void?]{
 
-Applies @racket[proc] to each element in @racket[dict] (for the
-side-effects of @racket[proc]) in an unspecified order. The procedure
-@racket[proc] is called each time with a key and its value.
+以未指定顺序将 @racket[proc] 应用于 @racket[dict] 中的每个元素（为了 @racket[proc] 的副作用）。每次调用过程 @racket[proc] 时都传入一个键及其值。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], @racket[dict-iterate-key], and
-@racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next]、@racket[dict-iterate-key] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -605,9 +509,9 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
 
 @defproc[(dict-empty? [dict dict?]) boolean?]{
 
-Reports whether @racket[dict] is empty.
+报告 @racket[dict] 是否为空。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first].
+适用于任何实现了 @racket[dict-iterate-first] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -620,11 +524,9 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first].
 @defproc[(dict-count [dict dict?])
          exact-nonnegative-integer?]{
 
-Returns the number of keys mapped by @racket[dict], usually in
-constant time.
+返回 @racket[dict] 映射的键的数量，通常在常量时间内完成。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first]
-and @racket[dict-iterate-next].
+适用于任何实现了 @racket[dict-iterate-first] 和 @racket[dict-iterate-next] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -634,8 +536,7 @@ and @racket[dict-iterate-next].
 
 @defproc[(dict-copy [dict dict?]) dict?]{
 
-Produces a new, mutable dictionary of the same type as @racket[dict] and with
-the same key/value associations.
+生成一个与 @racket[dict] 类型相同且具有相同键/值关联的新的可变字典。
 
 Supported for any @racket[dict] that implements @racket[dict-clear],
 @racket[dict-set!], @racket[dict-iterate-first], @racket[dict-iterate-next],
@@ -656,8 +557,7 @@ copy
 
 @defproc[(dict-clear [dict dict?]) dict?]{
 
-Produces an empty dictionary of the same type as @racket[dict].  If
-@racket[dict] is mutable, the result must be a new dictionary.
+生成一个与 @racket[dict] 类型相同的空字典。如果 @racket[dict] 是可变的，则结果必须是一个新字典。
 
 Supported for any @racket[dict] that supports @racket[dict-remove],
 @racket[dict-iterate-first], @racket[dict-iterate-next], and
@@ -673,10 +573,9 @@ Supported for any @racket[dict] that supports @racket[dict-remove],
 
 @defproc[(dict-clear! [dict dict?]) void?]{
 
-Removes all of the key/value associations in @racket[dict].
+移除 @racket[dict] 中的所有键/值关联。
 
-Supported for any @racket[dict] that supports @racket[dict-remove!],
-@racket[dict-iterate-first], and @racket[dict-iterate-key].
+适用于任何支持 @racket[dict-remove!]、@racket[dict-iterate-first] 和 @racket[dict-iterate-key] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -691,11 +590,9 @@ table
 }
 
 @defproc[(dict-keys [dict dict?]) list?]{
-Returns a list of the keys from
-@racket[dict] in an unspecified order.
+以未指定顺序返回 @racket[dict] 中键的列表。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], and @racket[dict-iterate-key].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next] 和 @racket[dict-iterate-key] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -704,11 +601,9 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
 ]}
 
 @defproc[(dict-values [dict dict?]) list?]{
-Returns a list of the values from
-@racket[dict] in an unspecified order.
+以未指定顺序返回 @racket[dict] 中值的列表。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], and @racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -717,27 +612,20 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
 ]}
 
 @defproc[(dict->list [dict dict?]) list?]{
-Returns a list of the associations from
-@racket[dict] in an unspecified order.
+以未指定顺序返回 @racket[dict] 中关联的列表。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], @racket[dict-iterate-key], and
-@racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next]、@racket[dict-iterate-key] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
 (define h #hash((a . "apple") (b . "banana")))
 (dict->list h)
 ]}
-@section{Dictionary Sequences}
+@section{字典序列}
 
-@defproc[(in-dict [dict dict?]) sequence?]{ Returns a @tech{sequence}
-whose each element is two values: a key and corresponding value from
-@racket[dict].
+@defproc[(in-dict [dict dict?]) sequence?]{ 返回一个 @tech{sequence}，其每个元素是两个值：来自 @racket[dict] 的键和对应值。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], @racket[dict-iterate-key], and
-@racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next]、@racket[dict-iterate-key] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -748,10 +636,9 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
 
 
 @defproc[(in-dict-keys [dict dict?]) sequence?]{
-Returns a sequence whose elements are the keys of @racket[dict].
+返回一个序列，其元素是 @racket[dict] 的键。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], and @racket[dict-iterate-key].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next] 和 @racket[dict-iterate-key] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -761,10 +648,9 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
 ]}
 
 @defproc[(in-dict-values [dict dict?]) sequence?]{
-Returns a sequence whose elements are the values of @racket[dict].
+返回一个序列，其元素是 @racket[dict] 的值。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], and @racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -773,14 +659,9 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
   v)
 ]}
 
-@defproc[(in-dict-pairs [dict dict?]) sequence?]{ Returns a sequence
-whose elements are pairs, each containing a key and its value from
-@racket[dict] (as opposed to using @racket[in-dict], which gets the
-key and value as separate values for each element).
+@defproc[(in-dict-pairs [dict dict?]) sequence?]{ 返回一个序列，其元素是 pairs，每个 pair 包含来自 @racket[dict] 的键及其值（与使用 @racket[in-dict] 相反，后者将键和值作为每个元素的单独值获取）。
 
-Supported for any @racket[dict] that implements @racket[dict-iterate-first],
-@racket[dict-iterate-next], @racket[dict-iterate-key], and
-@racket[dict-iterate-value].
+适用于任何实现了 @racket[dict-iterate-first]、@racket[dict-iterate-next]、@racket[dict-iterate-key] 和 @racket[dict-iterate-value] 的 @racket[dict]。
 
 @examples[
 #:eval dict-eval
@@ -789,13 +670,11 @@ Supported for any @racket[dict] that implements @racket[dict-iterate-first],
   p)
 ]}
 
-@section{Contracted Dictionaries}
+@section{Contracted 字典}
 
 @defthing[prop:dict/contract struct-type-property?]{
 
-A structure type property for defining dictionaries with
-contracts. The value associated with @racket[prop:dict/contract] must
-be a list of two immutable vectors:
+一种用于定义带有契约的字典的结构体类型属性。与 @racket[prop:dict/contract] 关联的值必须是两个不可变向量的列表：
 
 @racketblock[
 (list _dict-vector
@@ -807,13 +686,7 @@ be a list of two immutable vectors:
               _instance-iter-contract))
 ]
 
-The first vector must be a vector of 10 procedures which match the
-@racket[gen:dict] @tech{generic interface} (in addition, it must be an
-immutable vector). The second vector must contain six elements; each
-of the first three is a contract for the dictionary type's keys,
-values, and positions, respectively. Each of the second three is
-either @racket[#f] or a procedure used to extract the contract from
-a dictionary instance.
+第一个向量必须是包含 10 个过程的向量，这些过程匹配 @racket[gen:dict] @tech{generic interface}（此外，它必须是一个不可变向量）。第二个向量必须包含六个元素；前三个分别是字典类型的键、值和位置的契约。后三个要么是 @racket[#f]，要么是用于从字典实例中提取契约的过程。
 }
 
 @deftogether[[
@@ -821,12 +694,10 @@ a dictionary instance.
 @defproc[(dict-value-contract [d dict?]) contract?]
 @defproc[(dict-iter-contract [d dict?]) contract?]]]{
 
-Returns the contract that @racket[d] imposes on its keys, values, or
-iterators, respectively, if @racket[d] implements the
-@racket[prop:dict/contract] interface.
+分别返回 @racket[d] 对其键、值或迭代器施加的契约，前提是 @racket[d] 实现了 @racket[prop:dict/contract] 接口。
 }
 
-@section{Custom Hash Tables}
+@section{自定义哈希表}
 
 @defform[(define-custom-hash-types name
                                    optional-predicate
@@ -840,12 +711,7 @@ iterators, respectively, if @racket[d] implements the
                      (code:line hash1-expr)
                      (code:line hash1-expr hash2-expr)])]{
 
-Creates a new dictionary type based on the given comparison
-@racket[comparison-expr], hash functions @racket[hash1-expr] and
-@racket[hash2-expr], and key predicate @racket[predicate-expr]; the interfaces
-for these functions are the same as in @racket[make-custom-hash-types].
-The new dictionary type has three variants: immutable, mutable with
-strongly-held keys, and mutable with weakly-held keys.
+基于给定的比较函数 @racket[comparison-expr]、哈希函数 @racket[hash1-expr] 和 @racket[hash2-expr] 以及键谓词 @racket[predicate-expr] 创建一个新的字典类型；这些函数的接口与 @racket[make-custom-hash-types] 中相同。新字典类型有三种变体：不可变、强引用键的可变和弱引用键的可变。
 
 Defines seven names:
 
@@ -865,8 +731,7 @@ Defines seven names:
       mutable instances of the new type with weakly-held keys.}
 ]
 
-The constructors all accept a dictionary as an optional argument, providing
-initial key/value pairs.
+所有构造函数都接受一个字典作为可选参数，提供初始的键/值对。
 
 @examples[
 #:eval dict-eval
@@ -920,28 +785,13 @@ initial key/value pairs.
                  (->* [] [dict?] dict?)
                  (->* [] [dict?] dict?))]{
 
-Creates a new dictionary type based on the given comparison function
-@racket[eql?], hash functions @racket[hash1] and @racket[hash2], and predicate
-@racket[key?].  The new dictionary type has variants that are immutable,
-mutable with strongly-held keys, and mutable with weakly-held keys.  The given
-@racket[name] is used when printing instances of the new dictionary type, and
-the symbol @racket[who] is used for reporting errors.
+基于给定的比较函数 @racket[eql?]、哈希函数 @racket[hash1] 和 @racket[hash2] 以及谓词 @racket[key?] 创建一个新的字典类型。新字典类型有不可变、强引用键的可变和弱引用键的可变等变体。给定的 @racket[name] 在打印新字典类型的实例时使用，符号 @racket[who] 用于报告错误。
 
-The comparison function @racket[eql?] may accept 2 or 3 arguments.  If it
-accepts 2 arguments, it given two keys to compare them.  If it accepts
-3 arguments and does not accept 2 arguments, it is also given a
-recursive comparison function that handles data cycles when comparing sub-parts
-of the keys.
+比较函数 @racket[eql?] 可以接受 2 个或 3 个参数。如果它接受 2 个参数，则传入两个键进行比较。如果它接受 3 个参数且不接受 2 个参数，则还会传入一个递归比较函数，用于在比较键的子部分时处理数据循环。
 
-The hash functions @racket[hash1] and @racket[hash2] may accept 1 or 2
-arguments.  If either hash function accepts 1 argument, it is applied to a key
-to compute the corresponding hash value.  If either hash function accepts 2
-arguments and does not accept 1 argument, it is also given a recursive hash
-function that handles data cycles when computing hash values of sub-parts of
-the keys.
+哈希函数 @racket[hash1] 和 @racket[hash2] 可以接受 1 个或 2 个参数。如果任一哈希函数接受 1 个参数，则将其应用于键以计算相应的哈希值。如果任一哈希函数接受 2 个参数且不接受 1 个参数，则还会传入一个递归哈希函数，用于在计算键的子部分的哈希值时处理数据循环。
 
-The predicate @racket[key?] must accept 1 argument and is used to recognize
-valid keys for the new dictionary type.
+谓词 @racket[key?] 必须接受 1 个参数，用于识别新字典类型的有效键。
 
 Produces seven values:
 
@@ -1004,21 +854,12 @@ See @racket[define-custom-hash-types] for an example.
          dict?]
 )]{
 
- Creates an instance of a new dictionary type, implemented
- in terms of a hash table where keys are compared with
- @racket[eql?], hashed with @racket[hash1] and
- @racket[hash2], and where the key predicate is
- @racket[key?]. See @racket[gen:equal-mode+hash] and @racket[gen:equal+hash] for information
+ 创建一个新字典类型的实例，该实例基于哈希表实现，其中键使用 @racket[eql?] 进行比较，使用 @racket[hash1] 和 @racket[hash2] 进行哈希，键谓词为 @racket[key?]。 See @racket[gen:equal-mode+hash] and @racket[gen:equal+hash] for information
  on suitable equality and hashing functions.
 
-The @racket[make-custom-hash] and @racket[make-weak-custom-hash]
-functions create a mutable dictionary that does not support functional
-update, while @racket[make-immutable-custom-hash] creates an immutable
-dictionary that supports functional update. The dictionary created by
-@racket[make-weak-custom-hash] retains its keys weakly, like the result
-of @racket[make-weak-hash].
+@racket[make-custom-hash] 和 @racket[make-weak-custom-hash] 函数创建一个不支持函数式更新的可变字典，而 @racket[make-immutable-custom-hash] 创建一个支持函数式更新的不可变字典。@racket[make-weak-custom-hash] 创建的字典弱引用其键，类似于 @racket[make-weak-hash] 的结果。
 
-Dictionaries created by @racket[make-custom-hash] and company are
+字典 created by @racket[make-custom-hash] and company are
 @racket[equal?] when they have the same mutability and key strength,
 the associated procedures are @racket[equal?], and the key--value
 mappings are the same when keys and values are compared with
@@ -1041,7 +882,7 @@ See also @racket[define-custom-hash-types].
 
 }
 
-@section{Passing Keyword Arguments in Dictionaries}
+@section{Passing Keyword Arguments in 字典}
 
 @defproc[
  (keyword-apply/dict [proc procedure?]
@@ -1050,18 +891,9 @@ See also @racket[define-custom-hash-types].
                      [pos-args (listof any/c)]
                      [#:<kw> kw-arg any/c] ...)
  any]{
-Applies the @racket[proc] using the positional arguments
-from @racket[(list* pos-arg ... pos-args)], and the keyword
-arguments from @racket[kw-dict] in addition to the directly
-supplied keyword arguments in the @racket[#:<kw> kw-arg]
- sequence.
+使用来自 @racket[(list* pos-arg ... pos-args)] 的位置参数以及来自 @racket[kw-dict] 的关键字参数（加上 @racket[#:<kw> kw-arg] 序列中直接提供的关键字参数）来应用 @racket[proc]。
 
-All the keys in @racket[kw-dict] must be keywords.
-The keywords in the @racket[kw-dict] do not have to be
-sorted. However, the keywords in @racket[kw-dict] and the
-directly supplied @racket[#:<kw>] keywords must not overlap.
-The given @racket[proc] must accept all of the keywords in
-@racket[kw-dict] plus the @racket[#:<kw>]s.
+@racket[kw-dict] 中的所有键必须是关键字。@racket[kw-dict] 中的关键字不需要排序。但是，@racket[kw-dict] 中的关键字和直接提供的 @racket[#:<kw>] 关键字不能重叠。给定的 @racket[proc] 必须接受 @racket[kw-dict] 中的所有关键字加上 @racket[#:<kw>]。
 
 @examples[
 #:eval dict-eval
