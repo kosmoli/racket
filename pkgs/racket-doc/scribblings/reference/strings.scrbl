@@ -28,7 +28,7 @@
 
 
 @defproc[(make-string [k exact-nonnegative-integer?] [char char?
-#\\nul]) string?]{ 返回一个新的可变字符串，长度为 @racket[k]，每个位置用字符 @racket[char] 初始化。
+#\nul]) string?]{ 返回一个新的可变字符串，长度为 @racket[k]，每个位置用字符 @racket[char] 初始化。
 
 @mz-examples[(make-string 5 #\\z)]}
 
@@ -450,7 +450,7 @@
 
 
 @defproc[(string-normalize-spaces [str string?]
-                                  [sep (or/c string? regexp?) #px\"\\\\s+\"]
+                                  [sep (or/c string? regexp?) #px"\\s+"]
                                   [space string? " "]
                                   [#:trim? trim? any/c #t]
                                   [#:repeat? repeat? any/c #f])
@@ -481,7 +481,7 @@
 
 
 @defproc[(string-split [str string?]
-                       [sep (or/c string? regexp?) #px\"\\\\s+\"]
+                       [sep (or/c string? regexp?) #px"\\s+"]
                        [#:trim? trim? any/c #t]
                        [#:repeat? repeat? any/c #f])
          (listof string?)]{
@@ -498,7 +498,7 @@
 
 
 @defproc[(string-trim [str string?]
-                      [sep (or/c string? regexp?) #px\"\\\\s+\"]
+                      [sep (or/c string? regexp?) #px"\\s+"]
                       [#:left? left? any/c #t]
                       [#:right? right? any/c #t]
                       [#:repeat? repeat? any/c #f])

@@ -28,7 +28,7 @@
                        (λ (name)
                          (and (regexp-match #rx"^unsafe-fx" name)
                               (regexp-replace #rx"unsafe-" name "")))
-                       racket/unsafe/ops)]
+                       racket/unsafe/ops))]
 
 以替换为库的不安全版本。或者，当遇到使用不安全 fixnum 操作的
 代码崩溃时，可使用 @racketmodname[racket/fixnum] 库来帮助调试问题。
