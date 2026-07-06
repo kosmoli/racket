@@ -54,205 +54,71 @@
                           (equiv-to-block b))
                     ...)))))
 
-@title[#:tag "syntax" #:style 'toc]{Syntactic Forms}
+@title[#:tag "syntax" #:style 'toc]{语法形式}
 
-This section describes the core syntax forms that appear in a fully
-expanded expression, plus many closely related non-core forms.
-See @secref["fully-expanded"] for the core grammar.
+本节描述完整展开表达式中出现的核心语法形式，以及许多密切相关的非核心形式。
+核心语法参见 @secref["fully-expanded"]。
 
 @local-table-of-contents[]
 
 @;------------------------------------------------------------------------
-@section[#:tag "module"]{Modules: @racket[module], @racket[module*], ...}
+@section[#:tag "module"]{模块：@racket[module]、@racket[module*] 等}
 
 @guideintro["module-syntax"]{@racket[module]}
 
 @defform[(module id module-path form ...)]{
 
-Declares a top-level module or a @tech{submodule}. For a top-level
-module, if the @racket[current-module-declare-name] parameter is set,
-the parameter value is used for the module name and @racket[id] is
-ignored, otherwise @racket[(#,(racket quote) id)] is the name of the
-declared module. For a @tech{submodule}, @racket[id] is the name of
-the submodule to be used as an element within a @racket[submod] module
-path. A @racket[module] form is not allowed in an @tech{expression context}
-or @tech{internal-definition context}.
+声明一个顶层模块或 @tech{submodule}。对于顶层模块，如果设置了 @racket[current-module-declare-name] 参数，则参数值用作模块名称，忽略 @racket[id]；否则 @racket[(#,(racket quote) id)] 是声明的模块名称。对于 @tech{submodule}，@racket[id] 是子模块名称，用作 @racket[submod] 模块路径中的元素。@racket[module] 形式不允许出现在 @tech{expression context} 或 @tech{internal-definition context} 中。
 
-@margin-note/ref{For a @racket[module]-like form that works in
-definition contexts other than the top level or a module body, there's
-@racket[define-package], but using a separate module or @tech{submodule}
-is usually better.}
+@margin-note/ref{对于在顶层或模块体以外的定义上下文中工作的类似 @racket[module] 的形式，有 @racket[define-package]，但使用单独的模块或 @tech{submodule} 通常更好。}
 
-The @racket[module-path] form must be as for @racket[require], and it
-supplies the initial bindings for the body @racket[form]s. That is, it
-is treated like a @racket[(require module-path)] prefix before the
-@racket[form]s, except that the bindings introduced by
-@racket[module-path] can be shadowed by definitions and
-@racket[require]s in the module body @racket[form]s.
+@racket[module-path] 形式必须与 @racket[require] 中的形式相同，它为 @racket[form] 体提供初始绑定。也就是说，它被视为 @racket[form] 之前的一个 @racket[(require module-path)] 前缀，区别在于 @racket[module-path] 引入的绑定可以被模块体 @racket[form] 中的定义和 @racket[require] 遮蔽。
 
-If a single @racket[form] is provided, then it is partially expanded
-in a @tech{module-begin context}. If the expansion leads to
-@racket[#%plain-module-begin], then the body of the
-@racket[#%plain-module-begin] is the body of the module. If partial
-expansion leads to any other primitive form, then the form is wrapped
-with @racketidfont{#%module-begin} using the lexical context of the
-module body; this identifier must be bound by the initial
-@racket[module-path] import, and its expansion must produce a
-@racket[#%plain-module-begin] to supply the module body. If partial
-expansion produces a compiled module in the sense of
-@racket[compiled-module-expression?], that compiled module is used
-for the enclosing module (skipping all other expansion and compilation
-steps), but such a result is allowed only in a compilation mode
-where @racket[syntax-local-compiling-module?] produces true and
-when the current @tech{code inspector} is the initial one. Finally, if
-multiple @racket[form]s are provided, they are wrapped with
-@racketidfont{#%module-begin}, as in the case where a single
-@racket[form] does not expand to @racket[#%plain-module-begin].
+如果只提供了一个 @racket[form]，则它在 @tech{module-begin context} 中进行部分展开。如果展开结果为 @racket[#%plain-module-begin]，则 @racket[#%plain-module-begin] 的体就是模块的体。如果部分展开得到任何其他原始形式，则使用模块体的词法上下文将该形式包装为 @racketidfont{#%module-begin}；此标识符必须由初始的 @racket[module-path] 导入绑定，并且其展开必须产生 @racket[#%plain-module-begin] 来提供模块体。如果部分展开产生了 @racket[compiled-module-expression?] 意义上的编译模块，则该编译模块用于外层模块（跳过所有其他展开和编译步骤），但这样的结果仅在 @racket[syntax-local-compiling-module?] 返回 true 且当前 @tech{code inspector} 是初始检查器时才允许。最后，如果提供了多个 @racket[form]，则它们被包装为 @racketidfont{#%module-begin}，与单个 @racket[form] 未展开为 @racket[#%plain-module-begin] 的情况相同。
 
-After such wrapping, if any, and before any expansion, an
-@indexed-racket['enclosing-module-name] property is attached to the
-@racketidfont{#%module-begin} syntax object (see
-@secref["stxprops"]); the property's value is a symbol
-corresponding to @racket[id].
+在包装之后（如果有）且在展开之前，会将一个 @indexed-racket['enclosing-module-name] 属性附加到 @racketidfont{#%module-begin} syntax object 上（参见 @secref["stxprops"]）；该属性的值是一个对应 @racket[id] 的符号。
 
-Each @racket[form] is partially expanded (see
-@secref["partial-expansion"]) in a @tech{module context}. Further
-action depends on the shape of the form:
+每个 @racket[form] 在 @tech{module context} 中进行部分展开（参见 @secref["partial-expansion"]）。后续操作取决于形式的结构：
 
 @itemize[
 
- @item{If it is a @racket[begin] form, the sub-forms are flattened
-  out into the module's body and immediately processed in place of the
-  @racket[begin].}
+ @item{如果是 @racket[begin] 形式，则子形式被展平到模块体中，并立即在原地替代 @racket[begin] 进行处理。}
 
- @item{If it is a @racket[define-syntaxes] form, then the right-hand side is
-  evaluated (in @tech{phase} 1), and the binding is immediately
-  installed for further partial expansion within the
-  module. Evaluation of the right-hand side is @racket[parameterize]d
-  to set @racket[current-namespace] as in @racket[let-syntax].}
+ @item{如果是 @racket[define-syntaxes] 形式，则右侧在 @tech{phase} 1 中进行求值，并且绑定立即被安装以用于模块内的进一步部分展开。右侧的求值会 @racket[parameterize] 设置 @racket[current-namespace]，如同 @racket[let-syntax] 中的设置。}
 
- @item{If it is a @racket[begin-for-syntax] form, then the body is
-  expanded (in @tech{phase} 1) and evaluated. Expansion within a
-  @racket[begin-for-syntax] form proceeds with the same
-  partial-expansion process as for a @racket[module] body, but in a
-  higher @tech{phase}, and saving all @racket[#%provide] forms for all
-  phases until the end of the @racket[module]'s expansion. Evaluation
-  of the body is @racket[parameterize]d to set
-  @racket[current-namespace] as in @racket[let-syntax].}
+ @item{如果是 @racket[begin-for-syntax] 形式，则体在 @tech{phase} 1 中展开并求值。@racket[begin-for-syntax] 形式内的展开与 @racket[module] 体采用相同的部分展开过程，但在更高的 @tech{phase} 中进行，并保存所有 phase 的 @racket[#%provide] 形式直到 @racket[module] 展开结束。体的求值会 @racket[parameterize] 设置 @racket[current-namespace]，如同 @racket[let-syntax] 中的设置。}
 
- @item{If the form is a @racket[#%require] form, bindings are introduced
-   immediately, and the imported modules are @tech{instantiate}d or
-   @tech{visit}ed as appropriate.}
+ @item{如果形式是 @racket[#%require] 形式，则立即引入绑定，并且导入的模块被适当地 @tech{instantiate} 或 @tech{visit}。}
 
- @item{If the form is a @racket[#%provide] form, then it is recorded for
-   processing after the rest of the body.}
+ @item{如果形式是 @racket[#%provide] 形式，则记录它在其余体之后处理。}
 
- @item{If the form is a @racket[define-values] form, then the binding
-   is installed immediately, but the right-hand expression is not
-   expanded further.}
+ @item{如果形式是 @racket[define-values] 形式，则立即安装绑定，但右侧表达式不会被进一步展开。}
 
- @item{If the form is a @racket[module] form, then it is immediately
-   expanded and declared for the extent of the current top-level
-   enclosing module's expansion.}
+ @item{如果形式是 @racket[module] 形式，则立即展开并在当前顶层外层模块展开期间声明。}
 
- @item{If the form is a @racket[module*] form, then it is not
-   expanded further.}
+ @item{如果形式是 @racket[module*] 形式，则不会被进一步展开。}
 
- @item{Similarly, if the form is an expression, it is
-   not expanded further.}
+ @item{类似地，如果形式是一个表达式，也不会被进一步展开。}
 
 ]
 
-After all @racket[form]s have been partially expanded this way, then
-the remaining expression forms (including those on the right-hand side
-of a definition) are expanded in an expression context. After all
-expression forms, @racket[#%provide] forms are processed in the order
-in which they appear (independent of @tech{phase}) in the expanded
-module. Finally, all @racket[module*] forms are expanded in order, so
-that each becomes available for use by subsequent @racket[module*]
-forms; the enclosing module itself is also available for use by
-@racket[module*] @tech{submodules}.
+所有 @racket[form] 以这种方式部分展开之后，剩余的表达式形式（包括定义右侧的那些）在表达式上下文中展开。所有表达式形式之后，@racket[#%provide] 形式按照它们在展开后的模块中出现的顺序（与 @tech{phase} 无关）进行处理。最后，所有 @racket[module*] 形式按顺序展开，使得每个后续 @racket[module*] 形式都可以使用前一个；外层模块本身也可供 @racket[module*] @tech{submodules} 使用。
 
-The scope of all imported identifiers covers the entire module body, 
-except for nested @racket[module] and @racket[module*] forms (assuming 
-a non-@racket[#f] @racket[module-path] in the latter case).
-The scope of any identifier defined within the module body similarly
-covers the entire module body except for such nested @racket[module] 
-and @racket[module*] forms.
-The ordering of syntax definitions does not affect the scope of the
-syntax names; a transformer for @racket[A] can produce expressions
-containing @racket[B], while the transformer for @racket[B] produces
-expressions containing @racket[A], regardless of the order of
-declarations for @racket[A] and @racket[B]. However, a syntactic form
-that produces syntax definitions must be defined before it is used.
+所有导入标识符的作用域覆盖整个模块体，除了嵌套的 @racket[module] 和 @racket[module*] 形式（在后一种情况下假设为非 @racket[#f] 的 @racket[module-path]）。模块体内定义的任何标识符的作用域同样覆盖整个模块体，除了这样的嵌套 @racket[module] 和 @racket[module*] 形式。语法定义的顺序不影响语法名称的作用域；@racket[A] 的 transformer 可以产生包含 @racket[B] 的表达式，而 @racket[B] 的 transformer 产生包含 @racket[A] 的表达式，无论 @racket[A] 和 @racket[B] 的声明顺序如何。但是，产生语法定义的语法形式必须在其使用之前定义。
 
-No identifier can be imported or defined more than once at any
-@tech{phase level} within a single module, except that a definition
-via @racket[define-values] or @racket[define-syntaxes] can shadow an
-import via @racket[#%require]---as long as no preceding
-@racket[#%declare] form includes @racket[#:require=defined].
-Every exported identifier must be imported or
-defined. No expression can refer to a @tech{top-level variable}.
-A @racket[module*] form in which the enclosing module's bindings are visible
-(i.e., a nested @racket[module*] with @racket[#f] instead of a @racket[module-path])
-can define or import bindings that @tech{shadow} the enclosing module's bindings.
+在单个模块内的任何 @tech{phase level} 上，没有标识符可以被导入或定义多次，除非通过 @racket[define-values] 或 @racket[define-syntaxes] 的定义可以遮蔽通过 @racket[#%require] 的导入---只要前面的 @racket[#%declare] 形式不包含 @racket[#:require=defined]。每个导出的标识符必须被导入或定义。没有表达式可以引用 @tech{top-level variable}。如果 @racket[module*] 形式中外层模块的绑定可见（即嵌套的 @racket[module*] 使用 @racket[#f] 而非 @racket[module-path]），则可以定义或导入 @tech{shadow} 外层模块绑定的绑定。
 
-The evaluation of a @racket[module] form does not evaluate the
-expressions in the body of the module (except sometimes for redeclarations;
-see @secref["module-redeclare"]). Evaluation merely declares a
-module, whose full name depends both on @racket[id] or
-@racket[(current-module-declare-name)].
+对 @racket[module] 形式的求值不求值模块体中的表达式（除了有时重新声明的情况；参见 @secref["module-redeclare"]）。求值仅仅声明一个模块，其完整名称取决于 @racket[id] 或 @racket[(current-module-declare-name)]。
 
-A module body is executed only when the module is explicitly
-@techlink{instantiate}d via @racket[require] or
-@racket[dynamic-require]. On invocation, imported modules are
-instantiated in the order in which they are @racket[require]d
-into the module (although earlier instantiations or transitive
-@racket[require]s can trigger the instantiation of a module before
-its order within a given module). Then, expressions and definitions
-are evaluated in order as they appear within the module. Each
-evaluation of an expression or definition is wrapped with a
-continuation prompt (see @racket[call-with-continuation-prompt]) for
-the default @tech{prompt tag} and using a prompt handler that re-aborts
-and propagates its argument to the next enclosing prompt. Each evaluation
-of a definition is followed, outside of the prompt, by a check that
-each of the definition's variables has a value; if the portion of the
-prompt-delimited continuation that installs values is skipped, then
-the @exnraise[exn:fail:contract:variable?].
+模块体仅在通过 @racket[require] 或 @racket[dynamic-require] 显式地 @techlink{instantiate} 模块时才执行。调用时，导入的模块按照它们被 @racket[require] 到模块中的顺序进行 instantiate（尽管较早的实例化或传递性 @racket[require] 可能会在给定模块内的顺序之前触发模块的 instantiate）。然后，表达式和定义按它们在模块中出现的顺序求值。每个表达式或定义的求值都包装在一个 continuation prompt 中（参见 @racket[call-with-continuation-prompt]），使用默认的 @tech{prompt tag} 和一个将参数重新 abort 并传播到下一个外层 prompt 的 prompt handler。每次定义求值后，在 prompt 之外检查定义的每个变量是否都有值；如果安装值的 prompt-delimited continuation 部分被跳过，则 @exnraise[exn:fail:contract:variable?]。
 
-Portions of a module body at higher phase levels are delimited
-similarly to run-time portions. For example, portions of a module
-within @racket[begin-for-syntax] are delimited by a continuation
-prompt both as the module is expanded and when it is visited. The
-evaluation of a @racket[define-syntaxes] form is delimited, but unlike
-@racket[define-values], there is no check that the syntax definition
-completed.
+模块体在更高 phase level 上的部分与运行时部分类似地被分隔。例如，@racket[begin-for-syntax] 内的模块部分在模块展开时和被 visit 时都由 continuation prompt 分隔。@racket[define-syntaxes] 形式的求值被分隔，但与 @racket[define-values] 不同，没有检查语法定义是否完成。
 
-Accessing a @tech{module-level variable} before it is defined signals
-a run-time error, just like accessing an undefined global variable.
-If a module (in its fully expanded form) does not contain a
-@racket[set!]  for an identifier that defined within the module, then
-the identifier is a @defterm{constant} after it is defined; its value
-cannot be changed afterward, not even through reflective
-mechanisms. The @racket[compile-enforce-module-constants] parameter,
-however, can be used to disable enforcement of constants.
+在定义之前访问 @tech{module-level variable} 会发出运行时错误，就像访问未定义的全局变量一样。如果模块（在其完全展开形式中）不包含对模块内定义的标识符的 @racket[set!]，则该标识符在定义后是一个 @defterm{constant}；其后值不能更改，即使通过反射机制也不行。但是，@racket[compile-enforce-module-constants] 参数可用于禁用常量强制。
 
-When a @tech{syntax object} representing a @racket[module] form has a
-@indexed-racket['module-language] @tech{syntax property} attached, and
-when the property value is a vector of three elements where the first
-is a module path (in the sense of @racket[module-path?]) and the
-second is a symbol, then the property value is preserved in the
-corresponding compiled and/or declared module. The third component of
-the vector should be printable and @racket[read]able, so that it can
-be preserved in marshaled bytecode. The @racketmodname[racket/base]
-and @racketmodname[racket] languages attach
-@racket['#(racket/language-info get-info #f)] to a @racket[module]
-form. See also @racket[module-compiled-language-info],
-@racket[module->language-info], and
-@racketmodname[racket/language-info].
+当代表 @racket[module] 形式的 @tech{syntax object} 附带有 @indexed-racket['module-language] @tech{syntax property}，并且属性值是一个包含三个元素的 vector，其中第一个是模块路径（@racket[module-path?] 意义上的），第二个是 symbol 时，该属性值会被保留在相应的编译和/或声明的模块中。vector 的第三个组件应该是可打印和 @racket[read] 的，以便它可以保存在序列化的 bytecode 中。@racketmodname[racket/base] 和 @racketmodname[racket] 语言将 @racket['#(racket/language-info get-info #f)] 附加到 @racket[module] 形式。另见 @racket[module-compiled-language-info]、@racket[module->language-info] 和 @racketmodname[racket/language-info]。
 
-See also @secref["module-eval-model"], @secref["mod-parse"], and
-@secref["modinfo"].
+另见 @secref["module-eval-model"]、@secref["mod-parse"] 和 @secref["modinfo"]。
 
 @examples[#:eval (syntax-eval) #:once
 (module duck racket/base
@@ -278,54 +144,26 @@ See also @secref["module-eval-model"], @secref["mod-parse"], and
 
 @guideintro["submodules"]{@racket[module*]}
 
-Like @racket[module], but only for declaring a @tech{submodule} within
-a module, and for submodules that may @racket[require] the enclosing module.
+类似于 @racket[module]，但仅用于在模块内声明 @tech{submodule}，以及用于可以 @racket[require] 外层模块的子模块。
 
-Instead of a @racket[module-path] after @racket[id], @racket[#f]
-indicates that all bindings from the enclosing module are visible in
-the submodule. In that case, @racket[begin-for-syntax] forms that wrap
-the @racket[module*] form shift the @tech{phase level} of the
-enclosing module's bindings relative to the submodule. The macro
-expander handles such nesting by shifting the @tech{phase level} of
-the @racket[module*] form so that its body starts at @tech{phase
-level} 0, expanding, and then reverting the @tech{phase level} shift;
-beware that this process can leave @tech{syntax objects} as
-@racket['origin] @tech{syntax property} values out-of-sync with the
-expanded module.
+在 @racket[id] 之后使用 @racket[#f] 而不是 @racket[module-path]，表示外层模块的所有绑定在子模块中可见。在这种情况下，包装 @racket[module*] 形式的 @racket[begin-for-syntax] 形式会相对于子模块移动外层模块绑定的 @tech{phase level}。宏展开器通过移动 @racket[module*] 形式的 @tech{phase level} 使其体从 @tech{phase level} 0 开始来处理这种嵌套，展开后再恢复 @tech{phase level} 移动；请注意，此过程可能导致 @racket['origin] @tech{syntax property} 值中的 @tech{syntax objects} 与展开后的模块不同步。
 
-When a @racket[module*] form has a @racket[module-path], the submodule
-expansion starts by removing the @tech{scopes} of the enclosing
-module, the same as the @racket[module] form. No shifting compensates
-for any @racket[begin-for-syntax] forms that may wrap the submodule.}
+当 @racket[module*] 形式有 @racket[module-path] 时，子模块展开从移除外层模块的 @tech{scopes} 开始，与 @racket[module] 形式相同。没有任何移动来补偿可能包装子模块的 @racket[begin-for-syntax] 形式。}
 
 
 @defform[(module+ id form ...)]{
 
 @guideintro["main-and-test"]{@racket[module+]}
 
-Declares and/or adds to a @tech{submodule} named @racket[id].
+声明和/或添加到名为 @racket[id] 的 @tech{submodule}。
 
-Each addition for @racket[id] is combined in order to form the entire
-submodule using @racket[(module* id #f ....)] at the end of the
-enclosing module. If there is only one @racket[module+] for a given
-@racket[id], then @racket[(module+ id form ...)] is equivalent to
-@racket[(module* id #f form ...)], but still moved to the end of the
-enclosing module.
+@racket[id] 的每个添加在外层模块末尾按顺序组合成使用 @racket[(module* id #f ....)] 的完整子模块。如果给定的 @racket[id] 只有一个 @racket[module+]，则 @racket[(module+ id form ...)] 等价于 @racket[(module* id #f form ...)]，但仍会被移动到外层模块的末尾。
 
-A @tech{syntax property} on the @racket[module*] form with the key
-@indexed-racket['origin-form-srcloc] records the @racket[srcloc] for
-every contributing @racket[module+] form.
+@racket[module*] 形式上键为 @indexed-racket['origin-form-srcloc] 的 @tech{syntax property} 记录了每个贡献的 @racket[module+] 形式的 @racket[srcloc]。
 
-When a module contains multiple submodules declared with
-@racket[module+], then the relative order of the initial
-@racket[module+] declarations for each submodule determines the
-relative order of the @racket[module*] declarations at the end of the
-enclosing module.
+当模块包含多个使用 @racket[module+] 声明的子模块时，每个子模块的初始 @racket[module+] 声明的相对顺序决定了外层模块末尾的 @racket[module*] 声明的相对顺序。
 
-A submodule must not be defined using @racket[module+] @emph{and}
-@racket[module] or @racket[module*]. That is, if a submodule is made
-of @racket[module+] pieces, then it must be made @emph{only} of
-@racket[module+] pieces. }
+子模块不能同时使用 @racket[module+] @emph{和} @racket[module] 或 @racket[module*] 定义。也就是说，如果子模块由 @racket[module+] 片段组成，则必须 @emph{仅} 由 @racket[module+] 片段组成。 }
 
 @history[#:changed "8.9.0.1"
          @elem{Added @racket['origin-form-srcloc] syntax property.}]
@@ -333,40 +171,23 @@ of @racket[module+] pieces, then it must be made @emph{only} of
 
 @defform[(#%module-begin form ...)]{
 
-Legal only in a @tech{module begin context}, and handled by the
-@racket[module] and @racket[module*] forms.
+仅在 @tech{module begin context} 中合法，由 @racket[module] 和 @racket[module*] 形式处理。
 
-The @racket[#%module-begin] form of @racketmodname[racket/base] wraps
-every top-level expression to print non-@|void-const| results using
-the @tech{print handler} as determined by @racket[current-print],
-and it also returns the values after printing.
-This printing is added as part of the @racket[#%module-begin] expansion, so
-the prompt that @racket[module] itself adds is outside the printing
-wrapper---and it potentially makes the values returned after printing
-relevant, because a continuation could be captured and then invoked in
-a different context.
+@racketmodname[racket/base] 的 @racket[#%module-begin] 形式包装每个顶层表达式，使用 @racket[current-print] 确定的 @tech{print handler} 打印非 @|void-const| 结果，并在打印后返回值。此打印作为 @racket[#%module-begin] 展开的一部分添加，因此 @racket[module] 本身添加的 prompt 在打印包装之外---这潜在地使打印后返回的值变得相关，因为 continuation 可以被捕获然后在不同的上下文中调用。
 
-The @racket[#%module-begin] form of @racketmodname[racket/base] also
-declares a @racket[configure-runtime] submodule (before any other
-@racket[form]), unless some @racket[form] is either an immediate
-@racket[module] or @racket[module*] form with the name
-@racket[configure-runtime]. If a @racket[configure-runtime] submodule
-is added, the submodule calls the @racket[configure] function of
-@racketmodname[racket/runtime-config].}
+@racketmodname[racket/base] 的 @racket[#%module-begin] 形式还会声明一个 @racket[configure-runtime] 子模块（在任何其他 @racket[form] 之前），除非某些 @racket[form] 是即时的 @racket[module] 或名为 @racket[configure-runtime] 的 @racket[module*] 形式。如果添加了 @racket[configure-runtime] 子模块，该子模块会调用 @racketmodname[racket/runtime-config] 的 @racket[configure] 函数。}
 
 
 @defform[(#%printing-module-begin form ...)]{
 
-Legal only in a @tech{module begin context}.
+仅在 @tech{module begin context} 中合法。
 
-Like @racket[#%module-begin], but without adding a
-@racket[configure-runtime] submodule.}
+类似于 @racket[#%module-begin]，但不添加 @racket[configure-runtime] 子模块。}
 
 
 @defform[(#%plain-module-begin form ...)]{
 
-Legal only in a @tech{module begin context}, and handled by the
-@racket[module] and @racket[module*] forms.}
+仅在 @tech{module begin context} 中合法，由 @racket[module] 和 @racket[module*] 形式处理。}
 
 @defform[(#%declare declaration-keyword ...)
          #:grammar
@@ -378,72 +199,28 @@ Legal only in a @tech{module begin context}, and handled by the
                                #:unsafe
                                (code:line #:realm identifier)])]{
 
-Declarations that affect run-time or reflective properties of the
-module:
+影响模块运行时或反射属性的声明：
 
 @itemlist[
 
- @item{@indexed-racket[#:cross-phase-persistent] --- declares the
-       module as @tech{cross-phase persistent}, and reports a syntax
-       error if the module does not meet the
-       @seclink["cross-phase persistent-grammar"]{constraints
-       of cross-phase persistent modules}.}
+ @item{@indexed-racket[#:cross-phase-persistent] --- 声明模块为 @tech{cross-phase persistent}，如果模块不满足 @seclink["cross-phase persistent-grammar"]{cross-phase persistent 模块的约束}，则报告语法错误。}
 
-@item{@indexed-racket[#:empty-namespace] --- declares that
-       @racket[module->namespace] for this module should produce a
-       namespace with no bindings; limiting namespace support in this
-       way can reduce the @tech{lexical information} that
-       otherwise must be preserved for the module.}
+@item{@indexed-racket[#:empty-namespace] --- 声明此模块的 @racket[module->namespace] 应产生一个没有绑定的 namespace；以这种方式限制 namespace 支持可以减少原本必须为模块保留的 @tech{lexical information}。}
 
-@item{@indexed-racket[#:require=define] --- declares that no
-       subsequent definition immediately with the module body is
-       allowed to shadow a @racket[#%require] (or @racket[require])
-       binding. This declaration does not affect shadowing of a
-       module's initial imports (i.e., the module's language).}
+@item{@indexed-racket[#:require=define] --- 声明不允许模块体内的任何后续定义遮蔽 @racket[#%require]（或 @racket[require]）绑定。此声明不影响模块初始导入（即模块的语言）的遮蔽。}
 
-@item{@indexed-racket[#:flatten-requires] --- declares the performance
-       hint that a compiled form of the module should gather
-       transitive imports into a single, flattened list, which can
-       improve performance when the module is @tech{instantiate}d or
-       when it is attached via @racket[namespace-attach-module] or
-       @racket[namespace-attach-module-declaration]. Flattening
-       imports can be counterproductive, however, when it is applied
-       to multiple modules that are both use by another and that have
-       overlapping transitive-import subtrees.}
+@item{@indexed-racket[#:flatten-requires] --- 声明一个性能提示，即模块的编译形式应将传递性导入收集到一个单一的展平列表中，这可以在模块被 @tech{instantiate} 或通过 @racket[namespace-attach-module] 或 @racket[namespace-attach-module-declaration] 附加时提高性能。然而，当展平导入被应用于多个被另一个模块使用且具有重叠的传递性导入子树的模块时，可能会适得其反。}
 
-@item{@indexed-racket[#:unlimited-compile] --- declares that
-       compilation should not fall back to interpreted mode for an
-       especially large module body. Otherwise, a compilation mode is
-       selected based on the size of the module body (as converted to
-       a @tech{linklet}) and the @envvar{PLT_CS_COMPILE_LIMIT} environment
-       variable (see @secref["cs-compiler-modes"]).}
+@item{@indexed-racket[#:unlimited-compile] --- 声明对于特别大的模块体，编译不应回退到解释模式。否则，根据模块体的大小（转换为 @tech{linklet} 后）和 @envvar{PLT_CS_COMPILE_LIMIT} 环境变量（参见 @secref["cs-compiler-modes"]）选择编译模式。}
 
-@item{@indexed-racket[#:unsafe] --- declares that the module can be
-       compiled without checks that could trigger
-       @racket[exn:fail:contract], and the resulting behavior is
-       unspecified for an evaluation where @racket[exn:fail:contract]
-       should have been raised; see also @secref["unsafe"]. For
-       example, a use of @racket[car] can be compiled as a use of
-       @racket[unsafe-car], and the behavior is unspecified is
-       @racket[unsafe-car] is applied to a non-pair. The
-       @racket[#:unsafe] declaration keyword is allowed only when the
-       current @tech{code inspector} is the initial one. Macros can
-       generate conditionally unsafe code, depending on the expansion
-       context, by expanding to a use of
-       @racket[(variable-reference-from-unsafe?
-       (#%variable-reference))].}
+@item{@indexed-racket[#:unsafe] --- 声明模块可以在无需可能触发 @racket[exn:fail:contract] 的检查的情况下编译，对于本应引发 @racket[exn:fail:contract] 的求值，结果行为未定义；另见 @secref["unsafe"]。例如，@racket[car] 的使用可以被编译为 @racket[unsafe-car] 的使用，如果将 @racket[unsafe-car] 应用于非 pair，行为未定义。@racket[#:unsafe] 声明关键字仅在当前 @tech{code inspector} 是初始检查器时才允许。宏可以根据展开上下文生成有条件的不安全代码，通过展开为 @racket[(variable-reference-from-unsafe?
+       (#%variable-reference))] 的使用。}
 
-@item{@racket[@#,indexed-racket[#:realm] identifier] --- declares that
-       the module and any procedures within the module are given a
-       @tech{realm} that is the symbol form of @racket[identifier], effectively
-       overriding the value of @racket[current-compile-realm].}
+@item{@racket[@#,indexed-racket[#:realm] identifier] --- 声明模块及其内部的任何过程被赋予一个 @tech{realm}，即 @racket[identifier] 的符号形式，有效地覆盖 @racket[current-compile-realm] 的值。}
 
 ]
 
-A @racket[#%declare] form must appear in a @tech{module
-context} or a @tech{module-begin context}. Each
-@racket[declaration-keyword] can be declared at most once within a
-@racket[module] body.
+@racket[#%declare] 形式必须出现在 @tech{module context} 或 @tech{module-begin context} 中。每个 @racket[declaration-keyword] 在 @racket[module] 体内最多只能声明一次。
 
 @history[#:changed "6.3" @elem{Added @racket[#:empty-namespace].}
          #:changed "7.9.0.5" @elem{Added @racket[#:unsafe].}
@@ -454,7 +231,7 @@ context} or a @tech{module-begin context}. Each
 
 
 @;------------------------------------------------------------------------
-@section[#:tag '("require" "provide")]{Importing and Exporting: @racket[require] and @racket[provide]}
+@section[#:tag '("require" "provide")]{导入和导出：@racket[require] 和 @racket[provide]}
 
 @section-index["modules" "imports"]
 @section-index["modules" "exports"]
@@ -509,60 +286,20 @@ context} or a @tech{module-begin context}. Each
                            ((unsyntax (racketidfont "+")) nat)
                            ((unsyntax (racketidfont "-")) nat)])]{
 
-In a @tech{top-level context}, @racket[require] @tech{instantiates}
-modules (see @secref["module-eval-model"]). In a @tech{top-level
-context} or @tech{module context}, expansion of @racket[require]
-@tech{visits} modules (see @secref["mod-parse"]). In both contexts and
-both evaluation and expansion, @racket[require] introduces bindings
-into a @tech{namespace} or a module (see @secref["intro-binding"]).  A
-@racket[require] form in a @tech{expression context} or
-@tech{internal-definition context} is a syntax error.
+在 @tech{top-level context} 中，@racket[require] @tech{instantiates} 模块（参见 @secref["module-eval-model"]）。在 @tech{top-level context} 或 @tech{module context} 中，@racket[require] 的展开 @tech{visits} 模块（参见 @secref["mod-parse"]）。在这两种上下文以及求值和展开中，@racket[require] 将绑定引入 @tech{namespace} 或模块（参见 @secref["intro-binding"]）。在 @tech{expression context} 或 @tech{internal-definition context} 中使用 @racket[require] 形式是语法错误。
 
-A @racket[require-spec] designates a particular set of identifiers to
-be bound in the importing context. Each identifier is mapped to a
-particular export of a particular module; the identifier to bind may
-be different from the symbolic name of the originally exported
-identifier. Each identifier also binds at a particular @tech{phase
-level} and in a @tech{binding space}.
+@racket[require-spec] 指定了一组在导入上下文中绑定的特定标识符。每个标识符映射到特定模块的特定导出；要绑定的标识符可能与原始导出标识符的符号名不同。每个标识符还在特定的 @tech{phase level} 和 @tech{binding space} 中绑定。
 
-No identifier can be bound multiple times in a given combination of
-@tech{phase level} and @tech{binding space} by an import, unless
-all of the bindings refer to the same
-original definition in the same module.  In a @tech{module context},
-an identifier can be either imported or defined for a given
-@tech{phase level} and @tech{binding space}, but not both.
+在给定的 @tech{phase level} 和 @tech{binding space} 组合中，没有标识符可以通过导入被绑定多次，除非所有绑定都引用同一模块中的同一个原始定义。在 @tech{module context} 中，对于给定的 @tech{phase level} 和 @tech{binding space}，标识符可以被导入或被定义，但不能两者都是。
 
-The syntax of @racket[require-spec] can be extended via
-@racket[define-require-syntax], and when multiple
-@racket[require-spec]s are specified in a @racket[require], the
-bindings of each @racket[require-spec] are visible for expanding later
-@racket[require-spec]s. The pre-defined forms (as exported by
-@racketmodname[racket/base]) are as follows:
+@racket[require-spec] 的语法可以通过 @racket[define-require-syntax] 扩展，当 @racket[require] 中指定了多个 @racket[require-spec] 时，每个 @racket[require-spec] 的绑定对后续 @racket[require-spec] 的展开可见。预定义形式（由 @racketmodname[racket/base] 导出）如下：
 
- @specsubform[module-path]{ Imports all exported bindings from the
-  named module, using the export name for the local identifiers.
-  (See below for information on @racket[module-path].) The lexical
-  context of the @racket[module-path] form determines the context of
-  the introduced identifiers, adding a space scope for exports
-  in a particular @tech{binding space}, and in each export's
-  @tech{phase level}.
+ @specsubform[module-path]{ 从命名模块导入所有导出的绑定，使用导出名称作为本地标识符。（关于 @racket[module-path] 的信息见下文。）@racket[module-path] 形式的词法上下文决定了引入标识符的上下文，为特定 @tech{binding space} 中的导出以及在每个导出的 @tech{phase level} 添加 space scope。
 
-  If any identifier provided by @racket[module-path] has a symbol form
-  that is @tech{uninterned}, the identifier is not imported (i.e., it
-  is impossible to import a binding for an uninterned symbol). This
-  restriction is intended to avoid compilation differences depending
-  on whether a module has been saved to a file or not (see
-  @secref["print-compiled"]).}
+  如果 @racket[module-path] 提供的任何标识符的符号形式是 @tech{uninterned} 的，则该标识符不会被导入（即无法导入 uninterned 符号的绑定）。此限制旨在避免因模块是否已保存到文件而导致的编译差异（参见 @secref["print-compiled"]）。}
 
  @defsubform[(only-in require-spec id-maybe-renamed ...)]{
-  Like @racket[require-spec], but constrained to those exports for
-  which the identifiers to bind match @racket[id-maybe-renamed]: as
-  @racket[_id] or as @racket[_orig-id] in @racket[[_orig-id _bind-id]].
-  When a @racket[id-maybe-renamed] has a @racket[_bind-id], the lexical
-  context of @racket[_bind-id] is used for the binding. If
-  the @racket[_id] or @racket[_orig-id] of any @racket[id-maybe-renamed]
-  is not in the set that @racket[require-spec] describes, a syntax
-  error is reported.
+  类似于 @racket[require-spec]，但仅限于那些要绑定的标识符与 @racket[id-maybe-renamed] 匹配的导出：作为 @racket[_id] 或作为 @racket[[_orig-id _bind-id]] 中的 @racket[_orig-id]。当 @racket[id-maybe-renamed] 有 @racket[_bind-id] 时，@racket[_bind-id] 的词法上下文用于绑定。如果任何 @racket[id-maybe-renamed] 的 @racket[_id] 或 @racket[_orig-id] 不在 @racket[require-spec] 描述的集合中，则报告语法错误。
 
   @examples[#:eval (syntax-eval) #:once
     (require (only-in racket/tcp
@@ -573,11 +310,7 @@ bindings of each @racket[require-spec] are visible for expanding later
     (eval:error tcp-accept)
   ]}
 
- @defsubform[(except-in require-spec id ...)]{ Like
-  @racket[require-spec], but omitting those imports for which
-  @racket[id]s are the identifiers to bind; if any @racket[id] is not
-  in the set that @racket[require-spec] describes, a syntax error is
-  reported.
+ @defsubform[(except-in require-spec id ...)]{ 类似于 @racket[require-spec]，但省略那些 @racket[id] 是要绑定的标识符的导入；如果任何 @racket[id] 不在 @racket[require-spec] 描述的集合中，则报告语法错误。
 
   @examples[#:eval (syntax-eval) #:once
     (require (except-in racket/tcp
@@ -586,11 +319,7 @@ bindings of each @racket[require-spec] are visible for expanding later
     (eval:error tcp-listen)
   ]}
 
- @defsubform[(prefix-in prefix-id require-spec)]{ Like
-  @racket[require-spec], but adjusting each identifier to be bound by
-  prefixing it with @racket[prefix-id]. The lexical context of the
-  @racket[prefix-id] is ignored, and instead preserved from the
-  identifiers before prefixing.
+ @defsubform[(prefix-in prefix-id require-spec)]{ 类似于 @racket[require-spec]，但通过在标识符前面加上 @racket[prefix-id] 来调整每个要绑定的标识符。@racket[prefix-id] 的词法上下文被忽略，而是保留前缀之前的标识符的上下文。
 
   @examples[#:eval (syntax-eval) #:once
     (require (prefix-in tcp: racket/tcp))
@@ -598,19 +327,13 @@ bindings of each @racket[require-spec] are visible for expanding later
     tcp:tcp-listen
   ]
 
-  A @tech{syntax property} with the key
-  @indexed-racket['import-or-export-prefix-ranges] is added to the
-  local identifier in the expanded form of @racket[require].
+  @racket[require] 展开形式中的本地标识符上添加了键为 @indexed-racket['import-or-export-prefix-ranges] 的 @tech{syntax property}。
 
   @history[#:changed "8.9.0.5" @elem{Added the @racket['import-or-export-prefix-ranges]
                                      syntax property.}]}
 
  @defsubform[(rename-in require-spec [orig-id bind-id] ...)]{
-  Like @racket[require-spec], but replacing the identifier to
-  bind @racket[orig-id] with @racket[bind-id]. The lexical context of
-  @racket[bind-id] is used for the binding. If any
-  @racket[orig-id] is not in the set that @racket[require-spec]
-  describes, a syntax error is reported.
+  类似于 @racket[require-spec]，但将要绑定的 @racket[orig-id] 替换为 @racket[bind-id]。@racket[bind-id] 的词法上下文用于绑定。如果任何 @racket[orig-id] 不在 @racket[require-spec] 描述的集合中，则报告语法错误。
   
   @examples[#:eval (syntax-eval) #:once
     (require (rename-in racket/tcp
@@ -621,9 +344,7 @@ bindings of each @racket[require-spec] are visible for expanding later
   ]}
 
  @defsubform[(combine-in require-spec ...)]{
-  The union of the @racket[require-spec]s. If two or more imports from the 
-  @racket[require-spec]s have the same identifier name but they do not refer to
-  the same original binding, a syntax error is reported.
+  @racket[require-spec] 的并集。如果两个或更多来自 @racket[require-spec] 的导入具有相同的标识符名称但它们不引用相同的原始绑定，则报告语法错误。
   
   @examples[#:eval (syntax-eval) #:once
     (require (combine-in (only-in racket/tcp tcp-accept)
@@ -633,19 +354,12 @@ bindings of each @racket[require-spec] are visible for expanding later
   ]}
 
  @defsubform[(relative-in module-path require-spec ...)]{
-  Like the union of the @racket[require-spec]s, but each
-  relative module path in a @racket[require-spec] is treated
-  as relative to @racket[module-path] instead of the enclosing
-  context.
+  类似于 @racket[require-spec] 的并集，但 @racket[require-spec] 中的每个相对模块路径被视为相对于 @racket[module-path] 而非外层上下文。
 
-  The @tech{require transformer} that implements @racket[relative-in]
-  sets @racket[current-require-module-path] to adjust module paths
-  in the @racket[require-spec]s.}
+  实现 @racket[relative-in] 的 @tech{require transformer} 设置 @racket[current-require-module-path] 来调整 @racket[require-spec] 中的模块路径。}
 
  @defsubform[(only-meta-in phase-level require-spec ...)]{
-  Like the combination of @racket[require-spec]s, but removing any
-  binding that is not for @racket[phase-level], where @racket[#f] for
-  @racket[phase-level] corresponds to the @tech{label phase level}.
+  类似于 @racket[require-spec] 的组合，但删除任何不属于 @racket[phase-level] 的绑定，其中 @racket[phase-level] 的 @racket[#f] 对应 @tech{label phase level}。
   
   The following example imports bindings only at @tech{phase level} 1,
   the transform phase:
@@ -678,19 +392,12 @@ bindings of each @racket[require-spec] are visible for expanding later
   ]}
 
  @defsubform[(only-space-in space require-spec ...)]{
-  Like the combination of @racket[require-spec]s, but removing any
-  binding that is not provided for the @tech{binding space} identifier by
-  @racket[space]---which is normally an identifier, but @racket[#f] for
-  @racket[space] corresponds to the @tech{default binding space}.
+  类似于 @racket[require-spec] 的组合，但删除任何不由 @racket[space] 为 @tech{binding space} 标识符提供的绑定---@racket[space] 通常是一个标识符，但 @racket[space] 的 @racket[#f] 对应 @tech{default binding space}。
 
   @history[#:added "8.2.0.3"]}
   
  @specsubform[#:literals (for-meta)
-              (for-meta phase-level require-spec ...)]{Like the combination of
-  @racket[require-spec]s, but the bindings specified by
-  each @racket[require-spec] are shifted by @racket[phase-level]. The
-  @tech{label phase level} corresponds to @racket[#f], and a shifting
-  combination that involves @racket[#f] produces @racket[#f].
+              (for-meta phase-level require-spec ...)]{类似于 @racket[require-spec] 的组合，但每个 @racket[require-spec] 指定的绑定按 @racket[phase-level] 移动。@tech{label phase level} 对应 @racket[#f]，涉及 @racket[#f] 的移动组合产生 @racket[#f]。
   
   @examples[#:eval (syntax-eval) #:once
   (module nest racket
@@ -705,87 +412,40 @@ bindings of each @racket[require-spec] are visible for expanding later
   ]}
 
  @specsubform[#:literals (for-syntax)
-              (for-syntax require-spec ...)]{Same as 
-  @racket[(for-meta 1 require-spec ...)].}
+              (for-syntax require-spec ...)]{等同于 @racket[(for-meta 1 require-spec ...)]。}
 
  @specsubform[#:literals (for-template)
-              (for-template require-spec ...)]{Same as 
-  @racket[(for-meta -1 require-spec ...)].}
+              (for-template require-spec ...)]{等同于 @racket[(for-meta -1 require-spec ...)]。}
 
  @specsubform[#:literals (for-label)
-              (for-label require-spec ...)]{Same as 
-  @racket[(for-meta #f require-spec ...)]. If an identifier in any of the
-  @racket[require-spec]s is bound at more than one phase level, a syntax error
-  is reported.}
+              (for-label require-spec ...)]{等同于 @racket[(for-meta #f require-spec ...)]。如果任何 @racket[require-spec] 中的标识符在多个 phase level 上绑定，则报告语法错误。}
 
  @specsubform[#:literals (for-space)
-              (for-space space require-spec ...)]{Like the combination of
-  @racket[require-spec]s, but the bindings specified by
-  each @racket[require-spec] are moved to the @tech{binding space}
-  specified by @racket[space]---which is normally an identifier,
-  but @racket[#f] for @racket[space] corresponds to the
-  @tech{default binding space}.
+              (for-space space require-spec ...)]{类似于 @racket[require-spec] 的组合，但每个 @racket[require-spec] 指定的绑定被移动到 @racket[space] 指定的 @tech{binding space}---@racket[space] 通常是一个标识符，但 @racket[space] 的 @racket[#f] 对应 @tech{default binding space}。
 
-  A binding is moved to the new space by removing the scope for the
-  space originally implied by @racket[require-spec], if any, and
-  adding the scope for @racket[space], if any.
+  通过移除 @racket[require-spec] 最初暗示的 space 的 scope（如果有）并添加 @racket[space] 的 scope（如果有），将绑定移动到新 space。
 
   @history[#:added "8.2.0.3"]}
 
- @specsubform[derived-require-spec]{See @racket[define-require-syntax]
- for information on expanding the set of @racket[require-spec]
- forms.}
+ @specsubform[derived-require-spec]{关于扩展 @racket[require-spec] 形式集合的信息，参见 @racket[define-require-syntax]。}
 
 @guideintro["module-paths"]{module paths}
 
-A @racket[module-path] identifies a module, either a root module or
-a @tech{submodule} that is declared lexically within another module.
-A root module is identified either through a concrete
-name in the form of an identifier, or through an indirect name that
-can trigger automatic loading of the module declaration. Except for
-the @racket[(#,(racket quote) id)] case below, the actual resolution 
-of a root module path is up to the current
-@tech{module name resolver} (see
-@racket[current-module-name-resolver]), and the description below
-corresponds to the default @tech{module name resolver}.
+@racket[module-path] 标识一个模块，可以是根模块，也可以是在另一个模块中以词法方式声明的 @tech{submodule}。根模块可以通过标识符形式的具体的名称来标识，也可以通过可触发模块声明自动加载的间接名称来标识。除了下面的 @racket[(#,(racket quote) id)] 情况外，根模块路径的实际解析取决于当前的 @tech{module name resolver}（参见 @racket[current-module-name-resolver]），下面的描述对应默认的 @tech{module name resolver}。
 
  @specsubform[#:literals (quote)
               (#,(racket quote) id)]{
- Refers to a submodule previously declared with the name
- @racket[id] or a module previously declared interactively with the name
- @racket[id]. When @racket[id] refers to a submodule, @racket[(#,(racket quote) id)]
- is equivalent to @racket[(submod "." id)].
+ 引用之前以名称 @racket[id] 声明的子模块或之前以名称 @racket[id] 交互式声明的模块。当 @racket[id] 引用子模块时，@racket[(#,(racket quote) id)] 等价于 @racket[(submod "." id)]。
 
  @examples[
  (code:comment @#,t{a module declared interactively as @racketidfont{test}:})
  (eval:alts (require '@#,racketidfont{test}) (void))]}
 
- @specsubform[rel-string]{A path relative to the containing source (as
- determined by @racket[current-load-relative-directory] or
- @racket[current-directory]).  Regardless of the current platform,
- @racket[rel-string] is always parsed as a Unix-format relative path:
- @litchar{/} is the path delimiter (multiple adjacent @litchar{/}s are
- not allowed), @litchar{..} accesses the parent
- directory, and @litchar{.} accesses the current directory. The path
- cannot be empty or contain a leading or trailing slash, path elements
- before than the last one cannot include a file suffix (i.e., a
- @litchar{.} in an element other than @litchar{.} or @litchar{..}),
- and the only allowed characters are ASCII letters, ASCII digits,
- @litchar{-}, @litchar{+}, @litchar{_}, @litchar{.}, @litchar{/}, and
- @litchar{%}. Furthermore, a @litchar{%} is allowed only when followed
- by two lowercase hexadecimal digits, and the digits must form a
- number that is not the ASCII value of a letter, digit, @litchar{-},
- @litchar{+}, or @litchar{_}.
+ @specsubform[rel-string]{相对于包含源文件的路径（由 @racket[current-load-relative-directory] 或 @racket[current-directory] 确定）。无论当前平台是什么，@racket[rel-string] 总是被解析为 Unix 格式的相对路径：@litchar{/} 是路径分隔符（不允许多个相邻的 @litchar{/}），@litchar{..} 访问父目录，@litchar{.} 访问当前目录。路径不能为空，也不能包含前导或尾随斜杠，最后一个之前的路径元素不能包含文件后缀（即除了 @litchar{.} 或 @litchar{..} 之外的 @litchar{.}），只允许的字符是 ASCII 字母、ASCII 数字、@litchar{-}、@litchar{+}、@litchar{_}、@litchar{.}、@litchar{/} 和 @litchar{%}。此外，@litchar{%} 仅在后面跟着两个小写十六进制数字时才允许，且数字必须形成一个不是字母、数字、@litchar{-}、@litchar{+} 或 @litchar{_} 的 ASCII 值的数字。
 
- @margin-note{The @litchar{%} provision is intended to support a
- one-to-one encoding of arbitrary strings as path elements (after
- UTF-8 encoding). Such encodings are not decoded to arrive at a
- filename, but instead preserved in the file access.}
+ @margin-note{@litchar{%} 规则旨在支持将任意字符串一对一编码为路径元素（在 UTF-8 编码之后）。此类编码不会被解码为文件名，而是在文件访问中保留。}
 
- If @racket[rel-string] ends with a @filepath{.ss} suffix, it is
- converted to a @filepath{.rkt} suffix. The @tech{compiled-load
- handler} may reverse that conversion if a @filepath{.rkt} file does
- not exist and a @filepath{.ss} exists.
+ 如果 @racket[rel-string] 以 @filepath{.ss} 后缀结尾，则转换为 @filepath{.rkt} 后缀。如果 @filepath{.rkt} 文件不存在而 @filepath{.ss} 存在，@tech{compiled-load handler} 可能会反转该转换。
 
  @examples[
  (code:comment @#,t{a module named @filepath{x.rkt} in the same})
@@ -795,21 +455,14 @@ corresponds to the default @tech{module name resolver}.
  (code:comment @#,t{of the enclosing module file's directory:})
  (eval:alts (require "../x.rkt") (void))]}
 
- @defsubform[(lib rel-string ...+)]{A path to a module installed into
- a @tech{collection} (see @secref["collects"]). The @racket[rel-string]s in
- @racket[lib] are constrained similar to the plain @racket[rel-string]
- case, with the additional constraint that a @racket[rel-string]
- cannot contain @litchar{.} or @litchar{..} directory indicators.
+ @defsubform[(lib rel-string ...+)]{指向安装到 @tech{collection} 中的模块的路径（参见 @secref["collects"]）。@racket[lib] 中的 @racket[rel-string] 受到与普通 @racket[rel-string] 类似的约束。
+ 此外，@racket[rel-string] 不能包含 @litchar{.} 或 @litchar{..} 目录指示符。
 
- The specific interpretation of the path depends on the number and
- shape of the @racket[rel-string]s:
+ 路径的具体解释取决于 @racket[rel-string] 的数量和形式：
 
  @itemize[
 
-    @item{If a single @racket[rel-string] is provided, and if it
-    consists of a single element (i.e., no @litchar{/}) with no file
-    suffix (i.e., no @litchar{.}), then @racket[rel-string] names a
-    @tech{collection}, and @filepath{main.rkt} is the library file name.
+    @item{如果只提供了一个 @racket[rel-string]，且它由单个元素组成（即没有 @litchar{/}）且没有文件后缀（即没有 @litchar{.}），则 @racket[rel-string] 命名一个 @tech{collection}，@filepath{main.rkt} 是库文件名。
 
     @examples[
     (code:comment @#,t{the main @racketmodname[swindle #:indirect] library:})
@@ -817,12 +470,7 @@ corresponds to the default @tech{module name resolver}.
     (code:comment @#,t{the same:})
     (eval:alts (require (lib "swindle/main.rkt")) (void))]}
 
-    @item{If a single @racket[rel-string] is provided, and if it
-    consists of multiple @litchar{/}-separated elements, then each
-    element up to the last names a @tech{collection}, subcollection,
-    etc., and the last element names a file. If the last element has
-    no file suffix, @filepath{.rkt} is added, while a @filepath{.ss}
-    suffix is converted to @filepath{.rkt}.
+    @item{如果只提供了一个 @racket[rel-string]，且它由多个 @litchar{/} 分隔的元素组成，则直到最后一个元素之前的每个元素命名一个 @tech{collection}、子 collection 等，最后一个元素命名一个文件。如果最后一个元素没有文件后缀，则添加 @filepath{.rkt}，而 @filepath{.ss} 后缀则转换为 @filepath{.rkt}。
 
     @examples[
      (code:comment @#,t{@filepath{turbo.rkt} from the @filepath{swindle} collection:})
@@ -832,43 +480,25 @@ corresponds to the default @tech{module name resolver}.
      (code:comment @#,t{the same:})
      (eval:alts (require (lib "swindle/turbo.ss")) (void))]}
 
-    @item{If a single @racket[rel-string] is provided, and if it
-    consists of a single element @italic{with} a file suffix (i.e,
-    with a @litchar{.}), then @racket[rel-string] names a file within
-    the @filepath{mzlib} @tech{collection}. A @filepath{.ss}
-    suffix is converted to @filepath{.rkt}. (This convention is for
-    compatibility with older version of Racket.)
+    @item{如果只提供了一个 @racket[rel-string]，且它由带有文件后缀的单个元素组成（即有 @litchar{.}），则 @racket[rel-string] 命名 @filepath{mzlib} @tech{collection} 中的一个文件。@filepath{.ss} 后缀转换为 @filepath{.rkt}。（此约定是为了与旧版 Racket 兼容。）
 
     @examples[
     (code:comment @#,t{@filepath{tar.rkt} module from the @filepath{mzlib} collection:})
     (eval:alts (require (lib "tar.ss")) (void))]}
 
-    @item{Otherwise, when multiple @racket[rel-string]s are provided,
-    the first @racket[rel-string] is effectively moved after the
-    others, and all @racket[rel-string]s are appended with @litchar{/}
-    separators. The resulting path names a @tech{collection}, then
-    subcollection, etc., ending with a file name. No suffix is added
-    automatically, but a @filepath{.ss} suffix is converted to
-    @filepath{.rkt}. (This convention is for compatibility with older
-    version of Racket.)
+    @item{否则，当提供多个 @racket[rel-string] 时，第一个 @racket[rel-string] 实际上移到其他之后，所有 @racket[rel-string] 用 @litchar{/} 分隔符连接。结果路径命名一个 @tech{collection}、子 collection 等，以文件名结尾。不会自动添加后缀，但 @filepath{.ss} 后缀转换为 @filepath{.rkt}。（此约定是为了与旧版 Racket 兼容。）
 
     @examples[
     (code:comment @#,t{@filepath{tar.rkt} module from the @filepath{mzlib} collection:})
     (eval:alts (require (lib "tar.ss" "mzlib")) (void))]}
   ]}
 
- @specsubform[id]{A shorthand for a @racket[lib] form with a single
- @racket[_rel-string] whose characters are the same as in the symbolic
- form of @racket[id]. In addition to the constraints of a @racket[lib]
- @racket[_rel-string], @racket[id] must not contain @litchar{.}.
+ @specsubform[id]{具有单个 @racket[_rel-string] 的 @racket[lib] 形式的简写，该字符串的字符与 @racket[id] 的符号形式相同。除了 @racket[lib] @racket[_rel-string] 的约束外，@racket[id] 不能包含 @litchar{.}。
 
  @examples[#:eval require-eval
    (eval:alts (require racket/tcp) (void))]}
 
- @defsubform[(file string)]{Similar to the plain @racket[rel-string]
- case, but @racket[string] is a path---possibly absolute---using the
- current platform's path conventions and @racket[expand-user-path].
- A @filepath{.ss} suffix is converted to @filepath{.rkt}. 
+ @defsubform[(file string)]{类似于普通的 @racket[rel-string] 情况，但 @racket[string] 是使用当前平台路径约定和 @racket[expand-user-path] 的路径---可能是绝对路径。@filepath{.ss} 后缀转换为 @filepath{.rkt}。 
 
  @examples[(eval:alts (require (file "~/tmp/x.rkt")) (void))]}
 
@@ -877,7 +507,7 @@ corresponds to the default @tech{module name resolver}.
                (planet rel-string (user-string pkg-string vers)
                        rel-string ...))]{
 
- Specifies a library available via the @PLaneT server.
+ 指定可通过 @PLaneT 服务器获取的库。
 
  The first form is a shorthand for the last one, where the @racket[id]'s
  character sequence must match the following @nonterm{spec} grammar:
@@ -945,34 +575,16 @@ corresponds to the default @tech{module name resolver}.
  @defsubform*[((submod root-module-path submod-path-element ...)
                (submod "." submod-path-element ...)
                (submod ".." submod-path-element ...))]{
-  Identifies a @tech{submodule} within the module specified by @racket[root-module-path]
-  or relative to the current module in the case of @racket[(submod "." ....)],
-  where  @racket[(submod ".." submod-path-element ...)] is equivalent to
-  @racket[(submod "." ".." submod-path-element ...)].
-  Submodules have symbolic names, and a sequence of identifiers as @racket[submod-path-element]s
-  determine a path of successively nested submodules with the given names.
-  A @racket[".."] as a @racket[submod-path-element] names the enclosing module
-  of a submodule, and it's intended for use in @racket[(submod "." ....)] 
-  and @racket[(submod ".." ....)] forms.}
+  标识 @racket[root-module-path] 指定模块内的 @tech{submodule}，或在 @racket[(submod "." ....)] 情况下相对于当前模块，其中 @racket[(submod ".." submod-path-element ...)] 等价于 @racket[(submod "." ".." submod-path-element ...)]。子模块具有符号名称，作为 @racket[submod-path-element] 的标识符序列确定了使用给定名称的连续嵌套子模块的路径。@racket[".."] 作为 @racket[submod-path-element] 命名子模块的外层模块，旨在用于 @racket[(submod "." ....)] 和 @racket[(submod ".." ....)] 形式。}
 
-As @racket[require] prepares to handle a sequence of
-@racket[require-spec]s, it logs a ``prefetch'' message to the
-@tech{current logger} at the @racket['info] level, using the name
-@racket['module-prefetch], and including message data that is a list
-of two elements: a list of @tech{module paths} that appear to be
-imported, and a directory path to use for relative module paths. The
-logged list of module paths may be incomplete, but a compilation
-manager can use approximate prefetch information to start on
-compilations in parallel.
+当 @racket[require] 准备处理一系列 @racket[require-spec] 时，它会在 @racket['info] 级别向 @tech{current logger} 记录一条''prefetch''消息，使用名称 @racket['module-prefetch]，并包含一个由两个元素组成的列表作为消息数据：一个看起来被导入的 @tech{module paths} 列表，以及用于相对模块路径的目录路径。记录的模块路径列表可能不完整，但编译管理器可以使用近似的 prefetch 信息并行启动编译。
 
 @history[#:changed "6.0.1.10" @elem{Added prefetch logging.}]}
 
 
 @defform[(local-require require-spec ...)]{
 
-Like @racket[require], but for use in a @tech{internal-definition context} to
-import just into the local context. Only bindings from @tech{phase
-level} 0 are imported.
+类似于 @racket[require]，但用于 @tech{internal-definition context} 中仅导入到局部上下文中。只导入 @tech{phase level} 0 的绑定。
 
 @examples[
   (let ()
@@ -1006,31 +618,13 @@ level} 0 are imported.
                [phase-level exact-integer #f]
                [space id #f])]{
 
-Declares exports from a module. A @racket[provide] form must appear in
-a @tech{module context} or a @tech{module-begin context}.
+声明模块的导出。@racket[provide] 形式必须出现在 @tech{module context} 或 @tech{module-begin context} 中。
 
-A @racket[provide-spec] indicates one or more bindings to provide.
-For each exported binding, the external name is a symbol that can be
-different from the symbolic form of the identifier that is bound
-within the module. Also, each export is drawn from a particular
-@tech{phase level} and exported at the same @tech{phase level}; by
-default, the relevant phase level is the number of
-@racket[begin-for-syntax] forms that enclose the @racket[provide]
-form. Finally, each export is drawn from a @tech{binding space}
-and exported at the same @tech{binding space}.
+@racket[provide-spec] 指示要提供的一个或多个绑定。对于每个导出的绑定，外部名称是一个符号，可能与模块内绑定的标识符的符号形式不同。此外，每个导出取自特定的 @tech{phase level} 并在相同的 @tech{phase level} 导出；默认情况下，相关的 phase level 是包围 @racket[provide] 形式的 @racket[begin-for-syntax] 形式的数量。最后，每个导出取自一个 @tech{binding space} 并在相同的 @tech{binding space} 导出。
 
-The syntax of @racket[provide-spec] can be extended by bindings to
-@tech{provide transformers} or @tech{provide pre-transformers}, such
-as via @racket[define-provide-syntax], but the pre-defined forms are
-as follows.
+@racket[provide-spec] 的语法可以通过绑定到 @tech{provide transformers} 或 @tech{provide pre-transformers} 来扩展，例如通过 @racket[define-provide-syntax]，但预定义形式如下。
 
- @specsubform[id]{ Exports @racket[id], which must be @tech{bound}
- within the module (i.e., either defined or imported) at the relevant
- @tech{phase level} and @tech{binding space}. The symbolic form of
- @racket[id] is used as the
- external name, and the symbolic form of the defined or imported
- identifier must match (otherwise, the external name could be
- ambiguous).
+ @specsubform[id]{ 导出 @racket[id]，它必须在相关的 @tech{phase level} 和 @tech{binding space} 在模块内被 @tech{bound}（即定义或导入）。@racket[id] 的符号形式用作外部名称，且定义或导入的标识符的符号形式必须匹配（否则外部名称可能含糊不清）。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1040,21 +634,9 @@ as follows.
    num-eggs
  ]
 
- If @racket[id] has a transformer binding to a @tech{rename
- transformer}, then the transformer affects the exported binding. See
- @racket[make-rename-transformer] for more information.}
+ 如果 @racket[id] 有到 @tech{rename transformer} 的 transformer 绑定，则该 transformer 影响导出的绑定。更多信息参见 @racket[make-rename-transformer]。}
 
- @defsubform[(all-defined-out)]{ Exports all identifiers that are
- defined at the relevant @tech{phase level} within the
- exporting module, and that have the same lexical context as the
- @racket[(all-defined-out)] form, excluding bindings to @tech{rename
- transformers} where the target identifier has the
- @racket['not-provide-all-defined] @tech{syntax property}. The
- external name for each identifier is the symbolic form of the
- identifier. Only identifiers accessible from the lexical context of
- the @racket[(all-defined-out)] form are included; that is,
- macro-introduced imports are not re-exported, unless the
- @racket[(all-defined-out)] form was introduced at the same time.
+ @defsubform[(all-defined-out)]{ 导出导出模块内相关 @tech{phase level} 上定义的、且与 @racket[(all-defined-out)] 形式具有相同词法上下文的所有标识符，排除目标标识符具有 @racket['not-provide-all-defined] @tech{syntax property} 的 @tech{rename transformers} 绑定。每个标识符的外部名称是标识符的符号形式。只有从 @racket[(all-defined-out)] 形式的词法上下文可访问的标识符才被包含；也就是说，宏引入的导入不会被重新导出，除非 @racket[(all-defined-out)] 形式是同时引入的。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1064,16 +646,7 @@ as follows.
    num-eggs
  ]}
 
- @defsubform[(all-from-out module-path ...)]{ Exports all identifiers
- that are imported into the exporting module using a
- @racket[require-spec] built on each @racket[module-path] (see
- @secref["require"]) with no @tech{phase-level} shift.  The symbolic
- name for export is derived from the name that is bound within the
- module, as opposed to the symbolic name of the export from each
- @racket[module-path]. Only identifiers accessible from the lexical
- context of the @racket[module-path] are included; that is,
- macro-introduced imports are not re-exported, unless the
- @racket[module-path] was introduced at the same time.
+ @defsubform[(all-from-out module-path ...)]{ 导出使用基于每个 @racket[module-path]（参见 @secref["require"]）构建的 @racket[require-spec] 导入到导出模块中的所有标识符，没有 @tech{phase-level} 移动。导出的符号名称源自模块内绑定的名称，而不是每个 @racket[module-path] 的导出的符号名称。只有从 @racket[module-path] 的词法上下文可访问的标识符才被包含；也就是说，宏引入的导入不会被重新导出，除非 @racket[module-path] 是同时引入的。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1086,11 +659,7 @@ as follows.
    num-eggs
  ]}
 
- @defsubform[(rename-out [orig-id export-id] ...)]{ Exports each
- @racket[orig-id], which must be @tech{bound} within the module at
- the relevant @tech{phase level} and @tech{binding space}.
- The symbolic name for each export is
- @racket[export-id] instead of @racket[orig-id].
+ @defsubform[(rename-out [orig-id export-id] ...)]{ 导出每个 @racket[orig-id]，它必须在相关的 @tech{phase level} 和 @tech{binding space} 内在模块中被 @tech{bound}。每个导出的符号名称是 @racket[export-id] 而不是 @racket[orig-id]。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1101,12 +670,7 @@ as follows.
    (eval:error count)
  ]}
 
- @defsubform[(except-out provide-spec provide-spec ...)]{ Like the
- first @racket[provide-spec], but omitting the bindings listed in each
- subsequent @racket[provide-spec]. If one of the latter bindings is
- not included in the initial @racket[provide-spec], a syntax error is
- reported. The symbolic export name information in the latter
- @racket[provide-spec]s is ignored; only the bindings are used.
+ @defsubform[(except-out provide-spec provide-spec ...)]{ 类似于第一个 @racket[provide-spec]，但省略每个后续 @racket[provide-spec] 中列出的绑定。如果后一个绑定没有包含在初始 @racket[provide-spec] 中，则报告语法错误。后一个 @racket[provide-spec] 中的符号导出名称信息被忽略；只使用绑定。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1120,8 +684,7 @@ as follows.
  ]}
 
  @defsubform[(prefix-out prefix-id provide-spec)]{
- Like @racket[provide-spec], but with each symbolic export name from
- @racket[provide-spec] prefixed with @racket[prefix-id].
+ 类似于 @racket[provide-spec]，但 @racket[provide-spec] 中的每个符号导出名称都以 @racket[prefix-id] 为前缀。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1131,25 +694,12 @@ as follows.
    chicken:num-eggs
  ]
  
-  A @tech{syntax property} with the key
-  @indexed-racket['import-or-export-prefix-ranges] is added to the
-  exported identifier in the expanded form of @racket[provide].
+  @racket[provide] 展开形式中的导出标识符上添加了键为 @indexed-racket['import-or-export-prefix-ranges] 的 @tech{syntax property}。
 
   @history[#:changed "8.9.0.5" @elem{Added the @racket['import-or-export-prefix-ranges]
                                      syntax property.}]}
 
- @defsubform[(struct-out id)]{Exports the bindings associated with a
- structure type @racket[id]. Typically, @racket[id] is bound with
- @racket[(struct id ....)]; more generally, @racket[id] must have a
- @tech{transformer} binding of structure-type information at the relevant
- @tech{phase level}; see @secref["structinfo"].  Furthermore, for
- each identifier mentioned in the structure-type information, the
- enclosing module must define or import one identifier that is
- @racket[free-identifier=?]. If the structure-type information
- includes a super-type identifier, and if the identifier has a
- @tech{transformer} binding of structure-type information, the
- accessor and mutator bindings of the super-type are @italic{not}
- included by @racket[struct-out] for export.
+ @defsubform[(struct-out id)]{导出与结构类型 @racket[id] 关联的绑定。通常，@racket[id] 用 @racket[(struct id ....)] 绑定；更一般地，@racket[id] 必须在相关的 @tech{phase level} 上具有结构类型信息的 @tech{transformer} 绑定；参见 @secref["structinfo"]。此外，对于结构类型信息中提到的每个标识符，外层模块必须定义或导入一个 @racket[free-identifier=?] 的标识符。如果结构类型信息包含超类型标识符，并且该标识符具有结构类型信息的 @tech{transformer} 绑定，则超类型的 accessor 和 mutator 绑定 @italic{不} 被 @racket[struct-out] 包含在导出中。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1159,8 +709,7 @@ as follows.
    (egg-color (egg 'blue 10))
  ]}
 
- @defsubform[(combine-out provide-spec ...)]{ The union of the
- @racket[provide-spec]s.
+ @defsubform[(combine-out provide-spec ...)]{ @racket[provide-spec] 的并集。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1172,13 +721,7 @@ as follows.
    num-chicks
  ]}
 
- @defsubform[(protect-out provide-spec ...)]{ Like the union of the
- @racket[provide-spec]s, except that the exports are @tech{protected}:
- requiring modules may refer to these bindings, but may not extract
- these bindings from macro expansions or access them via @racket[eval] without
- access privileges.
- For more details, see @secref["modprotect"]. The @racket[provide-spec] must specify only
- bindings that are defined within the exporting module.
+ @defsubform[(protect-out provide-spec ...)]{ 类似于 @racket[provide-spec] 的并集，但导出是 @tech{protected} 的：requiring 模块可以引用这些绑定，但不能在没有访问权限的情况下从宏展开中提取这些绑定或通过 @racket[eval] 访问它们。更多细节参见 @secref["modprotect"]。@racket[provide-spec] 必须只指定在导出模块内定义的绑定。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1204,17 +747,7 @@ as follows.
  See also @secref["code-inspectors+protect" #:doc '(lib "scribblings/guide/guide.scrbl")].}
 
  @specsubform[#:literals (for-meta) 
-              (for-meta phase-level provide-spec ...)]{ Like the union of the
- @racket[provide-spec]s, but adjusted to apply to the @tech{phase
- level} specified by @racket[phase-level] relative to the current
- phase level (where @racket[#f] corresponds to the @tech{label phase
- level}). In particular, an @racket[_id] or @racket[rename-out] form
- as a @racket[provide-spec] refers to a binding at
- @racket[phase-level] relative to the current level, an
- @racket[all-defined-out] exports only definitions at
- @racket[phase-level] relative to the current phase level, and an
- @racket[all-from-out] exports bindings imported with a shift by
- @racket[phase-level].
+              (for-meta phase-level provide-spec ...)]{ 类似于 @racket[provide-spec] 的并集，但调整为应用于 @racket[phase-level] 指定的相对于当前 phase level 的 @tech{phase level}（其中 @racket[#f] 对应 @tech{label phase level}）。特别地，作为 @racket[provide-spec] 的 @racket[_id] 或 @racket[rename-out] 形式引用相对于当前 level 的 @racket[phase-level] 上的绑定，@racket[all-defined-out] 仅导出相对于当前 phase level 的 @racket[phase-level] 上的定义，@racket[all-from-out] 导出通过 @racket[phase-level] 移动导入的绑定。
 
  @examples[#:eval (syntax-eval) #:once
    (module nest racket
@@ -1266,13 +799,7 @@ as follows.
  @racket[(for-meta #f provide-spec ...)].}
 
  @specsubform[#:literals (for-space) 
-              (for-space space provide-spec ...)]{ Like the union of the
- @racket[provide-spec]s, but adjusted to apply to the @tech{binding space}
- specified by @racket[space]---where @racket[space] is either an identifier
- or @racket[#f] for the @tech{default binding space}. In particular, an @racket[_id]
- or @racket[rename-out] form as a @racket[provide-spec] refers to a binding
- in @racket[space], an @racket[all-defined-out] exports only definitions in
- @racket[space], and an @racket[all-from-out] exports bindings imported into @racket[space].
+              (for-space space provide-spec ...)]{ 类似于 @racket[provide-spec] 的并集，但调整为应用于 @racket[space] 指定的 @tech{binding space}---其中 @racket[space] 是一个标识符或 @racket[#f] 表示 @tech{default binding space}。特别地，作为 @racket[provide-spec] 的 @racket[_id] 或 @racket[rename-out] 形式引用 @racket[space] 中的绑定，@racket[all-defined-out] 仅导出 @racket[space] 中的定义，@racket[all-from-out] 导出导入到 @racket[space] 中的绑定。
 
  When providing a binding for a non-default binding space, normally a
  module should also provide a binding for the default binding space,
@@ -1288,12 +815,9 @@ as follows.
 
  @history[#:added "8.2.0.3"]}
 
- @specsubform[derived-provide-spec]{See @racket[define-provide-syntax]
- for information on expanding the set of @racket[provide-spec] forms.}
+ @specsubform[derived-provide-spec]{关于扩展 @racket[provide-spec] 形式集合的信息，参见 @racket[define-provide-syntax]。}
 
-Each export specified within a module must have a distinct symbolic
-export name, though the same binding can be specified with the
-multiple symbolic names.}
+模块内指定的每个导出必须具有不同的符号导出名称，尽管同一个绑定可以用多个符号名称指定。}
 
 
 @defform[(for-meta phase-level require-spec ...)]{See @racket[require] and @racket[provide].}
@@ -1335,54 +859,27 @@ multiple symbolic names.}
                                                                (user-string pkg-string vers ...))
                                     literal-path])]{
 
-The primitive import form, to which @racket[require] expands. A
-@racket[raw-require-spec] is similar to a @racket[_require-spec] in a
-@racket[require] form, except that the syntax is more constrained, not
-composable, and not extensible. Also, sub-form names like
-@racketidfont{for-syntax} and @racketidfont{lib} are recognized
-symbolically, instead of via bindings. Some nested constraints are not
-formalized in the grammar above:
+原始导入形式，@racket[require] 展开为此形式。@racket[raw-require-spec] 类似于 @racket[require] 形式中的 @racket[_require-spec]，但语法更受限、不可组合且不可扩展。此外，子形式名称如 @racketidfont{for-syntax} 和 @racketidfont{lib} 以符号方式识别，而非通过绑定。一些嵌套约束未在上述语法中形式化：
 
 @itemlist[
 
- @item{a @racketidfont{just-meta} form cannot appear within a
-       @racketidfont{just-meta} form;}
+ @item{@racketidfont{just-meta} 形式不能出现在 @racketidfont{just-meta} 形式内；}
 
- @item{a @racketidfont{for-meta}, @racketidfont{for-syntax},
-       @racketidfont{for-template}, or @racketidfont{for-label} form
-       cannot appear within a @racketidfont{for-meta},
-       @racketidfont{for-syntax}, @racketidfont{for-template}, or
-       @racketidfont{for-label} form; and}
+ @item{@racketidfont{for-meta}、@racketidfont{for-syntax}、@racketidfont{for-template} 或 @racketidfont{for-label} 形式不能出现在 @racketidfont{for-meta}、@racketidfont{for-syntax}、@racketidfont{for-template} 或 @racketidfont{for-label} 形式内；}
 
- @item{a @racketidfont{for-space} form cannot appear within a
-       @racketidfont{for-space} form.}
+ @item{@racketidfont{for-space} 形式不能出现在 @racketidfont{for-space} 形式内。}
 
- @item{a @racketidfont{portal} form cannot appear within a
-       @racketidfont{just-meta} form.}
+ @item{@racketidfont{portal} 形式不能出现在 @racketidfont{just-meta} 形式内。}
 
 ]
 
-Except for the @racketidfont{portal} form, each
-@racket[raw-require-spec] corresponds to the obvious
-@racket[_require-spec], but the @racketidfont{rename} sub-form has the
-identifiers in reverse order compared to @racket[rename-in].
+除了 @racketidfont{portal} 形式外，每个 @racket[raw-require-spec] 对应明显的 @racket[_require-spec]，但 @racketidfont{rename} 子形式中的标识符顺序与 @racket[rename-in] 相反。
 
-For most @racket[raw-require-spec]s, the lexical context of the
-@racket[raw-require-spec] determines the context of introduced
-identifiers. The exception is the @racketidfont{rename} sub-form,
-where the lexical context of the @racket[local-id] is preserved.
+对于大多数 @racket[raw-require-spec]，@racket[raw-require-spec] 的词法上下文决定了引入标识符的上下文。例外是 @racketidfont{rename} 子形式，其中 @racket[local-id] 的词法上下文被保留。
 
-A @racket[literal-path] as a @racket[raw-root-module-path] corresponds
-to a path in the sense of @racket[path?]. Since path values are never
-produced by @racket[read-syntax], they appear only in programmatically
-constructed expressions. They also appear naturally as arguments to
-functions such as @racket[namespace-require], with otherwise take a
-quoted @racket[raw-module-spec].
+作为 @racket[raw-root-module-path] 的 @racket[literal-path] 对应 @racket[path?] 意义上的路径。由于路径值永远不由 @racket[read-syntax] 产生，它们只出现在程序化构造的表达式中。它们也自然地作为 @racket[namespace-require] 等函数的参数出现，这些函数以其他方式接受带引号的 @racket[raw-module-spec]。
 
-The @racketidfont{portal} form provides a way to define @tech{portal
-syntax} at any phase level. A @racket[(#,(racketidfont "portal")
-portal-id content)], defines @racket[portal-id] to portal syntax with
-@racket[content] effectively quoted to serve as its content.
+@racketidfont{portal} 形式提供了一种在任何 phase level 定义 @tech{portal syntax} 的方式。@racket[(#,(racketidfont "portal") portal-id content)] 将 @racket[portal-id] 定义为 portal syntax，@racket[content] 被有效地引用以作为其内容。
 
 @history[#:changed "8.2.0.3" @elem{Added @racketidfont{for-space}
                                    and @racketidfont{just-space}.}
@@ -1415,49 +912,15 @@ portal-id content)], defines @racket[portal-id] to portal syntax with
                                (#,(racketidfont "expand") (id . datum))
                                (#,(racketidfont "expand") (id . datum) orig-form)])]{
 
-The primitive export form, to which @racket[provide] expands.  A
-@racket[_raw-module-path] is as for @racket[#%require]. A
-@racketidfont{protect} sub-form cannot appear within a
-@racket[protect] sub-form.
+原始导出形式，@racket[provide] 展开为此形式。@racket[_raw-module-path] 与 @racket[#%require] 相同。@racketidfont{protect} 子形式不能出现在 @racket[protect] 子形式内。
 
-Like @racket[#%require], the sub-form keywords for @racket[#%provide]
-are recognized symbolically, and nearly every
-@racket[raw-provide-spec] has an obvious equivalent
-@racket[_provide-spec] via @racket[provide], with the exception of the
-@racketidfont{struct} and @racketidfont{expand} sub-forms.
+与 @racket[#%require] 类似，@racket[#%provide] 的子形式关键字以符号方式识别，几乎每个 @racket[raw-provide-spec] 通过 @racket[provide] 都有明显的 @racket[_provide-spec] 等价形式，除了 @racketidfont{struct} 和 @racketidfont{expand} 子形式。
 
-A @racket[(#,(racketidfont "struct") struct-id (field-id ...))]
-sub-form expands to @racket[struct-id],
-@racketidfont{make-}@racket[struct-id],
-@racketidfont{struct:}@racket[struct-id],
-@racket[struct-id]@racketidfont{?},
-@racket[struct-id]@racketidfont{-}@racket[field-id] for each
-@racket[field-id], and
-@racketidfont{set-}@racket[struct-id]@racketidfont{-}@racket[field-id]@racketidfont{!}
-for each @racket[field-id]. The lexical context of the
-@racket[struct-id] is used for all generated identifiers.
+@racket[(#,(racketidfont "struct") struct-id (field-id ...))] 子形式展开为 @racket[struct-id]、@racketidfont{make-}@racket[struct-id]、@racketidfont{struct:}@racket[struct-id]、@racket[struct-id]@racketidfont{?}、每个 @racket[field-id] 的 @racket[struct-id]@racketidfont{-}@racket[field-id]，以及每个 @racket[field-id] 的 @racketidfont{set-}@racket[struct-id]@racketidfont{-}@racket[field-id]@racketidfont{!}。@racket[struct-id] 的词法上下文用于所有生成的标识符。
 
-Unlike @racket[#%require], the @racket[#%provide] form is
-macro-extensible via an explicit @racketidfont{expand} sub-form; the
-@racket[(id . datum)] part is locally expanded as an expression (even
-though it is not actually an expression), stopping when a
-@racket[begin] form is produced; if the expansion result is
-@racket[(begin raw-provide-spec ...)], it is spliced in place of the
-@racketidfont{expand} form, otherwise a syntax error is reported.
-If an @racket[orig-form] part is provided, then it is used instead of the
-@racket[#%provide] form when raising syntax errors, such as a
-``provide identifier is not defined'' error. The @racketidfont{expand}
-sub-form is not normally used directly; it provides a hook for
-implementing @racket[provide] and @tech{provide transformers}.
+与 @racket[#%require] 不同，@racket[#%provide] 形式通过显式的 @racketidfont{expand} 子形式可进行宏扩展；@racket[(id . datum)] 部分作为表达式进行局部展开（即使它实际上不是表达式），当产生 @racket[begin] 形式时停止；如果展开结果是 @racket[(begin raw-provide-spec ...)]，则它被拼接到 @racketidfont{expand} 形式的位置，否则报告语法错误。如果提供了 @racket[orig-form] 部分，则在引发语法错误时使用它而不是 @racket[#%provide] 形式，例如''provide identifier is not defined''错误。@racketidfont{expand} 子形式通常不直接使用；它为实现 @racket[provide] 和 @tech{provide transformers} 提供了钩子。
 
-The @racketidfont{all-from} and @racketidfont{all-from-except} forms
-re-export only identifiers that are accessible in lexical context of
-the @racketidfont{all-from} or @racketidfont{all-from-except} form
-itself. That is, macro-introduced imports are not re-exported, unless
-the @racketidfont{all-from} or @racketidfont{all-from-except} form was
-introduced at the same time. Similarly, @racketidfont{all-defined} and
-its variants export only definitions accessible from the lexical
-context of the @racket[spaceless-spec] form.
+@racketidfont{all-from} 和 @racketidfont{all-from-except} 形式仅重新导出在 @racketidfont{all-from} 或 @racketidfont{all-from-except} 形式本身的词法上下文中可访问的标识符。也就是说，宏引入的导入不会被重新导出，除非 @racketidfont{all-from} 或 @racketidfont{all-from-except} 形式是同时引入的。类似地，@racketidfont{all-defined} 及其变体只导出从 @racket[spaceless-spec] 形式的词法上下文可访问的定义。
 
 @history[#:changed "8.2.0.3" @elem{Added @racketidfont{for-space}.}
          #:changed "8.2.0.5" @elem{Added @racket[orig-form] support
@@ -1465,18 +928,15 @@ context of the @racket[spaceless-spec] form.
 
 @; --------------------
 
-@subsection{Additional @racket[require] Forms}
+@subsection{额外的 @racket[require] 形式}
 
 @note-lib-only[racket/require]
 
-The following forms support more complex selection and manipulation of
-sets of imported identifiers.
+以下形式支持对导入标识符集进行更复杂的选择和操作。
 
 @defform[(matching-identifiers-in regexp require-spec)]{
 
-Like @racket[require-spec], but including only imports whose names
- match @racket[regexp].  The @racket[regexp] must be a literal regular
- expression (see @secref["regexp"]).
+类似于 @racket[require-spec]，但仅包含名称匹配 @racket[regexp] 的导入。@racket[regexp] 必须是字面正则表达式（参见 @secref["regexp"]）。
 
 @examples[#:eval (syntax-eval) #:once
 (module zoo racket/base
@@ -1498,8 +958,7 @@ blowfish
 
 @defform[(subtract-in require-spec subtracted-spec ...)]{
 
-Like @racket[require-spec], but omitting those imports that would be
-  imported by one of the @racket[subtracted-spec]s.
+类似于 @racket[require-spec]，但省略那些会被某个 @racket[subtracted-spec] 导入的导入。
 
 @examples[#:eval (syntax-eval) #:once
 (module earth racket
@@ -1525,46 +984,26 @@ aliens
 
 @defform[(filtered-in proc-expr require-spec)]{ 
 
-  Applies an arbitrary transformation on the import names (as strings)
-  of @racket[require-spec]. The @racket[proc-expr] must evaluate at
-  expansion time to a single-argument procedure, which is applied on
-  each of the names from @racket[require-spec].  For each name, the
-  procedure must return either a string for the import's new name or
-  @racket[#f] to exclude the import.
+  对 @racket[require-spec] 的导入名称（作为字符串）应用任意转换。@racket[proc-expr] 必须在展开时求值为一个单参数过程，该过程应用于 @racket[require-spec] 中的每个名称。对于每个名称，过程必须返回一个字符串作为导入的新名称，或返回 @racket[#f] 以排除该导入。
 
   @margin-note{
-    The second part of @racket[filtered-in] is expand-time code evaluated in the
-    scope of the enclosing module. Accordingly, most uses need
-    @racket[(require (for-syntax racket/base))] if @racketmodname[racket/base]
-    is not already imported @racket[for-syntax]. For example,
-    @racket[@#,(hash-lang) @#,racketmodname[racket]] establishes this import
-    automatically, while @racket[@#,(hash-lang) @#,racketmodname[racket/base]]
-    does not.
+    @racket[filtered-in] 的第二部分是在外层模块作用域中求值的展开时代码。因此，如果 @racketmodname[racket/base] 尚未以 @racket[for-syntax] 方式导入，大多数用法需要 @racket[(require (for-syntax racket/base))]。例如，@racket[@#,(hash-lang) @#,racketmodname[racket]] 自动建立此导入，而 @racket[@#,(hash-lang) @#,racketmodname[racket/base]] 则不建立。
   }
 
-  For example,
+  例如，
   @racketblock[
     (require (filtered-in
               (lambda (name)
                 (and (regexp-match? #rx"^[a-z-]+$" name)
                      (regexp-replace #rx"-" (string-titlecase name) "")))
               racket/base))]
-  imports only bindings from @racketmodname[racket/base] that match the
-  pattern @racket[#rx"^[a-z-]+$"], and it converts the names to ``camel case.''}
+  仅导入 @racketmodname[racket/base] 中匹配模式 @racket[#rx"^[a-z-]+$"] 的绑定，并将名称转换为驼峰命名法。}
 
 @defform[(path-up rel-string ...)]{
 
-Specifies paths to modules named by the @racket[rel-string]s similar
-to using the @racket[rel-string]s directly, except that if a required
-module file is not found relative to the enclosing source, it is
-searched for in the parent directory, and then in the grand-parent
-directory, etc., all the way to the root directory. The discovered
-path relative to the enclosing source becomes part of the expanded
-form.
+类似直接使用 @racket[rel-string] 指定模块路径，但如果在相对于外层源文件的位置找不到所需的模块文件，则会在父目录中搜索，然后在上上级目录中搜索，以此类推，一直到根目录。发现的相对于外层源文件的路径成为展开后形式的一部分。
 
-This form is useful in setting up a ``project environment.''  For
-example, using the following @filepath{config.rkt} file in the root
-directory of your project:
+此形式在设置项目环境时很有用。例如，在项目根目录中使用以下 @filepath{config.rkt} 文件：
 @racketmod[
   racket/base
   (require racket/require-syntax 
@@ -1573,7 +1012,7 @@ directory of your project:
   (provide utils-in)
   (define-require-syntax utils-in in-here-transformer)
 ]
-and using @filepath{utils/in-here.rkt} under the same root directory:
+并在同一根目录下使用 @filepath{utils/in-here.rkt}：
 @racketmod[
   racket/base
   (require racket/runtime-path)
@@ -1586,23 +1025,18 @@ and using @filepath{utils/in-here.rkt} under the same root directory:
        (let ([path (build-path here (format "~a.rkt" (syntax-e #'sym)))])
          (datum->syntax stx `(file ,(path->string path)) stx))]))
 ]
-then @racket[path-up] works for any other module under the project
- directory to find @filepath{config.rkt}:
+则 @racket[path-up] 适用于项目目录下的任何其他模块来查找 @filepath{config.rkt}：
 @racketblock[
   (require racket/require 
            (path-up "config.rkt")
            (utils-in foo))]
-Note that the order of requires in the example is important, as each of
-the first two bind the identifier used in the following.
+请注意，示例中 requires 的顺序很重要，因为前两个中的每一个都绑定了后续使用的标识符。
 
-An alternative in this scenario is to use @racket[path-up] directly to
-find the utility module:
+在这种情况下，另一种选择是直接使用 @racket[path-up] 来查找工具模块：
 @racketblock[
   (require racket/require 
            (path-up "utils/foo.rkt"))]
-but then sub-directories that are called
-@filepath{utils} override the one in the project's root.
-In other words, the previous method requires only a single unique name.}
+但是，名为 @filepath{utils} 的子目录会覆盖项目根目录中的那个。换句话说，前一种方法只需要一个唯一的名称。}
 
 @defform/subs[(multi-in subs ...+)
               ([subs sub-path
@@ -1610,15 +1044,9 @@ In other words, the previous method requires only a single unique name.}
                [sub-path rel-string
                          id])]{
 
-Specifies multiple files to be required from a hierarchy of
-directories or collections. The set of required module paths is computed
-as the Cartesian product of the @racket[subs] groups, where each
-@racket[sub-path] is combined with other @racket[sub-path]s in order
-using a @litchar{/} separator. A @racket[sub-path] as a @racket[subs]
-is equivalent to @racket[(sub-path)]. All @racket[sub-path]s in a given
-@racket[multi-in] form must be either strings or identifiers.
+指定要从目录或 collection 层次结构中 require 的多个文件。所需的模块路径集计算为 @racket[subs] 组的笛卡尔积，其中每个 @racket[sub-path] 按顺序使用 @litchar{/} 分隔符与其他 @racket[sub-path] 组合。作为 @racket[subs] 的 @racket[sub-path] 等价于 @racket[(sub-path)]。给定 @racket[multi-in] 形式中的所有 @racket[sub-path] 必须是字符串或标识符。
 
-Examples:
+示例：
 
 @subeqivs[
 [(require (multi-in racket (dict @#,racketidfont{list})))
@@ -1636,23 +1064,19 @@ Examples:
 
 @; --------------------
 
-@subsection{Additional @racket[provide] Forms}
+@subsection{额外的 @racket[provide] 形式}
 
 @note-lib-only[racket/provide]
 
-@defform[(matching-identifiers-out regexp provide-spec)]{ Like
-  @racket[provide-spec], but including only exports of bindings with
-  an external name that matches @racket[regexp]. The @racket[regexp]
-  must be a literal regular expression (see @secref["regexp"]).}
+@defform[(matching-identifiers-out regexp provide-spec)]{ 类似于 @racket[provide-spec]，但仅包含外部名称匹配 @racket[regexp] 的绑定导出。@racket[regexp] 必须是字面正则表达式（参见 @secref["regexp"]）。}
 
 @defform[(filtered-out proc-expr provide-spec)]{
 
- Analogous to @racket[filtered-in], but for filtering and renaming
- exports.
+ 类似于 @racket[filtered-in]，但用于过滤和重命名导出。
 
-  @margin-note{See the documentation of @racket[filtered-in] for use with @racket[@#,(hash-lang) @#,racketmodname[racket/base]].}
+  @margin-note{关于与 @racket[@#,(hash-lang) @#,racketmodname[racket/base]] 一起使用，参见 @racket[filtered-in] 的文档。}
 
-  For example,
+  例如，
   @racketblock[
     (provide (filtered-out
               (lambda (name)
@@ -1660,23 +1084,18 @@ Examples:
                      (regexp-replace
                       #rx"-" (string-titlecase name) "")))
               (all-defined-out)))]
-  exports only bindings that match the
-  pattern @racket[#rx"^[a-z-]+$"], and it converts the names to ``camel case.''}
+  仅导出匹配模式 @racket[#rx"^[a-z-]+$"] 的绑定，并将名称转换为驼峰命名法。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "quote"]{Literals: @racket[quote] and @racket[#%datum]}
+@section[#:tag "quote"]{字面量：@racket[quote] 和 @racket[#%datum]}
 
-Many forms are implicitly quoted (via @racket[#%datum]) as literals. See
-@secref["expand-steps"] for more information.
+许多形式被隐式地作为字面量引用（通过 @racket[#%datum]）。更多信息参见 @secref["expand-steps"]。
 
 @guideintro["quote"]{@racket[quote]}
 
 @defform[(quote datum)]{
 
-Produces a constant value corresponding to @racket[datum] (i.e., the
-representation of the program fragment) without its @tech{lexical
-information}, source location, etc.  Quoted pairs, vectors, and boxes
-are immutable.
+产生一个对应 @racket[datum]（即程序片段的表示）的常量值，但不包含其 @tech{lexical information}、源位置等。引用的 pairs、vectors 和 boxes 是不可变的。
 
 @mz-examples[
 (eval:alts (#,(racketkeywordfont "quote") x) 'x)
@@ -1688,12 +1107,9 @@ are immutable.
 
 @defform[(#%datum . datum)]{
 
-Expands to @racket[(#,(racketkeywordfont "quote") datum)], as long as
-@racket[datum] is not a keyword. If @racket[datum] is a keyword, a
-syntax error is reported.
+展开为 @racket[(#,(racketkeywordfont "quote") datum)]，只要 @racket[datum] 不是 keyword。如果 @racket[datum] 是 keyword，则报告语法错误。
 
-See also @secref["expand-steps"] for information on how the expander
-introduces @racketidfont{#%datum} identifiers.
+关于展开器如何引入 @racketidfont{#%datum} 标识符的信息，另见 @secref["expand-steps"]。
 
 @mz-examples[
 (#%datum . 10)
@@ -1703,23 +1119,18 @@ introduces @racketidfont{#%datum} identifiers.
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "#%expression"]{Expression Wrapper: @racket[#%expression]}
+@section[#:tag "#%expression"]{表达式包装器：@racket[#%expression]}
 
 @defform[(#%expression expr)]{
 
-Produces the same result as @racket[expr]. Using
-@racket[#%expression] forces the parsing of a form as an
-expression.
+产生与 @racket[expr] 相同的结果。使用 @racket[#%expression] 强制将形式解析为表达式。
 
 @mz-examples[
 (#%expression (+ 1 2))
 (eval:error (#%expression (define x 10)))
 ]
 
-The @racket[#%expression] form is helpful in recursive definition contexts
-where expanding a subsequent definition can provide compile-time information
-for the current expression. For example, consider a @racket[define-sym-case]
-macro that simply records some symbols at compile-time in a given identifier.
+@racket[#%expression] 形式在递归定义上下文中很有用，其中展开后续定义可以为当前表达式提供编译时信息。例如，考虑一个 @racket[define-sym-case] 宏，它简单地在给定标识符中记录一些编译时的符号。
 @examples[#:label #f #:no-prompt #:eval meta-in-eval
 (define-syntax (define-sym-case stx)
   (syntax-case stx ()
@@ -1727,8 +1138,7 @@ macro that simply records some symbols at compile-time in a given identifier.
      (andmap identifier? (syntax->list #'(sym ...)))
      #'(define-syntax id
          '(sym ...))]))]
-and then a variant of @racket[case] that checks to make sure the symbols
-used in the expression match those given in the earlier definition:
+然后是 @racket[case] 的一个变体，它检查确保表达式中使用的符号与早期定义中给出的符号匹配：
 @examples[#:label #f #:no-prompt #:eval meta-in-eval
 (define-syntax (sym-case stx)
   (syntax-case stx ()
@@ -1752,10 +1162,7 @@ used in the expression match those given in the earlier definition:
           stx))
        #'(case val-expr [(sym) expr] ...))]))]
 
-If the definition follows the use like this, then
-the @racket[define-sym-case] macro does not have
-a chance to bind @racket[id] and the @racket[sym-case]
-macro signals an error:
+如果定义像这样在 use 之后，则 @racket[define-sym-case] 宏没有机会绑定 @racket[id]，@racket[sym-case] 宏会发出错误：
 @examples[#:label #f #:eval meta-in-eval
 (eval:error
  (let () 
@@ -1764,10 +1171,7 @@ macro signals an error:
              [(fox) 2])
    (define-sym-case land-creatures bear fox)))
 ]
-But if the @racket[sym-case] is wrapped in an @racket[#%expression],
-then the expander does not need to expand it to know it is
-an expression and it moves on to the @racket[define-sym-case]
-expression.
+但如果 @racket[sym-case] 包装在 @racket[#%expression] 中，则展开器不需要展开它就能知道它是一个表达式，并继续处理 @racket[define-sym-case] 表达式。
 @examples[#:label #f #:eval meta-in-eval
 (let ()
   (#%expression (sym-case sea-creatures 'whale 
@@ -1776,28 +1180,17 @@ expression.
   (define-sym-case sea-creatures whale squid)
   'more...)
 ]
-Of course, a macro like @racket[sym-case] should not require its
-clients to add @racket[#%expression]; instead it should check
-the basic shape of its arguments and then expand to @racket[#%expression]
-wrapped around a helper macro that calls @racket[syntax-local-value]
-and finishes the expansion.
+当然，像 @racket[sym-case] 这样的宏不应该要求其客户端添加 @racket[#%expression]；相反，它应该检查其参数的基本形状，然后展开为包装在调用 @racket[syntax-local-value] 并完成展开的辅助宏周围的 @racket[#%expression]。
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "#%top"]{Variable References and @racket[#%top]}
+@section[#:tag "#%top"]{变量引用和 @racket[#%top]}
 
 @defform/none[id]{
 
-Refers to a top-level, module-level, or local binding, when @racket[id] is
-not bound as a transformer (see @secref["expansion"]). At run-time,
-the reference evaluates to the value in the @tech{location} associated with
-the binding.
+引用顶层、模块级或局部绑定，当 @racket[id] 未绑定为 transformer 时（参见 @secref["expansion"]）。在运行时，该引用求值为与该绑定关联的 @tech{location} 中的值。
 
-When the expander encounters an @racket[id] that is not bound by a
-module-level or local binding, it converts the expression to
-@racket[(@#,racketidfont{#%top} . id)] giving @racketidfont{#%top}
-the lexical context of the @racket[id]; typically, that context refers
-to @racket[#%top]. See also @secref["expand-steps"].
+当展开器遇到未由模块级或局部绑定绑定的 @racket[id] 时，它将表达式转换为 @racket[(@#,racketidfont{#%top} . id)]，赋予 @racketidfont{#%top} @racket[id] 的词法上下文；通常，该上下文引用 @racket[#%top]。另见 @secref["expand-steps"]。
 
 @examples[
 (define x 10)
@@ -1809,23 +1202,11 @@ x
 
 @defform[(#%top . id)]{
 
-Equivalent to @racket[id] when @racket[id] is bound to a module-level
-or top-level variable. In a top-level context, @racket[(#%top . id)]
-always refers to a top-level variable, even if @racket[id] is
-@tech{unbound} or bound to syntax, as long as @racket[id] does not
-have a local binding. In all contexts, @racket[(#%top . id)] is
-a syntax error if @racket[id] has a local binding.
+当 @racket[id] 绑定到模块级或顶层变量时，等价于 @racket[id]。在顶层上下文中，@racket[(#%top . id)] 始终引用顶层变量，即使 @racket[id] 是 @tech{unbound} 的或绑定到语法，只要 @racket[id] 没有局部绑定。在所有上下文中，如果 @racket[id] 有局部绑定，则 @racket[(#%top . id)] 是语法错误。
 
-Within a @racket[module] form, @racket[(#%top . id)] expands to just
-@racket[id] as long as @racket[id] is defined within
-the module and has no local binding in its context. At @tech{phase
-level} 0, @racket[(#%top . id)] is an immediate syntax error if
-@racket[id] is not bound. At @tech{phase level} 1 and higher, a syntax
-error is reported if @racket[id] is not defined at the corresponding
-phase by the end of @racket[module]-body @tech{partial expansion}.
+在 @racket[module] 形式内，只要 @racket[id] 在模块内定义且在其上下文中没有局部绑定，@racket[(#%top . id)] 就展开为 @racket[id]。在 @tech{phase level} 0 上，如果 @racket[id] 未绑定，则 @racket[(#%top . id)] 是立即的语法错误。在 @tech{phase level} 1 及以上，如果 @racket[id] 在 @racket[module] 体的 @tech{partial expansion} 结束前未在对应 phase 上定义，则报告语法错误。
 
-See also @secref["expand-steps"] for information on how the expander
-introduces @racketidfont{#%top} identifiers.
+关于展开器如何引入 @racketidfont{#%top} 标识符的信息，另见 @secref["expand-steps"]。
 
 @examples[
 (define x 12)
@@ -1839,24 +1220,16 @@ introduces @racketidfont{#%top} identifiers.
                                    always report a syntax error, even outside of a module.}]}
 
 @;------------------------------------------------------------------------
-@section{Locations: @racket[#%variable-reference]}
+@section{位置：@racket[#%variable-reference]}
 
 @defform*[#:literals (#%top)
           [(#%variable-reference id)
            (#%variable-reference (#%top . id))
            (#%variable-reference)]]{
 
-Produces an opaque @deftech{variable reference} value representing the
-@tech{location} of @racket[id], which must be bound as a variable. If
-no @racket[id] is supplied, the resulting value refers to an
-``anonymous'' variable defined within the enclosing context (i.e.,
-within the enclosing module, or at the top level if the form is not
-inside a module).
+产生一个不透明的 @deftech{variable reference} 值，表示 @racket[id] 的 @tech{location}，该 @racket[id] 必须绑定为变量。如果没有提供 @racket[id]，则结果值引用外层上下文中定义的匿名变量（即在外层模块内，或者如果形式不在模块内则在顶层）。
 
-When @racket[(#%top . id)] is used, then the variable reference refers
-to the same variable as @racket[(#%top . id)]. Note that
-@racket[(#%top . id)] is not allowed if @racket[id] is locally bound
-or within a module if @racket[id] is bound as a transformer.
+当使用 @racket[(#%top . id)] 时，variable reference 引用与 @racket[(#%top . id)] 相同的变量。注意，如果 @racket[id] 是局部绑定的，或者如果 @racket[id] 在模块内绑定为 transformer，则不允许使用 @racket[(#%top . id)]。
 
 A @tech{variable reference} can be used with
 @racket[variable-reference->empty-namespace],
@@ -1872,7 +1245,7 @@ extensions; see @other-manual['(lib
                                    consistent with @racket[#%top] by itself.}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "application"]{Procedure Applications and @racket[#%app]}
+@section[#:tag "application"]{过程应用和 @racket[#%app]}
 
 @section-index{evaluation order}
 
@@ -1880,17 +1253,9 @@ extensions; see @other-manual['(lib
 
 @defform/none[(proc-expr arg ...)]{
 
-Applies a procedure, when @racket[proc-expr] is not an
-identifier that has a transformer binding (see
-@secref["expansion"]).
+应用一个过程，当 @racket[proc-expr] 不是具有 transformer 绑定的标识符时（参见 @secref["expansion"]）。
 
-More precisely, the expander converts this form to
-@racket[(@#,racketidfont{#%app} proc-expr arg ...)], giving
-@racketidfont{#%app} the lexical context that is associated with the
-original form (i.e., the pair that combines @racket[proc-expr] and its
-arguments). Typically, the lexical context of the pair indicates the
-procedure-application @racket[#%app] that is described next. See also
-@secref["expand-steps"].
+更准确地说，展开器将此形式转换为 @racket[(@#,racketidfont{#%app} proc-expr arg ...)]，赋予 @racketidfont{#%app} 与原始形式关联的词法上下文（即组合 @racket[proc-expr] 及其参数的 pair）。通常，该 pair 的词法上下文指示下面描述的过程应用 @racket[#%app]。另见 @secref["expand-steps"]。
 
 @mz-examples[
 (+ 1 2)
@@ -1899,37 +1264,19 @@ procedure-application @racket[#%app] that is described next. See also
 
 @defform[(#%app proc-expr arg ...)]{
 
-Applies a procedure. Each @racket[arg] is one of the following:
+应用一个过程。每个 @racket[arg] 是以下之一：
 
- @specsubform[arg-expr]{The resulting value is a non-keyword
-                        argument.}
+ @specsubform[arg-expr]{结果值是非关键字参数。}
 
- @specsubform[(code:line keyword arg-expr)]{The resulting value is a
-              keyword argument using @racket[keyword]. Each
-              @racket[keyword] in the application must be distinct.}
+ @specsubform[(code:line keyword arg-expr)]{结果值是使用 @racket[keyword] 的关键字参数。应用中的每个 @racket[keyword] 必须不同。}
 
-The @racket[proc-expr] and @racket[_arg-expr]s are evaluated in order,
-left to right. If the result of @racket[proc-expr] is a procedure that
-accepts as many arguments as non-@racket[_keyword]
-@racket[_arg-expr]s, if it accepts arguments for all of the
-@racket[_keyword]s in the application, and if all required
-keyword-based arguments are represented among the @racket[_keyword]s
-in the application, then the procedure is called with the values of
-the @racket[arg-expr]s. Otherwise, the @exnraise[exn:fail:contract].
+@racket[proc-expr] 和 @racket[_arg-expr] 从左到右按顺序求值。如果 @racket[proc-expr] 的结果是一个过程，它接受与非 @racket[_keyword] @racket[_arg-expr] 数量相同的参数，接受应用中所有 @racket[_keyword] 的参数，且所有必需的关键字参数都在应用中的 @racket[_keyword] 中表示，则使用 @racket[arg-expr] 的值调用该过程。否则，@exnraise[exn:fail:contract]。
 
-The continuation of the procedure call is the same as the continuation
-of the application expression, so the results of the procedure are the
-results of the application expression.
+过程调用的 continuation 与应用表达式的 continuation 相同，因此过程的结果就是应用表达式的结果。
 
-The relative order of @racket[_keyword]-based arguments matters only
-for the order of @racket[_arg-expr] evaluations; the arguments are
-associated with argument variables in the applied procedure based on
-the @racket[_keyword]s, and not their positions. The other
-@racket[_arg-expr] values, in contrast, are associated with variables
-according to their order in the application form.
+基于 @racket[_keyword] 的参数的相对顺序仅影响 @racket[_arg-expr] 求值的顺序；参数基于 @racket[_keyword] 而不是位置与所应用过程中的参数变量关联。相反，其他 @racket[_arg-expr] 值根据它们在应用形式中的顺序与变量关联。
 
-See also @secref["expand-steps"] for information on how the
-expander introduces @racketidfont{#%app} identifiers.
+关于展开器如何引入 @racketidfont{#%app} 标识符的信息，另见 @secref["expand-steps"]。
 
 @mz-examples[
 (#%app + 1 2)
@@ -1940,11 +1287,10 @@ expander introduces @racketidfont{#%app} identifiers.
 @defform*[[(#%plain-app proc-expr arg-expr ...)
            (#%plain-app)]]{
 
-Like @racket[#%app], but without support for keyword arguments.
-As a special case, @racket[(#%plain-app)] produces @racket['()].}
+类似于 @racket[#%app]，但不支持关键字参数。作为特殊情况，@racket[(#%plain-app)] 产生 @racket['()]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "lambda"]{Procedure Expressions: @racket[lambda] and @racket[case-lambda]}
+@section[#:tag "lambda"]{过程表达式：@racket[lambda] 和 @racket[case-lambda]}
 
 @guideintro["lambda"]{procedure expressions}
 
@@ -1960,95 +1306,42 @@ As a special case, @racket[(#%plain-app)] produces @racket['()].}
                     (code:line keyword [id default-expr])])]
 )]{
 
-Produces a procedure. The @racket[kw-formals] determines the number of
-arguments and which keyword arguments that the procedure accepts.
+产生一个过程。@racket[kw-formals] 决定过程接受的参数数量和哪些关键字参数。
 
-Considering only the first @racket[arg] case, a simple
-@racket[kw-formals] has one of the following three forms:
+仅考虑第一个 @racket[arg] 情况，简单 @racket[kw-formals] 有以下三种形式之一：
 
-@specsubform[(id ...)]{ The procedure accepts as many non-keyword
-       argument values as the number of @racket[id]s. Each @racket[id]
-       is associated with an argument value by position.}
+@specsubform[(id ...)]{ 过程接受与 @racket[id] 数量相同的非关键字参数值。每个 @racket[id] 按位置与参数值关联。}
 
-@specsubform[(id ...+ . rest-id)]{ The procedure accepts any number of
-       non-keyword arguments greater or equal to the number of
-       @racket[id]s. When the procedure is applied, the @racket[id]s
-       are associated with argument values by position, and all
-       leftover arguments are placed into a list that is associated to
-       @racket[rest-id].}
+@specsubform[(id ...+ . rest-id)]{ 过程接受任何大于等于 @racket[id] 数量的非关键字参数。当过程被应用时，@racket[id] 按位置与参数值关联，所有剩余参数放入一个列表中并与 @racket[rest-id] 关联。}
 
-@specsubform[rest-id]{ The procedure accepts any number of non-keyword
-       arguments. All arguments are placed into a list that is
-       associated with @racket[rest-id].}
+@specsubform[rest-id]{ 过程接受任何数量的非关键字参数。所有参数放入一个列表中并与 @racket[rest-id] 关联。}
 
-More generally, an @racket[arg] can include a keyword and/or default
-value. Thus, the first two cases above are more completely specified
-as follows:
+更一般地，@racket[arg] 可以包含关键字和/或默认值。因此，上述前两种情况更完整地指定如下：
 
-@specsubform[(arg ...)]{ Each @racket[arg] has the following
-       four forms:
+@specsubform[(arg ...)]{ 每个 @racket[arg] 有以下四种形式：
 
-        @specsubform[id]{Adds one to both the minimum and maximum
-        number of non-keyword arguments accepted by the procedure. The
-        @racket[id] is associated with an actual argument by
-        position.}
+        @specsubform[id]{为过程接受的非关键字参数的最小和最大数量各添加一个。@racket[id] 按位置与实际参数关联。}
 
-        @specsubform[[id default-expr]]{Adds one to the maximum number
-        of non-keyword arguments accepted by the procedure. The
-        @racket[id] is associated with an actual argument by position,
-        and if no such argument is provided, the @racket[default-expr]
-        is evaluated to produce a value associated with @racket[id].
-        No @racket[arg] with a @racket[default-expr] can appear
-        before an @racket[id] without a @racket[default-expr] and
-        without a @racket[keyword].}
+        @specsubform[[id default-expr]]{为过程接受的非关键字参数的最大数量添加一个。@racket[id] 按位置与实际参数关联，如果没有提供这样的参数，则对 @racket[default-expr] 求值以产生与 @racket[id] 关联的值。任何具有 @racket[default-expr] 的 @racket[arg] 不能出现在没有 @racket[default-expr] 且没有 @racket[keyword] 的 @racket[id] 之前。}
 
-       @specsubform[(code:line keyword id)]{The procedure requires a
-       keyword-based argument using @racket[keyword]. The @racket[id]
-       is associated with a keyword-based actual argument using
-       @racket[keyword].}
+       @specsubform[(code:line keyword id)]{过程要求使用 @racket[keyword] 的关键字参数。@racket[id] 与使用 @racket[keyword] 的关键字实际参数关联。}
 
-       @specsubform[(code:line keyword [id default-expr])]{The
-       procedure accepts a keyword-based argument using @racket[keyword]. The
-       @racket[id] is associated with a keyword-based actual argument
-       using @racket[keyword], if supplied in an application;
-       otherwise, the @racket[default-expr] is evaluated to obtain a
-       value to associate with @racket[id].}
+       @specsubform[(code:line keyword [id default-expr])]{过程接受使用 @racket[keyword] 的关键字参数。如果在应用中提供，@racket[id] 与使用 @racket[keyword] 的关键字实际参数关联；否则，对 @racket[default-expr] 求值以获得与 @racket[id] 关联的值。}
 
-      The position of a @racket[_keyword] @racket[arg] in
-      @racket[kw-formals] does not matter, but each specified
-      @racket[keyword] must be distinct.}
+      @racket[_keyword] @racket[arg] 在 @racket[kw-formals] 中的位置无关紧要，但每个指定的 @racket[keyword] 必须不同。}
 
-@specsubform[(arg ...+ . rest-id)]{ Like the previous case, but
-       the procedure accepts any number of non-keyword arguments
-       beyond its minimum number of arguments. When more arguments are
-       provided than non-@racket[_keyword] arguments among the
-       @racket[arg]s, the extra arguments are placed into a
-       list that is associated to @racket[rest-id].}
+@specsubform[(arg ...+ . rest-id)]{ 与前一种情况类似，但过程接受超出其最小参数数量的任何非关键字参数。当提供的参数多于 @racket[arg] 中的非 @racket[_keyword] 参数时，额外参数放入一个列表中并与 @racket[rest-id] 关联。}
 
-@margin-note{In other words, argument bindings with
-default-value expressions are evaluated analogous to @racket[let*].}
-The @racket[kw-formals] identifiers are bound in the
-@racket[body]s. When the procedure is applied, a new @tech{location}
-is created for each identifier, and the location is filled with the
-associated argument value. The @tech{locations} are created and filled
-in order, with @racket[_default-expr]s evaluated as needed to fill
-locations.
+@margin-note{换句话说，具有默认值表达式的参数绑定类似于 @racket[let*] 进行求值。}
+@racket[kw-formals] 标识符在 @racket[body] 中绑定。当过程被应用时，为每个标识符创建一个新的 @tech{location}，并用关联的参数值填充该 location。@tech{locations} 按顺序创建和填充，根据需要求值 @racket[_default-expr] 来填充 locations。
 
-If any identifier appears in the @racket[body]s that is not one of the
-identifiers in @racket[kw-formals], then it refers to the same
-location that it would if it appeared in place of the @racket[lambda]
-expression. (In other words, variable reference is lexically scoped.)
+如果 @racket[body] 中出现任何不是 @racket[kw-formals] 中标识符的标识符，则它引用与出现在 @racket[lambda] 表达式位置时相同的 location。（换句话说，变量引用是词法作用域的。）
 
-When multiple identifiers appear in a @racket[kw-formals], they must
-be distinct according to @racket[bound-identifier=?].
+当 @racket[kw-formals] 中出现多个标识符时，它们必须根据 @racket[bound-identifier=?] 是互不相同的。
 
-If the procedure produced by @racket[lambda] is applied to fewer or
-more by-position or by-keyword arguments than it accepts, to by-keyword arguments
-that it does not accept, or without required by-keyword arguments, then
-the @exnraise[exn:fail:contract].
+如果 @racket[lambda] 产生的过程被应用于少于或多于其接受的按位置或按关键字参数、不接受的按关键字参数，或缺少必需的按关键字参数，则 @exnraise[exn:fail:contract]。
 
-The last @racket[body] expression is in tail position with respect to
-the procedure body.
+最后一个 @racket[body] 表达式相对于过程体处于尾位置。
 
 @mz-examples[
 ((lambda (x) x) 10)
@@ -2059,47 +1352,11 @@ the procedure body.
        (f #:arg 2 1)))
 ]
 
-When compiling a @racket[lambda] or @racket[case-lambda] expression,
-Racket looks for a @indexed-racket['method-arity-error] property
-attached to the expression (see @secref["stxprops"]). If it is
-present with a true value, and if no case of the procedure accepts
-zero arguments, then the procedure is marked so that an
-@racket[exn:fail:contract:arity] exception involving the procedure
-will hide the first argument, if one was provided. (Hiding the first
-argument is useful when the procedure implements a method, where the
-first argument is implicit in the original source). The property
-affects only the format of @racket[exn:fail:contract:arity]
-exceptions, not the result of @racket[procedure-arity].
+当编译 @racket[lambda] 或 @racket[case-lambda] 表达式时，Racket 查找附加到表达式上的 @indexed-racket['method-arity-error] 属性（参见 @secref["stxprops"]）。如果存在且值为 true，并且过程没有任何 case 接受零个参数，则该过程被标记，使得涉及该过程的 @racket[exn:fail:contract:arity] 异常会隐藏第一个参数（如果提供了的话）。（当过程实现一个方法时，隐藏第一个参数很有用，因为在原始源代码中第一个参数是隐式的。）该属性仅影响 @racket[exn:fail:contract:arity] 异常的格式，不影响 @racket[procedure-arity] 的结果。
 
-Along similar lines, Racket looks for a
-@indexed-racket['body-as-unsafe] property when compiling a
-@racket[lambda] or @racket[case-lambda] expression. If it is present
-with a true value, then the procedure body may be compiled in unsafe
-mode in same sense as @racket[(#%declare #:unsafe)]. The
-@indexed-racket['body-as-unsafe] property is allowed only when the
-current @tech{code inspector} is the initial one at compile time.
+类似地，Racket 在编译 @racket[lambda] 或 @racket[case-lambda] 表达式时查找 @indexed-racket['body-as-unsafe] 属性。如果存在且值为 true，则过程体可以以与 @racket[(#%declare #:unsafe)] 相同意义上的不安全模式编译。@indexed-racket['body-as-unsafe] 属性仅在编译时当前 @tech{code inspector} 是初始检查器时才允许。
 
-When a keyword-accepting procedure is bound to an identifier in
-certain ways, and when the identifier is used in the function position
-of an application form, then the application form may be expanded in
-such a way that the original binding is obscured as the target of the
-application. To help expose the connection between the function
-application and function declaration, an identifier in the expansion
-of the function application is tagged with a @tech{syntax property}
-accessible via @racket[syntax-procedure-alias-property] if it is effectively an alias
-for the original identifier. An identifier in the expansion is tagged with a
-@tech{syntax property} accessible via @racket[syntax-procedure-converted-arguments-property] if it
-is like the original identifier except that the arguments are converted to a
-flattened form: keyword arguments, required by-position arguments,
-by-position optional arguments, and rest arguments---all as required,
-by-position arguments; the keyword arguments are sorted by keyword
-name, each optional keyword argument is followed by a boolean to
-indicate whether a value is provided, and @racket[#f] is used for an
-optional keyword argument whose value is not provided; optional
-by-position arguments include @racket[#f] for each non-provided
-argument, and then the sequence of optional-argument values is
-followed by a parallel sequence of booleans to indicate whether each
-optional-argument value was provided.
+当接受关键字参数的过程以某种方式绑定到标识符，并且该标识符用于应用形式的函数位置时，应用形式可能会以掩盖原始绑定作为应用目标的方式展开。为了帮助暴露函数应用和函数声明之间的联系，函数应用展开中的一个标识符被标记了可通过 @racket[syntax-procedure-alias-property] 访问的 @tech{syntax property}，如果它实际上是原始标识符的别名的话。展开中的一个标识符被标记了可通过 @racket[syntax-procedure-converted-arguments-property] 访问的 @tech{syntax property}，如果它类似于原始标识符，但参数被转换为展平形式：关键字参数、必需的按位置参数、按位置可选参数和 rest 参数---全部作为必需的按位置参数；关键字参数按关键字名称排序，每个可选关键字参数后跟一个布尔值以指示是否提供了值，@racket[#f] 用于值未提供的可选关键字参数；可选按位置参数为每个未提供的参数包含 @racket[#f]，然后可选参数值序列后跟并行的布尔值序列以指示每个可选参数值是否已提供。
 
 @history[#:changed "8.13.0.5" @elem{
 Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
@@ -2117,18 +1374,9 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
                         rest-id])]
 )]{
 
-Produces a procedure. Each @racket[[formals body ...+]]
-clause is analogous to a single @racket[lambda] procedure; applying
-the @racket[case-lambda]-generated procedure is the same as applying a
-procedure that corresponds to one of the clauses---the first procedure
-that accepts the given number of arguments. If no corresponding
-procedure accepts the given number of arguments, the
-@exnraise[exn:fail:contract].
+产生一个过程。每个 @racket[[formals body ...+]] 子句类似于单个 @racket[lambda] 过程；应用 @racket[case-lambda] 生成的过程与应用对应某个子句的过程相同---第一个接受给定参数数量的过程。如果没有相应的过程接受给定参数数量，则 @exnraise[exn:fail:contract]。
 
-Note that a @racket[case-lambda] clause supports only
-@racket[formals], not the more general @racket[_kw-formals] of
-@racket[lambda]. That is, @racket[case-lambda] does not directly
-support keyword and optional arguments.
+注意，@racket[case-lambda] 子句仅支持 @racket[formals]，不支持 @racket[lambda] 更通用的 @racket[_kw-formals]。也就是说，@racket[case-lambda] 不直接支持关键字参数和可选参数。
 
 @mz-examples[
 (let ([f (case-lambda
@@ -2146,23 +1394,18 @@ support keyword and optional arguments.
 }
 
 @defform[(#%plain-lambda formals body ...+)]{
-Like @racket[lambda], but without support for keyword or optional arguments.
+类似于 @racket[lambda]，但不支持关键字参数或可选参数。
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "let"]{Local Binding: @racket[let], @racket[let*], @racket[letrec], ...}
+@section[#:tag "let"]{局部绑定：@racket[let]、@racket[let*]、@racket[letrec] 等}
 
 @guideintro["let"]{local binding}
 
 @defform*[[(let ([id val-expr] ...) body ...+)
            (let proc-id ([id init-expr] ...) body ...+)]]{
 
-The first form evaluates the @racket[val-expr]s left-to-right, creates
-a new @tech{location} for each @racket[id], and places the values into the
-locations. It then evaluates the @racket[body]s, in which the
-@racket[id]s are bound. The last @racket[body] expression is in
-tail position with respect to the @racket[let] form. The @racket[id]s
-must be distinct according to @racket[bound-identifier=?].
+第一种形式从左到右求值 @racket[val-expr]，为每个 @racket[id] 创建一个新的 @tech{location}，并将值放入 locations 中。然后求值 @racket[body]，其中 @racket[id] 被绑定。最后一个 @racket[body] 表达式相对于 @racket[let] 形式处于尾位置。@racket[id] 必须根据 @racket[bound-identifier=?] 互不相同。
 
 @mz-examples[
 (let ([x 5]) x)
@@ -2172,10 +1415,7 @@ must be distinct according to @racket[bound-identifier=?].
     (list y x)))
 ]
 
-The second form, usually known as @deftech{named @racket[let]}, evaluates the @racket[init-expr]s; the resulting
-values become arguments in an application of a procedure
-@racket[(lambda (id ...) body ...+)], where @racket[proc-id] is bound
-within the @racket[body]s to the procedure itself.}
+第二种形式通常称为 @deftech{named @racket[let]}，求值 @racket[init-expr]；结果值成为过程 @racket[(lambda (id ...) body ...+)] 应用中的参数，其中 @racket[proc-id] 在 @racket[body] 中绑定到过程本身。}
 
 @mz-examples[
 (let fac ([n 10])
@@ -2186,11 +1426,7 @@ within the @racket[body]s to the procedure itself.}
 
 @defform[(let* ([id val-expr] ...) body ...+)]{
 
-Like @racket[let], but evaluates the @racket[val-expr]s one by
-one, creating a @tech{location} for each @racket[id] as soon as the value is
-available. The @racket[id]s are bound in the remaining @racket[val-expr]s
-as well as the @racket[body]s, and the @racket[id]s need not be
-distinct; later bindings shadow earlier bindings.
+类似于 @racket[let]，但逐个求值 @racket[val-expr]，一旦值可用就为每个 @racket[id] 创建 @tech{location}。@racket[id] 在剩余的 @racket[val-expr] 以及 @racket[body] 中绑定，@racket[id] 不需要互不相同；后面的绑定遮蔽前面的绑定。
 
 @mz-examples[
 (let* ([x 1]
@@ -2200,20 +1436,9 @@ distinct; later bindings shadow earlier bindings.
 
 @defform[(letrec ([id val-expr] ...) body ...+)]{
 
-Like @racket[let], including left-to-right evaluation of the @racket[val-expr]s,
-but the @tech{locations} for all @racket[id]s are
-created first, all
-@racket[id]s are bound in all @racket[val-expr]s as well as the
-@racket[body]s, and each @racket[id] is initialized immediately after the
-corresponding @racket[val-expr] is evaluated. The @racket[id]s must be distinct according to
-@racket[bound-identifier=?].
+类似于 @racket[let]，包括从左到右求值 @racket[val-expr]，但所有 @racket[id] 的 @tech{locations} 首先被创建，所有 @racket[id] 在所有 @racket[val-expr] 以及 @racket[body] 中绑定，每个 @racket[id] 在相应的 @racket[val-expr] 求值后立即初始化。@racket[id] 必须根据 @racket[bound-identifier=?] 互不相同。
 
-Referencing or assigning to an @racket[id] before its initialization
-raises @racket[exn:fail:contract:variable]. If an @racket[id] (i.e.,
-the binding instance or @racket[id]) has an
-@indexed-racket['undefined-error-name] @tech{syntax property} whose
-value is a symbol, the symbol is used as the name of the variable for
-error reporting, instead of the symbolic form of @racket[id].
+在初始化之前引用或赋值 @racket[id] 会引发 @racket[exn:fail:contract:variable]。如果 @racket[id]（即绑定实例或 @racket[id]）具有值为 symbol 的 @indexed-racket['undefined-error-name] @tech{syntax property}，则该 symbol 用作错误报告中的变量名称，而不是 @racket[id] 的符号形式。
 
 @mz-examples[
 (letrec ([is-even? (lambda (n)
@@ -2227,22 +1452,14 @@ error reporting, instead of the symbolic form of @racket[id].
 
 @history[#:changed "6.0.1.2" @elem{Changed reference or assignment of an uninitialized @racket[id] to an error.}]}
 
-@defform[(let-values ([(id ...) val-expr] ...) body ...+)]{ Like
-@racket[let], except that each @racket[val-expr] must produce as many
-values as corresponding @racket[id]s, otherwise the
-@exnraise[exn:fail:contract]. A separate @tech{location} is created for each
-@racket[id], all of which are bound in the @racket[body]s.
+@defform[(let-values ([(id ...) val-expr] ...) body ...+)]{ 类似于 @racket[let]，但每个 @racket[val-expr] 必须产生与相应 @racket[id] 数量相同的值，否则 @exnraise[exn:fail:contract]。为每个 @racket[id] 创建单独的 @tech{location}，所有这些在 @racket[body] 中绑定。
 
 @mz-examples[
 (let-values ([(x y) (quotient/remainder 10 3)])
   (list y x))
 ]}
 
-@defform[(let*-values ([(id ...) val-expr] ...) body ...+)]{ Like
-@racket[let*], except that each @racket[val-expr] must produce as many
-values as corresponding @racket[id]s. A separate @tech{location} is created
-for each @racket[id], all of which are bound in the later
-@racket[val-expr]s and in the @racket[body]s.
+@defform[(let*-values ([(id ...) val-expr] ...) body ...+)]{ 类似于 @racket[let*]，但每个 @racket[val-expr] 必须产生与相应 @racket[id] 数量相同的值。为每个 @racket[id] 创建单独的 @tech{location}，所有这些在后面的 @racket[val-expr] 和 @racket[body] 中绑定。
 
 @mz-examples[
 (let*-values ([(x y) (quotient/remainder 10 3)]
@@ -2250,11 +1467,7 @@ for each @racket[id], all of which are bound in the later
   z)
 ]}
 
-@defform[(letrec-values ([(id ...) val-expr] ...) body ...+)]{ Like
-@racket[letrec], except that each @racket[val-expr] must produce as
-many values as corresponding @racket[id]s. A separate @tech{location} is
-created for each @racket[id], all of which are bound in all @racket[val-expr]s
-and in the @racket[body]s.
+@defform[(letrec-values ([(id ...) val-expr] ...) body ...+)]{ 类似于 @racket[letrec]，但每个 @racket[val-expr] 必须产生与相应 @racket[id] 数量相同的值。为每个 @racket[id] 创建单独的 @tech{location}，所有这些在所有 @racket[val-expr] 和 @racket[body] 中绑定。
 
 @mz-examples[
 (letrec-values ([(is-even? is-odd?)
@@ -2272,117 +1485,64 @@ and in the @racket[body]s.
 
 @margin-note/ref{See also @racket[splicing-let-syntax].}
 
-Creates a @tech{transformer} binding (see
-@secref["transformer-model"]) of each @racket[id] with the value of
-@racket[trans-expr], which is an expression at @tech{phase level} 1
-relative to the surrounding context. (See @secref["id-model"] for
-information on @tech{phase levels}.)
+为每个 @racket[id] 创建一个 @tech{transformer} 绑定（参见 @secref["transformer-model"]），其值为 @racket[trans-expr]，该表达式相对于外层上下文处于 @tech{phase level} 1。（关于 @tech{phase levels} 的信息，参见 @secref["id-model"]。）
 
-The evaluation of each @racket[trans-expr] is @racket[parameterize]d
-to set @racket[current-namespace] to a @tech{namespace} that shares
-@tech{bindings} and @tech{variables} with the namespace being used to
-expand the @racket[let-syntax] form, except that its @tech{base phase}
-is one greater.
+每个 @racket[trans-expr] 的求值被 @racket[parameterize] 设置 @racket[current-namespace] 为一个 @tech{namespace}，该 namespace 与用于展开 @racket[let-syntax] 形式的 namespace 共享 @tech{bindings} 和 @tech{variables}，但其 @tech{base phase} 大一级。
 
-Each @racket[id] is bound in the @racket[body]s, and not in other
-@racket[trans-expr]s.}
+每个 @racket[id] 在 @racket[body] 中绑定，而不在其他 @racket[trans-expr] 中绑定。}
 
 @defform[(letrec-syntax ([id trans-expr] ...) body ...+)]{
 
 @margin-note/ref{See also @racket[splicing-letrec-syntax].}
 
-Like @racket[let-syntax], except that each @racket[id] is also bound
-within all @racket[trans-expr]s.}
+类似于 @racket[let-syntax]，但每个 @racket[id] 还在所有 @racket[trans-expr] 中绑定。}
 
 @defform[(let-syntaxes ([(id ...) trans-expr] ...) body ...+)]{
 
 @margin-note/ref{See also @racket[splicing-let-syntaxes].}
 
-Like @racket[let-syntax], but each @racket[trans-expr] must produce as
-many values as corresponding @racket[id]s, each of which is bound to
-the corresponding value.}
+类似于 @racket[let-syntax]，但每个 @racket[trans-expr] 必须产生与相应 @racket[id] 数量相同的值，每个值绑定到相应的值。}
 
 @defform[(letrec-syntaxes ([(id ...) trans-expr] ...) body ...+)]{
 
 @margin-note/ref{See also @racket[splicing-letrec-syntaxes].}
 
-Like @racket[let-syntax], except that each @racket[id] is also bound
-within all @racket[trans-expr]s.}
+类似于 @racket[let-syntax]，但每个 @racket[id] 还在所有 @racket[trans-expr] 中绑定。}
 
 @defform[(letrec-syntaxes+values ([(trans-id ...) trans-expr] ...)
                                  ([(val-id ...) val-expr] ...)
             body ...+)]{
 
-Combines @racket[letrec-syntaxes] with a variant of
-@racket[letrec-values]: each @racket[trans-id] and @racket[val-id] is
-bound in all @racket[trans-expr]s and @racket[val-expr]s.
+将 @racket[letrec-syntaxes] 与 @racket[letrec-values] 的变体结合：每个 @racket[trans-id] 和 @racket[val-id] 在所有 @racket[trans-expr] 和 @racket[val-expr] 中绑定。
 
-The @racket[letrec-syntaxes+values] form is the core form for local
-compile-time bindings, since forms like @racket[letrec-syntax] and
-@tech{internal-definition contexts} expand to it. In a fully expanded
-expression (see @secref["fully-expanded"]), the @racket[trans-id]
-bindings are discarded and the form reduces to a combination of
-@racket[letrec-values] or @racket[let-values].
+@racket[letrec-syntaxes+values] 形式是局部编译时绑定的核心形式，因为像 @racket[letrec-syntax] 和 @tech{internal-definition contexts} 这样的形式展开为此形式。在完全展开的表达式（参见 @secref["fully-expanded"]）中，@racket[trans-id] 绑定被丢弃，形式归约为 @racket[letrec-values] 或 @racket[let-values] 的组合。
 
-For variables bound by @racket[letrec-syntaxes+values], the
-@tech{location}-creation rules differ slightly from
-@racket[letrec-values]. The @racket[[(val-id ...) val-expr]] binding
-clauses are partitioned into minimal sets of clauses that satisfy the
-following rule: if a clause has a @racket[val-id] binding that is
-referenced (in a full expansion) by the @racket[val-expr] of an
-earlier clause, the two clauses and all in between are in the same
-set. If a set consists of a single clause whose @racket[val-expr] does
-not refer to any of the clause's @racket[val-id]s, then
-@tech{locations} for the @racket[val-id]s are created @emph{after} the
-@racket[val-expr] is evaluated. Otherwise, @tech{locations} for all
-@racket[val-id]s in a set are created just before the first
-@racket[val-expr] in the set is evaluated. For the purposes
-of forming sets, a @racket[(quote-syntax _datum #:local)] form counts
-as a reference to all bindings in the @racket[letrec-syntaxes+values]
-form
+对于由 @racket[letrec-syntaxes+values] 绑定的变量，@tech{location} 创建规则与 @racket[letrec-values] 略有不同。@racket[[(val-id ...) val-expr]] 绑定子句被划分为满足以下规则的最小子句集合：如果一个子句有被前面子句的 @racket[val-expr]（在完全展开中）引用的 @racket[val-id] 绑定，则这两个子句及其之间的所有子句在同一集合中。如果一个集合由单个子句组成，其 @racket[val-expr] 不引用该子句的任何 @racket[val-id]，则 @racket[val-id] 的 @tech{locations} 在 @racket[val-expr] 求值 @emph{之后} 创建。否则，集合中所有 @racket[val-id] 的 @tech{locations} 在集合中第一个 @racket[val-expr] 求值之前创建。为了形成集合的目的，@racket[(quote-syntax _datum #:local)] 形式计为对 @racket[letrec-syntaxes+values] 形式中所有绑定的引用。
 
-The end result of the @tech{location}-creation rules is that scoping
-and evaluation order are the same as for @racket[letrec-values], but
-the compiler has more freedom to optimize away @tech{location}
-creation. The rules also correspond to a nesting of
-@racket[let-values] and @racket[letrec-values], which is how
-@racket[letrec-syntaxes+values] for a fully-expanded expression.
+@tech{location} 创建规则的最终结果是，作用域和求值顺序与 @racket[letrec-values] 相同，但编译器有更多自由来优化掉 @tech{location} 创建。这些规则还对应于 @racket[let-values] 和 @racket[letrec-values] 的嵌套，这就是 @racket[letrec-syntaxes+values] 用于完全展开表达式时的方式。
 
-See also @racket[local], which supports local bindings with
-@racket[define], @racket[define-syntax], and more.}
+另见 @racket[local]，它支持使用 @racket[define]、@racket[define-syntax] 等的局部绑定。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "local"]{Local Definitions: @racket[local]}
+@section[#:tag "local"]{局部定义：@racket[local]}
 
 @note-lib[racket/local]
 
 @defform[(local [definition ...] body ...+)]{
 
-Like @racket[letrec-syntaxes+values], except that the bindings are
-expressed in the same way as in the top-level or in a module body:
-using @racket[define], @racket[define-values], @racket[define-syntax],
-@racket[struct], etc.  Definitions are distinguished from
-non-definitions by partially expanding @racket[definition] forms (see
-@secref["partial-expansion"]). As in the top-level or in a module
-body, a @racket[begin]-wrapped sequence is spliced into the sequence
-of @racket[definition]s.}
+类似于 @racket[letrec-syntaxes+values]，但绑定以与顶层或模块体中相同的方式表达：使用 @racket[define]、@racket[define-values]、@racket[define-syntax]、@racket[struct] 等。通过部分展开 @racket[definition] 形式来区分定义和非定义（参见 @secref["partial-expansion"]）。与在顶层或模块体中一样，@racket[begin] 包装的序列被拼接到 @racket[definition] 序列中。}
 
 @;------------------------------------------------------------------------
 @include-section["shared.scrbl"]
 
 @;------------------------------------------------------------------------
-@section[#:tag "if"]{Conditionals: @racket[if], @racket[cond], @racket[and], and @racket[or]}
+@section[#:tag "if"]{条件语句：@racket[if]、@racket[cond]、@racket[and] 和 @racket[or]}
 
 @guideintro["conditionals"]{conditionals}
 
 @defform[(if test-expr then-expr else-expr)]{
 
-Evaluates @racket[test-expr]. If it produces any value other than
-@racket[#f], then @racket[then-expr] is evaluated, and its results are
-the result for the @racket[if] form. Otherwise, @racket[else-expr] is
-evaluated, and its results are the result for the @racket[if]
-form. The @racket[then-expr] and @racket[else-expr] are in tail
-position with respect to the @racket[if] form.
+求值 @racket[test-expr]。如果它产生除 @racket[#f] 之外的任何值，则求值 @racket[then-expr]，其结果即为 @racket[if] 形式的结果。否则，求值 @racket[else-expr]，其结果即为 @racket[if] 形式的结果。@racket[then-expr] 和 @racket[else-expr] 相对于 @racket[if] 形式处于尾位置。
 
 @mz-examples[
 (if (positive? -5) (error "doesn't get here") 2)
@@ -2399,40 +1559,19 @@ position with respect to the @racket[if] form.
 
 @guideintro["cond"]{@racket[cond]}
 
-A @racket[cond-clause] that starts with @racket[else] must be the last
-@racket[cond-clause].
+以 @racket[else] 开头的 @racket[cond-clause] 必须是最后一个 @racket[cond-clause]。
 
-If no @racket[cond-clause]s are present, the result is @|void-const|.
+如果没有 @racket[cond-clause]，结果是 @|void-const|。
 
-If only a @racket[[else then-body ...+]] is present, then the
-@racket[then-body]s are evaluated. The results from all but the last
-@racket[then-body] are ignored. The results of the last
-@racket[then-body], which is in tail position with respect to the
-@racket[cond] form, are the results for the whole @racket[cond]
-form.
+如果只有 @racket[[else then-body ...+]]，则求值 @racket[then-body]。除最后一个之外的所有 @racket[then-body] 的结果被忽略。最后一个 @racket[then-body] 的结果是整个 @racket[cond] 形式的结果，该 @racket[then-body] 相对于 @racket[cond] 形式处于尾位置。
 
-Otherwise, the first @racket[test-expr] is evaluated. If it produces
-@racket[#f], then the result is the same as a @racket[cond] form with
-the remaining @racket[cond-clause]s, in tail position with respect to
-the original @racket[cond] form. Otherwise, evaluation depends on the
-form of the @racket[cond-clause]:
+否则，求值第一个 @racket[test-expr]。如果它产生 @racket[#f]，则结果与包含剩余 @racket[cond-clause] 的 @racket[cond] 形式相同，相对于原始 @racket[cond] 形式处于尾位置。否则，求值取决于 @racket[cond-clause] 的形式：
 
-@specsubform[[test-expr then-body ...+]]{The @racket[then-body]s are
-evaluated in order, and the results from all but the last
-@racket[then-body] are ignored. The results of the last
-@racket[then-body], which is in tail position with respect to the
-@racket[cond] form, provides the result for the whole @racket[cond]
-form.}
+@specsubform[[test-expr then-body ...+]]{@racket[then-body] 按顺序求值，除最后一个之外的所有 @racket[then-body] 的结果被忽略。最后一个 @racket[then-body] 的结果提供整个 @racket[cond] 形式的结果，该 @racket[then-body] 相对于 @racket[cond] 形式处于尾位置。}
 
-@specsubform[#:literals (=>) [test-expr => proc-expr]]{The @racket[proc-expr] is
-evaluated, and it must produce a procedure that accepts one argument,
-otherwise the @exnraise[exn:fail:contract]. The procedure is applied
-to the result of @racket[test-expr] in tail position with respect to
-the @racket[cond] expression.}
+@specsubform[#:literals (=>) [test-expr => proc-expr]]{求值 @racket[proc-expr]，它必须产生一个接受一个参数的过程，否则 @exnraise[exn:fail:contract]。该过程以相对于 @racket[cond] 表达式处于尾位置的方式应用于 @racket[test-expr] 的结果。}
 
-@specsubform[[test-expr]]{The result of the @racket[test-expr] is
-returned as the result of the @racket[cond] form. The
-@racket[test-expr] is not in tail position.}
+@specsubform[[test-expr]]{@racket[test-expr] 的结果作为 @racket[cond] 形式的结果返回。@racket[test-expr] 不处于尾位置。}
 
 @mz-examples[
 (cond)
@@ -2451,31 +1590,23 @@ returned as the result of the @racket[cond] form. The
 
 @defidform[else]{
 
-Recognized specially within forms like @racket[cond]. An
-@racket[else] form as an expression is a syntax error.}
+在像 @racket[cond] 这样的形式中被特别识别。作为表达式的 @racket[else] 形式是语法错误。}
 
 
 @defidform[=>]{
 
-Recognized specially within forms like @racket[cond]. A
-@racket[=>] form as an expression is a syntax error.}
+在像 @racket[cond] 这样的形式中被特别识别。作为表达式的 @racket[=>] 形式是语法错误。}
 
 
 @defform[(and expr ...)]{
 
 @guideintro["and+or"]{@racket[and]}
 
-If no @racket[expr]s are provided, then result is @racket[#t].
+如果没有提供 @racket[expr]，则结果为 @racket[#t]。
 
-If a single @racket[expr] is provided, then it is in tail position, so
-the results of the @racket[and] expression are the results of the
-@racket[expr].
+如果只提供了一个 @racket[expr]，则它处于尾位置，因此 @racket[and] 表达式的结果就是 @racket[expr] 的结果。
 
-Otherwise, the first @racket[expr] is evaluated. If it produces
-@racket[#f], the result of the @racket[and] expression is
-@racket[#f]. Otherwise, the result is the same as an @racket[and]
-expression with the remaining @racket[expr]s in tail position with
-respect to the original @racket[and] form.
+否则，求值第一个 @racket[expr]。如果它产生 @racket[#f]，则 @racket[and] 表达式的结果为 @racket[#f]。否则，结果与包含剩余 @racket[expr] 的 @racket[and] 表达式相同，相对于原始 @racket[and] 形式处于尾位置。
 
 @mz-examples[
 (and)
@@ -2489,17 +1620,11 @@ respect to the original @racket[and] form.
 
 @guideintro["and+or"]{@racket[or]}
 
-If no @racket[expr]s are provided, then result is @racket[#f].
+如果没有提供 @racket[expr]，则结果为 @racket[#f]。
 
-If a single @racket[expr] is provided, then it is in tail position, so
-the results of the @racket[or] expression are the results of the
-@racket[expr].
+如果只提供了一个 @racket[expr]，则它处于尾位置，因此 @racket[or] 表达式的结果就是 @racket[expr] 的结果。
 
-Otherwise, the first @racket[expr] is evaluated. If it produces a
-value other than @racket[#f], that result is the result of the
-@racket[or] expression. Otherwise, the result is the same as an
-@racket[or] expression with the remaining @racket[expr]s in tail
-position with respect to the original @racket[or] form.
+否则，求值第一个 @racket[expr]。如果它产生除 @racket[#f] 之外的值，则该结果即为 @racket[or] 表达式的结果。否则，结果与包含剩余 @racket[expr] 的 @racket[or] 表达式相同，相对于原始 @racket[or] 形式处于尾位置。
 
 @mz-examples[
 (or)
@@ -2510,33 +1635,20 @@ position with respect to the original @racket[or] form.
 ]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "case"]{Dispatch: @racket[case]}
+@section[#:tag "case"]{分支调度：@racket[case]}
 
 @defform/subs[#:literals (else)
               (case val-expr case-clause ...)
               ([case-clause [(datum ...) then-body ...+]
                             [else then-body ...+]])]{
 
-Evaluates @racket[val-expr] and uses the result to select a
-@racket[case-clause]. The selected clause is the first one with a
-@racket[datum] whose @racket[quote]d form is @racket[equal?] to the
-result of @racket[val-expr]. If no such @racket[datum] is present, the
-@racket[else] @racket[case-clause] is selected; if no @racket[else]
-@racket[case-clause] is present, either, then the result of the
-@racket[case] form is @|void-const|.@margin-note{The @racket[case]
-form of @racketmodname[racket] differs from that of @R6RS{R6RS} or
-@R5RS{R5RS} by being based on @racket[equal?] instead
-of @racket[eqv?] (in addition to allowing internal definitions).}
+求值 @racket[val-expr] 并使用结果选择 @racket[case-clause]。选中的子句是第一个 @racket[datum] 的 @racket[quote] 形式与 @racket[val-expr] 的结果 @racket[equal?] 的子句。如果没有这样的 @racket[datum]，则选择 @racket[else] @racket[case-clause]；如果也没有 @racket[else] @racket[case-clause]，则 @racket[case] 形式的结果为 @|void-const|。@margin-note{@racketmodname[racket] 的 @racket[case] 形式与 @R6RS{R6RS} 或 @R5RS{R5RS} 的不同之处在于基于 @racket[equal?] 而非 @racket[eqv?]（同时还允许内部定义）。}
 
-For the selected @racket[case-clause], the results of the last
-@racket[then-body], which is in tail position with respect to the
-@racket[case] form, are the results for the whole @racket[case] form.
+对于选中的 @racket[case-clause]，最后一个 @racket[then-body] 的结果是整个 @racket[case] 形式的结果，该 @racket[then-body] 相对于 @racket[case] 形式处于尾位置。
 
-A @racket[case-clause] that starts with @racket[else] must be the last
-@racket[case-clause].
+以 @racket[else] 开头的 @racket[case-clause] 必须是最后一个 @racket[case-clause]。
 
-The @racket[case] form can dispatch to a matching @racket[case-clause]
-in @math{O(log N)} time for @math{N} @racket[datum]s.
+对于 @math{N} 个 @racket[datum]，@racket[case] 形式可以在 @math{O(log N)} 时间内调度到匹配的 @racket[case-clause]。
 
 @mz-examples[
 (case (+ 7 5)
@@ -2570,7 +1682,7 @@ in @math{O(log N)} time for @math{N} @racket[datum]s.
 (classify #\!)
 ]}
 
-@subsection[#:tag "case/equal"]{Variants of @racket[case]}
+@subsection[#:tag "case/equal"]{@racket[case] 的变体}
 
 @note-lib-only[racket/case]
 
@@ -2583,13 +1695,10 @@ in @math{O(log N)} time for @math{N} @racket[datum]s.
 @defform[(case/eqv val-expr case-clause ...)]
 )]{
 
-Like @racket[case], but using @racket[equal?], @racket[equal-always?],
-@racket[eq?], or @racket[eqv?] for comparing the result of
-@racket[val-expr] to the literals in the @racket[case-clause]s. The
-@racket[case/equal] form is equivalent to @racket[case].}
+类似于 @racket[case]，但使用 @racket[equal?]、@racket[equal-always?]、@racket[eq?] 或 @racket[eqv?] 来比较 @racket[val-expr] 的结果与 @racket[case-clause] 中的字面量。@racket[case/equal] 形式等价于 @racket[case]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "define"]{Definitions: @racket[define], @racket[define-syntax], ...}
+@section[#:tag "define"]{定义：@racket[define]、@racket[define-syntax] 等}
 
 @guideintro["define"]{definitions}
 
@@ -2604,11 +1713,7 @@ Like @racket[case], but using @racket[equal?], @racket[equal-always?],
                       (code:line keyword arg-id)
                       (code:line keyword [arg-id default-expr])])]{
 
-The first form @tech{bind}s @racket[id] to the result of
-@racket[expr], and the second form @tech{bind}s @racket[id] to a
-procedure. In the second case, the generated procedure is
-@racket[(#,cvt (head args) body ...+)], using the @|cvt| meta-function
-defined as follows:
+第一种形式将 @racket[id] @tech{bind} 到 @racket[expr] 的结果，第二种形式将 @racket[id] @tech{bind} 到一个过程。在第二种情况下，生成的过程为 @racket[(#,cvt (head args) body ...+)]，使用如下定义的 @|cvt| 元函数：
 
 @racketblock[
 (#,cvt (id . _kw-formals) . _datum)   = (lambda _kw-formals . _datum)
@@ -2616,17 +1721,9 @@ defined as follows:
                                          @#,elem{if} (#,cvt head . _datum) = expr
 ]
 
-In an @tech{internal-definition context}, a @racket[define] form
-introduces a local binding; see @secref["intdef-body"].
-At the top level, the top-level binding for @racket[id] is created after
-evaluating @racket[expr], if it does not exist already, and the
-top-level mapping of @racket[id] (in the @techlink{namespace} linked
-with the compiled definition) is set to the binding at the same time.
+在 @tech{internal-definition context} 中，@racket[define] 形式引入局部绑定；参见 @secref["intdef-body"]。在顶层，@racket[id] 的顶层绑定在求值 @racket[expr] 后创建（如果尚未存在），同时设置 @racket[id] 的顶层映射（在与编译定义关联的 @techlink{namespace} 中）。
 
-In a context that allows @tech{liberal expansion} of @racket[define],
-@racket[id] is bound as syntax if @racket[expr] is an immediate
-@racket[lambda] form with keyword arguments or @racket[args] include
-keyword arguments.
+在允许 @racket[define] 的 @tech{liberal expansion} 的上下文中，如果 @racket[expr] 是带有关键字参数的立即 @racket[lambda] 形式，或者 @racket[args] 包含关键字参数，则 @racket[id] 作为语法绑定。
 
 @examples[
 (eval:no-prompt (define x 10))
@@ -2649,18 +1746,9 @@ x
 
 @defform[(define-values (id ...) expr)]{
 
-Evaluates the @racket[expr], and @tech{bind}s the results to the
-@racket[id]s, in order, if the number of results matches the number of
-@racket[id]s; if @racket[expr] produces a different number of results,
-the @exnraise[exn:fail:contract].
+求值 @racket[expr]，如果结果数量与 @racket[id] 数量匹配，则按顺序将结果 @tech{bind} 到 @racket[id]；如果 @racket[expr] 产生不同数量的结果，则 @exnraise[exn:fail:contract]。
 
-In an @tech{internal-definition context} (see @secref["intdef-body"]), 
-a @racket[define-values] form introduces local bindings.
-At the top level, the top-level binding for each @racket[id] is
-created after evaluating @racket[expr], if it does not exist already,
-and the top-level mapping of each @racket[id] (in the
-@techlink{namespace} linked with the compiled definition) is set to
-the binding at the same time.
+在 @tech{internal-definition context} 中（参见 @secref["intdef-body"]），@racket[define-values] 形式引入局部绑定。在顶层，每个 @racket[id] 的顶层绑定在求值 @racket[expr] 后创建（如果尚未存在），同时设置每个 @racket[id] 的顶层映射（在与编译定义关联的 @techlink{namespace} 中）。
 
 @examples[
 (define-values () (values))
@@ -2668,31 +1756,17 @@ the binding at the same time.
 z
 ]
 
-If a @racket[define-values] form for a function definition in a module
-body has a @indexed-racket['compiler-hint:cross-module-inline]
-@tech{syntax property} with a true value, then the Racket treats the
-property as a performance hint.  See
-@guidesecref["func-call-performance"] in @|Guide| for more
-information, and see also @racket[begin-encourage-inline].}
+如果模块体中函数定义的 @racket[define-values] 形式具有值为 true 的 @indexed-racket['compiler-hint:cross-module-inline] @tech{syntax property}，则 Racket 将该属性视为性能提示。更多信息参见 @|Guide| 中的 @guidesecref["func-call-performance"]，另见 @racket[begin-encourage-inline]。}
 
 
 @defform*[[(define-syntax id expr)
            (define-syntax (head args) body ...+)]]{
 
-The first form creates a @tech{transformer} binding (see
-@secref["transformer-model"]) of @racket[id] with the value of
-@racket[expr], which is an expression at @tech{phase level} 1 relative
-to the surrounding context. (See @secref["id-model"] for information
-on @tech{phase levels}.)  Evaluation of @racket[expr] side is
-@racket[parameterize]d to set @racket[current-namespace] as in
-@racket[let-syntax].
+第一种形式为 @racket[id] 创建一个 @tech{transformer} 绑定（参见 @secref["transformer-model"]），其值为 @racket[expr]，该表达式相对于外层上下文处于 @tech{phase level} 1。（关于 @tech{phase levels} 的信息，参见 @secref["id-model"]。）@racket[expr] 的求值被 @racket[parameterize] 设置 @racket[current-namespace]，如同 @racket[let-syntax] 中的设置。
 
-The second form is a shorthand the same as for @racket[define]; it
-expands to a definition of the first form where the @racket[expr] is a
-@racket[lambda] form.}
+第二种形式是与 @racket[define] 相同的简写；它展开为第一种形式的定义，其中 @racket[expr] 是 @racket[lambda] 形式。}
 
-In an @tech{internal-definition context} (see @secref["intdef-body"]), 
-a @racket[define-syntax] form introduces a local binding.
+在 @tech{internal-definition context} 中（参见 @secref["intdef-body"]），@racket[define-syntax] 形式引入局部绑定。
 
 @examples[#:eval (syntax-eval) #:once
 (define-syntax foo
@@ -2712,18 +1786,11 @@ a @racket[define-syntax] form introduces a local binding.
 
 @defform[(define-syntaxes (id ...) expr)]{
 
-Like @racket[define-syntax], but creates a @tech{transformer} binding
-for each @racket[id].  The @racket[expr] should produce as many values
-as @racket[id]s, and each value is bound to the corresponding
-@racket[id].
+类似于 @racket[define-syntax]，但为每个 @racket[id] 创建 @tech{transformer} 绑定。@racket[expr] 应产生与 @racket[id] 数量相同的值，每个值绑定到相应的 @racket[id]。
 
-When @racket[expr] produces zero values for a top-level
-@racket[define-syntaxes] (i.e., not in a module or internal-definition
-position), then the @racket[id]s are effectively declared without
-binding; see @secref["macro-introduced-bindings"].
+当 @racket[expr] 为顶层 @racket[define-syntaxes]（即不在模块或内部定义位置）产生零个值时，@racket[id] 被有效地声明而不绑定；参见 @secref["macro-introduced-bindings"]。
 
-In an @tech{internal-definition context} (see @secref["intdef-body"]), 
-a @racket[define-syntaxes] form introduces local bindings.
+在 @tech{internal-definition context} 中（参见 @secref["intdef-body"]），@racket[define-syntaxes] 形式引入局部绑定。
 
 @examples[#:eval (syntax-eval) #:once
 (define-syntaxes (foo1 foo2 foo3)
@@ -2747,19 +1814,9 @@ a @racket[define-syntaxes] form introduces local bindings.
 @defform*[[(define-for-syntax id expr)
            (define-for-syntax (head args) body ...+)]]{
 
-Like @racket[define], except that the binding is at @tech{phase level}
-1 instead of @tech{phase level} 0 relative to its context. The
-expression for the binding is also at @tech{phase level} 1. (See
-@secref["id-model"] for information on @tech{phase levels}.)  The form
-is a shorthand for @racket[(begin-for-syntax (define id expr))] or
-@racket[(begin-for-syntax (define (head args) body ...+))].
+类似于 @racket[define]，但绑定相对于其上下文处于 @tech{phase level} 1 而非 @tech{phase level} 0。绑定的表达式也处于 @tech{phase level} 1。（关于 @tech{phase levels} 的信息，参见 @secref["id-model"]。）此形式是 @racket[(begin-for-syntax (define id expr))] 或 @racket[(begin-for-syntax (define (head args) body ...+))] 的简写。
 
-Within a module, bindings introduced by @racket[define-for-syntax]
-must appear before their uses or in the same
-@racket[define-for-syntax] form (i.e., the @racket[define-for-syntax]
-form must be expanded before the use is expanded). In particular,
-mutually recursive functions bound by @racket[define-for-syntax] must
-be defined by the same @racket[define-for-syntax] form.
+在模块内，@racket[define-for-syntax] 引入的绑定必须在其使用之前或出现在同一个 @racket[define-for-syntax] 形式中（即 @racket[define-for-syntax] 形式必须在使用被展开之前展开）。特别地，由 @racket[define-for-syntax] 绑定的相互递归函数必须由同一个 @racket[define-for-syntax] 形式定义。
 
 @examples[#:eval (syntax-eval) #:once
 (define-for-syntax helper 2)
@@ -2783,9 +1840,7 @@ be defined by the same @racket[define-for-syntax] form.
 
 @defform[(define-values-for-syntax (id ...) expr)]{
 
-Like @racket[define-for-syntax], but @racket[expr] must produce as
-many values as supplied @racket[id]s, and all of the @racket[id]s are
-bound (at @tech{phase level} 1).}
+类似于 @racket[define-for-syntax]，但 @racket[expr] 必须产生与提供的 @racket[id] 数量相同的值，所有 @racket[id] 被绑定（在 @tech{phase level} 1）。}
 
 @examples[#:eval (syntax-eval) #:once
 (define-values-for-syntax (foo1 foo2) (values 1 2))
@@ -2804,22 +1859,15 @@ bound (at @tech{phase level} 1).}
 @defform*[[(define-require-syntax id proc-expr)
            (define-require-syntax (id args ...) body ...+)]]{
 
-The first form is like @racket[define-syntax], but for a
-@racket[require] sub-form. The @racket[proc-expr] must produce a
-procedure that accepts and returns a syntax object representing a
-@racket[require] sub-form.
+第一种形式类似于 @racket[define-syntax]，但用于 @racket[require] 子形式。@racket[proc-expr] 必须产生一个过程，该过程接受并返回表示 @racket[require] 子形式的 syntax object。
 
-This form expands to @racket[define-syntax] with a use of
-@racket[make-require-transformer] (see @secref["require-trans"] for
-more information).
+此形式展开为使用 @racket[make-require-transformer] 的 @racket[define-syntax]（更多信息参见 @secref["require-trans"]）。
 
-The second form is a shorthand the same as for @racket[define-syntax]; it
-expands to a definition of the first form where the @racket[proc-expr] is a
-@racket[lambda] form.}
+第二种形式是与 @racket[define-syntax] 相同的简写；它展开为第一种形式的定义，其中 @racket[proc-expr] 是 @racket[lambda] 形式。}
 
 @defproc[(syntax-local-require-introduce [stx syntax?]) syntax?]{
 
-For backward compatibility only; equivalent to @racket[syntax-local-introduce].
+仅用于向后兼容；等价于 @racket[syntax-local-introduce]。
 
 @history[#:changed "6.90.0.29" @elem{Made equivalent to @racket[syntax-local-introduce].}]}
 
@@ -2832,43 +1880,29 @@ For backward compatibility only; equivalent to @racket[syntax-local-introduce].
 @defform*[[(define-provide-syntax id proc-expr)
            (define-provide-syntax (id args ...) body ...+)]]{
 
-The first form is like @racket[define-syntax], but for a
-@racket[provide] sub-form. The @racket[proc-expr] must produce a
-procedure that accepts and returns a syntax object representing a
-@racket[provide] sub-form.
+第一种形式类似于 @racket[define-syntax]，但用于 @racket[provide] 子形式。@racket[proc-expr] 必须产生一个过程，该过程接受并返回表示 @racket[provide] 子形式的 syntax object。
 
-This form expands to @racket[define-syntax] with a use of
-@racket[make-provide-transformer] (see @secref["provide-trans"] for
-more information).
+此形式展开为使用 @racket[make-provide-transformer] 的 @racket[define-syntax]（更多信息参见 @secref["provide-trans"]）。
 
-The second form is a shorthand the same as for @racket[define-syntax]; it
-expands to a definition of the first form where the @racket[expr] is a
-@racket[lambda] form.}
+第二种形式是与 @racket[define-syntax] 相同的简写；它展开为第一种形式的定义，其中 @racket[expr] 是 @racket[lambda] 形式。}
 
 @defproc[(syntax-local-provide-introduce [stx syntax?]) syntax?]{
 
-For backward compatibility only; equivalent to @racket[syntax-local-introduce].
+仅用于向后兼容；等价于 @racket[syntax-local-introduce]。
 
 @history[#:changed "6.90.0.29" @elem{Made equivalent to @racket[syntax-local-introduce].}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "begin"]{Sequencing: @racket[begin], @racket[begin0], and @racket[begin-for-syntax]}
+@section[#:tag "begin"]{顺序执行：@racket[begin]、@racket[begin0] 和 @racket[begin-for-syntax]}
 
 @guideintro["begin"]{@racket[begin] and @racket[begin0]}
 
 @defform*[[(begin form ...)
            (begin expr ...+)]]{
 
-The first form applies when @racket[begin] appears at the top level,
-at module level, or in an internal-definition position. In that case, the
-@racket[begin] form is equivalent to splicing the @racket[form]s into
-the enclosing context.
+第一种形式适用于 @racket[begin] 出现在顶层、模块级或内部定义位置时。在这种情况下，@racket[begin] 形式等价于将 @racket[form] 拼接到外层上下文中。
 
-The second form applies for @racket[begin] in an expression position.
-In that case, the @racket[expr]s are evaluated in order, and the
-results are ignored for all but the last @racket[expr]. The last
-@racket[expr] is in tail position with respect to the @racket[begin]
-form.
+第二种形式适用于 @racket[begin] 在表达式位置时。在这种情况下，@racket[expr] 按顺序求值，除最后一个之外的所有结果被忽略。最后一个 @racket[expr] 相对于 @racket[begin] 形式处于尾位置。
 
 @examples[
 (begin
@@ -2885,10 +1919,7 @@ form.
 
 @defform[(begin0 expr ...+)]{
 
-Evaluates the first @racket[expr], then evaluates the other @racket[exprs]s
-in order, ignoring their results. The results of the first @racket[expr]
-are the results of the @racket[begin0] form; the first @racket[expr] is
-in tail position only if no other @racket[expr]s are present.
+求值第一个 @racket[expr]，然后按顺序求值其他 @racket[exprs]，忽略其结果。第一个 @racket[expr] 的结果即为 @racket[begin0] 形式的结果；第一个 @racket[expr] 仅在没有其他 @racket[expr] 时才处于尾位置。
 
 @mz-examples[
 (begin0
@@ -2898,53 +1929,32 @@ in tail position only if no other @racket[expr]s are present.
 
 @defform[(begin-for-syntax form ...)]{
 
-Allowed only in a @tech{top-level context} or @tech{module context},
-shifts the @tech{phase level} of each @racket[form] by one:
+仅在 @tech{top-level context} 或 @tech{module context} 中允许，将每个 @racket[form] 的 @tech{phase level} 增加一：
 
 @itemize[
 
- @item{expressions reference bindings at a @tech{phase level} one
-       greater than in the context of the @racket[begin-for-syntax]
-       form;}
+ @item{表达式引用比 @racket[begin-for-syntax] 形式上下文中的 @tech{phase level} 大一级的绑定；}
 
- @item{@racket[define], @racket[define-values],
-       @racket[define-syntax], and @racket[define-syntaxes] forms bind
-       at a @tech{phase level} one greater than in the context of the
-       @racket[begin-for-syntax] form;}
+ @item{@racket[define]、@racket[define-values]、@racket[define-syntax] 和 @racket[define-syntaxes] 形式在比 @racket[begin-for-syntax] 形式上下文中的 @tech{phase level} 大一级的级别上绑定；}
 
- @item{in @racket[require] and @racket[provide] forms, the default
-       @tech{phase level} is greater, which is roughly like wrapping
-       the content of the @racket[require] form with
-       @racket[for-syntax];}
+ @item{在 @racket[require] 和 @racket[provide] 形式中，默认的 @tech{phase level} 更大，大致相当于用 @racket[for-syntax] 包装 @racket[require] 形式的内容；}
 
- @item{expression form @racket[_expr]: converted to
-       @racket[(define-values-for-syntax () (begin _expr (values)))], which
-       effectively evaluates the expression at expansion time and, in
-       the case of a @tech{module context}, preserves the expression
-       for future @tech{visit}s of the module.}
+ @item{表达式形式 @racket[_expr]：转换为 @racket[(define-values-for-syntax () (begin _expr (values)))]，这在展开时有效地求值表达式，并且在 @tech{module context} 的情况下，为模块将来的 @tech{visit} 保留表达式。}
 
 ]
 
-See also @racket[module] for information about expansion order and
-partial expansion for @racket[begin-for-syntax] within a module
-context. Evaluation of an @racket[expr] within
-@racket[begin-for-syntax] is @racket[parameterize]d to set
-@racket[current-namespace] as in @racket[let-syntax].
+关于 @racket[begin-for-syntax] 在模块上下文中的展开顺序和部分展开的信息，另见 @racket[module]。@racket[begin-for-syntax] 内 @racket[expr] 的求值被 @racket[parameterize] 设置 @racket[current-namespace]，如同 @racket[let-syntax] 中的设置。
 
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "when+unless"]{Guarded Evaluation: @racket[when] and @racket[unless]}
+@section[#:tag "when+unless"]{受保护求值：@racket[when] 和 @racket[unless]}
 
 @guideintro["when+unless"]{@racket[when] and @racket[unless]}
 
 @defform[(when test-expr body ...+)]{
 
-Evaluates @racket[test-expr]. If the result is @racket[#f], then
-the result of the @racket[when] expression is
-@|void-const|. Otherwise, the @racket[body]s are evaluated, and the
-last @racket[body] is in tail position with respect to the
-@racket[when] form.
+求值 @racket[test-expr]。如果结果为 @racket[#f]，则 @racket[when] 表达式的结果为 @|void-const|。否则，求值 @racket[body]，最后一个 @racket[body] 相对于 @racket[when] 形式处于尾位置。
 
 @mz-examples[
 (when (positive? -5)
@@ -2956,7 +1966,7 @@ last @racket[body] is in tail position with respect to the
 
 @defform[(unless test-expr body ...+)]{
 
-Equivalent to @racket[(when (not test-expr) body ...+)].
+等价于 @racket[(when (not test-expr) body ...+)]。
 
 @mz-examples[
 (unless (positive? 5)
@@ -2967,34 +1977,17 @@ Equivalent to @racket[(when (not test-expr) body ...+)].
 ]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "set!"]{Assignment: @racket[set!] and @racket[set!-values]}
+@section[#:tag "set!"]{赋值：@racket[set!] 和 @racket[set!-values]}
 
 @guideintro["set!"]{@racket[set!]}
 
 @defform[(set! id expr)]{
 
-If @racket[id] has a @tech{transformer} binding to an @tech{assignment
-transformer}, as produced by @racket[make-set!-transformer] or as an
-instance of a structure type with the @racket[prop:set!-transformer]
-property, then this form is expanded by calling the assignment
-transformer with the full expressions. If @racket[id] has a
-@tech{transformer} binding to a @tech{rename transformer} as produced
-by @racket[make-rename-transformer] or as an instance of a structure
-type with the @racket[prop:rename-transformer] property, then this
-form is expanded by replacing @racket[id] with the target identifier
-(e.g., the one provided to @racket[make-rename-transformer]). If a
-transformer binding has both @racket[prop:set!-transformer] and
-@racket[prop:rename-transformer] properties, the latter takes
-precedence.
+如果 @racket[id] 有到 @tech{assignment transformer} 的 @tech{transformer} 绑定（如由 @racket[make-set!-transformer] 产生或作为具有 @racket[prop:set!-transformer] 属性的结构类型实例），则此形式通过使用完整表达式调用 assignment transformer 来展开。如果 @racket[id] 有到 @tech{rename transformer} 的 @tech{transformer} 绑定（如由 @racket[make-rename-transformer] 产生或作为具有 @racket[prop:rename-transformer] 属性的结构类型实例），则此形式通过用目标标识符（例如提供给 @racket[make-rename-transformer] 的那个）替换 @racket[id] 来展开。如果一个 transformer 绑定同时具有 @racket[prop:set!-transformer] 和 @racket[prop:rename-transformer] 属性，后者优先。
 
-Otherwise, evaluates @racket[expr] and installs the result into the
-location for @racket[id], which must be bound as a local variable or
-defined as a @tech{top-level variable} or @tech{module-level
-variable}. If @racket[id] refers to an imported binding, a syntax
-error is reported.  If @racket[id] refers to a @tech{top-level
-variable} that has not been defined, the @exnraise[exn:fail:contract].
+否则，求值 @racket[expr] 并将结果安装到 @racket[id] 的 location 中，该 @racket[id] 必须绑定为局部变量或定义为 @tech{top-level variable} 或 @tech{module-level variable}。如果 @racket[id] 引用导入的绑定，则报告语法错误。如果 @racket[id] 引用未定义的 @tech{top-level variable}，则 @exnraise[exn:fail:contract]。
 
-See also @racket[compile-allow-set!-undefined].
+另见 @racket[compile-allow-set!-undefined]。
 
 @examples[
 (define x 12)
@@ -3008,11 +2001,7 @@ x
 
 @defform[(set!-values (id ...) expr)]{
 
-Assuming that all @racket[id]s refer to variables, this form evaluates
-@racket[expr], which must produce as many values as supplied
-@racket[id]s.  The location of each @racket[id] is filled with the
-corresponding value from @racket[expr] in the same way as for
-@racket[set!].
+假设所有 @racket[id] 引用变量，此形式求值 @racket[expr]，它必须产生与提供的 @racket[id] 数量相同的值。每个 @racket[id] 的 location 以与 @racket[set!] 相同的方式用来自 @racket[expr] 的对应值填充。
 
 @mz-examples[
 (let ([a 1]
@@ -3021,74 +2010,41 @@ corresponding value from @racket[expr] in the same way as for
   (list a b))
 ]
 
-More generally, the @racket[set!-values] form is expanded to
+更一般地，@racket[set!-values] 形式展开为
 
 @racketblock[
 (let-values ([(_tmp-id ...) expr])
   (set! id _tmp-id) ...)
 ]
 
-which triggers further expansion if any @racket[id] has a transformer
-binding to an @tech{assignment transformer}.}
+如果任何 @racket[id] 有到 @tech{assignment transformer} 的 transformer 绑定，则触发进一步展开。}
 
 @;------------------------------------------------------------------------
 @include-section["for.scrbl"]
 
 @;------------------------------------------------------------------------
-@section[#:tag "wcm"]{Continuation Marks: @racket[with-continuation-mark]}
+@section[#:tag "wcm"]{延续标记：@racket[with-continuation-mark]}
 
 @defform[(with-continuation-mark key-expr val-expr result-expr)]{
 
-The @racket[key-expr], @racket[val-expr], and @racket[result-expr]
-expressions are evaluated in order. After @racket[key-expr] is
-evaluated to obtain a key and @racket[val-expr] is evaluated to
-obtain a value, the key is mapped to the value as a @tech{continuation mark} in the current
-continuation's initial @tech{continuation frame}. If the frame already has a mark for the
-key, the mark is replaced. Finally, the @racket[result-expr] is evaluated;
-the continuation for evaluating @racket[result-expr] is the
-continuation of the @racket[with-continuation-mark] expression (so the
-result of the @racket[result-expr] is the result of the
-@racket[with-continuation-mark] expression, and @racket[result-expr]
-is in tail position for the @racket[with-continuation-mark]
-expression).
+@racket[key-expr]、@racket[val-expr] 和 @racket[result-expr] 表达式按顺序求值。在 @racket[key-expr] 求值获得 key 且 @racket[val-expr] 求值获得 value 后，key 被映射到 value，作为当前 continuation 的初始 @tech{continuation frame} 中的 @tech{continuation mark}。如果该 frame 已有该 key 的 mark，则替换该 mark。最后，求值 @racket[result-expr]；求值 @racket[result-expr] 的 continuation 是 @racket[with-continuation-mark] 表达式的 continuation（因此 @racket[result-expr] 的结果是 @racket[with-continuation-mark] 表达式的结果，且 @racket[result-expr] 对于 @racket[with-continuation-mark] 表达式处于尾位置）。
 
 @moreref["contmarks"]{continuation marks}}
 
 @;------------------------------------------------------------------------
-@section[#:tag "quasiquote"]{Quasiquoting: @racket[quasiquote], @racket[unquote], and @racket[unquote-splicing]}
+@section[#:tag "quasiquote"]{准引用：@racket[quasiquote]、@racket[unquote] 和 @racket[unquote-splicing]}
 
 @guideintro["qq"]{@racket[quasiquote]}
 
 @defform[(quasiquote datum)]{
 
-The same as @racket[(quote datum)] if @racket[datum] does not include
-@racket[(#,unquote-id _expr)] or @racket[(#,unquote-splicing-id _expr)]. An
-@racket[(#,unquote-id _expr)] form escapes from the quote, however,
-and the result of the @racket[_expr] takes the place of the
-@racket[(#,unquote-id _expr)] form in the @racket[quasiquote] result. An
-@racket[(#,unquote-splicing-id _expr)] similarly escapes, but the
-@racket[_expr] produces a list whose elements are spliced as
-multiple values place of the @racket[(#,unquote-splicing-id _expr)].
+如果 @racket[datum] 不包含 @racket[(#,unquote-id _expr)] 或 @racket[(#,unquote-splicing-id _expr)]，则与 @racket[(quote datum)] 相同。然而，@racket[(#,unquote-id _expr)] 形式从引用中转义出来，@racket[_expr] 的结果在 @racket[quasiquote] 结果中取代 @racket[(#,unquote-id _expr)] 形式的位置。@racket[(#,unquote-splicing-id _expr)] 类似地转义，但 @racket[_expr] 产生一个列表，其元素作为多个值拼接到 @racket[(#,unquote-splicing-id _expr)] 的位置。
 
-An @|unquote-id| or @|unquote-splicing-id| form is recognized in any
-of the following escaping positions within @racket[datum]: in a pair,
-in a vector, in a box, in a @tech{prefab} structure field after the
-name position, and in hash table value position (but not in a hash
-table key position). Such escaping positions can be nested to an
-arbitrary depth.
+@|unquote-id| 或 @|unquote-splicing-id| 形式在 @racket[datum] 中的以下任何转义位置被识别：在 pair 中、在 vector 中、在 box 中、在名称位置之后的 @tech{prefab} 结构字段中，以及在哈希表值位置中（但不在哈希表键位置中）。这些转义位置可以嵌套到任意深度。
 
-An @|unquote-splicing-id| form must appear as the @racket[car] of a
-quoted pair, as an element of a quoted vector, or as an element of a
-quoted @tech{prefab} structure. In the case of a pair, if the
-@racket[cdr] of the relevant quoted pair is empty, then @racket[_expr]
-need not produce a list, and its result is used directly in place of
-the quoted pair (in the same way that @racket[append] accepts a
-non-list final argument).
+@|unquote-splicing-id| 形式必须作为引用 pair 的 @racket[car]、引用 vector 的元素或引用 @tech{prefab} 结构的元素出现。在 pair 的情况下，如果相关引用 pair 的 @racket[cdr] 为空，则 @racket[_expr] 不需要产生列表，其结果直接用于替代引用 pair（与 @racket[append] 接受非列表最后参数的方式相同）。
 
-If @racket[unquote] or @racket[unquote-splicing] appears within
-@racket[quasiquote] in an escaping position but in a way other than as
-@racket[(#,unquote-id _expr)] or @racket[(#,unquote-splicing-id
-_expr)], a syntax error is reported.
+如果 @racket[unquote] 或 @racket[unquote-splicing] 在 @racket[quasiquote] 内的转义位置中出现，但不是以 @racket[(#,unquote-id _expr)] 或 @racket[(#,unquote-splicing-id _expr)] 的方式，则报告语法错误。
 
 @mz-examples[
 (eval:alts (#,(racket quasiquote) (0 1 2)) `(0 1 2))
@@ -3098,9 +2054,7 @@ _expr)], a syntax error is reported.
 (eval:alts (#,(racket quasiquote) (0 (#,unquote-splicing-id 1))) `(0 ,@1))
 ]
 
-A @racket[quasiquote], @racket[unquote], or @racket[unquote-splicing]
-form is typically abbreviated with @litchar{`}, @litchar{,}, or
-@litchar[",@"], respectively. See also @secref["parse-quote"].
+@racket[quasiquote]、@racket[unquote] 或 @racket[unquote-splicing] 形式通常分别缩写为 @litchar{`}、@litchar{,} 或 @litchar[",@"]。另见 @secref["parse-quote"]。
 
 @mz-examples[
 `(0 1 2)
@@ -3112,30 +2066,20 @@ form is typically abbreviated with @litchar{`}, @litchar{,}, or
 `#(1 ,@(list 1 2) 4)
 ]
 
-A @racket[quasiquote] form within the original @racket[datum]
-increments the level of quasiquotation: within the @racket[quasiquote]
-form, each @racket[unquote] or @racket[unquote-splicing] is preserved,
-but a further nested @racket[unquote] or @racket[unquote-splicing]
-escapes.  Multiple nestings of @racket[quasiquote] require multiple
-nestings of @racket[unquote] or @racket[unquote-splicing] to escape.
+原始 @racket[datum] 中的 @racket[quasiquote] 形式会增加准引用级别：在 @racket[quasiquote] 形式内，每个 @racket[unquote] 或 @racket[unquote-splicing] 被保留，但进一步嵌套的 @racket[unquote] 或 @racket[unquote-splicing] 会转义。多层嵌套的 @racket[quasiquote] 需要多层嵌套的 @racket[unquote] 或 @racket[unquote-splicing] 来转义。
 
 @mz-examples[
 `(1 `,(+ 1 ,(+ 2 3)) 4)
 `(1 ```,,@,,@(list (+ 1 2)) 4)
 ]
 
-The @racket[quasiquote] form allocates only as many fresh cons cells,
-vectors, and boxes as are needed without analyzing @racket[unquote]
-and @racket[unquote-splicing] expressions. For example, in
+@racket[quasiquote] 形式只分配所需数量的新 cons cells、vectors 和 boxes，而无需分析 @racket[unquote] 和 @racket[unquote-splicing] 表达式。例如，在
 
 @racketblock[
 `(,1 2 3)
 ]
 
-a single tail @racket['(2 3)] is used for every evaluation of the
-@racket[quasiquote] expression. When allocating fresh data,
-the @racket[quasiquote] form allocates mutable vectors, mutable boxes
-and immutable hashes.
+一个单独的尾部 @racket['(2 3)] 用于 @racket[quasiquote] 表达式的每次求值。当分配新数据时，@racket[quasiquote] 形式分配可变 vectors、可变 boxes 和不可变 hashes。
 
 @mz-examples[
 (immutable? `#(,0))
@@ -3146,35 +2090,23 @@ and immutable hashes.
 
 @defidform[unquote]{
 
-See @racket[quasiquote], where @racket[unquote] is recognized as an
-escape. An @racket[unquote] form as an expression is a syntax error.}
+参见 @racket[quasiquote]，其中 @racket[unquote] 被识别为转义。作为表达式的 @racket[unquote] 形式是语法错误。}
 
 @defidform[unquote-splicing]{
 
-See @racket[quasiquote], where @racket[unquote-splicing] is recognized as an
-escape. An @racket[unquote-splicing] form as an expression is a syntax error.}
+参见 @racket[quasiquote]，其中 @racket[unquote-splicing] 被识别为转义。作为表达式的 @racket[unquote-splicing] 形式是语法错误。}
 
 @;------------------------------------------------------------------------
-@section{Syntax Quoting: @racket[quote-syntax]}
+@section{语法引用：@racket[quote-syntax]}
 
 @defform*[[(quote-syntax datum)
            (quote-syntax datum #:local)]]{
 
-Similar to @racket[quote], but produces a @tech{syntax object}
-that preserves the @tech{lexical information} and source-location
-information attached to @racket[datum] at expansion time.
+类似于 @racket[quote]，但产生一个 @tech{syntax object}，它保留展开时附加到 @racket[datum] 上的 @tech{lexical information} 和源位置信息。
 
-When @racket[#:local] is specified, then all @tech{scopes} in the
-syntax object's @tech{lexical information} are preserved. When
-@racket[#:local] is omitted, then the @tech{scope sets} within
-@racket[datum] are pruned to omit the @tech{scope} for any binding
-form that appears between the @racket[quote-syntax] form and the
-enclosing top-level context, module body, or @tech{phase level}
-crossing, whichever is closer.
+指定 @racket[#:local] 时，syntax object 的 @tech{lexical information} 中的所有 @tech{scopes} 被保留。省略 @racket[#:local] 时，@racket[datum] 中的 @tech{scope sets} 被修剪，以省略出现在 @racket[quote-syntax] 形式与外层顶层上下文、模块体或 @tech{phase level} 交叉之间（取最近者）的任何绑定形式的 @tech{scope}。
 
-Unlike @racket[syntax] (@litchar{#'}), @racket[quote-syntax] does
-not substitute pattern variables bound by @racket[with-syntax],
-@racket[syntax-parse], or @racket[syntax-case].
+与 @racket[syntax]（@litchar{#'}）不同，@racket[quote-syntax] 不替换由 @racket[with-syntax]、@racket[syntax-parse] 或 @racket[syntax-case] 绑定的模式变量。
 
 @mz-examples[
 (syntax? (quote-syntax x))
@@ -3191,52 +2123,37 @@ not substitute pattern variables bound by @racket[with-syntax],
                                for @racket[#:local].}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "#%top-interaction"]{Interaction Wrapper: @racket[#%top-interaction]}
+@section[#:tag "#%top-interaction"]{交互包装器：@racket[#%top-interaction]}
 
 @defform[(#%top-interaction . form)]{
 
-Expands to simply @racket[form]. The @racket[#%top-interaction] form
-is similar to @racket[#%app] and @racket[#%module-begin], in that it
-provides a hook to control interactive evaluation through
-@racket[load] (more precisely, the default @tech{load handler}) or
-@racket[read-eval-print-loop].}
+简单地展开为 @racket[form]。@racket[#%top-interaction] 形式类似于 @racket[#%app] 和 @racket[#%module-begin]，它提供了一个钩子来控制通过 @racket[load]（更准确地说，是默认的 @tech{load handler}）或 @racket[read-eval-print-loop] 进行的交互式求值。}
 
 @;------------------------------------------------------------------------
 @include-section["block.scrbl"]
 
 @;------------------------------------------------------------------------
-@section[#:tag "stratified-body"]{Internal-Definition Limiting: @racket[#%stratified-body]}
+@section[#:tag "stratified-body"]{内部定义限制：@racket[#%stratified-body]}
 
 @defform[(#%stratified-body defn-or-expr ...)]{
 
-Like @racket[(let () defn-or-expr ...)] for an
-@tech{internal-definition context} sequence, except that an expression
-is not allowed to precede a definition, and all definitions are
-treated as referring to all other definitions (i.e., @tech{locations}
-for variables are all allocated first, like @racket[letrec] and
-unlike @racket[letrec-syntaxes+values]).
+对于 @tech{internal-definition context} 序列，类似于 @racket[(let () defn-or-expr ...)]，但不允许表达式在定义之前出现，且所有定义被视为引用所有其他定义（即变量的 @tech{locations} 都先分配，如同 @racket[letrec] 而非 @racket[letrec-syntaxes+values]）。
 
-The @racket[#%stratified-body] form is useful for implementing
-syntactic forms or languages that supply a more limited kind of
-@tech{internal-definition context}.}
+@racket[#%stratified-body] 形式对于实现提供更受限的 @tech{internal-definition context} 的语法形式或语言很有用。}
 
 @close-eval[require-eval]
 @close-eval[meta-in-eval]
 
 @;------------------------------------------------------------------------
-@section[#:tag "performance-hint"]{Performance Hints: @racket[begin-encourage-inline]}
+@section[#:tag "performance-hint"]{性能提示：@racket[begin-encourage-inline]}
 
 @note-lib-only[racket/performance-hint]
 
 @defform[(begin-encourage-inline form ...)]{
 
-Attaches a @racket['compiler-hint:cross-module-inline]
-@tech{syntax property} to each @racket[form], which is useful when a
-@racket[form] is a function definition. See @racket[define-values].
+将 @racket['compiler-hint:cross-module-inline] @tech{syntax property} 附加到每个 @racket[form]，当 @racket[form] 是函数定义时很有用。参见 @racket[define-values]。
 
-The @racket[begin-encourage-inline] form is also provided by the
-@racketmodname[(submod racket/performance-hint begin-encourage-inline)] module,
-which has fewer dependencies than @racketmodname[racket/performance-hint].
+@racket[begin-encourage-inline] 形式也由 @racketmodname[(submod racket/performance-hint begin-encourage-inline)] 模块提供，其依赖项比 @racketmodname[racket/performance-hint] 少。
 
 @history[#:changed "6.2" @elem{Added the @racketmodname[(submod racket/performance-hint begin-encourage-inline)] submodule.}]
 }
@@ -3251,21 +2168,15 @@ which has fewer dependencies than @racketmodname[racket/performance-hint].
                       [arg-id default-expr]
                       (code:line keyword arg-id)
                       (code:line keyword [arg-id default-expr])])]{
-Like @racket[define], but ensures that the definition will be inlined at its
-call sites. Recursive calls are not inlined, to avoid infinite inlining.
-Higher-order uses are supported, but also not inlined. Misapplication (by
-supplying the wrong number of arguments or incorrect keyword arguments) is
-also not inlined and left as a run-time error.
+类似于 @racket[define]，但确保定义在其调用处被内联。递归调用不被内联，以避免无限内联。支持高阶使用，但也不被内联。错误应用（提供错误数量的参数或不正确的关键字参数）也不被内联，并保留为运行时错误。
 
-The @racket[define-inline] form may interfere with the Racket compiler's own inlining
-heuristics, and should only be used when other inlining attempts (such as
-@racket[begin-encourage-inline]) fail.
+@racket[define-inline] 形式可能会干扰 Racket 编译器自身的内联启发式，应仅在其他内联尝试（如 @racket[begin-encourage-inline]）失败时使用。
 
 @history[#:changed "8.1.0.5" @elem{Changed to treat misapplication as a run-time error.}]}
 
 
 @;------------------------------------------------------------------------
-@section[#:tag "lazy-require"]{Importing Modules Lazily: @racket[lazy-require]}
+@section[#:tag "lazy-require"]{延迟导入模块：@racket[lazy-require]}
 
 @note-lib-only[racket/lazy-require]
 
@@ -3277,23 +2188,11 @@ heuristics, and should only be used when other inlining attempts (such as
          ([fun-import fun-id
                       (orig-fun-id fun-id)])]{
 
-Defines each @racket[fun-id] as a function that, when called,
-dynamically requires the export named @racket[orig-fun-id] from the
-module specified by @racket[module-path] and calls it with the same
-arguments. If @racket[orig-fun-id] is not given, it defaults to
-@racket[fun-id].
+将每个 @racket[fun-id] 定义为一个函数，当调用时，从 @racket[module-path] 指定的模块动态 require 名为 @racket[orig-fun-id] 的导出，并使用相同的参数调用它。如果未给出 @racket[orig-fun-id]，则默认为 @racket[fun-id]。
 
-If the enclosing relative phase level is not 0, then
-@racket[module-path] is also placed in a submodule (with a use of
-@racket[define-runtime-module-path-index] at phase level 0 within the
-submodule). Introduced submodules have the names
-@racket[lazy-require-aux]@racket[_n]@racketidfont{-}@racket[_m], where
-@racket[_n] is a phase-level number and @racket[_m] is a number.
+如果外层的相对 phase level 不是 0，则 @racket[module-path] 也被放入子模块中（在子模块内以 phase level 0 使用 @racket[define-runtime-module-path-index]）。引入的子模块名称为 @racket[lazy-require-aux]@racket[_n]@racketidfont{-}@racket[_m]，其中 @racket[_n] 是 phase-level 编号，@racket[_m] 是一个数字。
 
-When the use of a lazily-required function triggers module loading, it
-also triggers a use of @racket[register-external-module] to declare an
-indirect compilation dependency (in case the function is used in the
-process of compiling a module).
+当使用延迟 require 的函数触发模块加载时，它也触发使用 @racket[register-external-module] 声明间接编译依赖（以防在编译模块过程中使用该函数）。
 
 @examples[#:eval lazy-require-eval
 (lazy-require
@@ -3314,33 +2213,17 @@ process of compiling a module).
          ([macro-import macro-id
                         (orig-macro-id macro-id)])]{
 
-Like @racket[lazy-require] but for macros. That is, it defines each
-@racket[macro-id] as a macro that, when used, dynamically loads the
-macro's implementation from the given @racket[module-path]. If
-@racket[orig-macro-id] is not given, it defaults to @racket[macro-id].
+类似于 @racket[lazy-require]，但用于宏。也就是说，它将每个 @racket[macro-id] 定义为一个宏，当使用时从给定的 @racket[module-path] 动态加载宏的实现。如果未给出 @racket[orig-macro-id]，则默认为 @racket[macro-id]。
 
-Use @racket[lazy-require-syntax] in the @emph{implementation} of a library
-with large, complicated macros to avoid a dependence from clients of
-the library on the macro ``compilers.'' Note that only macros with
-exceptionally large compile-time components (such as Typed Racket,
-which includes a type checker and optimizer) benefit from
-@racket[lazy-require-syntax]; typical macros do not.
+在具有大型复杂宏的库的 @emph{实现} 中使用 @racket[lazy-require-syntax]，以避免库的客户端对宏编译器的依赖。请注意，只有具有特别大的编译时组件（如 Typed Racket，它包含类型检查器和优化器）的宏才能从 @racket[lazy-require-syntax] 中受益；典型的宏则不会。
 
-@bold{Warning:} @racket[lazy-require-syntax] breaks the invariants
-that Racket's module loader and linker rely on; these invariants
-normally ensure that the references in code produced by a macro are
-loaded before the code runs. Safe use of @racket[lazy-require-syntax]
-requires a particular structure in the macro implementation. (In
-particular, @racket[lazy-require-syntax] cannot simply be introduced
-in the client code.) The macro implementation must follow these rules:
+@bold{警告：} @racket[lazy-require-syntax] 破坏了 Racket 模块加载器和链接器依赖的不变量；这些不变量通常确保宏生成的代码中的引用在代码运行之前被加载。安全使用 @racket[lazy-require-syntax] 需要在宏实现中具有特定结构。（特别地，@racket[lazy-require-syntax] 不能简单地在客户端代码中引入。）宏实现必须遵循以下规则：
 @itemlist[#:style 'ordered
-@item{the interface module must @racket[require] the runtime-support module}
-@item{the compiler module must @racket[require] the runtime-support module via
-an @emph{absolute} module path rather than a @emph{relative} path}
+@item{接口模块必须 @racket[require] 运行时支持模块}
+@item{编译器模块必须通过 @emph{绝对} 模块路径而不是 @emph{相对} 路径来 @racket[require] 运行时支持模块}
 ]
 
-To explain the concepts of ``interface, compiler, and runtime-support
-modules'', here is an example module that exports a macro:
+为了解释接口模块、编译器模块和运行时支持模块的概念，下面是一个导出宏的示例模块：
 @racketblock[  ;; @examples[#:eval lazy-require-eval #:label #f
 (module original racket/base
   (define (ntimes-proc n thunk)
@@ -3349,9 +2232,7 @@ modules'', here is an example module that exports a macro:
     (ntimes-proc n (lambda () expr)))
   (provide ntimes))
 ]
-Suppose we want to use @racket[lazy-require-syntax] to lazily load the
-implementation of the @racket[ntimes] macro transformer. The original
-module must be split into three parts:
+假设我们想使用 @racket[lazy-require-syntax] 延迟加载 @racket[ntimes] 宏 transformer 的实现。原始模块必须拆分为三个部分：
 @racketblock[  ;; @examples[#:eval lazy-require-eval #:label #f
 (module runtime-support racket/base
   (define (ntimes-proc n thunk)
@@ -3368,16 +2249,9 @@ module must be split into three parts:
   (lazy-require-syntax ['compiler (ntimes)])
   (provide ntimes))
 ]
-The runtime support module contains the function and value definitions
-that the macro refers to. The compiler module contains the macro
-definition(s) themselves---the part of the code that ``disappears''
-after compile time. The interface module lazily loads the macro
-transformer, but it makes sure the runtime support module is defined at
-run time by requiring it normally. In a larger example, of course, the
-runtime support and compiler may both consist of multiple modules.
+运行时支持模块包含宏引用的函数和值定义。编译器模块包含宏定义本身---代码中在编译后消失的部分。接口模块延迟加载宏 transformer，但它通过正常 require 确保运行时支持模块在运行时被定义。在更大的例子中，当然，运行时支持和编译器可能都由多个模块组成。
 
-Here what happens when we don't separate the runtime support into a
-separate module:
+下面是不将运行时支持分离到单独模块时发生的情况：
 @examples[#:eval lazy-require-eval #:label #f
 (module bad-no-runtime racket/base
   (define (ntimes-proc n thunk)
@@ -3391,14 +2265,13 @@ separate module:
   (ntimes 3 (printf "hello?\n")))
 (eval:error (require 'bad-client))
 ]
-A similar error occurs when the interface module doesn't introduce a
-dependency on the runtime support module.
+当接口模块未引入对运行时支持模块的依赖时，会发生类似的错误。
 }
 
 @(close-eval lazy-require-eval)
 
 @;------------------------------------------------------------------------
-@section[#:tag "foreign-inline"]{Unsafe Access to Core Compiler Forms}
+@section[#:tag "foreign-inline"]{对核心编译器形式的不安全访问}
 
 
 @defform[(#%foreign-inline datum maybe-mode)
@@ -3410,38 +2283,21 @@ dependency on the runtime support module.
                       #:copy
                       #:copy*])]{
 
-The @racket[#%foreign-inline] form @tech[#:key "unsafe"]{unsafely}
-inlines an expression form that is supported by the core compiler and
-runtime system that Racket runs on, which is Chez Scheme in the case
-of Racket @tech{CS}. Omitting @racket[maybe-mode] is equivalent to
-supplying @racket[#:effect].
+@racket[#%foreign-inline] 形式 @tech[#:key "unsafe"]{不安全地} 内联一个由 Racket 运行其上的核心编译器和运行时系统支持的表达式形式，在 Racket @tech{CS} 的情况下是 Chez Scheme。省略 @racket[maybe-mode] 等价于提供 @racket[#:effect]。
 
-Ensuring that @racket[datum] is supported and has appropriate behavior
-(consistent with @racket[maybe-mode]) is up to the user of this form:
+确保 @racket[datum] 受支持且具有适当的行为（与 @racket[maybe-mode] 一致）取决于此形式的用户：
 
 @itemlist[
 
- @item{The @racket[datum] must not refer to any variable that is bound
- in the enclosing scope.}
+ @item{@racket[datum] 不能引用在外层作用域中绑定的任何变量。}
 
- @item{Evaluating @racket[datum] must not raise an exception or
- otherwise inspect the current @tech{continuation}, and it must return
- a single value.}
+ @item{求值 @racket[datum] 不能引发异常或以其他方式检查当前 @tech{continuation}，并且必须返回单一值。}
 
- @item{If @racket[#:pure] or @racket[#:copy] is specified, then
- evaluating @racket[datum] must not have any side effects or depend on
- preceding effects.}
+ @item{如果指定了 @racket[#:pure] 或 @racket[#:copy]，则求值 @racket[datum] 不能有任何副作用或依赖先前的效果。}
 
- @item{If @racket[#:pure*] or @racket[#:copy*] is specified, then not
- only must evaluating @racket[datum] have no side effects or
- dependencies on preceding effects, the expression must be applied to
- arguments where the application has no side effects or dependencies
- on preceding effects.}
+ @item{如果指定了 @racket[#:pure*] 或 @racket[#:copy*]，则不仅求值 @racket[datum] 不能有副作用或依赖先前的效果，表达式还必须应用于没有副作用或依赖先前效果的参数。}
 
- @item{If @racket[#:copy] or @racket[#:copy*] is specified, then the
- compilation may duplicate the entire @racket[(#%foreign-inline datum
- maybe-mode)] expression one or more times to inline its
- implementation at different uses of its value.}
+ @item{如果指定了 @racket[#:copy] 或 @racket[#:copy*]，则编译可能会复制整个 @racket[(#%foreign-inline datum maybe-mode)] 表达式一次或多次，以在其值的不同使用处内联其实现。}
 
 ]
 
