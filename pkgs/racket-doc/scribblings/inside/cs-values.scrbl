@@ -3,27 +3,17 @@
           (for-label racket/unsafe/ops
                      ffi/unsafe))
 
-@cs-title[#:tag "cs-values+types"]{Values and Types}
+@cs-title[#:tag "cs-values+types"]{值与类型}
 
-A Racket value is represented by a pointer-sized value. The low bits
-of the value indicate the encoding that it uses. For example, two (on
-32-bit platform) or three (on 64-bit platforms) low bits indicates a
-fixnum encoding, while a one low bit and zero second-lowest bit
-indicates a pair whose address in memory is specified by the other
-bits.
+Racket 值由指针大小的值表示。该值的低比特位指示其使用的编码方式。例如，在 32 位平台上两个（或在 64 位平台上三个）最低比特位表示 fixnum 编码，而一个最低位为 1 且次低位为 0 表示一个 pair，其内存地址由其余比特位指定。
 
-The C type for a Racket value is @tt{ptr}. For most Racket types, a
-constructor is provided for creating values of the type. For example,
-@cpp{Scons} takes two @cpp{ptr} values and returns the @racket[cons]
-of the values as a new @cpp{ptr} value. In addition to providing
-constructors, Racket defines several global constant Racket values,
-such as @cppi{Strue} for @racket[#t].
+Racket 值的 C 类型是 @tt{ptr}。对于大多数 Racket 类型，都提供了构造函数来创建该类型的值。例如，@cpp{Scons} 接受两个 @cpp{ptr} 值并返回这些值的 @racket[cons] 作为新的 @cpp{ptr} 值。除了提供构造函数外，Racket 还定义了几个全局常量 Racket 值，例如用于 @racket[#t] 的 @cppi{Strue}。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-constants"]{Global Constants}
+@section[#:tag "cs-constants"]{全局常量}
 
-There are six global constants:
+共有六个全局常量：
 
 @itemize[
 
@@ -41,9 +31,9 @@ There are six global constants:
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "cs-value-funcs"]{Value Functions}
+@section[#:tag "cs-value-funcs"]{值函数}
 
-Many of these functions are actually macros.
+这些函数中的许多实际上是宏。
 
 @(define-syntax-rule (predicates (name ...) desc ...)
    (together
@@ -70,14 +60,11 @@ Many of these functions are actually macros.
              Sratnump
              Srecordp)]{
 
-Predicates to recognize different kinds of Racket values, such as
-fixnums, characters, the empty list, etc. The @cpp{Srecordp} predicate
-recognizes structures, but some built-in Racket datatypes are also
-implemented as records.}
+用于识别不同种类 Racket 值的谓词，例如 fixnum、字符、空列表等。@cpp{Srecordp} 谓词识别结构体，但某些内置 Racket 数据类型也实现为 record。}
 
 @function[(ptr Sfixnum [int i])]{
 
-Returns a Racket integer value, where @var{i} must fit in a fixnum.}
+返回一个 Racket 整数值，其中 @var{i} 必须适合 fixnum。}
 
 @together[(
 @function[(ptr Sinteger [iptr i])]
@@ -88,12 +75,11 @@ Returns a Racket integer value, where @var{i} must fit in a fixnum.}
 @function[(ptr Sunsigned64 [unsigned-long i])]
 )]{
 
-Returns an integer value for different conversions from C, where the
-result is allocated as a bignum if necessary to hold the value.}
+从 C 进行不同转换时返回整数值，结果在必要时分配为 bignum 以容纳该值。}
 
-@function[(iptr Sfixnum_value [ptr v])]{
+@function[(iptr Sfixnum_value [ptr v]){
 
-Converts a Racket fixnum to a C integer.}
+将 Racket fixnum 转换为 C 整数。}
 
 @together[(
 @function[(iptr Sinteger_value [ptr v])]
@@ -104,63 +90,57 @@ Converts a Racket fixnum to a C integer.}
 @function[(unsigned-long Sunsigned64_value [ptr v])]
 )]{
 
-Converts a Racket integer (possibly a bignum) to a C integer, assuming
-that the integer fits in the return type.}
+将 Racket 整数（可能是 bignum）转换为 C 整数，假设整数适合返回类型。}
 
-@function[(ptr Sflonum [double f])]{
+@function[(ptr Sflonum [double f]){
 
-Returns a Racket flonum value.}
+返回一个 Racket flonum 值。}
 
-@function[(double Sflonum_value [ptr v])]{
+@function[(double Sflonum_value [ptr v]){
 
-Converts a Racket flonum value to a C floating-point number.}
-
-
-@function[(ptr Schar [int ch])]{
-
-Returns a Racket character value. The @var{ch} value must be a legal
-Unicode code point (and not a surrogate, for example). All characters
-are represented by constant values.}
+将 Racket flonum 值转换为 C 浮点数。}
 
 
-@function[(ptr Schar_value [ptr ch])]{
+@function[(ptr Schar [int ch]){
 
-Returns the Unicode code point for the Racket character @var{ch}.}
-
-
-@function[(ptr Sboolean [int bool])]{
-
-Returns @cppi{Strue} or @cppi{Sfalse}.}
+返回一个 Racket 字符值。@var{ch} 值必须是合法的 Unicode 码点（且不能是代理字符，例如）。所有字符都由常量值表示。}
 
 
-@function[(ptr Scons [ptr car] [ptr cdr])]{
+@function[(ptr Schar_value [ptr ch]){
 
-Makes a @racket[cons] pair.}
+返回 Racket 字符 @var{ch} 的 Unicode 码点。}
+
+
+@function[(ptr Sboolean [int bool]){
+
+返回 @cppi{Strue} 或 @cppi{Sfalse}。}
+
+
+@function[(ptr Scons [ptr car] [ptr cdr]){
+
+创建一个 @racket[cons] pair。}
 
 @together[(
 @function[(ptr Scar [ptr pr])]
 @function[(ptr Scdr [ptr pr])]
 )]{
 
-Extracts the @racket[car] or @racket[cdr] of a pair.}
+提取 pair 的 @racket[car] 或 @racket[cdr]。}
 
-@function[(ptr Sstring_to_symbol [const-char* str])]{
+@function[(ptr Sstring_to_symbol [const-char* str]){
 
-Returns the interned symbol whose name matches @var{str}.}
+返回名称与 @var{str} 匹配的驻留符号。}
 
-@function[(ptr Ssymbol_to_string [ptr sym])]{
+@function[(ptr Ssymbol_to_string [ptr sym]){
 
-Returns the Racket immutable string value for the Racket symbol
-@var{sym}.}
+返回 Racket 符号 @var{sym} 的 Racket 不可变字符串值。}
 
 @together[(
 @function[(ptr Smake_string [iptr len] [int ch])]
 @function[(ptr Smake_uninitialized_string [iptr len])]
 )]{
 
-Allocates a fresh Racket mutable string with @var{len} characters. The
-content of the string is either all @var{ch}s when @var{ch} is
-provided or unspecified otherwise.}
+分配一个包含 @var{len} 个字符的 Racket 可变字符串。字符串内容在提供 @var{ch} 时全为 @var{ch}，否则未指定。}
 
 @together[(
 @function[(ptr Sstring [const-char* str])]
@@ -168,104 +148,96 @@ provided or unspecified otherwise.}
 @function[(ptr Sstring_utf8 [const-char* str] [iptr len])]
 )]{
 
-Allocates a fresh Racket mutable string with the content of @var{str}.
-If @var{len} is not provided, @var{str} must be nul-terminated.
-In the case of @cppi{Sstring_utf8}, @var{str} is decoded as
-UTF-8, otherwise it is decided as Latin-1.}
+分配一个包含 @var{str} 内容的 Racket 可变字符串。如果未提供 @var{len}，则 @var{str} 必须以 nul 结尾。对于 @cppi{Sstring_utf8}，@var{str} 被解码为 UTF-8，否则被解码为 Latin-1。}
 
 
-@function[(uptr Sstring_length [ptr str])]{
+@function[(uptr Sstring_length [ptr str]){
 
-Returns the length of the string @var{str}.}
+返回字符串 @var{str} 的长度。}
 
-@function[(ptr Sstring_ref [ptr str] [uptr i])]{
+@function[(ptr Sstring_ref [ptr str] [uptr i]){
 
-Returns the @var{i}th Racket character of the string @var{str}.}
+返回字符串 @var{str} 的第 @var{i} 个 Racket 字符。}
 
-@function[(int Sstring_set [ptr str] [uptr i] [ptr ch])]{
+@function[(int Sstring_set [ptr str] [uptr i] [ptr ch]){
 
-Installs @var{ch} as the @var{i}th Racket character of the string @var{str}.}
+将 @var{ch} 安装为字符串 @var{str} 的第 @var{i} 个 Racket 字符。}
 
 
 
-@function[(ptr Smake_vector [iptr len] [ptr v])]{
+@function[(ptr Smake_vector [iptr len] [ptr v]){
 
-Allocates a fresh mutable @tech[#:doc reference-doc]{vector} of length
-@var{len} and with @var{v} initially in every slot.}
-
-
-@function[(uptr Svector_length [ptr vec])]{
-
-Returns the length of the vector @var{vec}.}
+分配一个长度为 @var{len} 的 @tech[#:doc reference-doc]{vector}，每个槽位初始值为 @var{v}。}
 
 
-@function[(ptr Svector_ref [ptr vec] [uptr i])]{
+@function[(uptr Svector_length [ptr vec]){
 
-Returns the @var{i}th element of the vector @var{vec}.}
-
-
-@function[(void Svector_set [ptr vec] [uptr i] [ptr v])]{
-
-Installs @var{v} as the @var{i}th element of the vector @var{vec}.}
+返回 vector @var{vec} 的长度。}
 
 
-@function[(ptr Smake_fxvector [iptr len] [ptr v])]{
+@function[(ptr Svector_ref [ptr vec] [uptr i]){
 
-Allocates a fresh mutable @tech[#:doc reference-doc]{fxvector} of
-length @var{len} and with @var{v} initially in every slot.}
-
-
-@function[(uptr Sfxvector_length [ptr vec])]{
-
-Returns the length of the fxvector @var{vec}.}
+返回 vector @var{vec} 的第 @var{i} 个元素。}
 
 
-@function[(iptr Sfxvector_ref [ptr vec] [uptr i])]{
+@function[(void Svector_set [ptr vec] [uptr i] [ptr v]){
 
-Returns the @var{i}th fixnum of the fxvector @var{vec}.}
+将 @var{v} 安装为 vector @var{vec} 的第 @var{i} 个元素。}
 
 
-@function[(void Sfxvector_set [ptr vec] [uptr i] [ptr v])]{
+@function[(ptr Smake_fxvector [iptr len] [ptr v]){
 
-Installs the fixnum @var{v} as the @var{i}th element of the fxvector
-@var{vec}.}
+分配一个长度为 @var{len} 的 @tech[#:doc reference-doc]{fxvector}，每个槽位初始值为 @var{v}。}
+
+
+@function[(uptr Sfxvector_length [ptr vec]){
+
+返回 fxvector @var{vec} 的长度。}
+
+
+@function[(iptr Sfxvector_ref [ptr vec] [uptr i]){
+
+返回 fxvector @var{vec} 的第 @var{i} 个 fixnum。}
+
+
+@function[(void Sfxvector_set [ptr vec] [uptr i] [ptr v]){
+
+将 fixnum @var{v} 安装为 fxvector @var{vec} 的第 @var{i} 个元素。}
 
 
 
-@function[(ptr Smake_bytevector [iptr len] [int byte])]{
+@function[(ptr Smake_bytevector [iptr len] [int byte]){
 
-Allocates a fresh mutable @tech[#:doc reference-doc]{byte string} of
-length @var{len} and with @var{byte} initially in every slot.}
+分配一个长度为 @var{len} 的 @tech[#:doc reference-doc]{byte string}，每个槽位初始值为 @var{byte}。}
 
-@function[(uptr Sbytevector_length [ptr bstr])]{
+@function[(uptr Sbytevector_length [ptr bstr]){
 
-Returns the length of the byte string @var{bstr}.}
+返回 byte string @var{bstr} 的长度。}
 
-@function[(int Sbytevector_u8_ref [ptr bstr] [uptr i])]{
+@function[(int Sbytevector_u8_ref [ptr bstr] [uptr i]){
 
-Returns the @var{i}th byte of the byte string @var{bstr}.}
+返回 byte string @var{bstr} 的第 @var{i} 个字节。}
 
-@function[(int Sbytevector_u8_set [ptr bstr] [uptr i] [int byte])]{
+@function[(int Sbytevector_u8_set [ptr bstr] [uptr i] [int byte]){
 
-Installs @var{byte} as the @var{i}th byte of the byte string @var{bstr}.}
+将 @var{byte} 安装为 byte string @var{bstr} 的第 @var{i} 个字节。}
 
-@function[(char* Sbytevector_data [ptr vec])]{
+@function[(char* Sbytevector_data [ptr vec]){
 
-Returns a pointer to the start of the bytes for the byte string @var{bstr}.}
+返回指向 byte string @var{bstr} 字节起始位置的指针。}
 
 
-@function[(ptr Sbox [ptr v])]{
+@function[(ptr Sbox [ptr v]){
 
-Allocates a fresh mutable @tech[#:doc reference-doc]{box} containing
-@var{v}.}
+分配一个包含 @var{v} 的 @tech[#:doc reference-doc]{box}。}
 
-@function[(ptr Sunbox [ptr bx])]{
+@function[(ptr Sunbox [ptr bx]){
 
-Extract the content of the box @var{bx}.}
+提取 box @var{bx} 的内容。}
 
-@function[(ptr Sset_box [ptr bx] [ptr v])]{
+@function[(ptr Sset_box [ptr bx] [ptr v]){
 
-Installs @var{v} as the content of the box @var{bx}.}
+将 @var{v} 安装为 box @var{bx} 的内容。}
 
 @together[(
 @function[(ptr Srecord_type [ptr rec])]
@@ -275,20 +247,9 @@ Installs @var{v} as the content of the box @var{bx}.}
 @function[(ptr Srecord_uniform_ref [ptr rec][iptr i])]
 )]{
 
-Accesses record information, where Racket structures are implemented
-as records. The @cpp{Srecord_type} returns a value representing a
-record's type (so, a structure type). Given a record type,
-@cpp{Srecord_type_parent} returns its supertype or @cpp{Sfalse},
-@cpp{Srecord_type_size} returns the allocation size of a record in
-bytes, and @cpp{Srecord_type_uniformp} indicates whether all of the
-record fields are Scheme values --- which is always true for a Racket
-structure. When a record has all Scheme-valued fields, the allocation
-size is the number of fields plus one times the size of a pointer in
-bytes.
+访问 record 信息，其中 Racket 结构体实现为 record。@cpp{Srecord_type} 返回表示 record 类型（即结构体类型）的值。给定一个 record 类型，@cpp{Srecord_type_parent} 返回其超类型或 @cpp{Sfalse}，@cpp{Srecord_type_size} 返回 record 的分配大小（以字节为单位），@cpp{Srecord_type_uniformp} 指示 record 的所有字段是否都是 Scheme 值——对于 Racket 结构体始终为真。当 record 的所有字段都是 Scheme 值时，分配大小为字段数量加一乘以指针大小（以字节为单位）。
 
-When a record has all Scheme fields (which is the case for all Racket
-structures), @cpp{Srecord_uniform_ref} accesses a field value in the
-same way as @racket[unsafe-struct*-ref].}
+当 record 的所有字段都是 Scheme 值时（对于所有 Racket 结构体都是如此），@cpp{Srecord_uniform_ref} 以与 @racket[unsafe-struct*-ref] 相同的方式访问字段值。}
 
 @together[(
 @function[(void* racket_cpointer_address [ptr cptr])]
@@ -296,15 +257,9 @@ same way as @racket[unsafe-struct*-ref].}
 @function[(iptr racket_cpointer_offset [ptr cptr])]
 )]{
 
-Extracts an address and offset from a C-pointer object in the sense of
-@racket[cpointer?], but only for values using the predefined representation
-that is not a byte string, @racket[#f], or implemented by a new
-structure type with @racket[prop:cpointer].
+从 @racket[cpointer?] 意义上的 C-pointer 对象中提取地址和偏移量，但仅适用于使用预定义表示形式的值，即不是 byte string、@racket[#f] 或由带有 @racket[prop:cpointer] 的新结构体类型实现的值。
 
-The result of @cpp{racket_cpointer_address} is the same as
-@cpp{racket_cpointer_base_address} plus @cpp{racket_cpointer_offset},
-where @cpp{racket_cpointer_offset} is non-zero for C-pointer values
-created by @racket[ptr-add].}
+@cpp{racket_cpointer_address} 的结果等于 @cpp{racket_cpointer_base_address} 加上 @cpp{racket_cpointer_offset}，其中 @cpp{racket_cpointer_offset} 对于由 @racket[ptr-add] 创建的 C-pointer 值非零。}
 
 
 @together[(
@@ -312,10 +267,6 @@ created by @racket[ptr-add].}
 @function[(void Sunlock_object [ptr cptr])]
 )]{
 
-``Locks'' or ``unlocks'' n object, which prevents it from being
-garbage collected or moved to a different address.
+"锁定"或"解锁"一个对象，防止其被垃圾收集或移动到不同地址。
 
-Lock objects sparingly, because the garbage collector is not designed
-to deal with a large number of locked objects. To retain multiple
-values from use from C, a good approach may be to allocate and lock a
-vector that has a slot for each other (unlocked) object to retain.}
+谨慎使用锁定对象，因为垃圾收集器并非为处理大量锁定对象而设计。要从 C 中保留多个值，一种好的方法可能是分配并锁定一个 vector，其中为每个其他（未锁定）要保留的对象设置一个槽位。}
