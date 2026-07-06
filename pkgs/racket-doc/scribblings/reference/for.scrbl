@@ -67,30 +67,11 @@ seq-expr]] 的简写。在这种简单情况下，@racket[seq-expr] 从左到右
 
 @racket[#:splice (splicing-id . form)] 子句被替换为展开 @racket[(splicing-id . form)] 所产生的形式序列，其中 @racket[splicing-id] 使用 @racket[define-splicing-for-clause-syntax] 绑定。该展开的绑定上下文包括来自 @racket[#:splice] 形式之前且同时在 @racket[#:when]、@racket[#:unless]、@racket[#:do]、@racket[#:break] 或 @racket[#:final] 形式之前的任何子句的先前绑定。@racket[#:splice] 展开的结果可以包含更多 @racket[#:splice] 形式，以进一步交错子句绑定和展开。对 @racket[#:splice] 子句的支持更多用于构建展开为 @racket[for] 的新形式，而非直接在源码 @racket[for] 形式中使用。
 
-An @racket[#:on-length-mismatch mismatch-expr] clause is similar to
-@racket[#:when #t], but if one of the sequences in the immediately
-preceding clauses ends before the others, then @racket[mismatch-expr]
-is evaluated for its effect (such as throwing an exception). If
-@racket[mismatch-expr] produces a value, it is ignored, and the
-iteration layer terminates. When @racket[#:on-length-mismatch] is present,
-all sequences in a group are checked for termination in a potential
-iteration, even if a mismatch is found earlier.
+@racket[#:on-length-mismatch mismatch-expr] 子句类似于 @racket[#:when #t]，但如果在紧接着的前面子句中，某个序列在另一个序列之前结束，则对 @racket[mismatch-expr] 进行求值以产生效果（例如抛出异常）。如果 @racket[mismatch-expr] 产生值，则该值被忽略，并且迭代层终止。当 @racket[#:on-length-mismatch] 存在时，组中的所有序列在一次潜在的迭代中都会被检查终止情况，即使更早发现了不匹配。
 
-In the case of @tech{list} and @tech{stream} sequences, the
-@racket[for] form itself does not keep each element reachable. If a
-list or stream produced by a @racket[seq-expr] is otherwise
-unreachable, and if the @racket[for] body can no longer reference an
-@racket[id] for a list element, then the element is subject to
-@tech{garbage collection}. The @racket[make-do-sequence] sequence
-constructor supports additional sequences that behave like lists and
-streams in this way.
+对于 @tech{list} 和 @tech{stream} 序列，@racket[for] 形式本身不会保持每个元素可达。如果某个 @racket[seq-expr] 产生的列表或流在其他地方不可达，并且 @racket[for] 的 body 不再引用某个列表元素的 @racket[id]，则该元素可以被 @tech{garbage collection} 回收。@racket[make-do-sequence] 序列构造函数支持在此方面行为类似于列表和流的其他序列。
 
-If a @racket[seq-expr] is a quoted literal list, vector, exact integer,
-string, byte string, immutable hash, or expands to such a literal,
-then it may be treated as if a sequence transformer such as
-@racket[in-list] was used, unless the @racket[seq-expr] has a true
-value for the @indexed-racket['for:no-implicit-optimization] syntax
-property; in most cases this improves performance.
+如果 @racket[seq-expr] 是引用的字面量列表、向量、精确整数、字符串、字节字符串、不可变哈希表，或者展开为此类字面量，则它可能被视为使用了诸如 @racket[in-list] 之类的序列转换器，除非 @racket[seq-expr] 对于 @indexed-racket['for:no-implicit-optimization] 语法属性具有真值；在大多数情况下，这可以提高性能。
 
 @examples[
 (for ([i '(1 2 3)]
@@ -175,10 +156,7 @@ property; in most cases this improves performance.
 (for/vector #:length 4 #:fill "?" ([i '(1 2 3)]) (number->string i))
 ]
 
-The @racket[for/vector] form may allocate a vector and mutate it after
-each iteration of @racket[body], which means that capturing a
-continuation during @racket[body] and applying it multiple times may
-mutate a shared vector.}
+@racket[for/vector] 形式可能会在每次 @racket[body] 迭代之后分配一个向量并在其上执行变更操作，这意味着在 @racket[body] 期间捕获 continuation 并多次应用它可能会修改一个共享的向量。}
 
 
 @deftogether[(
@@ -325,13 +303,7 @@ mutate a shared vector.}
                   (hash-set seen x #t))]))
 ]
 
-The binding and evaluation order of @racket[accum-id]s and
-@racket[init-expr]s follow the textual, left-to-right order relative
-to the @racket[for-clause]s, except that (for historical reasons)
-@racket[accum-id]s are not available in the @racket[for-clause]s for
-the outermost iteration. The lifetimes of variables are not quite the
-same as the lexical nesting, however: the variable referenced by a
-@racket[accum-id] has a fresh location in each iteration.
+@racket[accum-id] 和 @racket[init-expr] 的绑定和求值顺序遵循相对于 @racket[for-clause] 的文本从左到右的顺序，但（由于历史原因）在最外层迭代中 @racket[accum-id] 在 @racket[for-clause] 中不可用。然而，变量的生命周期并不完全等同于词法嵌套：@racket[accum-id] 引用的变量在每次迭代中有一个新的位置。
 
 @history[#:changed "6.11.0.1" @elem{Added the @racket[#:result] form.}
          #:changed "8.11.1.3" @elem{Changed evaluation order to match textual left-to-right order,
@@ -391,9 +363,7 @@ same as the lexical nesting, however: the variable referenced by a
 这种对迭代顺序的额外控制允许 @racket[for/foldr] 既能消费又能构造无限序列，只要它至少有时对其累加器是惰性的。
 
 @margin-note/ref{
-  See also @racket[for/stream] for a more convenient (albeit less flexible) way
-  to lazily transform infinite sequences. (Internally, @racket[for/stream] is
-  defined in terms of @racket[for/foldr].)}
+ 另请参见 @racket[for/stream]，这是一个更便捷（尽管灵活性稍逊）的方式来惰性转换无限序列。（在内部，@racket[for/stream] 是基于 @racket[for/foldr] 定义的。）}
 
 @(examples
   #:eval for/foldr-eval
@@ -402,12 +372,7 @@ same as the lexical nesting, however: the variable referenced by a
                     (stream-cons (* n n) (force s))))
   (stream->list (stream-take squares 10)))
 
-The suspension introduced by the @racket[#:delay] option does not ordinarily
-affect the loop's eventual return value, but if @racket[#:delay] and
-@racket[#:result] are combined, the @racket[accum-id]s will be delayed in the
-scope of the @racket[result-expr] in the same way they are delayed within the
-loop body. This can be used to introduce an additional layer of suspension
-around the evaluation of the entire loop, if desired.
+@racket[#:delay] 选项引入的暂停通常不会影响循环的最终返回值，但如果将 @racket[#:delay] 和 @racket[#:result] 结合使用，@racket[accum-id] 在 @racket[result-expr] 的作用域中将以与循环体内相同的方式被延迟。这可以用于在需要时在整个循环的求值周围引入一层额外的暂停。
 
 @(examples
   #:eval for/foldr-eval
@@ -426,32 +391,11 @@ around the evaluation of the entire loop, if desired.
   (force start)
   (eval:check evaluated-yet? #t))
 
-If the @racket[#:delay-as] option is provided, then @racket[delayed-id] is
-bound to an additional promise that returns the values of all @racket[accum-id]s
-at once. When multiple @racket[accum-id]s are provided, forcing this promise can
-be slightly more efficient than forcing the promises bound to the
-@racket[accum-id]s individually.
+如果提供了 @racket[#:delay-as] 选项，则 @racket[delayed-id] 被绑定到一个额外的 promise，该 promise 一次性返回所有 @racket[accum-id] 的值。当提供了多个 @racket[accum-id] 时，强制这个 promise 可能比分别强制绑定到各 @racket[accum-id] 的 promise 稍高效。
 
-If the @racket[#:delay-with] option is provided, the given @racket[delayer-id]
-is used to suspend nested iterations (instead of the default, @racket[delay]).
-A form of the shape @racket[(delayer-id _recur-expr)] is constructed and placed
-in expression position, where @racket[_recur-expr] is an expression that, when
-evaluated, will perform the next iteration and return its result (or results).
-Sensible choices for @racket[delayer-id] include @racket[lazy],
-@racket[delay/sync], @racket[delay/thread], or any of the other promise
-constructors from @racketmodname[racket/promise], as well as @racket[thunk] from
-@racketmodname[racket/function]. However, beware that choices such as
-@racket[thunk] or @racket[delay/name] may evaluate their subexpression multiple
-times, which can lead to nonsensical results for sequences that have state, as
-the state will be shared between all evaluations of the @racket[_recur-expr].
+如果提供了 @racket[#:delay-with] 选项，则使用给定的 @racket[delayer-id] 来暂停嵌套迭代（替代默认的 @racket[delay]）。一个形式为 @racket[(delayer-id _recur-expr)] 的表达式被构造并放置在表达式位置，其中 @racket[_recur-expr] 是一个在被求值时将执行下一次迭代并返回其结果（或多个结果）的表达式。合适的 @racket[delayer-id] 选择包括 @racket[lazy]、@racket[delay/sync]、@racket[delay/thread] 或者来自 @racketmodname[racket/promise] 的任何其他 promise 构造函数，以及来自 @racketmodname[racket/function] 的 @racket[thunk]。然而，请注意诸如 @racket[thunk] 或 @racket[delay/name] 等选择可能会多次求值其子表达式，这对于有状态的序列可能导致荒谬的结果，因为状态将在 @racket[_recur-expr] 的所有求值之间共享。
 
-If multiple @racket[accum-id]s are given, the @racket[#:delay-with] option is
-provided, and @racket[delayer-id] is not bound to one of @racket[delay],
-@racket[lazy], @racket[delay/strict], @racket[delay/sync],
-@racket[delay/thread], or @racket[delay/idle], the @racket[accum-id]s will not
-be bound at all, even within the loop body. Instead, the @racket[#:delay-as]
-option must be specified to access the accumulator values via
-@racket[delayed-id].
+如果给出了多个 @racket[accum-id]，提供了 @racket[#:delay-with] 选项，且 @racket[delayer-id] 未绑定到 @racket[delay]、@racket[lazy]、@racket[delay/strict]、@racket[delay/sync]、@racket[delay/thread] 或 @racket[delay/idle] 之一，则 @racket[accum-id] 根本不会被绑定，即使在循环体内也是如此。此时必须指定 @racket[#:delay-as] 选项来通过 @racket[delayed-id] 访问累加器值。
 
 @history[#:added "7.3.0.3"]}
 @(close-eval for/foldr-eval)
@@ -674,24 +618,14 @@ option must be specified to access the accumulator values via
          _done-expr)))
 ]
 
-where @racket[_body-bindings] and @racket[_done-expr] are from the
-context of the @racket[:do-in] use. The identifiers bound by the
-@racket[for] clause are typically part of the @racket[([(inner-id ...)
-inner-expr] ...)] section. When @racket[inner-defn-or-expr] is not
-provided @racket[(begin)] is used in its place.
+其中 @racket[_body-bindings] 和 @racket[_done-expr] 来自使用 @racket[:do-in] 的上下文。@racket[for] 子句绑定的标识符通常是 @racket[([(inner-id ...)
+inner-expr] ...)] 部分的一部分。当未提供 @racket[inner-defn-or-expr] 时，在其位置使用 @racket[(begin)]。
 
-Beware that @racket[_body-bindings] and @racket[_done-expr] can
-contain arbitrary expressions, potentially including @racket[set!] on
-@racket[outer-id] or @racket[inner-id] identifiers if they are visible
-in the original @racket[for] form, so beware of depending on such
-identifiers in @racket[post-guard] and @racket[loop-arg].
+注意，@racket[_body-bindings] 和 @racket[_done-expr] 可以包含任意表达式，可能包括对 @racket[outer-id] 或 @racket[inner-id] 标识符的 @racket[set!]，如果它们在原始 @racket[for] 形式中可见的话。因此，在 @racket[post-guard] 和 @racket[loop-arg] 中依赖此类标识符时需要格外小心。
 
-The actual @racket[loop] binding and call has additional loop
-arguments to support iterations in parallel with the @racket[:do-in]
-form, and the other pieces are similarly accompanied by pieces from
-parallel iterations.
+实际的 @racket[loop] 绑定和调用具有额外的循环参数，以支持与 @racket[:do-in] 形式并行的迭代，并且其他部分也类似地伴随着并行迭代的部分。
 
-For an example of @racket[:do-in], see @racket[define-sequence-syntax].
+有关 @racket[:do-in] 的示例，请参见 @racket[define-sequence-syntax]。
 
 @history[#:changed "8.10.0.3" @elem{Added support for non-empty
                                     @racket[maybe-inner-defn-or-expr].}]}
