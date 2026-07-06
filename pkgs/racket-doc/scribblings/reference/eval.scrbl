@@ -2,39 +2,30 @@
 @(require "mz.rkt"
           (for-label setup/dirs))
 
-@title[#:tag "eval"]{Evaluation and Compilation}
+@title[#:tag "eval"]{求值与编译}
 
 @guideintro["reflection"]{dynamic evaluation}
 
-Racket provides programmatic control over evaluation through
-@racket[eval] and related functions. See @secref["compiler"] for
-information about extra-linguistic facilities related to the Racket
-compiler.
+Racket 通过 @racket[eval] 和相关函数提供对求值的程序化控制。
+参见 @secref["compiler"] 了解与 Racket 编译器相关的语言外设施信息。
 
 @defparam[current-eval proc (any/c . -> . any)]{
 
-A @tech{parameter} that determines the current @deftech{evaluation handler}.
-The evaluation handler is a procedure that takes a top-level form and
-evaluates it, returning the resulting values. The @tech{evaluation
-handler} is called by @racket[eval], @racket[eval-syntax], the default
-@tech{load handler}, and @racket[read-eval-print-loop] to evaluate a
-top-level form. The handler should evaluate its argument in tail
-position.
+@tech{parameter}，确定当前的 @deftech{evaluation handler}。
+求值处理器是一个接受顶层形式并求值的过程，返回结果值。
+@tech{evaluation handler} 被 @racket[eval]、@racket[eval-syntax]、
+默认 @tech{load handler} 和 @racket[read-eval-print-loop] 调用以求值顶层形式。
+处理器应在尾位置求值其参数。
 
-The @racket[_top-level-form] provided to the handler can be a
-@tech{syntax object}, a compiled form, a compiled form wrapped as a
-syntax object, or an arbitrary datum.
+提供给处理器的 @racket[_top-level-form] 可以是 @tech{syntax object}、
+编译形式、包装为 syntax object 的编译形式或任意数据。
 
-The default handler converts an arbitrary datum to a syntax object
-using @racket[datum->syntax], and then enriches its @tech{lexical
-information} in the same way as @racket[eval]. (If
-@racket[_top-level-form] is a syntax object, then its @tech{lexical
-information} is not enriched.)  The default evaluation handler
-partially expands the form to splice the body of top-level
-@racket[begin] forms into the top level (see
-@racket[expand-to-top-form]), and then individually compiles and
-evaluates each spliced form before continuing to expand, compile, and
-evaluate later forms.}
+默认处理器使用 @racket[datum->syntax] 将任意数据转换为 syntax object，
+然后以与 @racket[eval] 相同的方式丰富其 @tech{lexical information}。
+（如果 @racket[_top-level-form] 是 syntax object，则不丰富其 @tech{lexical information}。）
+默认求值处理器部分展开形式以将顶层 @racket[begin] 形式的主体拼接到顶层
+（参见 @racket[expand-to-top-form]），然后单独编译和求值每个拼接形式，
+再继续展开、编译和求值后续形式。}
 
 
 @defproc*[([(eval [top-level-form any/c]) any]
