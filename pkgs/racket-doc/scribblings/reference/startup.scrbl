@@ -17,9 +17,9 @@
 @(define eventspace
    @tech[#:doc '(lib "scribblings/gui/gui.scrbl")]{eventspace})
 
-@title[#:tag "running-sa"]{Running Racket or GRacket}
+@title[#:tag "running-sa"]{运行 Racket 或 GRacket}
 
-The core Racket run-time system is available in two main variants:
+核心的 Racket 运行时系统有两种主要变体：
 
 @itemize[
 
@@ -31,8 +31,8 @@ The core Racket run-time system is available in two main variants:
 
  @item{GRacket, which is a GUI variant of @exec{racket} to the degree
        that the system distinguishes them. On Unix, the executable
-       is called @as-index{@exec{gracket}}, and single-instance flags
-       and X11-related flags are handled and communicated specially to
+       is called @as-index{@exec{gracket}}, 和 single-instance 标志
+       和 X11 相关标志专门处理并传递给
        the @racket[racket/gui/base] library. On Windows, the
        executable is called @as-index{@exec{GRacket.exe}}, and it is a
        GUI application (as opposed to a console application) that
@@ -43,24 +43,23 @@ The core Racket run-time system is available in two main variants:
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "init-actions"]{Initialization}
+@section[#:tag "init-actions"]{初始化}
 
-On start-up, the top-level environment contains no bindings---not even
+在启动时，顶级环境不包含任何 binding——甚至连
 @racket[#%app] for function application. Primitive modules with names
 that start with @racketidfont{#%} are defined, but they are not meant
 for direct use, and the set of such modules can change.  For example,
 the @indexed-racket['#%kernel] module is eventually used to bootstrap
 the implementation of @racketmodname[racket/base].
 
-The first action of Racket or GRacket is to initialize
-@racket[current-library-collection-paths] to the result of
-@racket[(find-library-collection-paths _pre-extras _extras)], where
-@racket[_pre-extras] is normally @racket[null] and @racket[_extras]
-are extra directory paths provided in order in the command line with
-@Flag{S}/@DFlag{search}. An executable created from the Racket or
-GRacket executable can embed paths used as @racket[_pre-extras].
+Racket 或 GRacket 的第一个动作是
+@racket[current-library-collection-paths] 设置为
+@racket[(find-library-collection-paths _pre-extras _extras)] 的结果，其中
+@racket[_pre-extras] 通常为 @racket[null]，@racket[_extras]
+是命令行通过 @Flag{S}/@DFlag{search} 指定的额外目录路径。 由 Racket 或 GRacket 可执行文件生成的独立执行文件
+可以嵌入将作为 @racket[_pre-extras] 使用的路径。
 
-Racket and GRacket next @racket[require] @racketmodname[racket/init]
+Racket 和 GRacket 接着 @racket[require] @racketmodname[racket/init]
 and @racketmodname[racket/gui/init], respectively, but only if the
 command line does not specify a @racket[require] flag
 (@Flag{t}/@DFlag{require}, @Flag{l}/@DFlag{lib}, or
@@ -74,7 +73,7 @@ with the @Flag{I} @tech{configuration option}. The
 language is used before the library is instantiated; see
 @secref["configure-runtime"].
 
-After potentially loading the initialization module, expression
+在可能加载初始化模块之后, expression
 @racket[eval]s, files @racket[load]s, and module @racket[require]s are
 executed in the order that they are provided on the command line. If
 any raises an uncaught exception, then the remaining @racket[eval]s,
@@ -86,7 +85,7 @@ submodule of the required module or the
 language is used before the module is instantiated; see
 @secref["configure-runtime"].
 
-After running all command-line expressions, files, and modules, Racket
+在运行所有命令行 expression、, files, and modules, Racket
 or GRacket then starts a read-eval-print loop for interactive
 evaluation if no command line flags are provided other than
 @tech{configuration options}. For Racket, the read-eval-print loop is
@@ -99,7 +98,7 @@ read-eval-print-loop is not started, unless the @Flag{i}/@DFlag{repl}
 flag is provided on the command line to
 specifically re-enable it.
 
-In addition, just before the read-eval-print loop
+此外，在 read-eval-print loop 即将启动之前
 is started, Racket runs @racketmodname[racket/interactive]
 and GRacket runs @racketmodname[racket/gui/interactive], unless a different
 interactive file is specified in the the installation's @filepath{config.rktd}
@@ -108,7 +107,7 @@ is found in @racket[(find-system-path 'addon-dir)]. If the
 @Flag{q}/@DFlag{no-init-file} flag is specified on the command line,
 then no interactive file is run.
 
-Finally, before Racket or GRacket exits, it calls the procedure that
+最后，在 Racket 或 GRacket 退出之前, it calls the procedure that
 is the current value of @racket[executable-yield-handler] in the main
 thread, unless the @Flag{V}/@DFlag{no-yield} command-line flag is
 specified. Requiring @racketmodname[racket/gui/base] sets this parameter call
@@ -122,9 +121,9 @@ specified. Requiring @racketmodname[racket/gui/base] sets this parameter call
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "exit-status"]{Exit Status}
+@section[#:tag "exit-status"]{退出状态}
 
-The default exit status for a Racket or GRacket process is non-zero if
+如果在命令行期间发生错误，则 Racket 或 GRacket 进程 if
 an error occurs during a command-line @racket[eval] (via @Flag{e},
 etc.), @racket[load] (via @Flag{f}, @Flag{r}, etc.), or
 @racket[require] (via @Flag{l}, @Flag{t}, etc.)---or, more generally,
@@ -133,7 +132,7 @@ is called---but only when no
 read-eval-print loop is started. Otherwise, the default exit status is
 @racket[0].
 
-In all cases, a call to @racket[exit] (when the default @tech{exit
+在所有情况下，对 @racket[exit] (when the default @tech{exit
 handler} is in place) can end the process with a specific status
 value.
 
@@ -143,14 +142,14 @@ value.
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "mz-cmdline"]{Command Line}
+@section[#:tag "mz-cmdline"]{命令行}
 
-The Racket and GRacket executables recognize the following command-line
+Racket 和 GRacket 可执行文件识别以下 command-line
 flags:
 
 @itemize[
 
- @item{File and expression options:
+ @item{文件和 expression 选项：
 
  @itemize[
 
@@ -184,15 +183,15 @@ flags:
        @margin-note*{Despite its name, @DFlag{script} is not usually
        used for Unix scripts. See @guidesecref["scripts"] for more
        information on scripts.}
-        as a script. This flag is like @Flag{f} @nonterm{file} plus
-        @Flag{N} @nonterm{file} to set the program name and @Flag{-}
+        作为脚本。此标志类似于 @Flag{f} @nonterm{file} plus
+        @Flag{N} @nonterm{file} 来设置程序名和 @Flag{-}
         to cause all further command-line elements to be treated as
         non-flag arguments.}
 
   @item{@FlagFirst{u} @nonterm{file} or @DFlagFirst{require-script}
        @nonterm{file} : @racket[require]s @nonterm{file} as a script;
-       This flag is like @Flag{t} @nonterm{file} plus @Flag{N}
-       @nonterm{file} to set the program name and @Flag{-} to cause
+       此标志类似于 @Flag{t} @nonterm{file} plus @Flag{N}
+       @nonterm{file} 来设置程序名和 @Flag{-} to cause
        all further command-line elements to be treated as non-flag
        arguments.}
 
@@ -231,7 +230,7 @@ flags:
 
  ]}
 
- @item{Interaction options:
+ @item{交互选项：
 
  @itemize[
 
@@ -250,7 +249,7 @@ flags:
         @Flag{I} flag) when not otherwise disabled.}
 
   @item{@FlagFirst{v} or @DFlagFirst{version} : Shows
-        @racket[(banner)].}
+        显示 @racket[(banner)]。}
 
   @item{@FlagFirst{K} or @DFlagFirst{back} : GRacket, Mac OS only;
         leave application in the background.}
@@ -260,7 +259,7 @@ flags:
         frames are closed, @|etc|, in the main @|eventspace| before
         exiting for programs that use @racketmodname[racket/gui/base].
         For historical reasons, this flag also implies @Flag{v},
-        which makes it less useful but means that @Flag{V} by itself
+        这使得它不太有用，但意味着 @Flag{V} by itself
         behaves like @Flag{v} by iself.}
 
  ]}
@@ -403,19 +402,19 @@ flags:
 
   @item{@FlagFirst{O} @nonterm{levels} or @DFlagFirst{stdout}
         @nonterm{levels} : Sets the logging level for writing events to
-        the original output port. The possible @nonterm{level} values
+        写入原始输出端口。 The possible @nonterm{level} values
         are the same as for the @envvar{PLTSTDOUT} environment
         variable. See @secref["logging"] for more information.}
 
   @item{@FlagFirst{L} @nonterm{levels} or @DFlagFirst{syslog}
         @nonterm{levels} : Sets the logging level for writing events to
-        the system log. The possible @nonterm{level} values
+        写入系统日志。 The possible @nonterm{level} values
         are the same as for the @envvar{PLTSYSLOG} environment
         variable. See @secref["logging"] for more information.}
 
  ]}
 
- @item{Meta options:
+ @item{元选项：
 
  @itemize[
 
@@ -434,16 +433,16 @@ flags:
 
 ]
 
-If at least one command-line argument is provided, and if the first
+如果至少提供了一个命令行参数, and if the first
 one after any @tech{configuration option} is not a flag, then a
 @Flag{u}/@DFlag{require-script} flag is implicitly added before the
 first non-flag argument.
 
-If no command-line arguments are supplied other than
+除了配置选项外没有提供其他命令行参数
 @tech{configuration options}, then the @Flag{i}/@DFlag{repl} flag is
 effectively added.
 
-For GRacket on Unix, the follow flags are recognized when they appear
+对于 Unix 上的 GRacket, the follow flags are recognized when they appear
 at the beginning of the command line, and they count as configuration
 options (i.e., they do not disable the read-eval-print loop or prevent
 the insertion of @Flag{u}/@DFlag{require-script}):
@@ -479,12 +478,11 @@ the insertion of @Flag{u}/@DFlag{require-script}):
 
 ]
 
-Similarly, on Mac OS, a leading switch starting with
-@FlagFirst{psn_} is treated as a special configuration option. It
-indicates that Finder started the application, so the current input,
-output, and error output are redirected to a GUI window.
+类似地，在 Mac OS 上, 开头为 @FlagFirst{psn_} 的开关被视为特殊配置选项。
+它表示 Finder 启动了该应用，因此当前输入、输出和错误输出
+被重定向到 GUI 窗口。
 
-Multiple single-letter switches (the ones preceded by a single
+多个单字母开关 (the ones preceded by a single
 @litchar{-}) can be collapsed into a single switch by concatenating
 the letters, as long as the first switch is not @Flag{-}. The
 arguments for each switch are placed after the collapsed switches (in
@@ -496,11 +494,11 @@ and
 
 @commandline{-i -f @nonterm{file} -v -e @nonterm{expr}}
 
-are equivalent. If a collapsed @Flag{-} appears before other collapsed
-switches in the same collapsed set, it is implicitly moved to the end
+是等价的。如果合并的 @Flag{-} 出现在同一合并集中
+的其他合并开关之前，则隐式地移至末尾
 of the collapsed set.
 
-Extra arguments following the last option are available from the
+最后一个选项之后的额外参数 are available from the
 @indexed-racket[current-command-line-arguments] parameter.
 
 @history[#:changed "6.90.0.17" @elem{Added @Flag{O}/@DFlag{stdout}.}
@@ -512,11 +510,11 @@ Extra arguments following the last option are available from the
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "configure-runtime"]{Language Run-Time Configuration}
+@section[#:tag "configure-runtime"]{语言运行时配置}
 
 @guidealso["module-runtime-config"]
 
-A module can have a @as-index[@racket[configure-runtime]] submodule that is
+一个 module 可以有一个 @as-index[@racket[configure-runtime]] submodule that is
 @racket[dynamic-require]d before the module itself when a module is
 the main module of a program. Normally, a @racket[configure-runtime]
 submodule is added to a module by the module's language (i.e., by the
@@ -525,10 +523,10 @@ bindings). The body of a @racket[configure-runtime] submodule
 typically sets parameters, possibly including
 @racket[current-interaction-info].
 
-Alternatively or in addition, an older protocol is in place.
-When a module is implemented using @hash-lang{}, the language after
-@hash-lang{} can specify configuration actions to perform when a
-module using the language is the main module of a program. The
+另外或此外, an older protocol is in place.
+当使用 @hash-lang{} 实现模块时，@hash-lang{} 后的语言
+可以指定当使用该语言的模块成为程序主模块时
+所执行的配置操作。 The
 language specifies run-time configuration by
 
 @itemlist[
@@ -551,27 +549,25 @@ language specifies run-time configuration by
 
 ]
 
-A @racket['configure-runtime] query returns a list of vectors, instead
+@racket['configure-runtime] 查询返回一个 vector 列表, instead
 of directly configuring the environment, so that the indicated modules
 to be bundled with a program when creating a stand-alone executable;
 see @secref[#:doc raco-doc "exe"] in
 @other-manual[raco-doc].
 
-For information on defining a new @hash-lang[] language, see
+有关定义新 @hash-lang[] language, see
 @racketmodname[syntax/module-reader].
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "configure-expand"]{Language Expand Configuration}
+@section[#:tag "configure-expand"]{语言展开配置}
 
-A module @racket[_lang] can have a @as-index[@racket[configure-expand]] submodule
+@racket[_lang] module 可以有一个 @as-index[@racket[configure-expand]] submodule
 that is @racket[dynamic-require]d before the expansion of another
 module that is implemented as @racket[(module _name _lang ....)]. The
-submodule is loaded in a @tech{root namespace}, the same as a
-reader module. The submodule should provide
-@racketidfont{enter-parameterization} and
-@racketidfont{exit-parameterization} as procedures that each take no
-arguments and return a @tech{parameterization}:
+子模块在 @tech{root namespace} 中加载，与 reader 模块相同。 The submodule should provide
+@racketidfont{enter-parameterization} 和 @racketidfont{exit-parameterization}
+作为过程，每个接受零个参数并返回一个 @tech{parameterization}：
 
 @itemlist[
 
@@ -591,18 +587,16 @@ arguments and return a @tech{parameterization}:
 
 ]
 
-The @racket[current-parameterization] procedure works as a default for
+@racket[current-parameterization] 过程作为默认值工作于
 both @racketidfont{enter-parameterization} and
 @racketidfont{exit-parameterization}.
 
-The parameterization produced by a
+由过程产生的 parameterization
 @racketidfont{enter-parameterization} typically sets parameters that
 affect error reporting during expansion, such as
-@racket[error-syntax->string-handler]. The parameterization produced
-by @racketidfont{exit-parameterization} should generally revert any
-changes made by @racketidfont{enter-parameterization} while keeping
-other parameter values intact (such as
-@racket[current-load-relative-directory]). To communicate from a use
+@racket[error-syntax->string-handler]. 由 @racketidfont{exit-parameterization} 产生的 parameterization 通常应恢复
+@racketidfont{enter-parameterization} 所做的更改，同时保留其他参数值
+不变（如 @racket[current-load-relative-directory]）。 To communicate from a use
 of @racketidfont{enter-parameterization} to a nested use of
 @racketidfont{exit-parameterization}, use a private @tech{parameter}.
 
@@ -610,8 +604,8 @@ The @racketidfont{enter-parameterization} and
 @racketidfont{exit-parameterization} procedures are expected to build
 on the current parameterization, but they should generally not mutate
 current parameters, since that mutation would extend beyond the use of
-the returned parameterization. Instead, use @racket[parameterize] to
-create a new parameterization with updated parameter values. The
+the returned parameterization. 相反，使用 @racket[parameterize] 创建包含更新后参数值的
+新 parameterization。 The
 @racketidfont{enter-parameterization} and
 @racketidfont{exit-parameterization} should also not operate on the
 current @tech{namespace}, since that can interfere with module
