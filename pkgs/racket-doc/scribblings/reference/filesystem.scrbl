@@ -13,270 +13,202 @@
           (define filename (make-temporary-file))]
 
 
-@title{Filesystem}
+@title{文件系统}
 
 @;------------------------------------------------------------------------
-@section[#:tag "findpaths"]{Locating Paths}
+@section[#:tag "findpaths"]{定位路径}
 
 @defproc[(find-system-path [kind symbol?]) path?]{
 
-Returns a machine-specific path for a standard type of path specified
-by @racket[kind], which must be one of the following:
+返回由 @racket[kind] 指定的标准类型路径的机器特定路径，
+@racket[kind] 必须是以下之一：
 
 @itemize[
 
- @item{@indexed-racket['home-dir] --- the current @deftech{user's home
- directory}.
+ @item{@indexed-racket['home-dir] --- 当前 @deftech{用户主目录}。
 
- On all platforms, if the @indexed-envvar{PLTUSERHOME} environment
- variable is defined as a @tech{complete} path, then the path is used
- as the user's home directory.
+ 在所有平台上，如果 @indexed-envvar{PLTUSERHOME} 环境变量被定义为 @tech{完整} 路径，
+ 则该路径被用作用户主目录。
 
- On Unix and Mac OS, when @envvar{PLTUSERHOME} does not apply,
- the user's home directory is determined by
- expanding the path @filepath{~}, which is expanded by first checking
- for a @indexed-envvar{HOME} environment variable. If none is defined,
- the @indexed-envvar{USER} and @indexed-envvar{LOGNAME} environment
- variables are consulted (in that order) to find a user name, and then
- system files are consulted to locate the user's home directory.
+ 在 Unix 和 Mac OS 上，当 @envvar{PLTUSERHOME} 不适用时，
+ 用户主目录通过展开路径 @filepath{~} 来确定，
+ 展开时首先检查 @indexed-envvar{HOME} 环境变量。如果未定义，
+ 则按顺序查询 @indexed-envvar{USER} 和 @indexed-envvar{LOGNAME} 环境变量以找到用户名，
+ 然后查询系统文件以定位用户主目录。
 
- On Windows, when @envvar{PLTUSERHOME} does not apply,
- the user's home directory is the user-specific profile
- directory as determined by the Windows registry. If the registry
- cannot provide a directory for some reason, the value of the
- @indexed-envvar{USERPROFILE} environment variable is used instead, as
- long as it refers to a directory that exists. If @envvar{USERPROFILE}
- also fails, the directory is the one specified by the
- @indexed-envvar{HOMEDRIVE} and @indexed-envvar{HOMEPATH} environment
- variables.  If those environment variables are not defined, or if the
- indicated directory still does not exist, the directory containing
- the current executable is used as the home directory.}
+ 在 Windows 上，当 @envvar{PLTUSERHOME} 不适用时，
+ 用户主目录是由 Windows 注册表确定的用户特定配置文件目录。
+ 如果注册表由于某种原因无法提供目录，则使用 @indexed-envvar{USERPROFILE} 环境变量的值，
+ 只要它引用存在的目录。如果 @envvar{USERPROFILE} 也失败，
+ 则目录由 @indexed-envvar{HOMEDRIVE} 和 @indexed-envvar{HOMEPATH} 环境变量指定。
+ 如果这些环境变量未定义，或者指示的目录仍不存在，
+ 则使用包含当前可执行文件的目录作为主目录。}
 
- @item{@indexed-racket['pref-dir] --- the standard directory for
- storing the current user's preferences. The preferences directory
- might not exist.
+ @item{@indexed-racket['pref-dir] --- 用于存储当前用户偏好的标准目录。
+ 偏好目录可能不存在。
 
- On Unix, the preferences directory is normally the @filepath{racket}
- subdirectory of the path specified by
- @indexed-envvar{XDG_CONFIG_HOME}, or @filepath{.config/racket} in the
- @tech{user's home directory} if @envvar{XDG_CONFIG_HOME} is not set
- to an absolute path or if @envvar{PLTUSERHOME} is set. Either way, if
- that directory does not exist but a @filepath{.racket} directory
- exists in the @tech{user's home directory}, then that directory is
- the preference directory, instead.
+ 在 Unix 上，偏好目录通常是指定路径的 @filepath{racket} 子目录，
+ 该路径由 @indexed-envvar{XDG_CONFIG_HOME} 指定，或者如果 @envvar{XDG_CONFIG_HOME}
+ 未设置为绝对路径或设置了 @envvar{PLTUSERHOME}，则为 @tech{用户主目录} 中的
+ @filepath{.config/racket}。无论哪种方式，如果该目录不存在但 @tech{用户主目录} 中存在
+ @filepath{.racket} 目录，则该目录是偏好目录。
 
- On Windows, the preferences directory is @filepath{Racket} in the
- @tech{user's home directory} if determined by @envvar{PLTUSERHOME},
- otherwise in the user's application-data folder as specified by the
- Windows registry; the application-data folder is usually
- @filepath{Application Data} in the user's profile directory.
+ 在 Windows 上，如果由 @envvar{PLTUSERHOME} 确定，则偏好目录是 @tech{用户主目录} 中的
+ @filepath{Racket}，否则是 Windows 注册表指定的用户应用程序数据文件夹；
+ 应用程序数据文件夹通常是用户配置文件目录中的 @filepath{Application Data}。
 
- On Mac OS, the preferences directory is
- @filepath{Library/Preferences} in the @tech{user's home directory}.}
+ 在 Mac OS 上，偏好目录是 @tech{用户主目录} 中的 @filepath{Library/Preferences}。}
 
- @item{@indexed-racket['pref-file] --- a file that contains a
- symbol-keyed association list of preference values. The file's
- directory path always matches the result returned for
- @racket['pref-dir]. The file name is @filepath{racket-prefs.rktd} on Unix
- and Windows, and it is @filepath{org.racket-lang.prefs.rktd} on Mac OS.
- The file's directory might not exist. See also
- @racket[get-preference].}
+ @item{@indexed-racket['pref-file] --- 包含以符号为键的偏好值关联列表的文件。
+ 文件的目录路径始终与为 @racket['pref-dir] 返回的结果匹配。
+ 在 Unix 和 Windows 上，文件名为 @filepath{racket-prefs.rktd}，
+ 在 Mac OS 上为 @filepath{org.racket-lang.prefs.rktd}。
+ 文件的目录可能不存在。另参见 @racket[get-preference]。}
 
- @item{@indexed-racket['temp-dir] --- the standard directory for
- storing temporary files. On @|AllUnix|, this is the directory
- specified by the @indexed-envvar{TMPDIR} environment variable, if it
- is defined, otherwise it is the first path that exists among
- @filepath{/var/tmp}, @filepath{/usr/tmp}, and @filepath{/tmp}. On
- Windows, the result is the directory specified by the
- @indexed-envvar{TMP} or @indexed-envvar{TEMP} environment variable,
- if it is defined, otherwise it is the current directory.}
+ @item{@indexed-racket['temp-dir] --- 用于存储临时文件的标准目录。
+ 在 @|AllUnix| 上，这是由 @indexed-envvar{TMPDIR} 环境变量指定的目录（如果已定义），
+ 否则是 @filepath{/var/tmp}、@filepath{/usr/tmp} 和 @filepath{/tmp} 中第一个存在的路径。
+ 在 Windows 上，结果是由 @indexed-envvar{TMP} 或 @indexed-envvar{TEMP} 环境变量指定的目录
+ （如果已定义），否则是当前目录。}
 
- @item{@indexed-racket['init-dir] --- the directory containing the
- initialization file used by the Racket executable.
+ @item{@indexed-racket['init-dir] --- 包含 Racket 可执行文件使用的初始化文件的目录。
 
- On Unix, the initialization directory is the same as the result
- returned for @racket['pref-dir]---unless that directory does not
- exist and a @filepath{.racketrc} file exists in the @tech{user's home
- directory}, in which case the home directory is the initialization
- directory.
+ 在 Unix 上，初始化目录与为 @racket['pref-dir] 返回的结果相同——
+ 除非该目录不存在且 @tech{用户主目录} 中存在 @filepath{.racketrc} 文件，
+ 在这种情况下主目录是初始化目录。
 
- On Windows, the initialization directory is the same as the
- @tech{user's home directory}.
+ 在 Windows 上，初始化目录与 @tech{用户主目录} 相同。
 
- On Mac OS, the initialization directory is @filepath{Library/Racket}
- in the @tech{user's home directory}---unless no
- @filepath{racketrc.rktl} exists there and a @filepath{.racketrc} file
- does exist in the home directory, in which case the home directory is
- the initialization directory.}
+ 在 Mac OS 上，初始化目录是 @tech{用户主目录} 中的 @filepath{Library/Racket}——
+ 除非那里不存在 @filepath{racketrc.rktl} 且主目录中确实存在 @filepath{.racketrc} 文件，
+ 在这种情况下主目录是初始化目录。}
 
- @item{@indexed-racket['init-file] --- the file loaded at start-up by
- the Racket executable. The directory part of the
- path is the same path as returned for @racket['init-dir].
+ @item{@indexed-racket['init-file] --- Racket 可执行文件在启动时加载的文件。
+ 路径的目录部分与为 @racket['init-dir] 返回的路径相同。
 
- On Windows, the file part of the name is
- @indexed-file{racketrc.rktl}.
+ 在 Windows 上，名称的文件部分是 @indexed-file{racketrc.rktl}。
 
- On Unix and Mac OS, the file part of the name is
- @indexed-file{racketrc.rktl}---unless the path returned for
- @racket['init-dir] is the @tech{user's home directory}, in which case
- the file part of the name is @indexed-file{.racketrc}.}
+ 在 Unix 和 Mac OS 上，名称的文件部分是 @indexed-file{racketrc.rktl}——
+ 除非为 @racket['init-dir] 返回的路径是 @tech{用户主目录}，
+ 在这种情况下名称的文件部分是 @indexed-file{.racketrc}。}
 
- @item{@indexed-racket['config-dir] --- a directory for
- the installation's configuration. This directory is specified by the
- @indexed-envvar{PLTCONFIGDIR} environment variable, and it can be
- overridden by the @DFlag{config} or @Flag{G} command-line flag.  If no
- environment variable or flag is specified, or if the value is not a
- legal path name, then this directory defaults to an
- @filepath{etc} directory relative to the current executable.
- If the result of @racket[(find-system-path 'config-dir)] is a
- relative path, it is relative to the current executable.
- The directory might not exist.}
+ @item{@indexed-racket['config-dir] --- 安装配置的目录。
+ 此目录由 @indexed-envvar{PLTCONFIGDIR} 环境变量指定，
+ 可以通过 @DFlag{config} 或 @Flag{G} 命令行标志覆盖。
+ 如果未指定环境变量或标志，或者值不是合法的路径名，
+ 则此目录默认为相对于当前可执行文件的 @filepath{etc} 目录。
+ 如果 @racket[(find-system-path 'config-dir)] 的结果是相对路径，
+ 则它相对于当前可执行文件。
+ 该目录可能不存在。}
 
- @item{@indexed-racket['host-config-dir] --- like
- @racket['config-dir], but when cross-platform build mode has been
- selected (through the @Flag{C} or @DFlag{cross} argument to
- @exec{racket}; see @secref["mz-cmdline"]), the result refers to a
- directory for the current system's installation, instead of for the
- target system.}
+ @item{@indexed-racket['host-config-dir] --- 类似于
+ @racket['config-dir]，但在选择跨平台构建模式时
+ （通过 @exec{racket} 的 @Flag{C} 或 @DFlag{cross} 参数；参见 @secref["mz-cmdline"]），
+ 结果引用当前系统安装的目录，而不是目标系统的目录。}
  
- @item{@indexed-racket['addon-dir] --- a directory for
- user-specific Racket configuration, packages, and extension.
- This directory is specified by the
- @indexed-envvar{PLTADDONDIR} environment variable, and it can be
- overridden by the @DFlag{addon} or @Flag{A} command-line flag.  If no
- environment variable or flag is specified, or if the value is not a
- legal path name, then this directory defaults to a platform-specific
- locations. The directory might not exist.
+ @item{@indexed-racket['addon-dir] --- 用于用户特定 Racket 配置、包和扩展的目录。
+ 此目录由 @indexed-envvar{PLTADDONDIR} 环境变量指定，
+ 可以通过 @DFlag{addon} 或 @Flag{A} 命令行标志覆盖。
+ 如果未指定环境变量或标志，或者值不是合法的路径名，
+ 则此目录默认为平台特定的位置。该目录可能不存在。
 
- On Unix, the default is normally the @filepath{racket} subdirectory
- of the path specified by @indexed-envvar{XDG_DATA_HOME}, or
- @filepath{.local/share/racket} in the @tech{user's home directory} if
- @envvar{XDG_CONFIG_HOME} is not set to an absolute path or if
- @envvar{PLTUSERHOME} is set. If that directory does not exists but a
- @filepath{.racket} directory exists in the user's home directory,
- that the @filepath{.racket} directory path is the default, instead.
+ 在 Unix 上，默认值通常是指定路径的 @filepath{racket} 子目录，
+ 该路径由 @indexed-envvar{XDG_DATA_HOME} 指定，或者如果 @envvar{XDG_CONFIG_HOME}
+ 未设置为绝对路径或设置了 @envvar{PLTUSERHOME}，则为 @tech{用户主目录} 中的
+ @filepath{.local/share/racket}。如果该目录不存在但用户主目录中存在 @filepath{.racket} 目录，
+ 则 @filepath{.racket} 目录路径是默认值。
 
- On Windows, the default is the same as the @racket['pref-dir] directory.
+ 在 Windows 上，默认值与 @racket['pref-dir] 目录相同。
 
- On Mac OS, the default is @filepath{Library/Racket} within the
- @tech{user's home directory}.}
+ 在 Mac OS 上，默认值是 @tech{用户主目录} 中的 @filepath{Library/Racket}。}
 
- @item{@indexed-racket['host-addon-dir] --- like
- @racket['addon-dir], but when cross-platform build mode has been
- selected (through the @Flag{C} or @DFlag{cross} argument to
- @exec{racket}; see @secref["mz-cmdline"]), the result refers to a
- directory for the current system's installation, instead of for the
- target system.
+ @item{@indexed-racket['host-addon-dir] --- 类似于
+ @racket['addon-dir]，但在选择跨平台构建模式时
+ （通过 @exec{racket} 的 @Flag{C} 或 @DFlag{cross} 参数；参见 @secref["mz-cmdline"]），
+ 结果引用当前系统安装的目录，而不是目标系统的目录。
 
  @history[#:added "8.17.0.2"]}
 
- @item{@indexed-racket['cache-dir] --- a directory for storing
- user-specific caches. The directory might not exist.
+ @item{@indexed-racket['cache-dir] --- 用于存储用户特定缓存的目录。
+ 该目录可能不存在。
 
- On Unix, the cache directory is normally the @filepath{racket}
- subdirectory of the path specified by
- @indexed-envvar{XDG_CACHE_HOME}, or @filepath{.cache/racket} in the
- @tech{user's home directory} if @envvar{XDG_CACHE_HOME} is not set to
- an absolute path or if @envvar{PLTUSERHOME} is set. If that directory
- does not exist but a @filepath{.racket} directory exists in the home
- directory, then the @filepath{.racket} directory is the cache
- directory, instead.
+ 在 Unix 上，缓存目录通常是指定路径的 @filepath{racket} 子目录，
+ 该路径由 @indexed-envvar{XDG_CACHE_HOME} 指定，或者如果 @envvar{XDG_CACHE_HOME}
+ 未设置为绝对路径或设置了 @envvar{PLTUSERHOME}，则为 @tech{用户主目录} 中的
+ @filepath{.cache/racket}。如果该目录不存在但主目录中存在 @filepath{.racket} 目录，
+ 则 @filepath{.racket} 目录是缓存目录。
 
- On Windows, the cache directory is the same as the result returned
- for @racket['addon-dir].
+ 在 Windows 上，缓存目录与为 @racket['addon-dir] 返回的结果相同。
 
- On Mac OS, the cache directory is @filepath{Library/Caches/Racket}
- within the @tech{user's home directory}.}
+ 在 Mac OS 上，缓存目录是 @tech{用户主目录} 中的 @filepath{Library/Caches/Racket}。}
 
- @item{@indexed-racket['doc-dir] --- the standard directory for
- storing the current user's documents. On Unix, it's
- the @tech{user's home directory}.  On Windows, it is the @tech{user's
- home directory} if determined by @envvar{PLTUSERHOME}, otherwise it
- is the user's documents folder as specified by the Windows registry;
- the documents folder is usually @filepath{My Documents} in the user's
- home directory.  On Mac OS, it's the @filepath{Documents} directory
- in the @tech{user's home directory}.}
+ @item{@indexed-racket['doc-dir] --- 用于存储当前用户文档的标准目录。
+ 在 Unix 上，它是 @tech{用户主目录}。在 Windows 上，如果由 @envvar{PLTUSERHOME} 确定，
+ 则它是 @tech{用户主目录}，否则是 Windows 注册表指定的用户文档文件夹；
+ 文档文件夹通常是用户主目录中的 @filepath{My Documents}。
+ 在 Mac OS 上，它是 @tech{用户主目录} 中的 @filepath{Documents} 目录。}
 
- @item{@indexed-racket['desk-dir] --- the directory for the current user's
- desktop. On Unix, it's the @tech{user's home directory}. On
- Windows, it is the @tech{user's home directory} if determined by
- @envvar{PLTUSERHOME}, otherwise it is the user's desktop folder as
- specified by the Windows registry; the desktop folder is usually
- @filepath{Desktop} in the user's home directory. On Mac OS, it is
- @filepath{Desktop} in the @tech{user's home directory}}
+ @item{@indexed-racket['desk-dir] --- 当前用户桌面的目录。
+ 在 Unix 上，它是 @tech{用户主目录}。在 Windows 上，如果由 @envvar{PLTUSERHOME} 确定，
+ 则它是 @tech{用户主目录}，否则是 Windows 注册表指定的用户桌面文件夹；
+ 桌面文件夹通常是用户主目录中的 @filepath{Desktop}。在 Mac OS 上，
+ 它是 @tech{用户主目录} 中的 @filepath{Desktop}。}
 
- @item{@indexed-racket['sys-dir] --- the directory containing the
- operating system for Windows. On @|AllUnix|, the
- result is @racket["/"].}
+ @item{@indexed-racket['sys-dir] --- 包含 Windows 操作系统的目录。
+ 在 @|AllUnix| 上，结果是 @racket["/"]。}
 
- @item{@indexed-racket['exec-file] --- the path of the Racket
- executable as provided by the operating system for the current
- invocation. For some operating systems, the path can be relative.
+ @item{@indexed-racket['exec-file] --- 操作系统为当前调用提供的 Racket 可执行文件路径。
+ 对于某些操作系统，路径可以是相对的。
 
- @margin-note{For GRacket, the executable path is the name of a GRacket
- executable.}}
+ @margin-note{对于 GRacket，可执行文件路径是 GRacket 可执行文件的名称。}}
 
- @item{@indexed-racket['run-file] --- the path of the current
-  executable; this may be different from result for
-  @racket['exec-file] because an alternate path was provided through a
-  @DFlag{name} or @Flag{N} command-line flag to the Racket
-  (or GRacket) executable, or because an embedding executable
-  installed an alternate path. In particular a ``launcher'' script
-  created by @racket[make-racket-launcher] sets this path to the
-  script's path.}
+ @item{@indexed-racket['run-file] --- 当前可执行文件的路径；
+  这可能与 @racket['exec-file] 的结果不同，因为通过 @DFlag{name} 或 @Flag{N}
+  命令行标志向 Racket（或 GRacket）可执行文件提供了备用路径，
+  或者因为嵌入的可执行文件安装了备用路径。特别是由 @racket[make-racket-launcher]
+  创建的``启动器''脚本将此路径设置为脚本的路径。}
 
- @item{@indexed-racket['collects-dir] --- a path to the main
- collection of libraries (see @secref["collects"]). If this path is
- relative, then it is relative to the executable as reported by
- @racket[(find-system-path 'exec-file)]---though the latter could be a
- soft-link or relative to the user's executable search path, so that
- the two results should be combined with
- @racket[find-executable-path].  The @racket['collects-dir] path is
- normally embedded in the Racket executable, but it can be
- overridden by the @DFlag{collects} or @Flag{X} command-line flag.}
+ @item{@indexed-racket['collects-dir] --- 主库集合的路径（参见 @secref["collects"]）。
+ 如果此路径是相对的，则它相对于 @racket[(find-system-path 'exec-file)] 报告的可执行文件——
+ 尽管后者可能是软链接或相对于用户的可执行文件搜索路径，
+ 因此两个结果应与 @racket[find-executable-path] 结合使用。
+ @racket['collects-dir] 路径通常嵌入在 Racket 可执行文件中，
+ 但可以通过 @DFlag{collects} 或 @Flag{X} 命令行标志覆盖。}
 
- @item{@indexed-racket['host-collects-dir] --- like
- @racket['collects-dir], but when cross-platform build mode has been
- selected (through the @Flag{C} or @DFlag{cross} argument to
- @exec{racket}; see @secref["mz-cmdline"]), the result refers to a
- directory for the current system's installation, instead of for the
- target system. In cross-platform build mode, collection
- files are normally read from the target system's installation,
- but some tasks require current-system directories (such as
- the one that holds foreign libraries) that are configured relative
- to the main library-collection path.}
+ @item{@indexed-racket['host-collects-dir] --- 类似于
+ @racket['collects-dir]，但在选择跨平台构建模式时
+ （通过 @exec{racket} 的 @Flag{C} 或 @DFlag{cross} 参数；参见 @secref["mz-cmdline"]），
+ 结果引用当前系统安装的目录，而不是目标系统的目录。
+ 在跨平台构建模式下，集合文件通常从目标系统的安装中读取，
+ 但某些任务需要相对于主库集合路径配置的当前系统目录
+ （例如保存外部库的目录）。}
  
- @item{@indexed-racket['orig-dir] --- the current directory at
- start-up, which can be useful in converting a relative-path result
- from @racket[(find-system-path 'exec-file)] or
- @racket[(find-system-path 'run-file)] to a complete path.}
+ @item{@indexed-racket['orig-dir] --- 启动时的当前目录，
+ 在将 @racket[(find-system-path 'exec-file)] 或
+ @racket[(find-system-path 'run-file)] 的相对路径结果转换为完整路径时有用。}
 
  ]
 
-@history[#:changed "6.0.0.3" @elem{Added @envvar{PLTUSERHOME}.}
-         #:changed "6.9.0.1" @elem{Added @racket['host-config-dir]
-                                   and @racket['host-collects-dir].}
-         #:changed "7.8.0.9" @elem{Added @racket['cache-dir], and changed
-                                   to use XDG directories as preferred on Unix
-                                   with the previous paths as a fallback, and
-                                   with similar adjustments for Mac OS.}]}
+@history[#:changed "6.0.0.3" @elem{添加了 @envvar{PLTUSERHOME}。}
+         #:changed "6.9.0.1" @elem{添加了 @racket['host-config-dir]
+                                   和 @racket['host-collects-dir]。}
+         #:changed "7.8.0.9" @elem{添加了 @racket['cache-dir]，并更改
+                                   为在 Unix 上优先使用 XDG 目录，
+                                   以前的路径作为回退，
+                                   并对 Mac OS 进行类似调整。}]}
 
 @defproc[(path-list-string->path-list [str (or/c string? bytes?)]
                                       [default-path-list (listof (or/c path? 'same))])
          (listof (or/c path? 'same))]{
 
-Parses a string or byte string containing a list of paths, and returns
-a list of paths. On @|AllUnix|, paths in a path-list string are
-separated by a @litchar{:}; on Windows, paths are separated by a
-@litchar{;}, and all @litchar{"}s in the string are discarded. Whenever the path 
-list contains an empty path, the list
-@racket[default-path-list] is spliced into the returned list of
-paths. Parts of @racket[str] that do not form a valid path are not
-included in the returned list. The given @racket[str] must not contain
-a nul character or nul byte.
+解析包含路径列表的字符串或字节字符串，并返回路径列表。
+在 @|AllUnix| 上，路径列表字符串中的路径由 @litchar{:} 分隔；
+在 Windows 上，路径由 @litchar{;} 分隔，并且字符串中的所有 @litchar{"} 被丢弃。
+每当路径列表包含空路径时，列表 @racket[default-path-list] 被拼接到返回的路径列表中。
+@racket[str] 中不形成有效路径的部分不包含在返回的列表中。
+给定的 @racket[str] 不得包含 nul 字符或 nul 字节。
 
-@history[#:changed "8.0.0.10" @elem{Changed to allow @racket['same] in
-                                    @racket[default-path-list].}]}
+@history[#:changed "8.0.0.10" @elem{更改为允许 @racket[default-path-list] 中使用 @racket['same]。}]}
 
 
 @defproc[(find-executable-path [program path-string?]
@@ -284,171 +216,129 @@ a nul character or nul byte.
                                [deepest? any/c #f]) 
          (or/c path? #f)]{
 
-Finds a path for the executable @racket[program], returning
-@racket[#f] if the path cannot be found.
+查找可执行文件 @racket[program] 的路径，如果找不到路径则返回 @racket[#f]。
 
-On Windows, if @racket[program] is not found and it has no file
-extension, then the search starts over with @filepath{.exe} added to
-@racket[program], and the result is @racket[#f] only if the path with
-@filepath{.exe} also cannot be found. The result includes the
-extension @filepath{.exe} if only @racket[program] with the extension
-is found.
+在 Windows 上，如果未找到 @racket[program] 且它没有文件扩展名，
+则搜索重新开始，将 @filepath{.exe} 添加到 @racket[program]，
+仅当带有 @filepath{.exe} 的路径也找不到时结果才为 @racket[#f]。
+如果仅找到带扩展名的 @racket[program]，则结果包含扩展名 @filepath{.exe}。
 
-If @racket[related] is not @racket[#f], then it must be a relative
-path string, and the path found for @racket[program] must be such
-that the file or directory @racket[related] exists in the same
-directory as the executable. The result is then the full path for the
-found @racket[related], instead of the path for the executable.
+如果 @racket[related] 不是 @racket[#f]，则它必须是相对路径字符串，
+并且为 @racket[program] 找到的路径必须使得文件或目录 @racket[related]
+存在于与可执行文件相同的目录中。然后结果是找到的 @racket[related] 的完整路径，
+而不是可执行文件的路径。
  
-This procedure is used by the Racket executable to find the
-standard library collection directory (see @secref["collects"]).  In
-this case, @racket[program] is the name used to start Racket and
-@racket[related] is @racket["collects"].  The @racket[related]
-argument is used because, on @|AllUnix|, @racket[program] may
-involve a sequence of soft links; in this case,
-@racket[related] determines which link in the chain is relevant.
+此过程由 Racket 可执行文件用于查找标准库集合目录（参见 @secref["collects"]）。
+在这种情况下，@racket[program] 是用于启动 Racket 的名称，
+@racket[related] 是 @racket["collects"]。使用 @racket[related] 参数是因为，
+在 @|AllUnix| 上，@racket[program] 可能涉及一系列软链接；
+在这种情况下，@racket[related] 确定链中哪个链接是相关的。
 
-If @racket[related] is not @racket[#f], then when
-@racket[find-executable-path] does not find a @racket[program]
-that is a link to another file path, the search can continue with the
-destination of the link. Further links are inspected until
-@racket[related] is found or the end of the chain of links is
-reached. If @racket[deepest?] is @racket[#f] (the default), then the
-result corresponds to the first path in a chain of links for which
-@racket[related] is found (and further links are not actually
-explored); otherwise, the result corresponds to the last link in the
-chain for which @racket[related] is found.
+如果 @racket[related] 不是 @racket[#f]，则当 @racket[find-executable-path]
+未找到是另一个文件路径链接的 @racket[program] 时，
+搜索可以继续沿着链接的目标进行。进一步检查链接，直到找到 @racket[related]
+或到达链接链的末尾。如果 @racket[deepest?] 是 @racket[#f]（默认值），
+则结果对应于找到 @racket[related] 的链接链中的第一个路径
+（实际上不探索进一步的链接）；否则，结果对应于找到 @racket[related] 的链中的最后一个链接。
 
-If @racket[program] is a pathless name,
-@racket[find-executable-path] gets the value of the
-@indexed-envvar{PATH} environment variable; if this environment
-variable is defined, @racket[find-executable-path] tries each path in
-@envvar{PATH} as a prefix for @racket[program] using the search
-algorithm described above for path-containing
-@racket[program]s. If the @envvar{PATH} environment variable is
-not defined, @racket[program] is prefixed with the current
-directory and used in the search algorithm above. (On Windows, the
-current directory is always implicitly the first item in
-@envvar{PATH}, so @racket[find-executable-path] checks the current
-directory first on Windows.)
+如果 @racket[program] 是无路径的名称，
+@racket[find-executable-path] 获取 @indexed-envvar{PATH} 环境变量的值；
+如果此环境变量已定义，@racket[find-executable-path] 尝试 @envvar{PATH} 中的每个路径
+作为 @racket[program] 的前缀，使用上述用于包含路径的 @racket[program] 的搜索算法。
+如果 @envvar{PATH} 环境变量未定义，@racket[program] 将与当前目录前缀
+并用于上述搜索算法。（在 Windows 上，当前目录始终是 @envvar{PATH} 中的第一个隐式项，
+因此 @racket[find-executable-path] 在 Windows 上首先检查当前目录。）
 
-@history[#:changed "8.1.0.7" @elem{Added search with @filepath{.exe}
-                                   on Windows.}]}
+@history[#:changed "8.1.0.7" @elem{在 Windows 上添加了使用 @filepath{.exe} 的搜索。}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "fileutils"]{Files}
+@section[#:tag "fileutils"]{文件}
 
 @defproc[(file-exists? [path path-string?]) boolean?]{
 
-Returns @racket[#t] if a file (not a directory) @racket[path] exists,
-@racket[#f] otherwise.
+如果文件（不是目录）@racket[path] 存在则返回 @racket[#t]，
+否则返回 @racket[#f]。
 
-On Windows, @racket[file-exists?]  reports @racket[#t] for all
-variations of the special filenames (e.g., @racket["LPT1"],
-@racket["x:/baddir/LPT1"]).}
+在 Windows 上，@racket[file-exists?] 对所有特殊文件名变体报告 @racket[#t]
+（例如 @racket["LPT1"]、@racket["x:/baddir/LPT1"]）。}
 
 
 @defproc[(link-exists? [path path-string?]) boolean?]{
 
-Returns @racket[#t] if a link @racket[path] exists,
-@racket[#f] otherwise.
+如果链接 @racket[path] 存在则返回 @racket[#t]，
+否则返回 @racket[#f]。
 
-The predicates @racket[file-exists?]  or @racket[directory-exists?]
-work on the final destination of a link or series of links, while
-@racket[link-exists?]  only follows links to resolve the base part of
-@racket[path] (i.e., everything except the last name in the
-path).
+谓词 @racket[file-exists?] 或 @racket[directory-exists?]
+在链接或一系列链接的最终目标上工作，而 @racket[link-exists?]
+仅跟随链接以解析 @racket[path] 的基本部分（即路径中除最后一个名称外的所有内容）。
 
-This procedure never raises the @racket[exn:fail:filesystem]
-exception.
+此过程从不引发 @racket[exn:fail:filesystem] 异常。
 
-On Windows, @racket[link-exists?] reports @racket[#t] for both
-symbolic links and junctions.
+在 Windows 上，@racket[link-exists?] 对符号链接和结点都报告 @racket[#t]。
 
-@history[#:changed "6.0.1.12" @elem{Added support for links on Windows.}]}
+@history[#:changed "6.0.1.12" @elem{在 Windows 上添加了对链接的支持。}]}
 
 
 @defproc[(file-or-directory-type [path path-string?] [must-exist? any/c #f])
          (or/c 'file 'directory 'link 'directory-link #f)]{
 
-Reports whether @racket[path] refers to a file, directory, link, or
-directory link (in the case of Windows; see also
-@racket[make-file-or-directory-link]), assuming that @racket[path] can
-be accessed.
+报告 @racket[path] 是指文件、目录、链接还是目录链接（在 Windows 的情况下；
+另参见 @racket[make-file-or-directory-link]），假设 @racket[path] 可以被访问。
 
-If @racket[path] cannot be accessed, the result is @racket[#f] if
-@racket[must-exist?] is @racket[#f], otherwise the
-@exnraise[exn:fail:filesystem].
+如果 @racket[path] 无法被访问，当 @racket[must-exist?] 为 @racket[#f] 时结果为 @racket[#f]，
+否则 @exnraise[exn:fail:filesystem]。
 
 @history[#:added "7.8.0.5"]}
 
 
 @defproc[(delete-file [path path-string?]) void?]{
 
-Deletes the file with path @racket[path] if it exists, otherwise the
-@exnraise[exn:fail:filesystem]. If @racket[path] is a link, the link
-is deleted rather than the destination of the link.
+删除路径为 @racket[path] 的文件（如果存在），否则 @exnraise[exn:fail:filesystem]。
+如果 @racket[path] 是链接，则删除链接而不是链接的目标。
 
-On Windows, if an initial attempt to delete the file fails with a
-permission error and the value of
-@racket[current-force-delete-permissions] is true, then
-@racket[delete-file] attempts to change the file's permissions (to
-allow writes) and then delete the file; the permission change followed
-by deletion is a non-atomic sequence, with no attempt to revert a
-permission change if the deletion fails.
+在 Windows 上，如果初始删除文件的尝试因权限错误而失败，
+且 @racket[current-force-delete-permissions] 的值为真，
+则 @racket[delete-file] 尝试更改文件的权限（以允许写入）然后删除文件；
+权限更改后跟删除是非原子序列，如果删除失败则不尝试恢复权限更改。
 
-On Windows, @racket[delete-file] can delete a symbolic link, but not
-a junction. Use @racket[delete-directory] to delete a junction.
+在 Windows 上，@racket[delete-file] 可以删除符号链接，但不能删除结点。
+使用 @racket[delete-directory] 删除结点。
 
-On Windows, beware that if a file is deleted while it remains in use
-by some process (e.g., a background search indexer), then the file's
-content will eventually go away, but the file's name remains occupied
-until the file is no longer used. As long as the name remains
-occupied, attempts to open, delete, or replace the file will trigger a
-permission error (as opposed to a file-exists error). A common
-technique to avoid this pitfall is to move the file to a generated
-temporary name before deleting it. See also
-@racket[delete-directory/files].
+在 Windows 上，请注意，如果文件在仍被某个进程使用时（例如，后台搜索索引器）被删除，
+则文件的内容最终会消失，但文件的名称仍被占用，直到文件不再被使用。
+只要名称仍被占用，尝试打开、删除或替换文件将触发权限错误（而不是文件存在错误）。
+避免此陷阱的常见技巧是在删除文件之前将其移动到生成的临时名称。
+另参见 @racket[delete-directory/files]。
 
-@history[#:changed "6.1.1.7" @elem{Changed Windows behavior to use
-                                   @racket[current-force-delete-permissions].}]}
+@history[#:changed "6.1.1.7" @elem{更改 Windows 行为以使用
+                                   @racket[current-force-delete-permissions]。}]}
 
 
 @defproc[(rename-file-or-directory [old path-string?]
                                    [new path-string?]
                                    [exists-ok? any/c #f]) 
          void?]{
- 
-Renames the file or directory with path @racket[old]---if it
-exists---to the path @racket[new]. If the file or directory is not
-renamed successfully, the @exnraise[exn:fail:filesystem].
 
-This procedure can be used to move a file/directory to a different
-directory (on the same filesystem) as well as rename a file/directory within
-a directory. Unless @racket[exists-ok?]  is provided as a true value,
-@racket[new] cannot refer to an existing file or directory, but the
-check is not atomic with the rename operation on Unix and Mac OS. Even if
-@racket[exists-ok?] is true, @racket[new] cannot refer to an existing
-file when @racket[old] is a directory, and vice versa.
+将路径为 @racket[old] 的文件或目录（如果存在）重命名为路径 @racket[new]。
+如果文件或目录未成功重命名，则 @exnraise[exn:fail:filesystem]。
 
-If @racket[new] exists and is replaced, the replacement is atomic
-on Unix and Mac OS, but it is not guaranteed to be atomic on
-Windows. Furthermore, if @racket[new] exists and is opened by any
-process for reading or writing, then attempting to replace it will
-typically fail on Windows. See also @racket[call-with-atomic-output-file].
+此过程可用于将文件/目录移动到不同的目录（在同一文件系统上），
+以及在目录内重命名文件/目录。除非 @racket[exists-ok?] 作为真值提供，
+@racket[new] 不能引用现有的文件或目录，但在 Unix 和 Mac OS 上，
+检查与重命名操作不是原子的。即使 @racket[exists-ok?] 为真，
+当 @racket[old] 是目录时，@racket[new] 不能引用现有文件，反之亦然。
 
-If @racket[old] is a link, the link is renamed rather than the
-destination of the link, and it counts as a file for replacing any
-existing @racket[new].
+如果 @racket[new] 存在并被替换，在 Unix 和 Mac OS 上替换是原子的，
+但在 Windows 上不保证是原子的。此外，如果 @racket[new] 存在并被任何进程打开进行读取或写入，
+则尝试替换它通常在 Windows 上会失败。另参见 @racket[call-with-atomic-output-file]。
 
-On Windows, beware that a directory cannot be renamed if any file
-within the directory is open. That constraint is particularly
-problematic if a search indexer is running in the background (as in
-the default Windows configuration). A possible workaround is to
-combine @racket[copy-directory/files] and
-@racket[delete-directory/files], since the latter can deal with open
-files, although that sequence is obviously not atomic and temporarily
-duplicates files.}
+如果 @racket[old] 是链接，则重命名链接而不是链接的目标，
+并且对于替换任何现有 @racket[new] 都算作文件。
+
+在 Windows 上，请注意，如果目录中有任何文件处于打开状态，则目录无法重命名。
+如果搜索索引器在后台运行（如在默认 Windows 配置中），此约束特别成问题。
+可能的解决方法是组合 @racket[copy-directory/files] 和 @racket[delete-directory/files]，
+因为后者可以处理打开的文件，尽管该序列显然不是原子的并且会临时复制文件。}
 
 
 @defproc*[([(file-or-directory-modify-seconds [path path-string?]
@@ -462,133 +352,101 @@ duplicates files.}
                                               [fail-thunk (-> any) (lambda () (raise (make-exn:fail:filesystem ....)))])
             any])]{
 
-@index['("file modification date and time")]{Returns}
-the file or directory's last modification date in seconds
-since @tech{the epoch} (see also @secref["time"]) when
-@racket[secs-n] is not provided or is @racket[#f].
+@index['("file modification date and time")]{返回}
+文件或目录的最后修改日期，以 @tech{纪元} 以来的秒数表示
+（另参见 @secref["time"]），当 @racket[secs-n] 未提供或为 @racket[#f] 时。
 
-For FAT filesystems on Windows, directories do not have modification
-dates. Therefore, the creation date is returned for a directory, but
-the modification date is returned for a file.
+对于 Windows 上的 FAT 文件系统，目录没有修改日期。
+因此，为目录返回创建日期，为文件返回修改日期。
 
-If @racket[secs-n] is provided and not @racket[#f], the access and
-modification times of @racket[path] are set to the given time.
+如果提供了 @racket[secs-n] 且不为 @racket[#f]，则将 @racket[path] 的访问和修改时间设置为给定时间。
 
-On error (e.g., if no such file exists), then @racket[fail-thunk] is
-called (through a tail call) to produce the result of the
-@racket[file-or-directory-modify-seconds] call. If @racket[fail-thunk] is
-not provided, an error raises @racket[exn:fail:filesystem].}
+出错时（例如，如果文件不存在），则调用 @racket[fail-thunk]（通过尾部调用）
+以产生 @racket[file-or-directory-modify-seconds] 调用的结果。
+如果未提供 @racket[fail-thunk]，则引发 @racket[exn:fail:filesystem] 错误。}
 
 
 @defproc*[([(file-or-directory-permissions [path path-string?] [mode #f #f]) (listof (or/c 'read 'write 'execute))]
            [(file-or-directory-permissions [path path-string?] [mode 'bits]) (integer-in 0 #xFFFF)]
            [(file-or-directory-permissions [path path-string?] [mode (integer-in 0 #xFFFF)]) void])]{
 
-@index["chmod"]{When} given one argument or @racket[#f] as the second argument, returns
-a list containing @indexed-racket['read], @indexed-racket['write],
-and/or @indexed-racket['execute] to indicate permission the given file
-or directory path by the current user and group. On @|AllUnix|,
-permissions are checked for the current effective user instead of the
-real user.
+@index["chmod"]{当}给定一个参数或 @racket[#f] 作为第二个参数时，
+返回包含 @indexed-racket['read]、@indexed-racket['write] 和/或 @indexed-racket['execute]
+的列表，以指示当前用户和组对给定文件或目录路径的权限。
+在 @|AllUnix| 上，检查的是当前有效用户而不是实际用户的权限。
 
-If @racket['bits] is supplied as the second argument, the result is a
-platform-specific integer encoding of the file or directory properties
-(mostly permissions), and the result is independent of the current
-user and group. The lowest nine bits of the encoding are somewhat
-portable, reflecting permissions for the file or directory's owner,
-members of the file or directory's group, or other users:
+如果提供 @racket['bits] 作为第二个参数，则结果是文件或目录属性
+（主要是权限）的平台特定整数编码，结果独立于当前用户和组。
+编码的最低九位是可移植的，反映文件或目录所有者、
+文件目录组成员或其他用户的权限：
 
 @itemlist[
- @item{@racketvalfont{#o400} : owner has read permission}
- @item{@racketvalfont{#o200} : owner has write permission}
- @item{@racketvalfont{#o100} : owner has execute permission}
- @item{@racketvalfont{#o040} : group has read permission}
- @item{@racketvalfont{#o020} : group has write permission}
- @item{@racketvalfont{#o010} : group has execute permission}
- @item{@racketvalfont{#o004} : others have read permission}
- @item{@racketvalfont{#o002} : others have write permission}
- @item{@racketvalfont{#o001} : others have execute permission}
+ @item{@racketvalfont{#o400} : 所有者具有读权限}
+ @item{@racketvalfont{#o200} : 所有者具有写权限}
+ @item{@racketvalfont{#o100} : 所有者具有执行权限}
+ @item{@racketvalfont{#o040} : 组具有读权限}
+ @item{@racketvalfont{#o020} : 组具有写权限}
+ @item{@racketvalfont{#o010} : 组具有执行权限}
+ @item{@racketvalfont{#o004} : 其他用户具有读权限}
+ @item{@racketvalfont{#o002} : 其他用户具有写权限}
+ @item{@racketvalfont{#o001} : 其他用户具有执行权限}
 ]
 
-See also @racket[user-read-bit], etc. On Windows, permissions from
-all three (owner, group, and others) are always the same, and read and
-execute permission are always available. On @|AllUnix|,
-higher bits have a platform-specific meaning.
+另参见 @racket[user-read-bit] 等。在 Windows 上，所有三种（所有者、组和其他）的权限始终相同，
+读取和执行权限始终可用。在 @|AllUnix| 上，高位具有平台特定的含义。
 
-If an integer is supplied as the second argument, it is used as an
-encoding of properties (mostly permissions) to install for the file.
+如果提供整数作为第二个参数，则将其用作属性（主要是权限）的编码以安装给文件。
 
-In all modes, the @exnraise[exn:fail:filesystem] on error (e.g., if no
-such file exists).}
+在所有模式下，出错时（例如，如果文件不存在）@exnraise[exn:fail:filesystem]。}
 
 
 @defproc[(file-or-directory-stat [path path-string?]
                                  [as-link? boolean? #f])
          (and/c (hash/c symbol? any/c) hash-eq?)]{
 
-@index['("inode")]{Returns} a hash with the following keys and values,
-where each value currently is a nonnegative exact integer:
+@index['("inode")]{返回}一个具有以下键和值的哈希表，
+其中每个值当前都是非负精确整数：
 
 @itemlist[
- @item{@indexed-racket['device-id] : device ID}
- @item{@indexed-racket['inode] : inode number}
- @item{@indexed-racket['mode] : mode bits (see below)}
- @;{
- @item{@indexed-racket['type] : one of @racket['socket],
-   @racket['symbolic-link], @racket['file], @racket['directory],
-   @racket['block-device], @racket['character-device] or
-   @racket['fifo]}
- }
- @item{@indexed-racket['hardlink-count] : number of hard links}
- @item{@indexed-racket['user-id] : numeric user ID of owner}
- @item{@indexed-racket['group-id] : numeric group ID of owner}
- @item{@indexed-racket['device-id-for-special-file] : device ID (if special file)}
- @item{@indexed-racket['size] : size of file or symbolic link in bytes}
- @item{@indexed-racket['block-size] : size of filesystem blocks}
- @item{@indexed-racket['block-count] : number of used filesystem blocks}
- @item{@indexed-racket['access-time-seconds] : last access time in seconds
-   since @tech{the epoch}}
- @item{@indexed-racket['modify-time-seconds] : last modification time in
-   seconds since @tech{the epoch}}
- @item{@indexed-racket['change-time-seconds] : last status change time in
-   seconds since @tech{the epoch}}
- @item{@indexed-racket['creation-time-seconds] : creation time in seconds since
-   @tech{the epoch}}
- @item{@indexed-racket['access-time-nanoseconds] : last access time in
-   nanoseconds since @tech{the epoch}}
- @item{@indexed-racket['modify-time-nanoseconds] : last modification time in
-   nanoseconds since @tech{the epoch}}
- @item{@indexed-racket['change-time-nanoseconds] : last status change time in
-   nanoseconds since @tech{the epoch}}
- @item{@indexed-racket['creation-time-nanoseconds] : creation time in
-   nanoseconds since @tech{the epoch}}
+ @item{@indexed-racket['device-id] : 设备 ID}
+ @item{@indexed-racket['inode] : inode 号}
+ @item{@indexed-racket['mode] : 模式位（见下文）}
+ @item{@indexed-racket['hardlink-count] : 硬链接数}
+ @item{@indexed-racket['user-id] : 所有者的数字用户 ID}
+ @item{@indexed-racket['group-id] : 所有者的数字组 ID}
+ @item{@indexed-racket['device-id-for-special-file] : 设备 ID（如果是特殊文件）}
+ @item{@indexed-racket['size] : 文件或符号链接的大小（字节）}
+ @item{@indexed-racket['block-size] : 文件系统块大小}
+ @item{@indexed-racket['block-count] : 已用文件系统块数}
+ @item{@indexed-racket['access-time-seconds] : 最后访问时间（秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['modify-time-seconds] : 最后修改时间（秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['change-time-seconds] : 最后状态更改时间（秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['creation-time-seconds] : 创建时间（秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['access-time-nanoseconds] : 最后访问时间（纳秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['modify-time-nanoseconds] : 最后修改时间（纳秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['change-time-nanoseconds] : 最后状态更改时间（纳秒，自 @tech{纪元} 以来）}
+ @item{@indexed-racket['creation-time-nanoseconds] : 创建时间（纳秒，自 @tech{纪元} 以来）}
 ]
 
-If @racket[as-link?] is a true value, then if @racket[path] refers to a
-symbolic link, the stat information of the link is returned instead of the stat
-information of the referenced filesystem item.
+如果 @racket[as-link?] 为真值，则当 @racket[path] 引用符号链接时，
+返回链接的 stat 信息而不是引用的文件系统项的 stat 信息。
 
-The mode bits are the bits for permissions and other data, as returned from the
-Posix @tt{stat}/@tt{lstat} functions or the Windows @tt{_wstat64} function,
-respectively. To select portions of the bit pattern, use the constants
-@indexed-racket[user-read-bit], etc.
+模式位是用于权限和其他数据的位，
+分别来自 Posix @tt{stat}/@tt{lstat} 函数或 Windows @tt{_wstat64} 函数。
+要选择位模式的部分，请使用常量 @indexed-racket[user-read-bit] 等。
 
-Depending on the operating system and filesystem, the ``nanoseconds''
-timestamps may have less than nanoseconds precision. For example, in one
-environment a timestamp may be @racket[1234567891234567891] (nanoseconds
-precision) and in another environment @racket[1234567891000000000] (seconds
-precision).
+根据操作系统和文件系统，``纳秒''时间戳可能具有小于纳秒的精度。
+例如，在一个环境中时间戳可能是 @racket[1234567891234567891]（纳秒精度），
+在另一个环境中可能是 @racket[1234567891000000000]（秒精度）。
 
-Values that aren't available for a platform/filesystem combination may be set
-to @racket[0]. For example, this applies to the @racket['user-id] and
-@racket['group-id] keys on Windows. Also, Posix platforms provide the status
-change timestamp, but not the creation timestamp; for Windows it's the
-opposite.
+对于平台/文件系统组合不可用的值可能设置为 @racket[0]。
+例如，这适用于 Windows 上的 @racket['user-id] 和 @racket['group-id] 键。
+此外，Posix 平台提供状态更改时间戳，但不提供创建时间戳；
+对于 Windows 则相反。
 
-If @racket[as-link?] is @racket[#f] and @racket[path] isn't accessible,
-the @exnraise[exn:fail:filesystem]. This exception is also raised if
-@racket[as-link?] is a true value and @racket[path] can't be resolved, i.e., is
-a dangling link.
+如果 @racket[as-link?] 是 @racket[#f] 且 @racket[path] 不可访问，
+则 @exnraise[exn:fail:filesystem]。如果 @racket[as-link?] 为真值且 @racket[path]
+无法解析（即悬空链接），也会引发此异常。
 
 @history[#:added "8.3.0.7"]}
 
@@ -597,22 +455,18 @@ a dangling link.
                                      [as-link? any/c #f])
          exact-positive-integer?]{
 
-@index['("inode")]{Returns} a number that represents the identity of
-@racket[path] in terms of the device and file or directory that it
-accesses. This function can be used to check whether two paths
-correspond to the same filesystem entity under the assumption that the
-path's entity selection does not change.
+@index['("inode")]{返回}一个数字，表示 @racket[path] 在设备和它访问的文件或目录方面的身份。
+此函数可用于检查两个路径在路径的实体选择不改变的假设下是否对应于同一文件系统实体。
 
-If @racket[as-link?] is a true value, then if @racket[path] refers to
-a filesystem link, the identity of the link is returned instead of the
-identity of the referenced file or directory (if any).}
+如果 @racket[as-link?] 为真值，则当 @racket[path] 引用文件系统链接时，
+返回链接的身份而不是引用的文件或目录（如果有）的身份。}
 
 
 @defproc[(file-size [path path-string?]) exact-nonnegative-integer?]{
 
-Returns the (logical) size of the specified file in bytes. On Mac
-OS, this size excludes the resource-fork size. On error (e.g., if no
-such file exists), the @exnraise[exn:fail:filesystem].}
+返回指定文件的（逻辑）大小（字节）。在 Mac OS 上，
+此大小不包括资源分支大小。出错时（例如，如果文件不存在），
+@exnraise[exn:fail:filesystem]。}
 
 
 @defproc[(copy-file [src path-string?] 
@@ -623,261 +477,216 @@ such file exists), the @exnraise[exn:fail:filesystem].}
                     [#:replace-permissions? replace-permissions? any/c #t])
          void?]{
 
-Creates the file @racket[dest] as a copy of @racket[src], if
-@racket[dest] does not already exist. If @racket[dest] already exists
-and @racket[exists-ok?] is @racket[#f], the copy fails and the
-@exnraise[exn:fail:filesystem:exists?]; otherwise, if @racket[dest]
-exists, its content is replaced with the content of @racket[src]. 
+创建文件 @racket[dest] 作为 @racket[src] 的副本，如果 @racket[dest] 不存在。
+如果 @racket[dest] 已存在且 @racket[exists-ok?] 为 @racket[#f]，
+则复制失败并 @exnraise[exn:fail:filesystem:exists?]；否则，如果 @racket[dest] 存在，
+其内容将被 @racket[src] 的内容替换。
 
-If @racket[src] refers to a link, the target of the link is copied,
-rather than the link itself. If @racket[dest] refers to a link and
-@racket[exists-ok?] is true, the target of the link is updated.
+如果 @racket[src] 引用链接，则复制链接的目标而不是链接本身。
+如果 @racket[dest] 引用链接且 @racket[exists-ok?] 为真，则更新链接的目标。
 
-File permissions are transferred from @racket[src] to @racket[dest],
-unless @racket[permissions] is supplied as non-@racket[#f] on Unix and
-Mac OS, in which case @racket[permissions] is used for @racket[dest].
-Beware that permissions are transferred without regard for the
-process's umask setting by default, but see
-@racket[replace-permissions?] below. On Windows, the modification time
-of @racket[src] is also transferred to @racket[dest]; if
-@racket[permissions] is supplied as non-@racket[#f], then after
-copying, @racket[dest] is set to read-only or not depending on whether
-the @racketvalfont{#o2} bit is present in @racket[permissions].
+文件权限从 @racket[src] 传输到 @racket[dest]，
+除非在 Unix 和 Mac OS 上 @racket[permissions] 作为非 @racket[#f] 提供，
+在这种情况下 @racket[permissions] 用于 @racket[dest]。
+请注意，权限在默认情况下传输时不考虑进程的 umask 设置，
+但见下文 @racket[replace-permissions?]。在 Windows 上，
+@racket[src] 的修改时间也传输到 @racket[dest]；
+如果 @racket[permissions] 作为非 @racket[#f] 提供，则复制后，
+@racket[dest] 根据 @racket[permissions] 中是否存在 @racketvalfont{#o2} 位设置为只读或非只读。
 
-The @racket[replace-permissions?] argument is used only on Unix and
-Mac OS. When @racket[dest]s is created, it is created with
-@racket[permissions] or the permissions of @racket[src]; however, the
-process's umask may unset bits in the requested permissions. When
-@racket[dest] already exists (and @racket[exists-ok?] is true), then
-the permissions of @racket[dest] are initially left as-is. Finally,
-when @racket[replace-permissions?] is a true value, then the
-permissions of @racket[dest] are set after the file content is copied
-to @racket[permissions] or the permissions of @racket[src], without
-modification by umask.
+@racket[replace-permissions?] 参数仅在 Unix 和 Mac OS 上使用。
+当创建 @racket[dest] 时，使用 @racket[permissions] 或 @racket[src] 的权限创建；
+但是，进程的 umask 可能会清除请求权限中的位。
+当 @racket[dest] 已存在（且 @racket[exists-ok?] 为真）时，
+@racket[dest] 的权限最初保持不变。最后，
+当 @racket[replace-permissions?] 为真值时，
+@racket[dest] 的权限在文件内容复制到 @racket[permissions] 或 @racket[src] 的权限后设置，
+不受 umask 修改。
 
-The @racket[exists-ok?/pos] by-position argument is for backward
-compatibility. That by-position argument can be supplied, or the
-@racket[exists-ok?] keyword argument can be supplied, but the
-@exnraise[exn:fail:contract] if both are supplied.
+@racket[exists-ok?/pos] 位置参数用于向后兼容。
+可以提供该位置参数，也可以提供 @racket[exists-ok?] 关键字参数，
+但如果两者都提供，则 @exnraise[exn:fail:contract]。
 
-@history[#:changed "8.7.0.9" @elem{Added @racket[#:exists-ok?],
-                                   @racket[#:permissions], and
+@history[#:changed "8.7.0.9" @elem{添加了 @racket[#:exists-ok?]、
+                                   @racket[#:permissions] 和
                                    @racket[#:replace-permissions?]
-                                   arguments.}]}
+                                   参数。}]}
 
 
 @defproc[(make-file-or-directory-link [to path-string?] [path path-string?]) 
          void?]{
 
-Creates a link @racket[path] to @racket[to]. The
-creation will fail if @racket[path] already exists. The @racket[to]
-need not refer to an existing file or directory, and @racket[to] is
-not expanded before writing the link. If the link is not created
-successfully,the @exnraise[exn:fail:filesystem].
+创建指向 @racket[to] 的链接 @racket[path]。
+如果 @racket[path] 已存在，创建将失败。@racket[to] 不必引用现有文件或目录，
+并且在写入链接之前 @racket[to] 不会被展开。如果链接未成功创建，
+则 @exnraise[exn:fail:filesystem]。
 
-On Windows XP and earlier, the @exnraise[exn:fail:unsupported]. On
-later versions of Windows, the creation of links tends to be
-disallowed by security policies. Windows distinguishes between file
-and directory links, and a directory link is created only if
-@racket[to] parses syntactically as a directory (see
-@racket[path->directory-path]). Furthermore, a relative-path link is
-parsed specially by the operating system; see @secref["windowspaths"]
-for more information. When @racket[make-file-or-directory-link]
-succeeds, it creates a symbolic link as opposed to a junction or hard
-link. Beware that directory links must be deleted using
-@racket[delete-directory] instead of @racket[delete-file].
+在 Windows XP 及更早版本上，@exnraise[exn:fail:unsupported]。
+在 Windows 的较新版本上，链接的创建通常被安全策略禁止。
+Windows 区分文件和目录链接，仅当 @racket[to] 在语法上解析为目录时才创建目录链接（参见
+@racket[path->directory-path]）。此外，相对路径链接被操作系统特殊解析；
+参见 @secref["windowspaths"] 了解更多信息。当 @racket[make-file-or-directory-link]
+成功时，它创建的是符号链接而不是结点或硬链接。
+请注意，目录链接必须使用 @racket[delete-directory] 而不是 @racket[delete-file] 删除。
 
-@history[#:changed "6.0.1.12" @elem{Added support for links on Windows.}]}
+@history[#:changed "6.0.1.12" @elem{在 Windows 上添加了对链接的支持。}]}
 
 
 @defboolparam[current-force-delete-permissions force? #:value #t]{
 
-A @tech{parameter} that determines on Windows whether
-@racket[delete-file] and @racket[delete-directory] attempt to change a
-file or directory's permissions to delete it. The default value is
-@racket[#t].}
+一个 @tech{parameter}，确定在 Windows 上 @racket[delete-file] 和 @racket[delete-directory]
+是否尝试更改文件或目录的权限以删除它。默认值为 @racket[#t]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "directories"]{Directories}
+@section[#:tag "directories"]{目录}
 
-See also: @racket[rename-file-or-directory],
-@racket[file-or-directory-modify-seconds],
-@racket[file-or-directory-permissions].
+另参见：@racket[rename-file-or-directory]、
+@racket[file-or-directory-modify-seconds]、
+@racket[file-or-directory-permissions]。
 
 @defparam*[current-directory path path-string? (and/c path? complete-path?)]{
 
-A @tech{parameter} that determines the current directory for resolving
-relative paths.
+一个 @tech{parameter}，确定用于解析相对路径的当前目录。
 
-When the parameter procedure is called to set the current directory,
-the path argument is @tech{cleanse}d using @racket[cleanse-path],
-simplified using @racket[simplify-path], and then converted to a
-directory path with @racket[path->directory-path]; cleansing and
-simplification raise an exception if the path is ill-formed. Thus, the
-current value of @racket[current-directory] is always a cleansed,
-simplified, complete, directory path.
+当调用参数过程设置当前目录时，
+路径参数使用 @racket[cleanse-path] 进行 @tech{清理}，
+使用 @racket[simplify-path] 进行简化，然后使用 @racket[path->directory-path] 转换为目录路径；
+如果路径格式错误，清理和简化会引发异常。因此，
+@racket[current-directory] 的当前值始终是清理过的、简化的、完整的目录路径。
 
-The path is not checked for existence when the parameter is set.
+设置参数时不检查路径是否存在。
 
-On Unix and Mac OS, the initial value of the parameter for a Racket
-process is taken from the @indexed-envvar{PWD} environment
-variable---if the value of the environment variable identifies the
-same directory as the operating system's report of the current
-directory.}
+在 Unix 和 Mac OS 上，Racket 进程的参数初始值取自 @indexed-envvar{PWD} 环境变量——
+如果环境变量的值标识的目录与操作系统报告的当前目录相同。}
 
 @defparam*[current-directory-for-user path path-string? (and/c path? complete-path?)]{
 
-Like @racket[current-directory], but for use only by
-@racket[srcloc->string] for reporting paths relative to a
-directory.
+类似于 @racket[current-directory]，但仅由 @racket[srcloc->string] 用于报告相对于目录的路径。
 
-Normally, @racket[current-directory-for-user] should stay at its
-initial value, reflecting the directory where a user started a
-process. A tool such as DrRacket, however, implicitly lets a user
-select a directory (for the file being edited), in which case updating 
-@racket[current-directory-for-user] makes sense.}
+通常，@racket[current-directory-for-user] 应保持其初始值，
+反映用户启动进程的目录。然而，诸如 DrRacket 之类的工具会隐式地让用户选择目录
+（针对正在编辑的文件），在这种情况下更新 @racket[current-directory-for-user] 是合理的。}
 
 
 @defproc[(current-drive) path?]{
 
-Returns the current drive name Windows. For other platforms, the
-@exnraise[exn:fail:unsupported]. The current drive is always the drive
-of the current directory.}
+返回 Windows 的当前驱动器名称。对于其他平台，
+@exnraise[exn:fail:unsupported]。当前驱动器始终是当前目录的驱动器。}
 
 
 @defproc[(directory-exists? [path path-string?]) boolean?]{
 
-Returns @racket[#t] if @racket[path] refers to a directory,
-@racket[#f] otherwise.}
+如果 @racket[path] 引用目录则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(make-directory [path path-string?]
                          [permissions (integer-in 0 65535) @#,racketvalfont{#o777}])
          void?]{
 
-Creates a new directory with the path @racket[path].  If the directory
-is not created successfully, the @exnraise[exn:fail:filesystem].
+创建路径为 @racket[path] 的新目录。如果目录未成功创建，
+则 @exnraise[exn:fail:filesystem]。
 
-The @racket[permissions] argument specifies the permissions of the
-created directory, where an integer representation of permissions is
-treated the same as for @racket[file-or-directory-permissions]. On
-Unix and Mac OS, these permissions bits are combined with the
-process's umask. On Windows, @racket[permissions] is not used.
+@racket[permissions] 参数指定所创建目录的权限，
+其中整数权限表示与 @racket[file-or-directory-permissions] 中的处理方式相同。
+在 Unix 和 Mac OS 上，这些权限位与进程的 umask 组合。
+在 Windows 上，不使用 @racket[permissions]。
 
-@history[#:changed "8.3.0.5" @elem{Added the @racket[permissions] argument.}]}
+@history[#:changed "8.3.0.5" @elem{添加了 @racket[permissions] 参数。}]}
 
 
 @defproc[(delete-directory [path path-string?]) void?]{
 
-Deletes an existing directory with the path @racket[path]. If the
-directory is not deleted successfully, the
-@exnraise[exn:fail:filesystem].
+删除路径为 @racket[path] 的现有目录。如果目录未成功删除，
+则 @exnraise[exn:fail:filesystem]。
 
-On Windows, if an initial attempt to delete the directory fails with a
-permission error and the value of @racket[current-force-delete-permissions]
-is true, then @racket[delete-file] attempts to change the
-directory's permissions (to allow writes) and then delete the
-directory; the permission change followed by deletion is a non-atomic
-sequence, with no attempt to revert a permission change if the deletion
-fails.
+在 Windows 上，如果初始删除目录的尝试因权限错误而失败，
+且 @racket[current-force-delete-permissions] 的值为真，
+则 @racket[delete-file] 尝试更改目录的权限（以允许写入）然后删除目录；
+权限更改后跟删除是非原子序列，如果删除失败则不尝试恢复权限更改。
 
-@history[#:changed "6.1.1.7" @elem{Changed Windows behavior to use
-                                   @racket[current-force-delete-permissions].}]}
+@history[#:changed "6.1.1.7" @elem{更改 Windows 行为以使用
+                                   @racket[current-force-delete-permissions]。}]}
 
 
 @defproc[(directory-list [path path-string? (current-directory)]
                          [#:build? build? any/c #f])
          (listof path?)]{
 
-@margin-note{See also the @racket[in-directory] sequence constructor.}
+@margin-note{另参见 @racket[in-directory] 序列构造器。}
 
-Returns a list of all files and directories in the directory specified
-by @racket[path]. If @racket[build?] is @racket[#f], the resulting
-paths are all @tech{path elements}; otherwise, the individual results
-are combined with @racket[path] using @racket[build-path].
-On Windows, an element of the result list may start with
-@litchar{\\?\REL\\}.
+返回由 @racket[path] 指定的目录中所有文件和目录的列表。
+如果 @racket[build?] 为 @racket[#f]，则结果路径都是 @tech{路径元素}；
+否则，各个结果使用 @racket[build-path] 与 @racket[path] 组合。
+在 Windows 上，结果列表的元素可能以 @litchar{\\?\\REL\\} 开头。
 
-The resulting paths are always sorted using @racket[path<?].}
+结果路径始终使用 @racket[path<?] 排序。}
 
 
 @defproc[(filesystem-root-list) (listof path?)]{
 
-Returns a list of all current root directories. Obtaining this list
-can be particularly slow on Windows.}
+返回所有当前根目录的列表。在 Windows 上获取此列表可能特别慢。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "filesystem-change"]{Detecting Filesystem Changes}
+@section[#:tag "filesystem-change"]{检测文件系统更改}
 
-Many operating systems provide notifications for filesystem changes,
-and those notifications are reflected in Racket by @tech{filesystem
-change events}.
+许多操作系统提供文件系统更改通知，
+这些通知在 Racket 中通过 @tech{文件系统更改事件} 反映。
 
 @defproc[(filesystem-change-evt? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{filesystem change
-event}, @racket[#f] otherwise.}
+如果 @racket[v] 是 @tech{文件系统更改事件} 则返回 @racket[#t]，
+否则返回 @racket[#f]。}
 
 
 @defproc[(filesystem-change-evt [path path-string?]
                                 [failure-thunk (or/c (-> any) #f) #f])
          (or/c filesystem-change-evt? any)]{
 
-Creates a @deftech{filesystem change event}, which is a
-@tech{synchronizable event} that becomes @tech{ready for
-synchronization} after a change to @racket[path]:
+创建一个 @deftech{文件系统更改事件}，它是一个 @tech{可同步事件}，
+在 @racket[path] 更改后变为 @tech{准备好同步}：
 
 @itemlist[
 
- @item{If @racket[path] refers to a file, the event becomes
-       @tech{ready for synchronization} when the file's content or
-       attributes change, or when the file is deleted.}
+ @item{如果 @racket[path] 引用文件，当文件的内容或属性更改或文件被删除时，
+       事件变为 @tech{准备好同步}。}
 
- @item{If @racket[path] refers to a directory, the event becomes
-       @tech{ready for synchronization} if a file or subdirectory is
-       added, renamed, or removed within the directory.}
+ @item{如果 @racket[path] 引用目录，当目录中添加、重命名或删除文件或子目录时，
+       事件变为 @tech{准备好同步}。}
 
-]
+ ]
 
-The event also becomes @tech{ready for synchronization} if
-it is passed to @racket[filesystem-change-evt-cancel].
+如果事件传递给 @racket[filesystem-change-evt-cancel]，
+事件也会变为 @tech{准备好同步}。
 
-Finally, depending on the precision of information available from the
-operating system, the event may become @tech{ready for
-synchronization} under other circumstances. For example, on
-Windows, an event for a file becomes ready when any file changes
-within in the same directory as the file.
+最后，取决于操作系统可用信息的精度，
+事件可能在其他情况下变为 @tech{准备好同步}。
+例如，在 Windows 上，当文件所在目录中的任何文件更改时，
+文件的事件变为就绪。
 
-After a @tech{filesystem change event} becomes @tech{ready for
-synchronization}, it stays @tech{ready for synchronization}. The
-event's @tech{synchronization result} is the event itself.
+@tech{文件系统更改事件} 变为 @tech{准备好同步} 后，
+它将保持 @tech{准备好同步} 状态。事件的 @tech{同步结果} 是事件本身。
 
-If the current platform does not support filesystem-change
-notifications, then the @exnraise[exn:fail:unsupported] if
-@racket[failure-thunk] is not provided as a procedure, or @racket[failure-thunk] is
-called in tail position if provided. Similarly, if there is any
-operating-system error when creating the event (such as a non-existent
-file), then the @exnraise[exn:fail:filesystem] or @racket[failure-thunk]
-is called.
+如果当前平台不支持文件系统更改通知，
+则当 @racket[failure-thunk] 未提供为过程时 @exnraise[exn:fail:unsupported]，
+或者如果提供了 @racket[failure-thunk]，则在尾部位置调用它。
+同样，如果创建事件时出现任何操作系统错误（例如不存在的文件），
+则 @exnraise[exn:fail:filesystem] 或调用 @racket[failure-thunk]。
 
-Creation of a filesystem change event allocates resources at the
-operating-system level. The resources are released at latest when the
-event is sychronized and @tech{ready for synchronization}, when the
-event is canceled with @racket[filesystem-change-evt-cancel], or when
-the garbage collector determine that the filesystem change event is
-unreachable. See also @racket[system-type] in @racket['fs-change] mode.
+创建文件系统更改事件会在操作系统级别分配资源。
+资源最迟在事件同步且 @tech{准备好同步} 时释放，
+当事件通过 @racket[filesystem-change-evt-cancel] 取消时释放，
+或者当垃圾收集器确定文件系统更改事件不可达时释放。
+另参见 @racket[system-type] 的 @racket['fs-change] 模式。
 
-A filesystem change event is placed under the management of the
-@tech{current custodian} when it is created. If the @tech{custodian}
-is shut down, @racket[filesystem-change-evt-cancel] is applied to the
-event.
+文件系统更改事件在创建时置于 @tech{当前监管者} 的管理之下。
+如果 @tech{监管者} 关闭，@racket[filesystem-change-evt-cancel] 将应用于事件。
 
-@history[#:changed "7.3.0.8" @elem{Allow @racket[#f] for @racket[failure-thunk].}]}
+@history[#:changed "7.3.0.8" @elem{允许 @racket[failure-thunk] 为 @racket[#f]。}]}
 
 
 @defproc[(filesystem-change-evt-ready? [evt filesystem-change-evt?])
          boolean?]{
 
-Equivalent to @racket[(and (sync/timeout 0 evt) #t)].
+等价于 @racket[(and (sync/timeout 0 evt) #t)]。
 
 @history[#:added "8.18.0.6"]}
 
@@ -885,186 +694,142 @@ Equivalent to @racket[(and (sync/timeout 0 evt) #t)].
 @defproc[(filesystem-change-evt-cancel [evt filesystem-change-evt?])
          void?]{
 
-Causes @racket[evt] to become immediately @tech{ready for
-synchronization}, whether it was ready or not before, and releases the
-resources (at the operating-system level) for tracking filesystem
-changes.}
+使 @racket[evt] 立即变为 @tech{准备好同步}，
+无论之前是否就绪，并释放（操作系统级别的）用于跟踪文件系统更改的资源。}
 
 
 @;------------------------------------------------------------------------
-@section[#:tag "runtime-path"]{Declaring Paths Needed at Run Time}
+@section[#:tag "runtime-path"]{声明运行时需要的路径}
 
 @note-lib-only[racket/runtime-path]
 
-The @racketmodname[racket/runtime-path] library provides forms for
-accessing files and directories at run time using a path that are
-usually relative to an enclosing source file. Unlike using
-@racket[collection-path], @racket[define-runtime-path] exposes each
-run-time path to tools like the executable and distribution creators,
-so that files and directories needed at run time are carried along in
-a distribution.
+@racketmodname[racket/runtime-path] 库提供了用于在运行时访问文件和目录的形式，
+使用通常相对于封闭源文件的路径。与使用 @racket[collection-path] 不同，
+@racket[define-runtime-path] 将每个运行时路径暴露给可执行文件和分发创建器等工具，
+以便运行时需要的文件和目录随分发一起携带。
 
-In addition to the bindings described below,
-@racketmodname[racket/runtime-path] provides @racket[#%datum] in
-@tech{phase level} 1, since string constants are often used as
-compile-time expressions with @racket[define-runtime-path].
+除了下面描述的绑定之外，@racketmodname[racket/runtime-path] 在 @tech{阶段级别} 1
+提供 @racket[#%datum]，因为字符串常量通常用作 @racket[define-runtime-path] 的编译时表达式。
 
 @defform[(define-runtime-path id maybe-runtime?-id expr)
          #:grammar ([maybe-runtime?-id code:blank
                                        (code:line #:runtime?-id runtime?-id)])]{
 
-Uses @racket[expr] as both a compile-time (i.e., @tech{phase} 1)
-expression and a run-time (i.e., @tech{phase} 0) expression. In either
-context, @racket[expr] should produce a path, a string that represents
-a path, a list of the form @racket[(list 'lib _str ...+)], or a list
-of the form @racket[(list 'so _str)] or @racket[(list 'so _str _vers)].
-If @racket[runtime?-id] is provided, then it is bound in the context
-of @racket[expr] to @racket[#f] for the compile-time instance of
-@racket[expr] and @racket[#t] for the run-time instance of @racket[expr].
+将 @racket[expr] 同时用作编译时（即 @tech{阶段} 1）表达式和运行时（即 @tech{阶段} 0）表达式。
+在任一上下文中，@racket[expr] 应产生路径、表示路径的字符串、
+形式为 @racket[(list 'lib _str ...+)] 的列表，或形式为 @racket[(list 'so _str)] 或
+@racket[(list 'so _str _vers)] 的列表。
+如果提供了 @racket[runtime?-id]，则它在 @racket[expr] 的上下文中绑定，
+对于 @racket[expr] 的编译时实例为 @racket[#f]，对于运行时为 @racket[#t]。
 
-For run time, @racket[id] is bound to a path that is based on the
-result of @racket[expr]. The path is normally computed by taking a
-relative path result from @racket[expr] and adding it to a path for
-the enclosing file (which is computed as described below). However,
-tools like the executable creator can also arrange (by colluding with
-@racketmodname[racket/runtime-path]) to have a different base path
-substituted in a generated executable. If @racket[expr] produces an
-absolute path, it is normally returned directly, but again may be
-replaced by an executable creator. In all cases, the executable
-creator preserves the relative locations of all paths within a given
-@tech{package} (treating paths outside of any package as being together).
-When @racket[expr] produces a relative or absolute path, then the path
-bound to @racket[id] is always an absolute path.
+对于运行时，@racket[id] 绑定到基于 @racket[expr] 结果的路径。
+路径通常通过取 @racket[expr] 的相对路径结果并将其添加到封闭文件的路径来计算
+（计算方式如下所述）。然而，可执行文件创建器等工具也可以安排
+（通过与 @racketmodname[racket/runtime-path] 协作）在生成的可执行文件中替换不同的基本路径。
+如果 @racket[expr] 产生绝对路径，通常直接返回，
+但同样可能被可执行文件创建器替换。在所有情况下，
+可执行文件创建器保留给定 @tech{包} 内所有路径的相对位置
+（将任何包外的路径视为在一起）。
+当 @racket[expr] 产生相对或绝对路径时，绑定到 @racket[id] 的路径始终是绝对路径。
 
-If @racket[expr] produces a list of the form @racket[(list 'lib _str
-...+)], the value bound to @racket[id] is an absolute path. The path
-refers to a collection-based file similar to using the value as a
-@tech{module path}.
+如果 @racket[expr] 产生形式为 @racket[(list 'lib _str ...+)] 的列表，
+绑定到 @racket[id] 的值是绝对路径。该路径引用类似于将值用作 @tech{模块路径} 的基于集合的文件。
 
-If @racket[expr] produces a list of the form @racket[(list 'so _str)]
-or @racket[(list 'so _str _vers)],
-the value bound to @racket[id] can be either @racket[_str] or an
-absolute path; it is an absolute path when searching in the
-Racket-specific shared-object library directories (as determined by
-@racket[get-lib-search-dirs]) locates the path. In this way, shared-object
-libraries that are installed specifically for Racket get carried
-along in distributions. The search tries each directory in order;
-within a directory, the search tries using @racket[_str] directly,
-then it tries adding each version specified by @racket[_vers]---which defaults
-to @racket['(#f)]---along with
-a platform-specific shared-library extension---as produced by
-@racket[(system-type 'so-suffix)]. A @racket[_vers]
-can be a string, or it can be a list of strings and @racket[#f].
+如果 @racket[expr] 产生形式为 @racket[(list 'so _str)] 或 @racket[(list 'so _str _vers)] 的列表，
+绑定到 @racket[id] 的值可以是 @racket[_str] 或绝对路径；
+当在 Racket 特定的共享对象库目录（由 @racket[get-lib-search-dirs] 确定）中搜索定位路径时，
+它是绝对路径。通过这种方式，专门为 Racket 安装的共享对象库随分发一起携带。
+搜索按顺序尝试每个目录；在目录内，搜索首先尝试直接使用 @racket[_str]，
+然后尝试添加 @racket[_vers] 指定的每个版本——默认为 @racket['(#f)]——
+以及平台特定的共享库扩展——由 @racket[(system-type 'so-suffix)] 产生。
+@racket[_vers] 可以是字符串，也可以是字符串和 @racket[#f] 的列表。
 
-If @racket[expr] produces a list of the form @racket[(list 'share
-_str)], the value bound to @racket[id] can be either @racket[_str] or
-an absolute path; it is an absolute path when searching in the
-directories reported by @racket[find-user-share-dir] and
-@racket[find-share-dir] (in that order) locates the path. In this way,
-files that are installed in Racket's @filepath{share} directory get
-carried along in distributions.
+如果 @racket[expr] 产生形式为 @racket[(list 'share _str)] 的列表，
+绑定到 @racket[id] 的值可以是 @racket[_str] 或绝对路径；
+当在 @racket[find-user-share-dir] 和 @racket[find-share-dir] 报告的目录中
+（按该顺序）搜索定位路径时，它是绝对路径。
+通过这种方式，安装在 Racket 的 @filepath{share} 目录中的文件随分发一起携带。
 
-If @racket[expr] produces a list of the form @racket[(list 'module
-_module-path _var-ref)] or @racket[(list 'so _str (list
-_str-or-false ...))], the value bound to @racket[id] is a
-@tech{module path index}, where @racket[_module-path] is treated as
-relative (if it is relative) to the module that is the home of the
-@tech{variable reference} @racket[_var-ref], where @racket[_var-ref]
-can be @racket[#f] if @racket[_module-path] is absolute. In an
-executable, the corresponding module is carried along, including all
-of its dependencies.
+如果 @racket[expr] 产生形式为 @racket[(list 'module _module-path _var-ref)] 或
+@racket[(list 'so _str (list _str-or-false ...))] 的列表，
+绑定到 @racket[id] 的值是 @tech{模块路径索引}，
+其中 @racket[_module-path] 被视为相对于作为 @tech{变量引用} @racket[_var-ref] 的家的模块
+（如果是相对的），其中如果 @racket[_module-path] 是绝对的，
+@racket[_var-ref] 可以是 @racket[#f]。在可执行文件中，
+相应的模块随其所有依赖项一起携带。
 
-For compile-time, the @racket[expr] result is used by an executable
-creator---but not the result when the containing module is
-compiled. Instead, @racket[expr] is preserved in the module as a
-compile-time expression (in the sense of
-@racket[begin-for-syntax]). Later, at the time that an executable is
-created, the compile-time portion of the module is executed (again),
-and the result of @racket[expr] is the file or directory to be included with the
-executable. The reason for the extra compile-time execution is that
-the result of @racket[expr] might be platform-dependent, so the result
-should not be stored in the (platform-independent) bytecode form of
-the module; the platform at executable-creation time, however, is the
-same as at run time for the executable. Note that @racket[expr] is
-still evaluated at run time; consequently, avoid procedures like
-@racket[collection-path], which depends on the source installation,
-and instead use relative paths and forms like @racket[(list 'lib _str
-...+)].
+对于编译时，@racket[expr] 结果由可执行文件创建器使用——
+而不是包含模块编译时的结果。相反，@racket[expr] 作为编译时表达式
+（在 @racket[begin-for-syntax] 的意义上）保留在模块中。
+后来，在创建可执行文件时，模块的编译时部分再次执行，
+@racket[expr] 的结果是要与可执行文件包含的文件或目录。
+额外编译时执行的原因是 @racket[expr] 的结果可能是平台相关的，
+因此结果不应存储在模块的（平台无关的）字节码形式中；
+然而，创建可执行文件时的平台与运行时的平台相同。
+请注意，@racket[expr] 在运行时仍然被求值；因此，
+避免使用像 @racket[collection-path] 这样依赖于源安装的过程，
+而使用相对路径和像 @racket[(list 'lib _str ...+)] 这样的形式。
 
-If a path is needed only on some platforms and not on others, use
-@racket[define-runtime-path-list] with an @racket[expr] that produces an
-empty list on platforms where the path is not needed.
+如果某些路径仅在某些平台而非其他平台上需要，
+请使用 @racket[define-runtime-path-list] 并在不需要路径的平台上让 @racket[expr] 产生空列表。
 
-Beware that if @racket[expr] produces the path of a directory when
-creating an executable, the directory's full content (including any
-subdirectories) is included with the executable or eventual
-distribution.
+请注意，如果 @racket[expr] 在创建可执行文件时产生目录的路径，
+目录的完整内容（包括任何子目录）将与可执行文件或最终分发一起包含。
 
-Also beware that @racket[define-runtime-path] in a @tech{phase level} other
-than 0 does not cooperate properly with an executable creator. To work
-around that limitation, put @racket[define-runtime-path] in a separate
-module---perhaps a @tech{submodule} created by @racket[module]---then
-export the definition, and then the module containing the definition
-can be @racket[require]d into any phase level. Using
-@racket[define-runtime-path] in a @tech{phase level} other than 0
-logs a warning at expansion time.
+还要注意，@racket[define-runtime-path] 在 @tech{阶段级别} 0 以外的阶段中
+不能正确与可执行文件创建器协作。为了解决该限制，
+将 @racket[define-runtime-path] 放在单独的模块中——
+也许是由 @racket[module] 创建的 @tech{子模块}——然后导出定义，
+然后可以在任何阶段级别 @racket[require] 包含该定义的模块。
+在 @tech{阶段级别} 0 以外的阶段使用 @racket[define-runtime-path] 会在展开时记录警告。
 
-The enclosing path for a @racket[define-runtime-path] is determined as
-follows from the @racket[define-runtime-path] syntactic form:
+@racket[define-runtime-path] 的封闭路径按以下方式从 @racket[define-runtime-path] 语法形式确定：
 
 @itemize[
 
- @item{If the form has a source module according to
-       @racket[syntax-source-module], then the source location is
-       determined by preserving the original expression as a syntax
-       object, extracting its source module path at run time (again
-       using @racket[syntax-source-module]), and then resolving the
-       resulting module path index. Note that @racket[syntax-source-module]
-       is based on a syntax object's @tech{lexical information}, not its
-       source location.}
+ @item{如果形式根据 @racket[syntax-source-module] 具有源模块，
+       则源位置通过将原始表达式保留为语法对象来确定，
+       在运行时（再次使用 @racket[syntax-source-module]）提取其源模块路径，
+       然后解析生成的模块路径索引。请注意，@racket[syntax-source-module]
+       基于语法对象的 @tech{词法信息}，而不是其源位置。}
 
- @item{If the expression has no source module, the
-       @racket[syntax-source] location associated with the form is
-       used, if is a string or path.}
+ @item{如果表达式没有源模块，
+       则使用与形式关联的 @racket[syntax-source] 位置，
+       如果是字符串或路径。}
 
- @item{If no source module is available, and @racket[syntax-source]
-       produces no path, then @racket[current-load-relative-directory]
-       is used if it is not @racket[#f]. Finally,
-       @racket[current-directory] is used if all else fails.}
+ @item{如果没有源模块可用，且 @racket[syntax-source] 不产生路径，
+       则使用 @racket[current-load-relative-directory]（如果不是 @racket[#f]）。
+       最后，如果所有其他方法都失败，则使用 @racket[current-directory]。}
 
-]
+ ]
 
-In the latter two cases, the path is normally preserved in
-(platform-specific) byte form, but if the enclosing path corresponds to a
-result of @racket[collection-file-path], then the path is record as
-relative to the corresponding module path.
+在后两种情况下，路径通常以（平台特定的）字节形式保留，
+但如果封闭路径对应于 @racket[collection-file-path] 的结果，
+则路径记录为相对于相应模块路径。
 
-@history[#:changed "6.0.1.6" @elem{Preserve relative paths only within a package.}
-         #:changed "7.5.0.7" @elem{Added support for @racket['share] in @racket[expr].}]
+@history[#:changed "6.0.1.6" @elem{仅在包内保留相对路径。}
+         #:changed "7.5.0.7" @elem{添加了对 @racket[expr] 中 @racket['share] 的支持。}]
 
-Examples:
+示例：
 
 @racketblock[
-(code:comment @#,t{Access a file @filepath{data.txt} at run-time that is originally})
-(code:comment @#,t{located in the same directory as the module source file:})
+(code:comment @#,t{在运行时访问最初位于模块源文件同目录下的文件 @filepath{data.txt}})
 (define-runtime-path data-file "data.txt")
 (define (read-data) 
   (with-input-from-file data-file 
     (lambda () 
       (read-bytes (file-size data-file)))))
 
-(code:comment @#,t{Load a platform-specific shared object (using @racket[ffi-lib])})
-(code:comment @#,t{that is located in a platform-specific sub-directory of the})
-(code:comment @#,t{module's source directory:})
+(code:comment @#,t{加载平台特定的共享对象（使用 @racket[ffi-lib]）})
+(code:comment @#,t{该对象位于模块源目录的平台特定子目录中：})
 (define-runtime-path libfit-path
   (build-path "compiled" "native" (system-library-subpath #f)
               (path-replace-suffix "libfit" 
                                    (system-type 'so-suffix))))
 (define libfit (ffi-lib libfit-path))
 
-(code:comment @#,t{Load a platform-specific shared object that might be installed})
-(code:comment @#,t{as part of the operating system, or might be installed})
-(code:comment @#,t{specifically for Racket:})
+(code:comment @#,t{加载可能作为操作系统一部分安装的})
+(code:comment @#,t{或专门为 Racket 安装的共享对象：})
 (define-runtime-path libssl-so
   (case (system-type)
     [(windows) '(so "ssleay32")]
@@ -1072,76 +837,65 @@ Examples:
 (define libssl (ffi-lib libssl-so))
 ]
 
-@history[#:changed "6.4" @elem{Added @racket[#:runtime?-id].}]}
+@history[#:changed "6.4" @elem{添加了 @racket[#:runtime?-id]。}]}
 
 
 @defform[(define-runtime-paths (id ...) maybe-runtime?-id expr)]{
 
-Like @racket[define-runtime-path], but declares and binds multiple
-paths at once. The @racket[expr] should produce as many values as
-@racket[id]s.}
+类似于 @racket[define-runtime-path]，但一次声明和绑定多个路径。
+@racket[expr] 应产生与 @racket[id] 数量相同的值。}
 
 
 @defform[(define-runtime-path-list id maybe-runtime?-id expr)]{
 
-Like @racket[define-runtime-path], but @racket[expr] should produce a
-list of paths.}
+类似于 @racket[define-runtime-path]，但 @racket[expr] 应产生路径列表。}
 
 
 @defform[(define-runtime-module-path-index id maybe-runtime?-id module-path-expr)]{
 
-Similar to @racket[define-runtime-path], but @racket[id] is bound to a
-@tech{module path index} that encapsulates the result of
-@racket[module-path-expr] relative to the enclosing module.
+类似于 @racket[define-runtime-path]，但 @racket[id] 绑定到
+@tech{模块路径索引}，该索引封装了相对于封闭模块的 @racket[module-path-expr] 的结果。
 
-Use @racket[define-runtime-module-path-index] to bind a module path that is
-passed to a reflective function like @racket[dynamic-require] while
-also creating a module dependency for building and distributing
-executables.}
+使用 @racket[define-runtime-module-path-index] 绑定传递给 @racket[dynamic-require]
+等反射函数的模块路径，同时为构建和分发可执行文件创建模块依赖。}
 
 
 @defform[(runtime-require module-path)]{
 
-Similar to @racket[define-runtime-module-path-index], but creates the
-distribution dependency without binding a module path index. When
-@racket[runtime-require] is used multiple times within a module with
-the same @racket[module-path], all but the first use expands to an
-empty @racket[begin].}
+类似于 @racket[define-runtime-module-path-index]，但不绑定模块路径索引而创建分发依赖。
+当 @racket[runtime-require] 在模块内多次使用相同的 @racket[module-path] 时，
+除第一次使用外，所有使用都展开为空的 @racket[begin]。}
 
 
 @defform[(define-runtime-module-path id module-path)]{
 
-Similar to @racket[define-runtime-path], but @racket[id] is bound to a
-@tech{resolved module path}. The @tech{resolved module path} for
-@racket[id] corresponds to @racket[module-path] (with the same syntax
-as a module path for @racket[require]), which can be relative to the
-enclosing module.
+类似于 @racket[define-runtime-path]，但 @racket[id] 绑定到
+@tech{已解析模块路径}。@racket[id] 的 @tech{已解析模块路径}
+对应于 @racket[module-path]（语法与 @racket[require] 的模块路径相同），
+可以相对于封闭模块。
 
-The @racket[define-runtime-module-path-index] form is usually
-preferred, because it creates a weaker link to the referenced module.
-Unlike @racket[define-runtime-module-path-index], the
-@racket[define-runtime-module-path] form creates a @racket[for-label]
-dependency from an enclosing module to @racket[module-path]. Since the
-dependency is merely @racket[for-label], @racket[module-path] is not
-@tech{instantiate}d or @tech{visit}ed when the enclosing module is
-@tech{instantiate}d or @tech{visit}ed (unless such a dependency is
-created by other @racket[require]s), but the code for the referenced
-module is loaded when the enclosing module is loaded.}
+通常首选 @racket[define-runtime-module-path-index] 形式，
+因为它创建到引用模块的较弱链接。
+与 @racket[define-runtime-module-path-index] 不同，
+@racket[define-runtime-module-path] 形式从封闭模块到 @racket[module-path]
+创建 @racket[for-label] 依赖。由于依赖仅是 @racket[for-label]，
+当封闭模块被 @tech{实例化} 或 @tech{访问} 时，
+@racket[module-path] 不会被 @tech{实例化} 或 @tech{访问}
+（除非由其他 @racket[require] 创建这样的依赖），
+但当封闭模块被加载时，引用模块的代码会被加载。}
 
 
 @defform[(runtime-paths module-path)]{
 
-This form is mainly for use by tools such as executable builders. It
-expands to a quoted list containing the run-time paths declared by
-@racket[module-path], returning the compile-time results of the
-declaration @racket[expr]s, except that paths are converted to byte
-strings. The enclosing module must require (directly or indirectly)
-the module specified by @racket[module-path], which is an unquoted
-module path. The resulting list does @emph{not} include module paths
-bound through @racket[define-runtime-module-path].}
+此形式主要供可执行文件构建器等工具使用。
+它展开为包含由 @racket[module-path] 声明的运行时路径的引用列表，
+返回声明 @racket[expr] 的编译时结果，
+但路径被转换为字节字符串。封闭模块必须（直接或间接）
+require 由 @racket[module-path] 指定的模块，该模块是未引用的模块路径。
+结果列表@emph{不}包括通过 @racket[define-runtime-module-path] 绑定的模块路径。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "file-lib"]{More File and Directory Utilities}
+@section[#:tag "file-lib"]{更多文件和目录工具}
 
 @note-lib[racket/file]
 
@@ -1149,133 +903,114 @@ bound through @racket[define-runtime-module-path].}
                        [#:mode mode-flag (or/c 'binary 'text) 'binary])
          string?]{
 
-Reads all characters from @racket[path] and returns them as a string.
-The @racket[mode-flag] argument is the same as for
-@racket[open-input-file].}
+从 @racket[path] 读取所有字符并将它们作为字符串返回。
+@racket[mode-flag] 参数与 @racket[open-input-file] 中的相同。}
 
 @defproc[(file->bytes [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary])
          bytes?]{
 
-Reads all characters from @racket[path] and returns them as a
-@tech{byte string}.  The @racket[mode-flag] argument is the same as
-for @racket[open-input-file].}
+从 @racket[path] 读取所有字符并将它们作为 @tech{字节字符串} 返回。
+@racket[mode-flag] 参数与 @racket[open-input-file] 中的相同。}
 
 @defproc[(file->value [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary])
          any]{
 
-Reads a single S-expression from @racket[path] using @racket[read].
-The @racket[mode-flag] argument is the same as for
-@racket[open-input-file].}
+使用 @racket[read] 从 @racket[path] 读取单个 S-表达式。
+@racket[mode-flag] 参数与 @racket[open-input-file] 中的相同。}
 
 @defproc[(file->list [path path-string?]
                      [proc (input-port? . -> . any/c) read]
                      [#:mode mode-flag (or/c 'binary 'text) 'binary])
          (listof any/c)]{
-Repeatedly calls @racket[proc] to consume the contents of
-@racket[path], until @racket[eof] is produced. The @racket[mode-flag]
-argument is the same as for @racket[open-input-file].  }
+
+重复调用 @racket[proc] 以消耗 @racket[path] 的内容，
+直到产生 @racket[eof]。@racket[mode-flag] 参数与 @racket[open-input-file] 中的相同。}
 
 @defproc[(file->lines [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary]
                       [#:line-mode line-mode (or/c 'linefeed 'return 'return-linefeed 'any 'any-one) 'any])
          (listof string?)]{
 
-Read all characters from @racket[path], breaking them into lines. The
-@racket[line-mode] argument is the same as the second argument to
-@racket[read-line], but the default is @racket['any] instead of
-@racket['linefeed]. The @racket[mode-flag] argument is the same as for
-@racket[open-input-file].}
+从 @racket[path] 读取所有字符，将它们分成行。
+@racket[line-mode] 参数与 @racket[read-line] 的第二个参数相同，
+但默认值是 @racket['any] 而不是 @racket['linefeed]。
+@racket[mode-flag] 参数与 @racket[open-input-file] 中的相同。}
 
 @defproc[(file->bytes-lines [path path-string?]
                             [#:mode mode-flag (or/c 'binary 'text) 'binary]
                             [#:line-mode line-mode (or/c 'linefeed 'return 'return-linefeed 'any 'any-one) 'any])
          (listof bytes?)]{
 
-Like @racket[file->lines], but reading bytes and collecting them into
-lines like @racket[read-bytes-line].}
+像 @racket[file->lines]，但读取字节并像 @racket[read-bytes-line] 一样将它们收集成行。}
 
 @defproc[(display-to-file [v any/c]
                           [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary]
                       [#:exists exists-flag (or/c 'error 'append 'update
-                                                  'replace 'truncate 'truncate/replace) 'error])
+                                                  'replace 'truncate 'truncate/replace) 'error'])
          void?]{
 
-Uses @racket[display] to print @racket[v] to @racket[path]. The @racket[mode-flag] and
-@racket[exists-flag] arguments are the same as for
-@racket[open-output-file].}
+使用 @racket[display] 将 @racket[v] 打印到 @racket[path]。
+@racket[mode-flag] 和 @racket[exists-flag] 参数与 @racket[open-output-file] 中的相同。}
 
 @defproc[(write-to-file [v any/c]
                         [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary]
                       [#:exists exists-flag (or/c 'error 'append 'update
-                                                  'replace 'truncate 'truncate/replace) 'error])
+                                                  'replace 'truncate 'truncate/replace) 'error'])
          void?]{
 
-Like @racket[display-to-file], but using @racket[write] instead of @racket[display].}
+像 @racket[display-to-file]，但使用 @racket[write] 而不是 @racket[display]。}
 
 @defproc[(display-lines-to-file [lst list?]
                                 [path path-string?]
                        [#:separator separator any/c #"\n"]
                        [#:mode mode-flag (or/c 'binary 'text) 'binary]
                        [#:exists exists-flag (or/c 'error 'append 'update
-                                                   'replace 'truncate 'truncate/replace) 'error])
+                                                   'replace 'truncate 'truncate/replace) 'error'])
          void?]{
 
-Displays each element of @racket[lst] to @racket[path], adding
-@racket[separator] after each element. The @racket[mode-flag] and
-@racket[exists-flag] arguments are the same as for
-@racket[open-output-file].}
+将 @racket[lst] 的每个元素显示到 @racket[path]，每个元素后添加 @racket[separator]。
+@racket[mode-flag] 和 @racket[exists-flag] 参数与 @racket[open-output-file] 中的相同。}
 
 @defproc[(copy-directory/files [src path-string?] [dest path-string?]
                                [#:keep-modify-seconds? keep-modify-seconds? any/c #f]
                                [#:preserve-links? preserve-links? any/c #f])
          void?]{
 
-Copies the file or directory @racket[src] to @racket[dest], raising
-@racket[exn:fail:filesystem] if the file or directory cannot be
-copied, possibly because @racket[dest] exists already. If @racket[src]
-is a directory, the copy applies recursively to the directory's
-content. If a source is a link and @racket[preserve-links?] is @racket[#f],
-the target of the link is copied rather than the link itself; if
-@racket[preserve-links?] is @racket[#t], the link is copied.
+将文件或目录 @racket[src] 复制到 @racket[dest]，
+如果文件或目录无法复制（可能因为 @racket[dest] 已存在）则引发 @racket[exn:fail:filesystem]。
+如果 @racket[src] 是目录，则复制递归应用于目录的内容。
+如果源是链接且 @racket[preserve-links?] 为 @racket[#f]，
+则复制链接的目标而不是链接本身；如果 @racket[preserve-links?] 为 @racket[#t]，则复制链接。
 
-If @racket[keep-modify-seconds?] is @racket[#f], then file copies
-keep only the properties kept by @racket[copy-file]. If
-@racket[keep-modify-seconds?] is true, then each file copy also keeps
-the modification date of the original.
+如果 @racket[keep-modify-seconds?] 为 @racket[#f]，则文件副本仅保留 @racket[copy-file] 保留的属性。
+如果 @racket[keep-modify-seconds?] 为真，则每个文件副本还保留原件的修改日期。
 
-@history[#:changed "6.3" @elem{Added the @racket[#:preserve-links?] argument.}]}
+@history[#:changed "6.3" @elem{添加了 @racket[#:preserve-links?] 参数。}]}
 
 
 @defproc[(delete-directory/files [path path-string?]
                                  [#:must-exist? must-exist? any/c #t])
          void?]{
 
-Deletes the file or directory specified by @racket[path], raising
-@racket[exn:fail:filesystem] if the file or directory cannot be
-deleted. If @racket[path] is a directory, then
-@racket[delete-directory/files] is first applied to each file and
-directory in @racket[path] before the directory is deleted.
+删除由 @racket[path] 指定的文件或目录，
+如果文件或目录无法删除则引发 @racket[exn:fail:filesystem]。
+如果 @racket[path] 是目录，则在删除目录之前，
+首先对 @racket[path] 中的每个文件和目录应用 @racket[delete-directory/files]。
 
-If @racket[must-exist?] is true, then @racket[exn:fail:filesystem] is
-raised if @racket[path] does not exist. If @racket[must-exist?] is
-false, then @racket[delete-directory/files] succeeds if @racket[path]
-does not exist (but a failure is possible if @racket[path] initially
-exists and is removed by another thread or process before 
-@racket[delete-directory/files] deletes it).
+如果 @racket[must-exist?] 为真，则当 @racket[path] 不存在时引发 @racket[exn:fail:filesystem]。
+如果 @racket[must-exist?] 为假，则当 @racket[path] 不存在时 @racket[delete-directory/files] 成功
+（但如果 @racket[path] 最初存在并被另一个线程或进程在 @racket[delete-directory/files] 删除它之前移除，则可能失败）。
 
-On Windows, @racket[delete-directory/files] attempts to move a file
-into the temporary-file directory before deleting it, which avoids
-problems caused by deleting a file that is currently open (e.g., by a
-search indexer running as a background process). If the move attempt
-fails (e.g., because the temporary directory is on a different drive
-than the file), then the file is deleted directly with
-@racket[delete-file].
+在 Windows 上，@racket[delete-directory/files] 尝试在删除文件之前将其移动到临时文件目录，
+这避免了在删除当前打开的文件时引起的问题（例如，由作为后台进程运行的搜索索引器打开）。
+如果移动尝试失败（例如，因为临时目录与文件在不同的驱动器上），
+则直接使用 @racket[delete-file] 删除文件。
 
-@history[#:changed "7.0" @elem{Added Windows-specific file deletion.}]}
+@history[#:changed "7.0" @elem{添加了 Windows 特定的文件删除。}]}
 
 
 @defproc[(find-files [predicate (path? . -> . any/c)]
@@ -1284,77 +1019,64 @@ than the file), then the file is deleted directly with
                      [#:follow-links? follow-links? any/c #f])
          (listof path?)]{
 
-Traverses the filesystem starting at @racket[start-path] and creates a
-list of all files and directories for which @racket[predicate] returns
-true. If @racket[start-path] is @racket[#f], then the traversal starts
-from @racket[(current-directory)]. In the resulting list, each
-directory precedes its content.
+从 @racket[start-path] 开始遍历文件系统，
+并创建 @racket[predicate] 返回真的所有文件和目录的列表。
+如果 @racket[start-path] 是 @racket[#f]，则遍历从 @racket[(current-directory)] 开始。
+在结果列表中，每个目录都位于其内容之前。
 
-The @racket[predicate] procedure is called with a single argument for
-each file or directory. If @racket[start-path] is @racket[#f], the
-argument is a pathname string that is relative to the current
-directory. Otherwise, it is a path building on
-@racket[start-path]. Consequently, supplying
-@racket[(current-directory)] for @racket[start-path] is different from
-supplying @racket[#f], because @racket[predicate] receives complete
-paths in the former case and relative paths in the latter.  Another
-difference is that @racket[predicate] is not called for the current
-directory when @racket[start-path] is @racket[#f].
+@racket[predicate] 过程对每个文件或目录使用单个参数调用。
+如果 @racket[start-path] 是 @racket[#f]，则参数是相对于当前目录的路径名字符串。
+否则，它是基于 @racket[start-path] 的路径。因此，
+为 @racket[start-path] 提供 @racket[(current-directory)] 与提供 @racket[#f] 不同，
+因为在后一种情况下 @racket[predicate] 接收相对路径，而在前一种情况下接收完整路径。
+另一个区别是当 @racket[start-path] 是 @racket[#f] 时，
+@racket[predicate] 不会为当前目录调用。
 
-If @racket[skip-filtered-directory?] is true, then when
-@racket[predicate] returns @racket[#f] for a directory, the
-directory's content is not traversed.
+如果 @racket[skip-filtered-directory?] 为真，则当 @racket[predicate] 对目录返回 @racket[#f] 时，
+不会遍历该目录的内容。
 
-If @racket[follow-links?] is true, the @racket[find-files] traversal
-follows links, and links are not included in the result. If
-@racket[follow-links?] is @racket[#f], then links are not followed,
-and links are included in the result.
+如果 @racket[follow-links?] 为真，@racket[find-files] 遍历跟随链接，
+并且链接不包含在结果中。如果 @racket[follow-links?] 为 @racket[#f]，
+则不跟随链接，并且链接包含在结果中。
 
-If @racket[start-path] does not refer to an existing file or
-directory, then @racket[predicate] will be called exactly once with
-@racket[start-path] as the argument.
+如果 @racket[start-path] 不引用现有文件或目录，
+则 @racket[predicate] 将恰好调用一次，以 @racket[start-path] 作为参数。
 
-The @racket[find-files] procedure raises an exception if it encounters
-a directory for which @racket[directory-list] fails.
+@racket[find-files] 过程在遇到 @racket[directory-list] 失败的目录时引发异常。
 
-@history[#:changed "6.3.0.11" @elem{Added the
+@history[#:changed "6.3.0.11" @elem{添加了
                                     @racket[#:skip-filtered-directory?]
-                                    argument.}]}
+                                    参数。}]}
 
 @defproc[(pathlist-closure [path-list (listof path-string?)]
                            [#:path-filter path-filter (or/c #f (path? . -> . any/c)) #f]
                            [#:follow-links? follow-links? any/c #f])
          (listof path?)]{
 
-Given a list of paths, either absolute or relative to the current
-directory, returns a list such that
+给定一个路径列表（绝对或相对于当前目录），返回一个列表，使得
 
 @itemize[
 
- @item{if a nested path is given, all of its ancestors are also
-       included in the result (but the same ancestor is not added
-       twice);}
+ @item{如果给定嵌套路径，其所有祖先也包含在结果中
+       （但同一祖先不会添加两次）；}
 
- @item{if a path refers to directory, all of its descendants are also
-       included in the result, except as omitted by @racket[path-filter];}
+ @item{如果路径引用目录，其所有后代也包含在结果中，
+       除非被 @racket[path-filter] 省略；}
 
- @item{ancestor directories appear before their descendants in the
-       result list, as long as they are not misordered in the given
-       @racket[path-list].}
+ @item{祖先目录在结果列表中出现在其后代之前，
+       只要它们在给定的 @racket[path-list] 中没有被错误排序。}
 
-]
+ ]
 
-If @racket[path-filter] is a procedure, then it is applied to each
-descendant of a directory. If @racket[path-filter] returns
-@racket[#f], then the descendant (and any of its descendants, in the
-case of a subdirectory) are omitted from the result.
+如果 @racket[path-filter] 是过程，则它应用于目录的每个后代。
+如果 @racket[path-filter] 返回 @racket[#f]，则该后代（及其任何后代，
+如果是子目录）从结果中省略。
 
-If @racket[follow-links?] is true, then the traversal of directories
-and files follows links, and the link paths are not included in the
-result. If @racket[follow-links?] is @racket[#f], then the result list
-includes paths to link and the links are not followed.
+如果 @racket[follow-links?] 为真，则目录和文件的遍历跟随链接，
+并且链接路径不包含在结果中。如果 @racket[follow-links?] 为 @racket[#f]，
+则结果列表包含链接的路径并且不跟随链接。
 
-@history[#:changed "6.3.0.11" @elem{Added the @racket[#:path-filter] argument.}]}
+@history[#:changed "6.3.0.11" @elem{添加了 @racket[#:path-filter] 参数。}]}
 
 
 @defproc[(fold-files [proc (or/c (path? (or/c 'file 'dir 'link) any/c 
@@ -1366,80 +1088,63 @@ includes paths to link and the links are not followed.
                      [follow-links? any/c #t])
          any]{
 
-Traverses the filesystem starting at @racket[start-path], calling
-@racket[proc] on each discovered file, directory, and link. If
-@racket[start-path] is @racket[#f], then the traversal starts from
-@racket[(current-directory)].
+从 @racket[start-path] 开始遍历文件系统，
+对每个发现的文件、目录和链接调用 @racket[proc]。
+如果 @racket[start-path] 是 @racket[#f]，则遍历从 @racket[(current-directory)] 开始。
 
-The @racket[proc] procedure is called with three arguments for each
-file, directory, or link:
+@racket[proc] 过程对每个文件、目录或链接使用三个参数调用：
 
 @itemize[
 
- @item{If @racket[start-path] is @racket[#f], the first argument is a
- pathname string that is relative to the current directory. Otherwise,
- the first argument is a pathname that starts with
- @racket[start-path]. Consequently, supplying
- @racket[(current-directory)] for @racket[start-path] is different
- from supplying @racket[#f], because @racket[proc] receives complete
- paths in the former case and relative paths in the latter. Another
- difference is that @racket[proc] is not called for the current
- directory when @racket[start-path] is @racket[#f].}
+ @item{如果 @racket[start-path] 是 @racket[#f]，则第一个参数是相对于当前目录的路径名字符串。
+ 否则，第一个参数是以 @racket[start-path] 开头的路径名。因此，
+ 为 @racket[start-path] 提供 @racket[(current-directory)] 与提供 @racket[#f] 不同，
+ 因为在后一种情况下 @racket[proc] 接收相对路径，而在前一种情况下接收完整路径。
+ 另一个区别是当 @racket[start-path] 是 @racket[#f] 时，
+ @racket[proc] 不会为当前目录调用。}
 
- @item{The second argument is a symbol, either @racket['file],
- @racket['dir], or @racket['link]. The second argument can be
- @racket['link] when @racket[follow-links?] is @racket[#f],
- in which case the filesystem traversal does not follow links. If
- @racket[follow-links?] is @racket[#t], then @racket[proc]
- will only get a @racket['link] as a second argument when it
- encounters a dangling symbolic link (one that does not resolve to an
- existing file or directory).}
+ @item{第二个参数是符号，@racket['file]、@racket['dir] 或 @racket['link]。
+ 当 @racket[follow-links?] 为 @racket[#f] 时，第二个参数可以是 @racket['link]，
+ 在这种情况下文件系统遍历不跟随链接。如果 @racket[follow-links?] 为 @racket[#t]，
+ 则 @racket[proc] 仅在遇到悬空符号链接（不解析为现有文件或目录的链接）时
+ 才会将 @racket['link] 作为第二个参数接收。}
 
- @item{The third argument is the accumulated result. For the first
- call to @racket[proc], the third argument is @racket[init-val]. For the
- second call to @racket[proc] (if any), the third argument is the result
- from the first call, and so on. The result of the last call to
- @racket[proc] is the result of @racket[fold-files].}
+ @item{第三个参数是累积结果。对于 @racket[proc] 的第一次调用，
+ 第三个参数是 @racket[init-val]。对于 @racket[proc] 的第二次调用（如果有），
+ 第三次调用的第三个参数是第一次调用的结果，依此类推。
+ @racket[proc] 的最后一次调用的结果是 @racket[fold-files] 的结果。}
 
-]
+ ]
 
-The @racket[proc] argument is used in an analogous way to the
-procedure argument of @racket[foldl], where its result is used as the
-new accumulated result.  There is an exception for the case of a
-directory (when the second argument is @racket['dir]): in this case
-the procedure may return two values, the second indicating whether the
-recursive scan should include the given directory or not.  If it
-returns a single value, the directory is scanned.  In the cases of 
-files or links (when the second argument is @racket['file] or 
-@racket['link]), a second value is permitted but ignored.
+@racket[proc] 参数的使用方式类似于 @racket[foldl] 的过程参数，
+其结果用作新的累积结果。对于目录的情况（当第二个参数是 @racket['dir] 时）有一个例外：
+在这种情况下，过程可以返回两个值，第二个值指示是否应包含给定目录的递归扫描。
+如果返回单个值，则扫描目录。对于文件或链接的情况
+（当第二个参数是 @racket['file] 或 @racket['link] 时），允许第二个值但被忽略。
 
-If the @racket[start-path] is provided but no such path exists, or if
-paths disappear during the scan, then an exception is raised.}
+如果提供了 @racket[start-path] 但这样的路径不存在，或者路径在扫描过程中消失，
+则引发异常。}
 
 
 @defproc[(make-directory* [path path-string?]) void?]{
 
-Creates directory specified by @racket[path], creating intermediate
-directories as necessary, and never failing if @racket[path] exists
-already.
+创建由 @racket[path] 指定的目录，必要时创建中间目录，
+如果 @racket[path] 已存在则永不失败。
 
-If @racket[path] is a relative path and the current directory does not
-exist, then @racket[make-directory*] will not create the current
-directory, because it considers only explicit elements of
-@racket[path].}
+如果 @racket[path] 是相对路径且当前目录不存在，
+则 @racket[make-directory*] 不会创建当前目录，
+因为它仅考虑 @racket[path] 的显式元素。}
 
 
 @defproc[(make-parent-directory* [path path-string?]) void?]{
 
-Creates the parent directory of the path specified by @racket[path],
-creating intermediate directories as necessary, and never failing if
-an ancestor of @racket[path] exists already.
+创建由 @racket[path] 指定的路径的父目录，
+必要时创建中间目录，如果 @racket[path] 的祖先已存在则永不失败。
 
-If @racket[path] is a filesystem root or a relative path with a single
-path element, then no directory is created. Like
-@racket[make-directory*], if @racket[path] is a relative path and the
-current directory does not exist, then @racket[make-parent-directory*]
-will not create it.
+如果 @racket[path] 是文件系统根目录或具有单个路径元素的相对路径，
+则不创建目录。像 @racket[make-directory*]，
+如果 @racket[path] 是相对路径且当前目录不存在，
+则 @racket[make-parent-directory*] 不会创建它。
 
 @history[#:added "6.1.1.3"]}
 
@@ -1451,88 +1156,61 @@ will not create it.
                               [compat-base-dir (or/c path-string? #f) base-dir])
          (and/c path? complete-path?)]{
 
-Creates a new temporary file and returns its path.
-Instead of merely generating a fresh file name, the file is
-actually created; this prevents other threads or processes from
-picking the same temporary name.
+创建一个新的临时文件并返回其路径。
+不仅仅是生成一个新的文件名，文件实际上被创建；
+这防止了其他线程或进程选择相同的临时名称。
 
-The @racket[template] argument must be a format string
-suitable for use with @racket[format] and one additional
-string argument (which will contain only digits). By
-default, if @racket[template] produces a relative path, it
-is combined with the result of
-@racket[(find-system-path 'temp-dir)] using
-@racket[build-path]; alternatively, @racket[template] may
-produce an absolute path, in which case
-@racket[(find-system-path 'temp-dir)] is not consulted. If
-@racket[base-dir] is provided and non-@racket[#false],
-@racket[template] must not produce a @tech{complete} path,
-and @racket[base-dir] will be used instead of
-@racket[(find-system-path 'temp-dir)]. Using
-@racket[base-dir] is generally more reliable than including
-directory components in @racket[template]: it avoids subtle
-bugs from manipulating paths as string and eleminates the
-need to sanitize @racket[format] escape sequences.
+@racket[template] 参数必须是适合与 @racket[format] 一起使用的格式字符串，
+带有一个额外的字符串参数（将仅包含数字）。默认情况下，
+如果 @racket[template] 产生相对路径，则它与 @racket[(find-system-path 'temp-dir)] 的结果
+使用 @racket[build-path] 组合；或者，@racket[template] 可以产生绝对路径，
+在这种情况下不参考 @racket[(find-system-path 'temp-dir)]。
+如果提供了 @racket[base-dir] 且非 @racket[#false]，
+则 @racket[template] 不得产生 @tech{完整} 路径，
+并且 @racket[base-dir] 将代替 @racket[(find-system-path 'temp-dir)] 使用。
+使用 @racket[base-dir] 通常比在 @racket[template] 中包含目录组件更可靠：
+它避免了操作路径作为字符串产生的微妙错误，并消除了清理 @racket[format] 转义序列的需要。
 
-On Windows, @racket[template] may produce an absolute path
-which is not a complete path (see @secref["windowspaths"])
-when @racket[base-dir] is absent or @racket[#f] (in which
-case it will be resolved relative to
-@racket[(current-directory)]) or if @racket[base-dir] is a
-drive specification (in which case it will be used as with
-@racket[build-path]). If @racket[base-dir] is any other kind
-of path, it is an error for @racket[template] to produce an
-absolute path.
+在 Windows 上，当 @racket[base-dir] 不存在或为 @racket[#f] 时，
+@racket[template] 可能产生不是完整路径的绝对路径（参见 @secref["windowspaths"]），
+在这种情况下它将相对于 @racket[(current-directory)] 解析，
+或者如果 @racket[base-dir] 是驱动器规格，则将与 @racket[build-path] 一起使用。
+如果 @racket[base-dir] 是任何其他类型的路径，则 @racket[template] 产生绝对路径是错误的。
 
-When the @racket[template] argument is not provided, if
-there is source location information for the callsite of
-@racket[make-temporary-file], a template string is generated
-based on the source location: the default is
-@racket["rkttmp~a"] only when no source location information
-is available (e.g@._ if @racket[make-temporary-file] is used
-in a higher-order position).
+当未提供 @racket[template] 参数时，
+如果 @racket[make-temporary-file] 的调用位置有源位置信息，
+则基于源位置生成模板字符串：默认值 @racket["rkttmp~a"] 仅在无源位置信息时可用
+（例如，当 @racket[make-temporary-file] 在高阶位置使用时）。
 
-If @racket[copy-from] is provided as path, the temporary file
-is created as a copy of the named file (using @racket[copy-file]). If
-@racket[copy-from] is @racket[#f], the temporary file is
-created as empty. As a special case, for backwards compatibility,
-if @racket[copy-from] is @racket['directory],
-then the temporary ``file'' is created as a directory:
-for clarity, prefer @racket[make-temporary-directory] for creating
-temporary directories.
+如果 @racket[copy-from] 作为路径提供，则临时文件创建为命名文件的副本
+（使用 @racket[copy-file]）。如果 @racket[copy-from] 是 @racket[#f]，
+则临时文件创建为空。作为特殊情况，为了向后兼容，
+如果 @racket[copy-from] 是 @racket['directory]，则临时``文件''创建为目录：
+为清晰起见，创建临时目录首选 @racket[make-temporary-directory]。
 
-When a temporary file is created, it is not opened for reading or
-writing when the path is returned. The client program calling
-@racket[make-temporary-file] is expected to open the file with the
-desired access and flags (probably using the @racket['truncate] flag;
-see @racket[open-output-file]) and to delete it when it is no longer
-needed.
+创建临时文件时，在返回路径时不会为读取或写入打开它。
+调用 @racket[make-temporary-file] 的客户端程序应使用所需的访问权限和标志打开文件
+（可能使用 @racket['truncate] 标志；参见 @racket[open-output-file]），
+并在不再需要时删除它。
 
-The by-position arguments @racket[compat-copy-from] and
-@racket[compat-base-dir] are for backwards compatibility:
-if provided, they take precedence over the @racket[#:copy-from] and
-@racket[#:base-dir] keyword variants.
-Supplying by-position arguments prevents @racket[make-temporary-file]
-from generating a @racket[template] using the source location.
+位置参数 @racket[compat-copy-from] 和 @racket[compat-base-dir] 用于向后兼容：
+如果提供，它们优先于 @racket[#:copy-from] 和 @racket[#:base-dir] 关键字变体。
+提供位置参数会阻止 @racket[make-temporary-file] 使用源位置生成 @racket[template]。
 
 @history[
  #:changed "8.4.0.3"
- @elem{Added the @racket[#:copy-from] and @racket[#:base-dir] arguments.}
+ @elem{添加了 @racket[#:copy-from] 和 @racket[#:base-dir] 参数。}
  ]}
 
 @defproc[(make-temporary-directory [template string? "rkttmp~a"]
                                    [#:base-dir base-dir (or/c path-string? #f) #f])
          (and/c path? complete-path?)]{
 
- Like @racket[make-temporary-file], but
- creates a directory, rather than a regular file.
+ 像 @racket[make-temporary-file]，但创建目录而不是常规文件。
 
- As with @racket[make-temporary-file], if the
- @racket[template] argument is not provided, a template
- string is generated from the source location of the call to
- @racket[make-temporary-directory] when possible: the default
- is @racket["rkttmp~a"] only when no source location
- information is available.
+ 与 @racket[make-temporary-file] 一样，如果未提供 @racket[template] 参数，
+ 当可能时，从调用 @racket[make-temporary-directory] 的源位置生成模板字符串：
+ 默认值 @racket["rkttmp~a"] 仅在无源位置信息时可用。
 
 @history[
  #:added "8.4.0.3"
@@ -1549,17 +1227,13 @@ from generating a @racket[template] using the source location.
                                        [#:base-dir base-dir (or/c path-string? #f) #f])
             (and/c path? complete-path?)])]{
 
- Like @racket[make-temporary-file] and
- @racket[make-temporary-directory], respectively, but, rather
- than using a template for @racket[format], the path is based
- on @racket[(bytes-append prefix generated suffix)], where
- @racket[generated] is a byte string chosen by the
- implementation to produce a unique path. If there is source
- location information for the callsite of
- @racket[make-temporary-file*] or
- @racket[make-temporary-directory*], @racket[generated] will
- incorporate that information. The resulting path is combined
- with @racket[base-dir] as with @racket[make-temorary-file].
+ 像 @racket[make-temporary-file] 和 @racket[make-temporary-directory]，
+ 但相对于用于 @racket[format] 的模板，路径基于
+ @racket[(bytes-append prefix generated suffix)]，
+ 其中 @racket[generated] 是实现选择的字节字符串，用于产生唯一路径。
+ 如果 @racket[make-temporary-file*] 或 @racket[make-temporary-directory*]
+ 的调用位置有源位置信息，@racket[generated] 将包含该信息。
+ 结果路径与 @racket[base-dir] 组合，如 @racket[make-temporary-file] 中一样。
 
  @history[
  #:added "8.4.0.3"
@@ -1571,42 +1245,30 @@ from generating a @racket[template] using the source location.
                                        [#:rename-fail-handler rename-fail-handler (or/c #f (exn:fail:filesystem? path? . -> . any)) #f])
          any]{
 
-Opens a temporary file for writing in the same directory as
-@racket[file], calls @racket[proc] to write to the temporary file, and
-then atomically (except on Windows) moves the temporary file in place of @racket[file].
-The move simply uses @racket[rename-file-or-directory] on Unix
-and Mac OS, and it uses @racket[rename-file-or-directory] on Windows
-if @racket[rename-fail-handler] is provided; otherwise, on Windows,
-the moves uses an extra rename step (see below) on Windows
-to avoid problems due to concurrent readers of @racket[file].
+在与 @racket[file] 相同的目录中打开一个临时文件进行写入，
+调用 @racket[proc] 写入临时文件，然后原子性地（Windows 除外）将临时文件移动到 @racket[file] 的位置。
+在 Unix 和 Mac OS 上，移动仅使用 @racket[rename-file-or-directory]，
+在 Windows 上，如果提供了 @racket[rename-fail-handler]，则使用 @racket[rename-file-or-directory]；
+否则，在 Windows 上使用额外的重命名步骤（见下文）以避免 @racket[file] 的并发读取者引起的问题。
 
-The @racket[proc] function is called with an output port for the
-temporary file, plus the path of the temporary file. The result of
-@racket[proc] is the result of @racket[call-with-atomic-output-file].
+@racket[proc] 函数使用临时文件的输出端口以及临时文件的路径调用。
+@racket[proc] 的结果是 @racket[call-with-atomic-output-file] 的结果。
 
-The @racket[call-with-atomic-output-file] function arranges to delete
-temporary files on exceptions.
+@racket[call-with-atomic-output-file] 函数安排在异常时删除临时文件。
 
-Windows prevents programs from deleting or replacing files that are
-open, but it allows renaming of open files. Therefore, on Windows,
-@racket[call-with-atomic-output-file] by default creates a second
-temporary file @racket[_extra-tmp-file], renames @racket[file] to
-@racket[_extra-tmp-file], renames the temporary file written by
-@racket[proc] to @racket[file], and finally deletes
-@racket[_extra-tmp-file]. Since that process is not atomic, however,
-@racket[rename-file-or-directory] is used if
-@racket[rename-fail-handler] is provided, where
-@racket[rename-file-or-directory] has some chance of being atomic,
-since that the source and destination of the moves will be in the same
-directory; any filesystem exception while attempting to rename the
-file is send to @racket[rename-fail-handler], which can
-re-@racket[raise] the exception or simply return to try again, perhaps
-after a delay. In addition to a filesystem exception, the
-@racket[rename-fail-handler] procedure also receives the temporary
-file path to be moved to @racket[path]. The
-@racket[rename-fail-handler] argument is used only on Windows.
+Windows 阻止程序删除或替换打开的文件，但允许重命名打开的文件。
+因此，在 Windows 上，@racket[call-with-atomic-output-file] 默认创建第二个临时文件
+@racket[_extra-tmp-file]，将 @racket[file] 重命名为 @racket[_extra-tmp-file]，
+将由 @racket[proc] 写入的临时文件重命名为 @racket[file]，最后删除 @racket[_extra-tmp-file]。
+然而，由于该过程不是原子的，如果提供了 @racket[rename-fail-handler]，
+则使用 @racket[rename-file-or-directory]，
+因为移动的源和目标将在同一目录中，@racket[rename-file-or-directory] 有原子的机会；
+尝试重命名文件时的任何文件系统异常都会发送到 @racket[rename-fail-handler]，
+它可以重新 @racket[raise] 异常或仅返回以重试，可能在延迟之后。
+除了文件系统异常，@racket[rename-fail-handler] 过程还接收要移动到 @racket[path] 的临时文件路径。
+@racket[rename-fail-handler] 参数仅在 Windows 上使用。
 
-@history[#:changed "7.1.0.6" @elem{Added the @racket[#:rename-fail-handler] argument.}]}
+@history[#:changed "7.1.0.6" @elem{添加了 @racket[#:rename-fail-handler] 参数。}]}
 
 
 @defproc[(get-preference [name symbol?]
@@ -1625,65 +1287,48 @@ file path to be moved to @racket[path]. The
                            #:lock-there timeout-lock-there)])
          any]{
 
-Extracts a preference value from the file designated by
-@racket[(find-system-path 'pref-file)], or by @racket[filename] if it
-is provided and is not @racket[#f].  In the former case, if the
-preference file doesn't exist, @racket[get-preferences] attempts to
-read an @elemref["old-prefs"]{old preferences file}, and then a
-@filepath{racket-prefs.rktd} file in the configuration directory
-(as reported by @racket[find-config-dir]), instead. If none of those
-files exists, the preference set is empty.
+从 @racket[(find-system-path 'pref-file)] 指定的文件中提取偏好值，
+或者如果提供了 @racket[filename] 且不为 @racket[#f]，则从 @racket[filename] 中提取。
+在前一种情况下，如果偏好文件不存在，@racket[get-preferences] 尝试读取
+@elemref["old-prefs"]{旧偏好文件}，然后读取配置目录中的 @filepath{racket-prefs.rktd} 文件
+（由 @racket[find-config-dir] 报告）。如果这些文件都不存在，偏好集为空。
 
-The preference file should contain a list of symbol--value lists
-written with the default parameter settings.  Keys
-starting with @racket[racket:], @racket[mzscheme:], @racket[mred:],
-and @racket[plt:] in any letter case are reserved for use by Racket
-implementors. If the preference file does not contain a list
-of symbol--value lists, an error is logged via @racket[log-error]
-and @racket[failure-thunk] is called.
+偏好文件应包含使用默认参数设置写入的符号-值列表的列表。
+以 @racket[racket:]、@racket[mzscheme:]、@racket[mred:] 和 @racket[plt:] 开头的键
+（任何字母大小写）保留给 Racket 实现者使用。
+如果偏好文件不包含符号-值列表的列表，则通过 @racket[log-error] 记录错误并调用 @racket[failure-thunk]。
 
-The result of @racket[get-preference] is the value associated with
-@racket[name] if it exists in the association list, or the result of
-calling @racket[failure-thunk] otherwise.
+@racket[get-preference] 的结果是如果 @racket[name] 存在于关联列表中则返回关联的值，
+否则返回调用 @racket[failure-thunk] 的结果。
 
-Preference settings are cached (weakly) across calls to
-@racket[get-preference], using @racket[(path->complete-path filename)]
-as a cache key. If @racket[flush-mode] is provided as @racket[#f], the
-cache is used instead of re-consulting the preferences file. If
-@racket[flush-mode] is provided as @racket['timestamp] (the default),
-then the cache is used only if the file has a timestamp that is the
-same as the last time the file was read. Otherwise, the file is
-re-consulted.
+偏好设置在 @racket[get-preference] 调用之间（弱）缓存，
+使用 @racket[(path->complete-path filename)] 作为缓存键。
+如果 @racket[flush-mode] 作为 @racket[#f] 提供，则使用缓存而不是重新查询偏好文件。
+如果 @racket[flush-mode] 作为 @racket['timestamp]（默认值）提供，
+则仅当文件的时间戳与上次读取文件的时间相同时才使用缓存。否则，重新查询文件。
 
-On platforms for which @racket[preferences-lock-file-mode] returns
-@racket['file-lock] and when @racket[use-lock?] is true,
-preference-file reading is guarded by a lock; multiple readers can
-share the lock, but writers take the lock exclusively. If the
-preferences file cannot be read because the lock is unavailable,
-@racket[lock-there] is called on the path of the lock file; if
-@racket[lock-there] is @racket[#f], an exception is raised. The
-default @racket[lock-there] handler retries about 5 times (with
-increasing delays between each attempt) before trying 
-@racket[timeout-lock-there], and the default @racket[timeout-lock-there] 
-triggers an exception.
+在 @racket[preferences-lock-file-mode] 返回 @racket['file-lock] 的平台上，
+当 @racket[use-lock?] 为真时，偏好文件读取由锁保护；多个读取者可以共享锁，但写入者独占获取锁。
+如果偏好文件因锁不可用而无法读取，则在锁文件的路径上调用 @racket[lock-there]；
+如果 @racket[lock-there] 是 @racket[#f]，则引发异常。
+默认的 @racket[lock-there] 处理程序重试约 5 次（每次尝试之间的延迟增加），
+然后尝试 @racket[timeout-lock-there]，默认的 @racket[timeout-lock-there] 触发异常。
 
-See also @racket[put-preferences]. For a more elaborate preference
-system, see @racket[preferences:get].
+另参见 @racket[put-preferences]。对于更精细的偏好系统，参见 @racket[preferences:get]。
 
-@elemtag["old-prefs"]{@bold{Old preferences files}}: When a
-@racket[filename] is not provided and the file indicated by
-@racket[(find-system-path 'pref-file)] does not exist, the following
-paths are checked for compatibility with old versions of Racket:
+@elemtag["old-prefs"]{@bold{旧偏好文件}}：当未提供 @racket[filename]
+且 @racket[(find-system-path 'pref-file)] 指示的文件不存在时，
+检查以下路径以兼容旧版本的 Racket：
 
 @itemlist[
 
- @item{Windows: @racket[(build-path (find-system-path 'pref-dir) 'up "PLT Scheme" "plt-prefs.ss")]}
+ @item{Windows：@racket[(build-path (find-system-path 'pref-dir) 'up "PLT Scheme" "plt-prefs.ss")]}
 
- @item{Mac OS: @racket[(build-path (find-system-path 'pref-dir) "org.plt-scheme.prefs.ss")]}
+ @item{Mac OS：@racket[(build-path (find-system-path 'pref-dir) "org.plt-scheme.prefs.ss")]}
 
- @item{Unix: @racket[(expand-user-path "~/.plt-scheme/plt-prefs.ss")]}
+ @item{Unix：@racket[(expand-user-path "~/.plt-scheme/plt-prefs.ss")]}
 
-]}
+ ]
 
 @defproc[(put-preferences [names (listof symbol?)]
                           [vals list?]
@@ -1691,57 +1336,39 @@ paths are checked for compatibility with old versions of Racket:
                           [filename (or/c #f path-string?) #f])
          void?]{
 
-Installs a set of preference values and writes all current values to
-the preference file designated by @racket[(find-system-path
-'pref-file)], or @racket[filename] if it is supplied and not
-@racket[#f].
+安装一组偏好值并将所有当前值写入由 @racket[(find-system-path 'pref-file)] 指定的偏好文件，
+或者如果提供了 @racket[filename] 且不为 @racket[#f]，则写入 @racket[filename]。
 
-The @racket[names] argument supplies the preference names, and
-@racket[vals] must have the same length as @racket[names]. Each
-element of @racket[vals] must be an instance of a built-in data type
-whose @racket[write] output is @racket[read]able (i.e., the
-@racket[print-unreadable] parameter is set to @racket[#f] while
-writing preferences).
+@racket[names] 参数提供偏好名称，@racket[vals] 必须与 @racket[names] 长度相同。
+@racket[vals] 的每个元素必须是内置数据类型的实例，
+其 @racket[write] 输出是 @racket[read] 可读的（即在写入偏好时将 @racket[print-unreadable] 参数设置为 @racket[#f]）。
 
-Current preference values are read from the preference file before
-updating, and a write lock is held starting before the file
-read, and lasting until after the preferences file is updated. The
-lock is implemented by the existence of a file in the same directory
-as the preference file; see @racket[preferences-lock-file-mode] for 
-more information. If the directory of the preferences file does
-not already exist, it is created.
+更新前从偏好文件读取当前偏好值，并在文件读取之前开始持有写锁，直到偏好文件更新后释放。
+锁通过在与偏好文件相同的目录中存在文件来实现；
+参见 @racket[preferences-lock-file-mode] 了解更多信息。
+如果偏好文件的目录不存在，则创建它。
 
-If the write lock is already held, then
-@racket[locked-proc] is called with a single argument: the path of the lock
-file. The default @racket[locked-proc] (used when the @racket[locked-proc] 
-argument is @racket[#f]) reports an error; an alternative
-thunk might wait a while and try again, or give the user the choice to
-delete the lock file (in case a previous update attempt encountered
-disaster and locks are implemented by the presence of the lock file).
+如果写锁已被持有，则 @racket[locked-proc] 使用单个参数调用：锁文件的路径。
+默认的 @racket[locked-proc]（当 @racket[locked-proc] 参数为 @racket[#f] 时使用）报告错误；
+替代的 thunk 可能等待一段时间然后重试，或者让用户选择删除锁文件
+（如果先前的更新尝试遇到灾难并且锁是通过锁文件的存在实现的）。
 
-If @racket[filename] is @racket[#f] or not supplied, and the
-preference file does not already exist, then values read from the
-@filepath{defaults} collection (if any) are written for preferences
-that are not mentioned in @racket[names].}
+如果 @racket[filename] 是 @racket[#f] 或未提供，且偏好文件不存在，
+则从 @filepath{defaults} 集合（如果有）读取的值将写入未在 @racket[names] 中提及的偏好。}
 
 
 @defproc[(preferences-lock-file-mode) (or/c 'exists 'file-lock)]{
 
-Reports the way that the lock file is used to implement
-preference-file locking on the current platform.
+报告当前平台上用于实现偏好文件锁定的锁文件使用方式。
 
-The @racket['exists] mode is currently used on all platforms except
-Windows. In @racket['exists] mode, the existence of the lock file
-indicates that a write lock is held, and readers need no lock (because
-the preferences file is atomically updated via
-@racket[rename-file-or-directory]).
+@racket['exists] 模式目前用于除 Windows 外的所有平台。
+在 @racket['exists] 模式下，锁文件的存在表示持有写锁，读取者不需要锁
+（因为偏好文件通过 @racket[rename-file-or-directory] 原子更新）。
 
-The @racket['file-lock] mode is currently used on Windows. In
-@racket['file-lock] mode, shared and exclusive locks (in the sense of
-@racket[port-try-file-lock?]) on the lock file reflect reader and
-writer locks on the preference-file content. (The preference file
-itself is not locked, because a lock would interfere with replacing
-the file via @racket[rename-file-or-directory].)}
+@racket['file-lock] 模式目前用于 Windows。在 @racket['file-lock] 模式下，
+锁文件上的共享和独占锁（在 @racket[port-try-file-lock?] 的意义上）
+反映偏好文件内容的读取者和写入者锁。
+（偏好文件本身未锁定，因为锁定会干扰通过 @racket[rename-file-or-directory] 替换文件。）}
 
 
 @defproc[(make-handle-get-preference-locked
@@ -1754,20 +1381,16 @@ the file via @racket[rename-file-or-directory].)}
           [#:max-delay max-delay real? 0.2])
          (path-string? . -> . any)]{
 
-Creates a procedure suitable for use as the @racket[#:lock-there]
-argument to @racket[get-preference], where the @racket[name],
-@racket[failure-thunk], @racket[flush-mode], and @racket[filename]
-are all passed on to @racket[get-preference] by the result procedure
-to retry the preferences lookup.
+创建一个适合用作 @racket[get-preference] 的 @racket[#:lock-there] 参数的过程，
+其中 @racket[name]、@racket[failure-thunk]、@racket[flush-mode] 和 @racket[filename]
+都传递给 @racket[get-preference] 由结果过程重试偏好查找。
 
-Before calling @racket[get-preference], the result procedure uses
-@racket[(sleep delay)] to pause. Then, if @racket[(* 2 delay)] is less
-than @racket[max-delay], the result procedure calls
-@racket[make-handle-get-preference-locked] to generate a new retry
-procedure to pass to @racket[get-preference], but with a
-@racket[delay] of @racket[(* 2 delay)]. If @racket[(* 2 delay)] is not
-less than @racket[max-delay], then @racket[get-preference] is called
-with the given @racket[lock-there], instead.}
+在调用 @racket[get-preference] 之前，结果过程使用 @racket[(sleep delay)] 暂停。
+然后，如果 @racket[(* 2 delay)] 小于 @racket[max-delay]，
+结果过程调用 @racket[make-handle-get-preference-locked] 生成新的重试过程
+传递给 @racket[get-preference]，但 @racket[delay] 为 @racket[(* 2 delay)]。
+如果 @racket[(* 2 delay)] 不小于 @racket[max-delay]，
+则使用给定的 @racket[lock-there] 调用 @racket[get-preference]。}
 
 @defproc[(call-with-file-lock/timeout
           [filename (or/c path-string? #f)]
@@ -1779,27 +1402,23 @@ with the given @racket[lock-there], instead.}
           [#:max-delay max-delay (and/c real? (not/c negative?)) 0.2])
          any]{
 
-Obtains a lock for the filename @racket[lock-file] and then calls
-@racket[thunk].  The @racket[filename] argument specifies a file path
-prefix that is used only to generate the lock filename when
-@racket[lock-file] is @racket[#f].  Specifically, when
-@racket[lock-file] is @racket[#f], then
-@racket[call-with-file-lock/timeout] uses @racket[make-lock-file-name]
-to build the lock filename. If the lock file does not yet exist, it is
-created; beware that the lock file is @emph{not} deleted by 
-@racket[call-with-file-lock/timeout].
+获取文件名 @racket[lock-file] 的锁，然后调用 @racket[thunk]。
+@racket[filename] 参数指定仅当 @racket[lock-file] 为 @racket[#f] 时用于生成锁文件名的文件路径前缀。
+具体来说，当 @racket[lock-file] 为 @racket[#f] 时，
+@racket[call-with-file-lock/timeout] 使用 @racket[make-lock-file-name] 构建锁文件名。
+如果锁文件尚不存在，则创建它；请注意，锁文件@emph{不会}被
+@racket[call-with-file-lock/timeout] 删除。
 
-When @racket[thunk] returns, 
-@racket[call-with-file-lock/timeout] releases the lock, returning the result of
-@racket[thunk]. The @racket[call-with-file-lock/timeout] function will retry
-after @racket[delay] seconds and continue retrying with exponential backoff
-until delay reaches @racket[max-delay]. If
-@racket[call-with-file-lock/timeout] fails to obtain the lock,
-@racket[failure-thunk] is called in tail position.  The @racket[kind] argument
-specifies whether the lock is @racket['shared] or @racket['exclusive]
-in the sense of @racket[port-try-file-lock?].
+当 @racket[thunk] 返回时，
+@racket[call-with-file-lock/timeout] 释放锁，返回 @racket[thunk] 的结果。
+@racket[call-with-file-lock/timeout] 函数将在 @racket[delay] 秒后重试，
+并以指数退避继续重试，直到延迟达到 @racket[max-delay]。
+如果 @racket[call-with-file-lock/timeout] 无法获取锁，
+则在尾部位置调用 @racket[failure-thunk]。@racket[kind] 参数指定锁是
+@racket['shared] 还是 @racket['exclusive]，在 @racket[port-try-file-lock?] 的意义上。
 
 }
+
 
 @examples[
   #:eval file-eval
@@ -1822,9 +1441,8 @@ in the sense of @racket[port-try-file-lock?].
                                  [name path-element?]) 
             path?])]{
 
-Creates a lock filename by prepending @racket["_LOCK"] on Windows
-(i.e., when @racket[cross-system-type] reports @racket['windows]) or
-@racket[".LOCK"] on other platforms to the file portion of the path.
+通过在 Windows 上（即当 @racket[cross-system-type] 报告 @racket['windows] 时）
+在文件路径的文件部分前添加 @racket["_LOCK"] 或在其他平台上添加 @racket[".LOCK"] 来创建锁文件名。
 
 @examples[
   #:eval file-eval
@@ -1857,9 +1475,8 @@ Creates a lock filename by prepending @racket["_LOCK"] on Windows
 @defthing[other-execute-bit          @#,racketvalfont{#o000001}]
 )]{
 
-Constants that are useful with @racket[file-or-directory-permissions],
-@racket[file-or-directory-stat] and bitwise operations such as
-@racket[bitwise-ior], and @racket[bitwise-and].}
+与 @racket[file-or-directory-permissions]、@racket[file-or-directory-stat]
+以及位运算（如 @racket[bitwise-ior] 和 @racket[bitwise-and]）一起使用的常量。}
 
 
 @examples[#:hidden #:eval file-eval

@@ -2,82 +2,34 @@
 @(require "utils.rkt" (for-label ffi/unsafe
                                  ffi/unsafe/collect-callback))
 
-@bc-title[#:tag "im:memoryalloc"]{Memory Allocation}
+@bc-title[#:tag "im:memoryalloc"]{内存分配}
 
 @section-index{memory}
 @section-index{garbage collection}
 
-Racket uses both @cppi{malloc} and allocation functions provided by a
-garbage collector. Foreign-function and embedding/extension C code may
-use either allocation method, keeping in mind that pointers to
-garbage-collectable blocks in @cpp{malloc}ed memory are invisible
-(i.e., such pointers will not prevent the block from being
-garbage-collected).
+Racket 同时使用 @cppi{malloc} 和垃圾收集器提供的分配函数。外部函数和嵌入/扩展 C 代码可以使用任一分配方法，但需注意垃圾可收集块的指针存储在 @cpp{malloc} 分配的内存中对收集器是不可见的 (即此类指针不会阻止该块被垃圾收集)。
 
-Racket CGC uses a conservative garbage collector.  This garbage
-collector normally only recognizes pointers to the beginning of
-allocated objects. Thus, a pointer into the middle of a GC-allocated
-string will normally not keep the string from being collected. The
-exception to this rule is that pointers saved on the stack or in
-registers may point to the middle of a collectable object.  Thus, it
-is safe to loop over an array by incrementing a local pointer
-variable.
+Racket CGC 使用保守垃圾收集器。此垃圾收集器通常只识别指向已分配对象开头的指针。因此，指向 GC 分配字符串中间的指针通常不会阻止该字符串被收集。此规则的例外是保存在栈上或寄存器中的指针可以指向可收集对象的中间。因此，通过递增局部指针变量来循环遍历数组是安全的。
 
-Racket 3m uses a precise garbage collector that moves objects
-during collection, in which case the C code must be instrumented to
-expose local pointer bindings to the collector, and to provide tracing
-procedures for (tagged) records containing pointers. This
-instrumentation is described further in @secref["im:3m"].
+Racket 3m 使用精确垃圾收集器，在收集期间移动对象，这种情况下 C 代码必须被工具化以向收集器暴露局部指针绑定，并为包含指针的 (带标签的) 记录提供遍历过程。此工具化在 @secref["im:3m"] 中有进一步描述。
 
-The basic collector allocation functions are:
+基本的收集器分配函数包括：
 
 @itemize[
 
- @item{@cppi{scheme_malloc} --- Allocates collectable memory that may
- contain pointers to collectable objects; for 3m, the memory must be
- an array of pointers (though not necessarily to collectable
- objects). The newly allocated memory is initially zeroed.}
+ @item{@cppi{scheme_malloc} --- 分配可能包含指向可收集对象指针的可收集内存；对于 3m，内存必须是 (但不一定指向可收集对象的) 指针数组。新分配的内存最初被清零。}
 
- @item{@cppi{scheme_malloc_atomic} --- Allocates collectable memory
- that does not contain pointers to collectable objects. If the memory
- does contain pointers, they are invisible to the collector and will
- not prevent an object from being collected. Newly allocated atomic
- memory is not necessarily zeroed.
+ @item{@cppi{scheme_malloc_atomic} --- 分配不包含指向可收集对象指针的可收集内存。如果内存确实包含指针，它们对收集器不可见，不会阻止对象被收集。新分配的原子内存不一定被清零。
 
- Atomic memory is used for strings or other blocks of memory which do
- not contain pointers. Atomic memory can also be used to store
- intentionally-hidden pointers.}
+ 原子内存用于字符串或不包含指针的其他内存块。原子内存也可用于存储有意隐藏的指针。}
 
- @item{@cppi{scheme_malloc_tagged} --- Allocates collectable memory
- that contains a mixture of pointers and atomic data. With the
- conservative collector, this function is the same
- as @cppi{scheme_malloc}, but on 3m, the type tag stored at the
- start of the block is used to determine the size and shape of the
- object for future garbage collection (as described
- in @secref["im:3m"]).}
+ @item{@cppi{scheme_malloc_tagged} --- 分配包含指针和原子数据混合的可收集内存。对于保守收集器，此函数与 @cppi{scheme_malloc} 相同，但在 3m 上，存储在块开头的类型标签用于确定未来垃圾收集时对象的大小和形状 (如 @secref["im:3m"] 中所述)。}
 
- @item{@cppi{scheme_malloc_allow_interior} --- Allocates an array of
- pointers with special treatment by 3m: the array is never moved by
- the garbage collector, references are allowed into the middle of the
- block, and even-valued pointers to the middle of the block prevent
- the block from being collected.  (Beware that the memory manager
- treats any odd-valued pointer as a fixnum, even if it refers to the
- middle of a block that allows interior pointers.) Use
- this procedure sparingly, because small, non-moving objects are
- handled less efficiently than movable objects by the 3m collector.
- This procedure is the same as @cppi{scheme_malloc} with the
- conservative collector, but in the that case, having @italic{only} a
- pointer into the interior will not prevent the array from being
- collected.}
+ @item{@cppi{scheme_malloc_allow_interior} --- 分配一个指针数组，在 3m 中进行特殊处理：该数组永远不会被垃圾收集器移动，允许引用指向块中间，指向块中间的偶数值指针可防止该块被收集。(注意，内存管理器将任何奇数值指针视为 fixnum，即使它指向允许内部指针的块中间。) 请谨慎使用此过程，因为小型不可移动对象在 3m 收集器中的处理效率低于可移动对象。对于保守收集器，此过程与 @cppi{scheme_malloc} 相同，但在这种情况下，仅具有指向内部的指针不会阻止数组被收集。}
 
- @item{@cppi{scheme_malloc_atomic_allow_interior} --- Like
- @cpp{scheme_malloc_allow_interior} for memory that does not
- contain pointers.}
+ @item{@cppi{scheme_malloc_atomic_allow_interior} --- 类似于 @cpp{scheme_malloc_allow_interior}，用于不包含指针的内存。}
 
- @item{@cppi{scheme_malloc_uncollectable} --- Allocates
- uncollectable memory that may contain pointers to collectable
- objects. There is no way to free the memory. The newly allocated
- memory is initially zeroed. This function is not available in 3m.}
+ @item{@cppi{scheme_malloc_uncollectable} --- 分配可能包含指向可收集对象指针的不可收集内存。无法释放此内存。新分配的内存最初被清零。此函数在 3m 中不可用。}
 
 ]
 

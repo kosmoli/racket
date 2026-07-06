@@ -36,7 +36,7 @@
                             [(null? (cdr l)) 'pair?]
                             [(eq? (car l) 'a) `(cons/c ,(loop (cdr l)) any/c)]
                             [(eq? (car l) 'd) `(cons/c any/c ,(loop (cdr l)))]))]
-              [equiv (let loop ([l xs])
+              [equiv (let loop ([l xs])]
                        (cond
                          [(null? l) 'v]
                          [(eq? (car l) 'a) #`(car #,(loop (cdr l)))]
@@ -74,40 +74,34 @@
                                                           (+ (syntax-span ex) 4))))]
                         [equiv equiv])
             #'(defproc (name [v contract]) any/c
-                "Returns " (racket equiv) "." (mz-examples example)))))]))
+                "返回 " (racket equiv) "。" (mz-examples example)))))]))
 
+@title[#:tag "pairs"]{序对与列表}
 
-@title[#:tag "pairs"]{Pairs and Lists}
+@guideintro["pairs"]{序对与列表}
 
-@guideintro["pairs"]{pairs and lists}
+一个 @deftech{序对}（pair）将恰好两个值组合在一起。第一个值通过 @racket[car] 过程访问，
+第二个值通过 @racket[cdr] 过程访问。序对是不可变的（但参见 @secref["mpairs"]）。
 
-A @deftech{pair} combines exactly two values. The first value is
-accessed with the @racket[car] procedure, and the second value is
-accessed with the @racket[cdr] procedure. Pairs are not mutable (but
-see @secref["mpairs"]).
+一个 @deftech{列表}（list）是递归定义的：它要么是常量 @racket[null]，要么是一个序对，
+其第二个值是一个列表。
 
-A @deftech{list} is recursively defined: it is either the constant
-@racket[null], or it is a pair whose second value is a list.
+列表可以用作单值序列（参见 @secref["sequences"]）。列表的元素作为序列的元素。
+另参见 @racket[in-list]。
 
-A list can be used as a single-valued sequence (see
-@secref["sequences"]). The elements of the list serve as elements
-of the sequence. See also @racket[in-list].
+可以使用仅不可变序对通过 @racket[read] 或 @racket[make-reader-graph] 创建循环数据结构。
+如果从一个序对开始，使用若干次 @racket[cdr] 后返回到起始序对，那么该序对就不是一个列表。
 
-Cyclic data structures can be created using only immutable pairs via
-@racket[read] or @racket[make-reader-graph]. If starting with a pair
-and using some number of @racket[cdr]s returns to the starting pair,
-then the pair is not a list.
-
-@see-read-print["pair" #:print "pairs"]{pairs and lists}
+@see-read-print["pair" #:print "pairs"]{序对与列表}
 
 
 @; ----------------------------------------
-@section{Pair Constructors and Selectors}
+@section{序对构造器与选择器}
 
 @defproc[(pair? [v any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[v] is a pair, @racket[#f] otherwise.
+如果 @racket[v] 是序对则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @mz-examples[
   (pair? 1)
@@ -120,8 +114,7 @@ Returns @racket[#t] if @racket[v] is a pair, @racket[#f] otherwise.
 @defproc[(null? [v any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[v] is the empty list, @racket[#f]
-otherwise.
+如果 @racket[v] 是空列表则返回 @racket[#t]，否则返回 @racket[#f]。
 
 @mz-examples[
   (null? 1)
@@ -133,9 +126,8 @@ otherwise.
 @defproc*[([(cons [a any/c] [d list?]) list?]
            [(cons [a any/c] [d any/c]) pair?])]{
 
-Returns a newly allocated pair whose first element is @racket[a] and
-second element is @racket[d].
-When @racket[d] is a list, the allocated pair is also a list.
+返回一个新分配的序对，其第一个元素是 @racket[a]，第二个元素是 @racket[d]。
+当 @racket[d] 是列表时，分配的序对也是一个列表。
 
 @mz-examples[
   (cons 1 2)
@@ -145,7 +137,7 @@ When @racket[d] is a list, the allocated pair is also a list.
 @defproc[(car [p pair?])
          any/c]{
 
-Returns the first element of the pair @racket[p].
+返回序对 @racket[p] 的第一个元素。
 
 @mz-examples[
   (car '(1 2))
@@ -155,7 +147,7 @@ Returns the first element of the pair @racket[p].
 @defproc[(cdr [p pair?])
          any/c]{
 
-Returns the second element of the pair @racket[p].
+返回序对 @racket[p] 的第二个元素。
 
 @mz-examples[
   (cdr '(1 2))
@@ -164,7 +156,7 @@ Returns the second element of the pair @racket[p].
 
 @defthing[null null?]{
 
-  The empty list.
+  空列表。
 
   @mz-examples[
     null
@@ -175,11 +167,8 @@ Returns the second element of the pair @racket[p].
 @defproc[(list? [v any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[v] is a list: either the empty list, or a
-pair whose second element is a list.  This procedure effectively takes
-constant time due to internal caching (so that any necessary traversals
-of pairs can in principle count as an extra cost of allocating the
-pairs).
+如果 @racket[v] 是列表则返回 @racket[#t]：要么是空列表，要么是第二个元素为列表的序对。
+由于内部缓存，该过程实际上花费恒定时间（因此任何必要的序对遍历在原则上都可以算作分配序对的额外成本）。
 
 @mz-examples[
   (list? '(1 2))
@@ -190,8 +179,7 @@ pairs).
 @defproc[(list [v any/c] ...)
          list?]{
 
-Returns a newly allocated list containing the @racket[v]s as its
-elements.
+返回一个新分配的列表，包含 @racket[v] 作为其元素。
 
 @mz-examples[
   (list 1 2 3 4)
@@ -201,9 +189,8 @@ elements.
 @defproc*[([(list* [v any/c] ... [tail list?]) list?]
            [(list* [v any/c] ... [tail any/c]) any/c])]{
 
-Like @racket[list], but the last argument is used as the tail of the
-result, instead of the final element.  The result is a list only if the
-last argument is a list.
+类似 @racket[list]，但最后一个参数用作结果的尾部，而不是最后一个元素。
+仅当最后一个参数是列表时，结果才是列表。
 
 @mz-examples[
  (list* 1 2 3)
@@ -214,10 +201,8 @@ last argument is a list.
                      [proc (exact-nonnegative-integer? . -> . any/c)])
          list?]{
 
-Creates a list of @racket[n] elements by applying @racket[proc] to the
-integers from @racket[0] to @racket[(sub1 n)] in order.  If
-@racket[_lst] is the resulting list, then @racket[(list-ref _lst _i)] is
-the value produced by @racket[(proc _i)].
+通过将 @racket[proc] 依次应用于从 @racket[0] 到 @racket[(sub1 n)] 的整数来创建包含 @racket[n] 个元素的列表。
+如果 @racket[_lst] 是结果列表，那么 @racket[(list-ref _lst _i)] 就是 @racket[(proc _i)] 产生的值。
 
 @mz-examples[
   (build-list 10 values)
@@ -225,13 +210,12 @@ the value produced by @racket[(proc _i)].
 
 
 @; ----------------------------------------
-@section{List Operations}
+@section{列表操作}
 
 @defproc[(length [lst list?])
          exact-nonnegative-integer?]{
 
-Returns the number of elements in @racket[lst]. This function takes
-time proportional to that length.
+返回 @racket[lst] 中的元素数量。此函数花费的时间与该长度成正比。
 
 @mz-examples[
   (length (list 1 2 3 4))
@@ -239,16 +223,14 @@ time proportional to that length.
 
 
 @defproc*[([(list-ref [lst list?] [pos exact-nonnegative-integer?]) any/c]
-           [(list-ref [lst pair?] [pos exact-nonnegative-integer?]) any/c])]{
+           [(list-ref [lst pair?] [pos exact-nonnegative-integer?]) any/c]{
 
-Returns the element of @racket[lst] at position @racket[pos], where the
-list's first element is position @racket[0].  If the list has
-@racket[pos] or fewer elements, then the @exnraise[exn:fail:contract].
+返回 @racket[lst] 中位置 @racket[pos] 处的元素，其中列表的第一个元素位于位置 @racket[0]。
+如果列表有 @racket[pos] 个或更少的元素，则 @exnraise[exn:fail:contract]。
 
-The @racket[lst] argument need not actually be a list; @racket[lst] must
-merely start with a chain of at least @racket[(add1 pos)] pairs.
+@racket[lst] 参数实际上不必是列表；@racket[lst] 必须至少以 @racket[(add1 pos)] 个序对组成的链开头。
 
-This function takes time proportional to @racket[pos].
+此函数花费的时间与 @racket[pos] 成正比。
 
 @mz-examples[
   (list-ref (list 'a 'b 'c) 0)
@@ -259,16 +241,14 @@ This function takes time proportional to @racket[pos].
 
 
 @defproc*[([(list-tail [lst list?] [pos exact-nonnegative-integer?]) list?]
-           [(list-tail [lst any/c] [pos exact-nonnegative-integer?]) any/c])]{
+           [(list-tail [lst any/c] [pos exact-nonnegative-integer?]) any/c]{
 
-Returns the list after the first @racket[pos] elements of @racket[lst].
-If the list has fewer than @racket[pos] elements, then the
-@exnraise[exn:fail:contract].
+返回 @racket[lst] 在第一个 @racket[pos] 个元素之后的列表。
+如果列表少于 @racket[pos] 个元素，则 @exnraise[exn:fail:contract]。
 
-The @racket[lst] argument need not actually be a list; @racket[lst]
-must merely start with a chain of at least @racket[pos] pairs.
+@racket[lst] 参数实际上不必是列表；@racket[lst] 必须至少以 @racket[pos] 个序对组成的链开头。
 
-This function takes time proportional to @racket[pos].
+此函数花费的时间与 @racket[pos] 成正比。
 
 @mz-examples[
   (list-tail (list 1 2 3 4 5) 2)
@@ -280,15 +260,12 @@ This function takes time proportional to @racket[pos].
 @defproc*[([(append [lst list?] ...) list?]
            [(append [lst list?] ... [v any/c]) any/c])]{
 
-When given all list arguments, the result is a list that contains all of
-the elements of the given lists in order.  The last argument is used
-directly in the tail of the result.
+当所有参数都是列表时，结果是按顺序包含所有给定列表元素的列表。
+最后一个参数直接用作结果的尾部。
 
-The last argument need not be a list, in which case the result is an
-``improper list.''
+最后一个参数不必是列表，在这种情况下结果是一个``非正常列表''（improper list）。
 
-This function takes time proportional to the length of all arguments
-(added together) except the last argument.
+此函数花费的时间与所有参数（除最后一个外）的长度之和成正比。
 
 @mz-examples[
   (append (list 1 2) (list 3 4))
@@ -297,26 +274,23 @@ This function takes time proportional to the length of all arguments
 
 @defproc[(reverse [lst list?]) list?]{
 
-Returns a list that has the same elements as @racket[lst], but in
-reverse order.
+返回一个与 @racket[lst] 具有相同元素但顺序相反的列表。
 
-This function takes time proportional to the length of @racket[lst].
+此函数花费的时间与 @racket[lst] 的长度成正比。
 
 @mz-examples[
   (reverse (list 1 2 3 4))]}
 
 
 @; ----------------------------------------
-@section{List Iteration}
+@section{列表迭代}
 
 @defproc[(map [proc procedure?] [lst list?] ...+)
          list?]{
 
-Applies @racket[proc] to the elements of the @racket[lst]s from the
-first elements to the last.  The @racket[proc] argument must accept the
-same number of arguments as the number of supplied @racket[lst]s, and
-all @racket[lst]s must have the same number of elements.  The result is
-a list containing each result of @racket[proc] in order.
+将 @racket[proc] 应用于 @racket[lst] 的元素，从第一个元素到最后一个元素。
+@racket[proc] 参数必须接受与提供的 @racket[lst] 数量相同的参数，
+并且所有 @racket[lst] 必须具有相同数量的元素。结果是一个按顺序包含 @racket[proc] 每个结果的列表。
 
 @mz-examples[
   (map (lambda (number)
@@ -331,28 +305,22 @@ a list containing each result of @racket[proc] in order.
 @defproc[(andmap [proc procedure?] [lst list?] ...+)
          any]{
 
-Similar to @racket[map] in the sense that @racket[proc] is applied to
-each element of @racket[lst], but
+类似于 @racket[map]，因为 @racket[proc] 被应用于 @racket[lst] 的每个元素，但
 
-@margin-note{The @racket[andmap] function is actually closer to
-  @racket[foldl] than @racket[map], since @racket[andmap] doesn't
-  produce a list.  Still, @racket[(andmap f (list x y z))] is equivalent
-  to @racket[(and (f x) (f y) (f z))] in the same way that
-  @racket[(map f (list x y z))] is equivalent to
-  @racket[(list (f x) (f y) (f z))].}
+@margin-note{@racket[andmap] 函数实际上更接近 @racket[foldl] 而不是 @racket[map]，
+  因为 @racket[andmap] 不产生列表。尽管如此，@racket[(andmap f (list x y z))] 等价于
+  @racket[(and (f x) (f y) (f z))]，正如 @racket[(map f (list x y z))] 等价于
+  @racket[(list (f x) (f y) (f z))]。}
 
 @itemize[
 
- @item{the result is @racket[#f] if any application of @racket[proc]
-       produces @racket[#f], in which case @racket[proc] is not applied
-       to later elements of the @racket[lst]s; and}
+ @item{如果 @racket[proc] 的任何应用产生 @racket[#f]，则结果为 @racket[#f]，
+       在这种情况下 @racket[proc] 不会应用于 @racket[lst] 的后续元素；并且}
 
- @item{the result is that of @racket[proc] applied to the last elements
-       of the @racket[lst]s; more specifically, the application of
-       @racket[proc] to the last elements in the @racket[lst]s is in tail
-       position with respect to the @racket[andmap] call.}]
+ @item{结果是 @racket[proc] 应用于 @racket[lst] 的最后一个元素的结果；
+       更具体地说，@racket[proc] 在最后一个元素上的应用处于 @racket[andmap] 调用的尾部位置。}]
 
-If the @racket[lst]s are empty, then @racket[#t] is returned.
+如果 @racket[lst] 为空，则返回 @racket[#t]。
 
 @mz-examples[
   (andmap positive? '(1 2 3))
@@ -364,26 +332,21 @@ If the @racket[lst]s are empty, then @racket[#t] is returned.
 @defproc[(ormap [proc procedure?] [lst list?] ...+)
          any]{
 
-Similar to @racket[map] in the sense that @racket[proc] is applied to
-each element of @racket[lst], but
+类似于 @racket[map]，因为 @racket[proc] 被应用于 @racket[lst] 的每个元素，但
 
-@margin-note{To continue the @racket[andmap] note above,
-  @racket[(ormap f (list x y z))] is equivalent to
-  @racket[(or (f x) (f y) (f z))].}
+@margin-note{继续上面的 @racket[andmap] 说明，
+  @racket[(ormap f (list x y z))] 等价于
+  @racket[(or (f x) (f y) (f z))]。}
 
 @itemize[
 
- @item{the result is @racket[#f] if every application of @racket[proc]
-       produces @racket[#f]; and}
+ @item{如果 @racket[proc] 的每次应用都产生 @racket[#f]，则结果为 @racket[#f]；并且}
 
- @item{the result is that of the first application of @racket[proc]
-       producing a value other than @racket[#f], in which case
-       @racket[proc] is not applied to later elements of the
-       @racket[lst]s; the application of @racket[proc] to the last
-       elements of the @racket[lst]s is in tail position with respect to
-       the @racket[ormap] call.}]
+ @item{结果是 @racket[proc] 第一次产生非 @racket[#f] 值的应用结果，
+       在这种情况下 @racket[proc] 不会应用于 @racket[lst] 的后续元素；
+       @racket[proc] 在最后一个元素上的应用处于 @racket[ormap] 调用的尾部位置。}]
 
-If the @racket[lst]s are empty, then @racket[#f] is returned.
+如果 @racket[lst] 为空，则返回 @racket[#f]。
 
 @mz-examples[
   (ormap eq? '(a b c) '(a b c))
@@ -394,8 +357,8 @@ If the @racket[lst]s are empty, then @racket[#f] is returned.
 @defproc[(for-each [proc procedure?] [lst list?] ...+)
          void?]{
 
-Similar to @racket[map], but @racket[proc] is called only for its
-effect, and its result (which can be any number of values) is ignored.
+类似于 @racket[map]，但 @racket[proc] 仅为了其副作用而被调用，
+其结果（可以是任意数量的值）被忽略。
 
 @mz-examples[
   (for-each (lambda (arg)
@@ -407,24 +370,16 @@ effect, and its result (which can be any number of values) is ignored.
 @defproc[(foldl [proc procedure?] [init any/c] [lst list?] ...+)
          any/c]{
 
-Like @racket[map], @racket[foldl] applies a procedure to the elements of
-one or more lists.  Whereas @racket[map] combines the return values into
-a list, @racket[foldl] combines the return values in an arbitrary way
-that is determined by @racket[proc].
+像 @racket[map] 一样，@racket[foldl] 将一个过程应用于一个或多个列表的元素。
+而 @racket[map] 将返回值组合成一个列表，@racket[foldl] 以 @racket[proc] 确定的任意方式组合返回值。
 
-If @racket[foldl] is called with @math{n} lists, then @racket[proc] must
-take @math{n+1} arguments.  The extra argument is the combined return
-values so far.  The @racket[proc] is initially invoked with the first
-item of each list, and the final argument is @racket[init].  In
-subsequent invocations of @racket[proc], the last argument is the return
-value from the previous invocation of @racket[proc].  The input
-@racket[lst]s are traversed from left to right, and the result of the
-whole @racket[foldl] application is the result of the last application
-of @racket[proc].  If the @racket[lst]s are empty, the result is
-@racket[init].
+如果 @racket[foldl] 以 @math{n} 个列表调用，那么 @racket[proc] 必须接受 @math{n+1} 个参数。
+额外的参数是到目前为止组合的返回值。@racket[proc] 最初以每个列表的第一项调用，
+最终参数是 @racket[init]。在后续调用中，最后一个参数是 @racket[proc] 前一次调用的返回值。
+输入 @racket[lst] 从左到右遍历，整个 @racket[foldl] 应用的结果是 @racket[proc] 最后一次应用的结果。
+如果 @racket[lst] 为空，结果是 @racket[init]。
 
-Unlike @racket[foldr], @racket[foldl] processes the @racket[lst]s in
-constant space (plus the space for each call to @racket[proc]).
+与 @racket[foldr] 不同，@racket[foldl] 在恒定空间（加上每次调用 @racket[proc] 的空间）中处理 @racket[lst]。
 
 @mz-examples[
   (foldl cons '() '(1 2 3 4))
@@ -439,10 +394,8 @@ constant space (plus the space for each call to @racket[proc]).
 @defproc[(foldr [proc procedure?] [init any/c] [lst list?] ...+)
          any/c]{
 
-Like @racket[foldl], but the lists are traversed from right to left.
-Unlike @racket[foldl], @racket[foldr] processes the @racket[lst]s in
-space proportional to the length of @racket[lst]s (plus the space for
-each call to @racket[proc]).
+像 @racket[foldl]，但列表从右到左遍历。
+与 @racket[foldl] 不同，@racket[foldr] 在 @racket[lst] 长度成正比的空间（加上每次调用 @racket[proc] 的空间）中处理 @racket[lst]。
 
 @mz-examples[
   (foldr cons '() '(1 2 3 4))
@@ -457,18 +410,17 @@ each call to @racket[proc]).
 
 
 @; ----------------------------------------
-@section{More List Iteration}
+@section{更多列表迭代}
 
 @note-lib-only[racket/list/iteration]
 
-The bindings in this section are provided by the @racket[sequence-tools-lib] package,
-which acts as an extension to the base sequence libraries.
+本节中的绑定由 @racket[sequence-tools-lib] 包提供，
+它作为基本序列库的扩展。
 
 @defproc[(running-foldl [proc procedure?] [init any/c] [lst list?] ...+)
          list?]{
 
-Like @racket[foldl], but produces a list containing all the results of applying 
-@racket[proc] as well as the initial accumulator.
+像 @racket[foldl]，但产生一个包含应用 @racket[proc] 的所有结果以及初始累加器的列表。
 
 @examples[#:eval list-eval
   (running-foldl + 0 '(1 2 3))
@@ -483,8 +435,7 @@ Like @racket[foldl], but produces a list containing all the results of applying
 @defproc[(running-foldr [proc procedure?] [init any/c] [lst list?] ...+)
          list?]{
 
-Like @racket[running-foldl], but produces the intermediate results from the right
-like @racket[foldr].
+像 @racket[running-foldl]，但从右侧产生中间结果，像 @racket[foldr]。
 
 @examples[#:eval list-eval
   (running-foldr + 0 '(1 2 3))
@@ -497,14 +448,13 @@ like @racket[foldr].
 
 
 @; ----------------------------------------
-@section{List Filtering}
+@section{列表过滤}
 
 @defproc[(filter [pred procedure?] [lst list?])
          list?]{
 
-Returns a list with the elements of @racket[lst] for which @racket[pred]
-produces a true value.  The @racket[pred] procedure is applied to each
-element from first to last.
+返回一个列表，包含 @racket[lst] 中 @racket[pred] 产生真值的元素。
+@racket[pred] 过程应用于从第一个到最后一个的每个元素。
 
 @mz-examples[
   (filter positive? '(1 -2 3 4 -5))]}
@@ -513,12 +463,11 @@ element from first to last.
 @defproc[(remove [v any/c] [lst list?] [proc procedure? equal?])
          list?]{
 
-Returns a list that is like @racket[lst], omitting the first element of
-@racket[lst] that is equal to @racket[v] using the comparison procedure
-@racket[proc] (which must accept two arguments),
-with @racket[v] as the first argument and an element in @racket[lst] as the second argument.
-If no element in @racket[lst] is equal to @racket[v] (according to @racket[proc]),
-@racket[lst] is returned unchanged.
+返回一个类似 @racket[lst] 的列表，省略 @racket[lst] 中第一个使用比较过程 @racket[proc]
+（必须接受两个参数）等于 @racket[v] 的元素，其中 @racket[v] 作为第一个参数，
+@racket[lst] 中的元素作为第二个参数。
+如果 @racket[lst] 中没有元素等于 @racket[v]（根据 @racket[proc]），
+则 @racket[lst] 原样返回。
 
 @mz-examples[
   (remove 2 (list 1 2 3 2 4))
@@ -529,14 +478,13 @@ If no element in @racket[lst] is equal to @racket[v] (according to @racket[proc]
   (remove 5 (list 1 2 3 2 4))]
 
 @history[#:changed "8.2.0.2"
-         @elem{Guaranteed that the output is @racket[eq?] to @racket[lst]
-               if no removal occurs.}]}
+         @elem{保证如果没有发生移除，输出在 @racket[eq?] 意义上等于 @racket[lst]。}]}
 
 
 @defproc[(remq [v any/c] [lst list?])
          list?]{
 
-Returns @racket[(remove v lst eq?)].
+返回 @racket[(remove v lst eq?)]。
 
 @mz-examples[
   (remq 2 (list 1 2 3 4 5))
@@ -548,7 +496,7 @@ Returns @racket[(remove v lst eq?)].
 @defproc[(remv [v any/c] [lst list?])
          list?]{
 
-Returns @racket[(remove v lst eqv?)].
+返回 @racket[(remove v lst eqv?)]。
 
 @mz-examples[
   (remv 2 (list 1 2 3 4 5))
@@ -560,7 +508,7 @@ Returns @racket[(remove v lst eqv?)].
 @defproc[(remw [v any/c] [lst list?])
          list?]{
 
-Returns @racket[(remove v lst equal-always?)].
+返回 @racket[(remove v lst equal-always?)]。
 
 @mz-examples[
   (remw 2 (list 1 2 3 4 5))
@@ -577,21 +525,19 @@ Returns @racket[(remove v lst equal-always?)].
 @defproc[(remove* [v-lst list?] [lst list?] [proc procedure? equal?])
          list?]{
 
-Like @racket[remove], but removes from @racket[lst] every instance of
-every element of @racket[v-lst].
+像 @racket[remove]，但从 @racket[lst] 中移除 @racket[v-lst] 中每个元素的所有实例。
 
 @mz-examples[
   (remove* (list 1 2) (list 1 2 3 2 4 5 2))]
 
 @history[#:changed "8.2.0.2"
-         @elem{Guaranteed that the output is @racket[eq?] to @racket[lst]
-               if no removal occurs.}]}
+         @elem{保证如果没有发生移除，输出在 @racket[eq?] 意义上等于 @racket[lst]。}]}
 
 
 @defproc[(remq* [v-lst list?] [lst list?])
          list?]{
 
-Returns @racket[(remove* v-lst lst eq?)].
+返回 @racket[(remove* v-lst lst eq?)]。
 
 @mz-examples[
   (remq* (list 1 2) (list 1 2 3 2 4 5 2))]}
@@ -600,7 +546,7 @@ Returns @racket[(remove* v-lst lst eq?)].
 @defproc[(remv* [v-lst list?] [lst list?])
          list?]{
 
-Returns @racket[(remove* v-lst lst eqv?)].
+返回 @racket[(remove* v-lst lst eqv?)]。
 
 @mz-examples[
   (remv* (list 1 2) (list 1 2 3 2 4 5 2))]}
@@ -609,7 +555,7 @@ Returns @racket[(remove* v-lst lst eqv?)].
 @defproc[(remw* [v-lst list?] [lst list?])
          list?]{
 
-Returns @racket[(remove* v-lst lst equal-always?)].
+返回 @racket[(remove* v-lst lst equal-always?)]。
 
 @mz-examples[
   (remw* (list 1 2) (list 1 2 3 2 4 5 2))
@@ -625,42 +571,33 @@ Returns @racket[(remove* v-lst lst equal-always?)].
                [#:cache-keys? cache-keys? boolean? #f])
          list?]{
 
-Returns a list sorted according to the @racket[less-than?] procedure,
-which takes two elements of @racket[lst] and returns a true value if the
-first is less (i.e., should be sorted earlier) than the second.
+返回一个根据 @racket[less-than?] 过程排序的列表，
+该过程接受 @racket[lst] 的两个元素，如果第一个小于第二个（即应该排在前面）则返回真值。
 
-The sort is stable; if two elements of @racket[lst] are ``equal''
-(i.e., @racket[less-than?] does not return a true value when given the pair in
-either order), then the elements preserve their relative order from
-@racket[lst] in the output list.  To preserve this guarantee, use
-@racket[sort] with a strict comparison functions (e.g., @racket[<] or
-@racket[string<?]; not @racket[<=] or @racket[string<=?]).
+排序是稳定的；如果 @racket[lst] 的两个元素``相等''
+（即无论以何种顺序给出该对，@racket[less-than?] 都不返回真值），
+则这些元素在输出列表中保持其在 @racket[lst] 中的相对顺序。
+要保持此保证，请使用严格比较函数（例如 @racket[<] 或 @racket[string<?]；
+而不是 @racket[<=] 或 @racket[string<=?]）调用 @racket[sort]。
 
-@margin-note{Because of the peculiar fact that the IEEE-754 number system
-specifies that +nan.0 is neither greater nor less than nor equal to any other
-number, sorting lists containing this value may produce a surprising result.}
+@margin-note{由于 IEEE-754 数系的特殊事实，即 +nan.0 既不大于、也不小于、也不等于任何其他数字，
+包含此值的列表排序可能产生令人惊讶的结果。}
 
-The @racket[#:key] argument @racket[extract-key] is used to extract a
-key value for comparison from each list element, where @racket[#f]
-is replaced by @racket[(lambda (x) x)]  That is, the full
-comparison procedure is essentially
+@racket[#:key] 参数 @racket[extract-key] 用于从每个列表元素中提取用于比较的键值，
+其中 @racket[#f] 被替换为 @racket[(lambda (x) x)]。也就是说，完整的比较过程本质上是
 
 @racketblock[
   (lambda (x y)
     (less-than? (extract-key x) (extract-key y)))]
 
-By default, @racket[extract-key] is applied to two list elements for
-every comparison, but if @racket[cache-keys?] is true, then the
-@racket[extract-key] function is used exactly once for each list item.
-Supply a true value for @racket[cache-keys?] when @racket[extract-key]
-is an expensive operation; for example, if
-@racket[file-or-directory-modify-seconds] is used to extract a timestamp
-for every file in a list, then @racket[cache-keys?] should be
-@racket[#t] to minimize file-system calls, but if @racket[extract-key]
-is @racket[car], then @racket[cache-keys?]  should be @racket[#f].  As
-another example, providing @racket[extract-key] as
-@racket[(lambda (x) (random))] and @racket[#t] for @racket[cache-keys?]
-effectively shuffles the list.}
+默认情况下，@racket[extract-key] 应用于每次比较的两个列表元素，
+但如果 @racket[cache-keys?] 为真，则 @racket[extract-key] 函数对每个列表项仅使用一次。
+当 @racket[extract-key] 是昂贵操作时，应为 @racket[cache-keys?] 提供真值；
+例如，如果使用 @racket[file-or-directory-modify-seconds] 来提取列表中每个文件的时间戳，
+那么 @racket[cache-keys?] 应为 @racket[#t] 以最小化文件系统调用，
+但如果 @racket[extract-key] 是 @racket[car]，那么 @racket[cache-keys?] 应为 @racket[#f]。
+再举一例，将 @racket[extract-key] 提供为 @racket[(lambda (x) (random))] 且 @racket[cache-keys?] 为 @racket[#t]，
+实际上会对列表进行洗牌。
 
 @mz-examples[
   (sort '(1 3 4 2) <)
@@ -670,7 +607,7 @@ effectively shuffles the list.}
 
 
 @; ----------------------------------------
-@section{List Searching}
+@section{列表搜索}
 
 @defproc*[([(member [v any/c] [lst list?]
                     [is-equal? (any/c any/c . -> . any/c) equal?])
@@ -679,17 +616,13 @@ effectively shuffles the list.}
                     [is-equal? (any/c any/c . -> . any/c) equal?])
             any/c])]{
 
-Locates the first element of @racket[lst] that is equal to
-@racket[v] according to @racket[is-equal?].  If such an element exists, the tail of @racket[lst]
-starting with that element is returned.  Otherwise, the result is
-@racket[#f].
+定位 @racket[lst] 中第一个根据 @racket[is-equal?] 等于 @racket[v] 的元素。
+如果存在这样的元素，则返回从该元素开始的 @racket[lst] 尾部。
+否则，结果为 @racket[#f]。
 
-The @racket[lst] argument need not actually be a list; @racket[lst]
-must merely start with a chain of pairs until a matching element is
-found. If no matching element is found, then @racket[lst] must be a
-list (and not a cyclic list). The result can be a non-list in the case
-that an element is found and the returned tail of @racket[lst] is a
-non-list.
+@racket[lst] 参数实际上不必是列表；@racket[lst] 必须仅以序对链开头，直到找到匹配元素。
+如果未找到匹配元素，则 @racket[lst] 必须是列表（而不是循环列表）。
+在找到匹配元素且返回的 @racket[lst] 尾部是非列表的情况下，结果可以是非列表。
 
 @mz-examples[
   (member 2 (list 1 2 3 4))
@@ -703,7 +636,7 @@ non-list.
 @defproc*[([(memw [v any/c] [lst list?]) (or/c #f list?)]
            [(memw [v any/c] [lst any/c]) any/c])]{
 
-Like @racket[member], but finds an element using @racket[equal-always?].
+像 @racket[member]，但使用 @racket[equal-always?] 查找元素。
 
 @mz-examples[
   (memw 2 (list 1 2 3 4))
@@ -718,7 +651,7 @@ Like @racket[member], but finds an element using @racket[equal-always?].
 @defproc*[([(memv [v any/c] [lst list?]) (or/c #f list?)]
            [(memv [v any/c] [lst any/c]) any/c])]{
 
-Like @racket[member], but finds an element using @racket[eqv?].
+像 @racket[member]，但使用 @racket[eqv?] 查找元素。
 
 @mz-examples[
   (memv 2 (list 1 2 3 4))
@@ -728,7 +661,7 @@ Like @racket[member], but finds an element using @racket[eqv?].
 @defproc*[([(memq [v any/c] [lst list?]) (or/c #f list?)]
            [(memq [v any/c] [lst any/c]) any/c])]{
 
-Like @racket[member], but finds an element using @racket[eq?].
+像 @racket[member]，但使用 @racket[eq?] 查找元素。
 
 @mz-examples[
   (memq 2 (list 1 2 3 4))
@@ -738,9 +671,8 @@ Like @racket[member], but finds an element using @racket[eq?].
 @defproc*[([(memf [proc procedure?] [lst list?]) (or/c #f list?)]
            [(memf [proc procedure?] [lst any/c]) any/c])]{
 
-Like @racket[member], but finds an element using the predicate
-@racket[proc]; an element is found when @racket[proc] applied to the
-element returns a true value.
+像 @racket[member]，但使用谓词 @racket[proc] 查找元素；
+当 @racket[proc] 应用于元素返回真值时找到元素。
 
 @mz-examples[
   (memf (lambda (arg)
@@ -751,13 +683,12 @@ element returns a true value.
 @defproc*[([(findf [proc procedure?] [lst list?]) (or/c #f any/c)]
            [(findf [proc procedure?] [lst any/c]) any/c])]{
 
-Like @racket[memf], but returns the element or @racket[#f] instead of a
-tail of @racket[lst] or @racket[#f].
+像 @racket[memf]，但返回元素或 @racket[#f]，而不是 @racket[lst] 的尾部或 @racket[#f]。
 
-Notably, if @racket[#f] is an element of @racket[lst],
-then the result of @racket[#f] is ambiguous:
-it may indicate that no element satisfies @racket[proc],
-or may indicate that the element @racket[#f] satisfies @racket[proc].
+值得注意的是，如果 @racket[#f] 是 @racket[lst] 的元素，
+那么 @racket[#f] 的结果是模糊的：
+它可能表示没有元素满足 @racket[proc]，
+或者可能表示元素 @racket[#f] 满足 @racket[proc]。
 
 @mz-examples[
   (findf (lambda (arg)
@@ -774,15 +705,12 @@ or may indicate that the element @racket[#f] satisfies @racket[proc].
                    [is-equal? (any/c any/c . -> . any/c) equal?])
             pair?])]{
 
-Locates the first element of @racket[lst] whose @racket[car] is equal to
-@racket[v] according to @racket[is-equal?].  If such an element exists,
-the pair (i.e., an element of @racket[lst]) is returned.  Otherwise, the
-result is @racket[#f].
+定位 @racket[lst] 中第一个 @racket[car] 根据 @racket[is-equal?] 等于 @racket[v] 的元素。
+如果存在这样的元素，则返回该序对（即 @racket[lst] 的元素）。
+否则，结果为 @racket[#f]。
 
-The @racket[lst] argument need not actually be a list of pairs;
-@racket[lst] must merely start with a chain of pairs contains pairs
-until a matching element is found. If no matching element is found,
-then @racket[lst] must be a list of pairs (and not a cyclic list).
+@racket[lst] 参数实际上不必是序对列表；@racket[lst] 必须仅以包含序对的序对链开头，
+直到找到匹配元素。如果未找到匹配元素，则 @racket[lst] 必须是序对列表（而不是循环列表）。
 
 @mz-examples[
   (assoc 3 (list (list 1 2) (list 3 4) (list 5 6)))
@@ -795,7 +723,7 @@ then @racket[lst] must be a list of pairs (and not a cyclic list).
 @defproc*[([(assw [v any/c] [lst (listof pair?)]) (or/c pair? #f)]
            [(assw [v any/c] [lst (list*of pair? (not/c '()))]) pair?])]{
 
-Like @racket[assoc], but finds an element using @racket[equal-always?].
+像 @racket[assoc]，但使用 @racket[equal-always?] 查找元素。
 
 @mz-examples[
   (assw 3 (list (list 1 2) (list 3 4) (list 5 6)))
@@ -809,7 +737,7 @@ Like @racket[assoc], but finds an element using @racket[equal-always?].
 @defproc*[([(assv [v any/c] [lst (listof pair?)]) (or/c pair? #f)]
            [(assv [v any/c] [lst (list*of pair? (not/c '()))]) pair?])]{
 
-Like @racket[assoc], but finds an element using @racket[eqv?].
+像 @racket[assoc]，但使用 @racket[eqv?] 查找元素。
 
 @mz-examples[
   (assv 3 (list (list 1 2) (list 3 4) (list 5 6)))]}
@@ -818,7 +746,7 @@ Like @racket[assoc], but finds an element using @racket[eqv?].
 @defproc*[([(assq [v any/c] [lst (listof pair?)]) (or/c pair? #f)]
            [(assq [v any/c] [lst (list*of pair? (not/c '()))]) pair?])]{
 
-Like @racket[assoc], but finds an element using @racket[eq?].
+像 @racket[assoc]，但使用 @racket[eq?] 查找元素。
 
 @mz-examples[
   (assq 'c (list (list 'a 'b) (list 'c 'd) (list 'e 'f)))]}
@@ -827,9 +755,8 @@ Like @racket[assoc], but finds an element using @racket[eq?].
 @defproc*[([(assf [proc procedure?] [lst (listof pair?)]) (or/c pair? #f)]
            [(assf [proc procedure?] [lst (list*of pair? (not/c '()))]) pair?])]{
 
-Like @racket[assoc], but finds an element using the predicate
-@racket[proc]; an element is found when @racket[proc] applied to the
-@racket[car] of an @racket[lst] element returns a true value.
+像 @racket[assoc]，但使用谓词 @racket[proc] 查找元素；
+当 @racket[proc] 应用于 @racket[lst] 元素的 @racket[car] 返回真值时找到元素。
 
 @mz-examples[
   (assf (lambda (arg)
@@ -838,7 +765,7 @@ Like @racket[assoc], but finds an element using the predicate
 
 
 @; ----------------------------------------
-@section{Pair Accessor Shorthands}
+@section{序对访问器简写}
 
 @defc_r[a a '((1 2) 3 4)]
 @defc_r[a d '((1 2) 3 4)]
@@ -865,20 +792,20 @@ Like @racket[assoc], but finds an element using the predicate
 @defc_r[d a d a '((7 (5 4 3 2 1) 6) 8 9)]
 @defc_r[d a d d '(9 8 (6 5 4 3 2 1) 7)]
 @defc_r[d d a a '(((6 5 4 3 2 1) 7) 8 9)]
-@defc_r[d d a d '(9 (7 6 5 4 3 2 1) 8)]
+@defc_r[d a d '(9 (7 6 5 4 3 2 1) 8)]
 @defc_r[d d d a '((7 6 5 4 3 2 1) 8 9)]
 @defc_r[d d d d '(4 3 2 1)]
 
 
 @; ----------------------------------------
-@section{Additional List Functions and Synonyms}
+@section{附加列表函数与同义词}
 
 @note-lib[racket/list]
 
 
 @defthing[empty null?]{
 
-  The empty list.
+  空列表。
 
   @mz-examples[#:eval list-eval
     empty
@@ -888,7 +815,7 @@ Like @racket[assoc], but finds an element using the predicate
 @defproc[(cons? [v any/c])
          boolean?]{
 
-The same as @racket[(pair? v)].
+与 @racket[(pair? v)] 相同。
 
 @mz-examples[#:eval list-eval
   (cons? '(1 2))]}
@@ -897,7 +824,7 @@ The same as @racket[(pair? v)].
 @defproc[(empty? [v any/c])
          boolean?]{
 
-The same as @racket[(null? v)].
+与 @racket[(null? v)] 相同。
 
 @mz-examples[#:eval list-eval
   (empty? '(1 2))
@@ -907,7 +834,7 @@ The same as @racket[(null? v)].
 @defproc[(first [lst list?])
          any/c]{
 
-The same as @racket[(car lst)], but only for lists (that are not empty).
+与 @racket[(car lst)] 相同，但仅用于列表（非空）。
 
 @mz-examples[#:eval list-eval
   (first '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -916,7 +843,7 @@ The same as @racket[(car lst)], but only for lists (that are not empty).
 @defproc[(rest [lst list?])
          list?]{
 
-The same as @racket[(cdr lst)], but only for lists (that are not empty).
+与 @racket[(cdr lst)] 相同，但仅用于列表（非空）。
 
 @mz-examples[#:eval list-eval
   (rest '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -924,7 +851,7 @@ The same as @racket[(cdr lst)], but only for lists (that are not empty).
 
 @defproc[(second [lst list?]) any/c]{
 
-Returns the second element of the list.
+返回列表的第二个元素。
 
 @mz-examples[#:eval list-eval
   (second '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -932,7 +859,7 @@ Returns the second element of the list.
 
 @defproc[(third [lst list?]) any/c]{
 
-Returns the third element of the list.
+返回列表的第三个元素。
 
 @mz-examples[#:eval list-eval
   (third '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -940,7 +867,7 @@ Returns the third element of the list.
 
 @defproc[(fourth [lst list?]) any/c]{
 
-Returns the fourth element of the list.
+返回列表的第四个元素。
 
 @mz-examples[#:eval list-eval
   (fourth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -948,7 +875,7 @@ Returns the fourth element of the list.
 
 @defproc[(fifth [lst list?]) any/c]{
 
-Returns the fifth element of the list.
+返回列表的第五个元素。
 
 @mz-examples[#:eval list-eval
   (fifth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -956,7 +883,7 @@ Returns the fifth element of the list.
 
 @defproc[(sixth [lst list?]) any/c]{
 
-Returns the sixth element of the list.
+返回列表的第六个元素。
 
 @mz-examples[#:eval list-eval
   (sixth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -964,7 +891,7 @@ Returns the sixth element of the list.
 
 @defproc[(seventh [lst list?]) any/c]{
 
-Returns the seventh element of the list.
+返回列表的第七个元素。
 
 @mz-examples[#:eval list-eval
   (seventh '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -972,7 +899,7 @@ Returns the seventh element of the list.
 
 @defproc[(eighth [lst list?]) any/c]{
 
-Returns the eighth element of the list.
+返回列表的第八个元素。
 
 @mz-examples[#:eval list-eval
   (eighth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -980,7 +907,7 @@ Returns the eighth element of the list.
 
 @defproc[(ninth [lst list?]) any/c]{
 
-Returns the ninth element of the list.
+返回列表的第九个元素。
 
 @mz-examples[#:eval list-eval
   (ninth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -988,7 +915,7 @@ Returns the ninth element of the list.
 
 @defproc[(tenth [lst list?]) any/c]{
 
-Returns the tenth element of the list.
+返回列表的第十个元素。
 
 @mz-examples[#:eval list-eval
   (tenth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -996,7 +923,7 @@ Returns the tenth element of the list.
 
 @defproc[(eleventh [lst list?]) any/c]{
 
-Returns the eleventh element of the list.
+返回列表的第十一个元素。
 
 @mz-examples[#:eval list-eval
   (eleventh '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]
@@ -1006,7 +933,7 @@ Returns the eleventh element of the list.
 
 @defproc[(twelfth [lst list?]) any/c]{
 
-Returns the twelfth element of the list.
+返回列表的第十二个元素。
 
 @mz-examples[#:eval list-eval
   (twelfth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]
@@ -1016,7 +943,7 @@ Returns the twelfth element of the list.
 
 @defproc[(thirteenth [lst list?]) any/c]{
 
-Returns the thirteenth element of the list.
+返回列表的第十三个元素。
 
 @mz-examples[#:eval list-eval
   (thirteenth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]
@@ -1026,7 +953,7 @@ Returns the thirteenth element of the list.
 
 @defproc[(fourteenth [lst list?]) any/c]{
 
-Returns the fourteenth element of the list.
+返回列表的第十四个元素。
 
 @mz-examples[#:eval list-eval
   (fourteenth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]
@@ -1036,7 +963,7 @@ Returns the fourteenth element of the list.
 
 @defproc[(fifteenth [lst list?]) any/c]{
 
-Returns the fifteenth element of the list.
+返回列表的第十五个元素。
 
 @mz-examples[#:eval list-eval
   (fifteenth '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]
@@ -1046,9 +973,9 @@ Returns the fifteenth element of the list.
 
 @defproc[(last [lst list?]) any/c]{
 
-Returns the last element of the list.
+返回列表的最后一个元素。
 
-This function takes time proportional to the length of @racket[lst].
+此函数花费的时间与 @racket[lst] 的长度成正比。
 
 @mz-examples[#:eval list-eval
   (last '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))]}
@@ -1057,9 +984,9 @@ This function takes time proportional to the length of @racket[lst].
 @defproc[(last-pair [p pair?])
          pair?]{
 
-Returns the last pair of a (possibly improper) list.
+返回（可能非正常）列表的最后一个序对。
 
-This function takes time proportional to the ``length'' of @racket[p].
+此函数花费的时间与 @racket[p] 的``长度''成正比。
 
 @mz-examples[#:eval list-eval
   (last-pair '(1 2 3 4))]}
@@ -1068,8 +995,7 @@ This function takes time proportional to the ``length'' of @racket[p].
 @defproc[(make-list [k exact-nonnegative-integer?] [v any/c])
          list?]{
 
-Returns a newly constructed list of length @racket[k], holding
-@racket[v] in all positions.
+返回一个长度为 @racket[k] 的新构造列表，所有位置都保存 @racket[v]。
 
 @mz-examples[#:eval list-eval
   (make-list 7 'foo)]}
@@ -1079,36 +1005,34 @@ Returns a newly constructed list of length @racket[k], holding
                       [updater (-> any/c any/c)])
          list?]{
 
-Returns a list that is the same as @racket[lst] except at the specified index.
-The element at the specified index is @racket[(updater (list-ref lst pos))].
+返回一个与 @racket[lst] 相同的列表，除了指定索引处。
+指定索引处的元素是 @racket[(updater (list-ref lst pos))]。
 
-This function takes time proportional to @racket[pos].
+此函数花费的时间与 @racket[pos] 成正比。
 
 @examples[#:eval list-eval
 (list-update '(zero one two) 1 symbol->string)]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(list-set [lst list?]
                    [pos (and/c (>=/c 0) (</c (length lst)))]
                    [value any/c])
          list?]{
 
-Returns a list that is the same as @racket[lst] except at the specified index.
-The element at the specified index is @racket[value].
+返回一个与 @racket[lst] 相同的列表，除了指定索引处。
+指定索引处的元素是 @racket[value]。
 
-This function takes time proportional to @racket[pos].
+此函数花费的时间与 @racket[pos] 成正比。
 
 @examples[#:eval list-eval
 (list-set '(zero one two) 2 "two")]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(index-of [lst list?] [v any/c]
                    [is-equal? (any/c any/c . -> . any/c) equal?])
          (or/c exact-nonnegative-integer? #f)]{
-Like @racket[member], but returns the index of the first element found
-instead of the tail of the list.
+
+像 @racket[member]，但返回找到的第一个元素的索引，而不是列表的尾部。
                           
 @mz-examples[#:eval list-eval
   (index-of '(1 2 3 4) 3)]
@@ -1117,8 +1041,8 @@ instead of the tail of the list.
 
 @defproc[(index-where [lst list?] [proc (any/c . -> . any/c)])
          (or/c exact-nonnegative-integer? #f)]{
-Like @racket[index-of] but with the predicate-searching behavior of
-@racket[memf].
+
+像 @racket[index-of]，但具有 @racket[memf] 的谓词搜索行为。
 
 @mz-examples[#:eval list-eval
   (index-where '(1 2 3 4) even?)]
@@ -1128,8 +1052,8 @@ Like @racket[index-of] but with the predicate-searching behavior of
 @defproc[(indexes-of [lst list?] [v any/c]
                      [is-equal? (any/c any/c . -> . any/c) equal?])
          (listof exact-nonnegative-integer?)]{
-Like @racket[index-of], but returns the a list of all the indexes
-where the element occurs in the list instead of just the first one.
+
+像 @racket[index-of]，但返回元素在列表中出现的所有索引的列表，而不仅仅是第一个。
                           
 @mz-examples[#:eval list-eval
   (indexes-of '(1 2 1 2 1) 2)]
@@ -1138,8 +1062,8 @@ where the element occurs in the list instead of just the first one.
 
 @defproc[(indexes-where [lst list?] [proc (any/c . -> . any/c)])
          (listof exact-nonnegative-integer?)]{
-Like @racket[indexes-of] but with the predicate-searching behavior of
-@racket[index-where].
+
+像 @racket[indexes-of]，但具有 @racket[index-where] 的谓词搜索行为。
 
 @mz-examples[#:eval list-eval
   (indexes-where '(1 2 3 4) even?)]
@@ -1149,14 +1073,12 @@ Like @racket[indexes-of] but with the predicate-searching behavior of
 @defproc*[([(take [lst list?] [pos exact-nonnegative-integer?]) list?]
            [(take [lst any/c] [pos exact-nonnegative-integer?]) list?])]{
 
-Returns a fresh list whose elements are the first @racket[pos] elements
-of @racket[lst].  If @racket[lst] has fewer than @racket[pos] elements,
-the @exnraise[exn:fail:contract].
+返回一个新列表，其元素是 @racket[lst] 的前 @racket[pos] 个元素。
+如果 @racket[lst] 少于 @racket[pos] 个元素，则 @exnraise[exn:fail:contract]。
 
-The @racket[lst] argument need not actually be a list; @racket[lst]
-must merely start with a chain of at least @racket[pos] pairs.
+@racket[lst] 参数实际上不必是列表；@racket[lst] 必须至少以 @racket[pos] 个序对组成的链开头。
 
-This function takes time proportional to @racket[pos].
+此函数花费的时间与 @racket[pos] 成正比。
 
 @mz-examples[#:eval list-eval
   (take '(1 2 3 4 5) 2)
@@ -1166,7 +1088,7 @@ This function takes time proportional to @racket[pos].
 @defproc*[([(drop [lst list?] [pos exact-nonnegative-integer?]) list?]
            [(drop [lst any/c] [pos exact-nonnegative-integer?]) any/c])]{
 
-Just like @racket[list-tail].}
+与 @racket[list-tail] 完全相同。}
 
 
 @defproc*[([(split-at [lst list?] [pos exact-nonnegative-integer?])
@@ -1174,24 +1096,20 @@ Just like @racket[list-tail].}
            [(split-at [lst any/c] [pos exact-nonnegative-integer?])
             (values list? any/c)])]{
 
-Returns the same result as
+返回与
 
 @racketblock[(values (take lst pos) (drop lst pos))]
 
-except that it can be faster, but it will still take time
-proportional to @racket[pos].}
+相同的结果，但可能更快，不过仍然花费与 @racket[pos] 成正比的时间。}
 
 
 @defproc*[([(takef [lst list?] [pred procedure?]) list?]
            [(takef [lst any/c] [pred procedure?]) list?])]{
 
-Returns a fresh list whose elements are taken successively from
-@racket[lst] as long as they satisfy @racket[pred].  The returned list
-includes up to, but not including, the first element in @racket[lst] for
-which @racket[pred] returns @racket[#f].
+返回一个新列表，其元素从 @racket[lst] 中依次取出，只要它们满足 @racket[pred]。
+返回的列表包括直到（但不包括）@racket[lst] 中第一个 @racket[pred] 返回 @racket[#f] 的元素。
 
-The @racket[lst] argument need not actually be a list; the chain of
-pairs in @racket[lst] will be traversed until a non-pair is encountered.
+@racket[lst] 参数实际上不必是列表；@racket[lst] 中的序对链将被遍历，直到遇到非序对。
 
 @mz-examples[#:eval list-eval
   (takef '(2 4 5 8) even?)
@@ -1202,8 +1120,7 @@ pairs in @racket[lst] will be traversed until a non-pair is encountered.
 @defproc*[([(dropf [lst list?] [pred procedure?]) list?]
            [(dropf [lst any/c] [pred procedure?]) any/c])]{
 
-Drops elements from the front of @racket[lst] as long as they satisfy
-@racket[pred].
+从 @racket[lst] 的前端丢弃元素，只要它们满足 @racket[pred]。
 
 @mz-examples[#:eval list-eval
   (dropf '(2 4 5 8) even?)
@@ -1215,24 +1132,23 @@ Drops elements from the front of @racket[lst] as long as they satisfy
            [(splitf-at [lst any/c] [pred procedure?])
             (values list? any/c)])]{
 
-Returns the same result as
+返回与
 
 @racketblock[(values (takef lst pred) (dropf lst pred))]
 
-except that it can be faster.}
+相同的结果，但可能更快。}
 
 
 @defproc*[([(take-right [lst list?] [pos exact-nonnegative-integer?]) list?]
            [(take-right [lst any/c] [pos exact-nonnegative-integer?]) any/c])]{
 
-Returns the @racket[list]'s @racket[pos]-length tail. If @racket[lst]
-has fewer than @racket[pos] elements, then the
-@exnraise[exn:fail:contract].
+返回 @racket[list] 的 @racket[pos] 长度的尾部。如果 @racket[lst]
+少于 @racket[pos] 个元素，则 @exnraise[exn:fail:contract]。
 
-The @racket[lst] argument need not actually be a list; @racket[lst]
-must merely end with a chain of at least @racket[pos] pairs.
+@racket[lst] 参数实际上不必是列表；@racket[lst]
+必须至少以 @racket[pos] 个序对组成的链结尾。
 
-This function takes time proportional to the length of @racket[lst].
+此函数花费的时间与 @racket[lst] 的长度成正比。
 
 @mz-examples[#:eval list-eval
   (take-right '(1 2 3 4 5) 2)
@@ -1242,14 +1158,12 @@ This function takes time proportional to the length of @racket[lst].
 @defproc*[([(drop-right [lst list?] [pos exact-nonnegative-integer?]) list?]
            [(drop-right [lst any/c] [pos exact-nonnegative-integer?]) list?])]{
 
-Returns a fresh list whose elements are the prefix of @racket[lst],
-dropping its @racket[pos]-length tail.  If @racket[lst] has fewer than
-@racket[pos] elements, then the @exnraise[exn:fail:contract].
+返回一个新列表，其元素是 @racket[lst] 的前缀，丢弃其 @racket[pos] 长度的尾部。
+如果 @racket[lst] 少于 @racket[pos] 个元素，则 @exnraise[exn:fail:contract]。
 
-The @racket[lst] argument need not actually be a list; @racket[lst] must
-merely end with a chain of at least @racket[pos] pairs.
+@racket[lst] 参数实际上不必是列表；@racket[lst] 必须至少以 @racket[pos] 个序对组成的链结尾。
 
-This function takes time proportional to the length of @racket[lst].
+此函数花费的时间与 @racket[lst] 的长度成正比。
 
 @mz-examples[#:eval list-eval
   (drop-right '(1 2 3 4 5) 2)
@@ -1261,12 +1175,11 @@ This function takes time proportional to the length of @racket[lst].
            [(split-at-right [lst any/c] [pos exact-nonnegative-integer?])
             (values list? any/c)])]{
 
-Returns the same result as
+返回与
 
 @racketblock[(values (drop-right lst pos) (take-right lst pos))]
 
-except that it can be faster, but it will still take time proportional
-to the length of @racket[lst].
+相同的结果，但可能更快，不过仍然花费与 @racket[lst] 长度成正比的时间。
 
 @mz-examples[#:eval list-eval
   (split-at-right '(1 2 3 4 5 . 6) 4)
@@ -1282,58 +1195,51 @@ to the length of @racket[lst].
              [(splitf-at-right [lst any/c] [pred procedure?]) (values list? any/c)])]
 )]{
 
-Like @racket[takef], @racket[dropf], and @racket[splitf-at], but
-combined with the from-right functionality of @racket[take-right],
-@racket[drop-right], and @racket[split-at-right].}
+像 @racket[takef]、@racket[dropf] 和 @racket[splitf-at]，但
+与 @racket[take-right]、@racket[drop-right] 和 @racket[split-at-right] 的从右功能结合。}
 
 @defproc[(list-prefix? [l list?]
                        [r list?]
                        [same? (any/c any/c . -> . any/c) equal?])
          boolean?]{
- True if @racket[l] is a prefix of @racket[r].
+ 如果 @racket[l] 是 @racket[r] 的前缀则返回真。
 @examples[#:eval list-eval
 (list-prefix? '(1 2) '(1 2 3 4 5))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(take-common-prefix [l list?] [r list?]
                              [same? (any/c any/c . -> . any/c) equal?])
          list?]{
 
-  Returns the longest common prefix of @racket[l] and @racket[r].
+  返回 @racket[l] 和 @racket[r] 的最长公共前缀。
 
 @examples[#:eval list-eval
 (take-common-prefix '(a b c d) '(a b x y z))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(drop-common-prefix [l list?] [r list?]
                              [same? (any/c any/c . -> . any/c) equal?])
          (values list? list?)]{
 
-  Returns the tails of @racket[l] and @racket[r] with the common
-  prefix removed.
+  返回 @racket[l] 和 @racket[r] 的尾部，公共前缀已移除。
 
 @examples[#:eval list-eval
 (drop-common-prefix '(a b c d) '(a b x y z))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(split-common-prefix [l list?] [r list?]
                               [same? (any/c any/c . -> . any/c) equal?])
          (values list? list? list?)]{
 
-  Returns the longest common prefix together with the tails of
-  @racket[l] and @racket[r] with the common prefix removed.
+  返回最长公共前缀以及 @racket[l] 和 @racket[r] 的尾部（公共前缀已移除）。
 
 @examples[#:eval list-eval
 (split-common-prefix '(a b c d) '(a b x y z))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 
 @defproc[(add-between [lst list?] [v any/c]
@@ -1343,16 +1249,12 @@ combined with the from-right functionality of @racket[take-right],
                       [#:splice? splice? any/c #f])
          list?]{
 
-Returns a list with the same elements as @racket[lst], but with
-@racket[v] between each pair of elements in @racket[lst]; the last pair
-of elements will have @racket[before-last] between them, instead of
-@racket[v] (but @racket[before-last] defaults to @racket[v]).
+返回一个与 @racket[lst] 具有相同元素的列表，但在 @racket[lst] 的每对元素之间插入 @racket[v]；
+最后一对元素之间将插入 @racket[before-last]，而不是 @racket[v]（但 @racket[before-last] 默认为 @racket[v]）。
 
-If @racket[splice?] is true, then @racket[v] and @racket[before-last]
-should be lists, and the list elements are spliced into the result.  In
-addition, when @racket[splice?] is true, @racket[before-first] and
-@racket[after-last] are inserted before the first element and after the
-last element respectively.
+如果 @racket[splice?] 为真，则 @racket[v] 和 @racket[before-last] 应该是列表，
+并且列表元素被拼接到结果中。此外，当 @racket[splice?] 为真时，
+@racket[before-first] 和 @racket[after-last] 分别插入到第一个元素之前和最后一个元素之后。
 
 @mz-examples[#:eval list-eval
   (add-between '(x y z) 'and)
@@ -1365,13 +1267,11 @@ last element respectively.
 
 @defproc*[([(append* [lst list?] ... [lsts (listof list?)]) list?]
            [(append* [lst list?] ... [lsts list?]) any/c])]{
-@; Note: this is exactly the same description as the one for string-append*
 
-Like @racket[append], but the last argument is used as a list of
-arguments for @racket[append], so @racket[(append* lst ... lsts)] is the
-same as @racket[(apply append lst ... lsts)].  In other words, the
-relationship between @racket[append] and @racket[append*] is similar to
-the one between @racket[list] and @racket[list*].
+像 @racket[append]，但最后一个参数用作 @racket[append] 的参数列表，
+所以 @racket[(append* lst ... lsts)] 与 @racket[(apply append lst ... lsts)] 相同。
+换句话说，@racket[append] 和 @racket[append*] 之间的关系类似于
+@racket[list] 和 @racket[list*] 之间的关系。
 
 @mz-examples[#:eval list-eval
   (append* '(a) '(b) '((c) (d)))
@@ -1382,11 +1282,9 @@ the one between @racket[list] and @racket[list*].
 @defproc[(flatten [v any/c])
          list?]{
 
-Flattens an arbitrary S-expression structure of pairs into a list. More
-precisely, @racket[v] is treated as a binary tree where pairs are
-interior nodes, and the resulting list contains all of the
-non-@racket[null] leaves of the tree in the same order as an inorder
-traversal.
+将任意序对结构的 S-表达式展平为列表。
+更准确地说，@racket[v] 被视为二叉树，其中序对是内部节点，
+结果列表包含树的所有非 @racket[null] 叶子，顺序与中序遍历相同。
 
 @mz-examples[#:eval list-eval
   (flatten '((a) b (c (d) . e) ()))
@@ -1399,26 +1297,21 @@ traversal.
                            [#:default failure-result failure-result/c (lambda () #f)])
          any]{
 
-Returns the first duplicate item in @racket[lst]. More precisely, it
-returns the first @racket[_x] such that there was a previous
-@racket[_y] where @racket[(same? (extract-key _x) (extract-key _y))].
+返回 @racket[lst] 中的第一个重复项。更准确地说，
+返回第一个 @racket[_x]，使得存在前一个 @racket[_y]，其中 @racket[(same? (extract-key _x) (extract-key _y))]。
 
-If no duplicate is found, then @racket[failure-result] determines the 
-result:
+如果未找到重复项，则 @racket[failure-result] 决定结果：
 
 @itemize[
 
- @item{If @racket[failure-result] is a procedure, it is called
-       (through a tail call) with no arguments to produce the result.}
+ @item{如果 @racket[failure-result] 是过程，则调用它（通过尾部调用）不带参数以产生结果。}
 
- @item{Otherwise, @racket[failure-result] is returned as the result.}
+ @item{否则，@racket[failure-result] 作为结果返回。}
 
 ]
 
-The @racket[same?] argument should be an equivalence predicate such as
-@racket[equal?] or @racket[eqv?].
-The procedures @racket[equal?], @racket[eqv?], @racket[eq?], and @racket[equal-always?] automatically
-use a dictionary for speed.
+@racket[same?] 参数应该是等价谓词，如 @racket[equal?] 或 @racket[eqv?]。
+过程 @racket[equal?]、@racket[eqv?]、@racket[eq?] 和 @racket[equal-always?] 自动使用字典来提高速度。
 
 @examples[#:eval list-eval
 (check-duplicates '(1 2 3 4))
@@ -1430,7 +1323,8 @@ use a dictionary for speed.
 ]
 
 @history[#:added "6.3"
-         #:changed "6.11.0.2" @elem{Added the @racket[#:default] optional argument.}]}
+         #:changed "6.11.0.2" @elem{添加了 @racket[#:default] 可选参数。}]}
+
 
 @defproc[(remove-duplicates [lst list?]
                             [same? (any/c any/c . -> . any/c) equal?]
@@ -1438,19 +1332,16 @@ use a dictionary for speed.
                                    (lambda (x) x)])
          list?]{
 
-Returns a list that has all items in @racket[lst], but without duplicate
-items, where @racket[same?] determines whether two elements of the list
-are equivalent.  The resulting list is in the same order as
-@racket[lst], and for any item that occurs multiple times, the first one
-is kept.
+返回一个包含 @racket[lst] 中所有项但没有重复项的列表，
+其中 @racket[same?] 确定两个列表元素是否等价。
+结果列表与 @racket[lst] 顺序相同，对于多次出现的项，保留第一个。
 
-The @racket[#:key] argument @racket[extract-key] is used to extract a
-key value from each list element, so two items are considered equal if
-@racket[(same? (extract-key x) (extract-key y))] is true.
+@racket[#:key] 参数 @racket[extract-key] 用于从每个列表元素中提取键值，
+因此如果 @racket[(same? (extract-key x) (extract-key y))] 为真，则两项被视为相等。
 
-Like @racket[check-duplicates], if the @racket[same?] argument is one of
-@racket[equal?], @racket[eqv?], @racket[eq?], and @racket[equal-always?],
-the operation can be specialized to improve performance.
+像 @racket[check-duplicates]，如果 @racket[same?] 参数是
+@racket[equal?]、@racket[eqv?]、@racket[eq?] 和 @racket[equal-always?] 之一，
+操作可以专门化以提高性能。
 
 @mz-examples[#:eval list-eval
   (remove-duplicates '(a b b a))
@@ -1461,12 +1352,11 @@ the operation can be specialized to improve performance.
 @defproc[(filter-map [proc procedure?] [lst list?] ...+)
          list?]{
 
-Like @racket[(map proc lst ...)], except that, if @racket[proc]
-returns @racket[#false], that element is omitted from the resulting list. 
-In other words, @racket[filter-map] is equivalent to 
-@racket[(filter (lambda (x) x) (map proc lst ...))], but more efficient, 
-because @racket[filter-map] avoids
-building the intermediate list.
+像 @racket[(map proc lst ...)]，但如果 @racket[proc]
+返回 @racket[#false]，则该元素从结果列表中省略。
+换句话说，@racket[filter-map] 等价于
+@racket[(filter (lambda (x) x) (map proc lst ...))]，但更高效，
+因为 @racket[filter-map] 避免构建中间列表。
 
 @mz-examples[#:eval list-eval
   (filter-map (lambda (x) (and (negative? x) (abs x))) '(1 2 -3 -4 8))]}
@@ -1475,8 +1365,7 @@ building the intermediate list.
 @defproc[(count [proc procedure?] [lst list?] ...+)
          exact-nonnegative-integer?]{
 
-Returns @racket[(length (filter-map proc lst ...))], but without building
-the intermediate list.
+返回 @racket[(length (filter-map proc lst ...))]，但不构建中间列表。
 
 @mz-examples[#:eval list-eval
   (count positive? '(1 -1 2 3 -2 5))]}
@@ -1485,15 +1374,14 @@ the intermediate list.
 @defproc[(partition [pred procedure?] [lst list?])
          (values list? list?)]{
 
-Similar to @racket[filter], except that two values are returned: the
-items for which @racket[pred] returns a true value, and the items for
-which @racket[pred] returns @racket[#f].
+类似于 @racket[filter]，但返回两个值：
+@racket[pred] 返回真值的项，以及 @racket[pred] 返回 @racket[#f] 的项。
 
-The result is the same as
+结果与
 
 @racketblock[(values (filter pred lst) (filter (negate pred) lst))]
 
-but @racket[pred] is applied to each item in @racket[lst] only once.
+相同，但 @racket[pred] 仅应用于 @racket[lst] 中的每个项一次。
 
 @mz-examples[#:eval list-eval
   (partition even? '(1 2 3 4 5 6))]}
@@ -1502,16 +1390,14 @@ but @racket[pred] is applied to each item in @racket[lst] only once.
 @defproc*[([(range [end real?]) list?]
            [(range [start real?] [end real?] [step real? 1]) list?])]{
 
-Similar to @racket[in-range], but returns lists.
+类似于 @racket[in-range]，但返回列表。
 
-The resulting list holds numbers starting at @racket[start] and whose
-successive elements are computed by adding @racket[step] to their
-predecessor until @racket[end] (excluded) is reached.  If no starting
-point is provided, @racket[0] is used. If no @racket[step] argument is
-provided, @racket[1] is used.
+结果列表保存从 @racket[start] 开始的数字，
+其连续元素通过在前一个元素上加 @racket[step] 计算，
+直到达到 @racket[end]（不包括）。如果未提供起始点，使用 @racket[0]。
+如果未提供 @racket[step] 参数，使用 @racket[1]。
 
-Like @racket[in-range], a @racket[range] application can provide better
-performance when it appears directly in a @racket[for] clause.
+像 @racket[in-range]，当 @racket[range] 直接出现在 @racket[for] 子句中时可以提供更好的性能。
 
 @mz-examples[#:eval list-eval
   (range 10)
@@ -1521,21 +1407,18 @@ performance when it appears directly in a @racket[for] clause.
   (range 10 15 1.5)]
 
 @history[#:changed "6.7.0.4"
-         @elem{Adjusted to cooperate with @racket[for] in the same
-               way that @racket[in-range] does.}]}
+         @elem{调整为与 @racket[for] 协作，方式与 @racket[in-range] 相同。}]}
 
 
 @defproc[(inclusive-range [start real?] [end real?] [step real? 1]) list?]{
 
-Similar to @racket[in-inclusive-range], but returns lists.
+类似于 @racket[in-inclusive-range]，但返回列表。
 
-The resulting list holds numbers starting at @racket[start] and whose
-successive elements are computed by adding @racket[step] to their
-predecessor until @racket[end] (included) is reached.
-If no @racket[step] argument is provided, @racket[1] is used.
+结果列表保存从 @racket[start] 开始的数字，
+其连续元素通过在前一个元素上加 @racket[step] 计算，
+直到达到 @racket[end]（包括）。如果未提供 @racket[step] 参数，使用 @racket[1]。
 
-Like @racket[in-inclusive-range], an @racket[inclusive-range] application can provide better
-performance when it appears directly in a @racket[for] clause.
+像 @racket[in-inclusive-range]，当 @racket[inclusive-range] 直接出现在 @racket[for] 子句中时可以提供更好的性能。
 
 @mz-examples[#:eval list-eval
   (inclusive-range 10 20)
@@ -1551,7 +1434,7 @@ performance when it appears directly in a @racket[for] clause.
 @defproc[(append-map [proc procedure?] [lst list?] ...+)
          list?]{
 
-Returns @racket[(append* (map proc lst ...))].
+返回 @racket[(append* (map proc lst ...))]。
 
 @mz-examples[#:eval list-eval
   (append-map vector->list '(#(1) #(2 3) #(4)))]}
@@ -1560,9 +1443,8 @@ Returns @racket[(append* (map proc lst ...))].
 @defproc[(filter-not [pred (any/c . -> . any/c)] [lst list?])
          list?]{
 
-Like @racket[filter], but the meaning of the @racket[pred] predicate is
-reversed: the result is a list of all items for which @racket[pred]
-returns @racket[#f].
+像 @racket[filter]，但 @racket[pred] 谓词的含义反转：
+结果是 @racket[pred] 返回 @racket[#f] 的所有项的列表。
 
 @mz-examples[#:eval list-eval
   (filter-not even? '(1 2 3 4 5 6))]}
@@ -1571,7 +1453,7 @@ returns @racket[#f].
 @defproc[(shuffle [lst list?])
          list?]{
 
-Returns a list with all elements from @racket[lst], randomly shuffled.
+返回一个包含 @racket[lst] 中所有元素的列表，随机洗牌。
 
 @mz-examples[#:eval list-eval
   (shuffle '(1 2 3 4 5 6))
@@ -1582,9 +1464,9 @@ Returns a list with all elements from @racket[lst], randomly shuffled.
 @defproc*[([(combinations [lst list?]) list?]
            [(combinations [lst list?] [size exact-nonnegative-integer?]) list?])]{
 @margin-note{Wikipedia @hyperlink["https://en.wikipedia.org/wiki/Combination"]{combinations}}
-Return a list of all combinations of elements in the input list
-(a.k.a. the @index["powerset"]{powerset} of @racket[lst]).
-If @racket[size] is given, limit results to combinations of @racket[size] elements.
+返回输入列表中元素的所有组合的列表
+（也称为 @racket[lst] 的 @index["powerset"]{幂集}）。
+如果给定 @racket[size]，则将结果限制为 @racket[size] 个元素的组合。
 
 @mz-examples[#:eval list-eval
   (combinations '(1 2 3))
@@ -1593,9 +1475,9 @@ If @racket[size] is given, limit results to combinations of @racket[size] elemen
 
 @defproc*[([(in-combinations [lst list?]) sequence?]
            [(in-combinations [lst list?] [size exact-nonnegative-integer?]) sequence?])]{
-@index["in-powerset"]{Returns} a sequence of all combinations of elements in the input list,
- or all combinations of length @racket[size] if @racket[size] is given.
-Builds combinations one-by-one instead of all at once.
+@index["in-powerset"]{返回}输入列表中元素的所有组合的序列，
+或者如果给定 @racket[size]，则返回长度为 @racket[size] 的所有组合。
+逐个构建组合，而不是一次性构建。
 
 @mz-examples[#:eval list-eval
   (time (begin (combinations (range 15)) (void)))
@@ -1605,10 +1487,9 @@ Builds combinations one-by-one instead of all at once.
 @defproc[(permutations [lst list?])
          list?]{
 
-@index["rearrangements"]{Returns} a list of all permutations of the input list.  Note that this
-function works without inspecting the elements, and therefore it ignores
-repeated elements (which will result in repeated permutations).
-Raises an error if the input list contains more than 256 elements.
+@index["rearrangements"]{返回}输入列表的所有排列的列表。
+请注意，此函数工作时不检查元素，因此忽略重复元素（这将导致重复排列）。
+如果输入列表包含超过 256 个元素则引发错误。
 
 @mz-examples[#:eval list-eval
   (permutations '(1 2 3))
@@ -1618,18 +1499,16 @@ Raises an error if the input list contains more than 256 elements.
 @defproc[(in-permutations [lst list?])
          sequence?]{
 
-@index["in-rearrangements"]{Returns} a sequence of all permutations of the input list.  It is
-equivalent to @racket[(in-list (permutations l))] but much faster since
-it builds the permutations one-by-one on each iteration.
-Raises an error if the input list contains more than 256 elements.}
+@index["in-rearrangements"]{返回}输入列表的所有排列的序列。
+它等价于 @racket[(in-list (permutations l))]，但由于在每次迭代中逐个构建排列，因此速度更快。
+如果输入列表包含超过 256 个元素则引发错误。}
 
 
 @defproc[(argmin [proc (-> any/c real?)] [lst (and/c pair? list?)])
          any/c]{
 
-Returns the first element in the list @racket[lst] that minimizes the
-result of @racket[proc].  Signals an error on an empty list.
-See also @racket[min].
+返回列表 @racket[lst] 中使 @racket[proc] 结果最小的第一个元素。
+在空列表上引发错误。另参见 @racket[min]。
 
 @mz-examples[#:eval list-eval
   (argmin car '((3 pears) (1 banana) (2 apples)))
@@ -1639,83 +1518,77 @@ See also @racket[min].
 @defproc[(argmax [proc (-> any/c real?)] [lst (and/c pair? list?)])
          any/c]{
 
-Returns the first element in the list @racket[lst] that maximizes the
-result of @racket[proc].  Signals an error on an empty list.
-See also @racket[max].
+返回列表 @racket[lst] 中使 @racket[proc] 结果最大的第一个元素。
+在空列表上引发错误。另参见 @racket[max]。
 
 @mz-examples[#:eval list-eval
   (argmax car '((3 pears) (1 banana) (2 apples)))
   (argmax car '((3 pears) (3 oranges)))]}
+
 
 @defproc[(group-by [key (-> any/c any/c)]
                    [lst list?]
                    [same? (any/c any/c . -> . any/c) equal?])
          (listof list?)]{
 
-Groups the given list into equivalence classes, with equivalence being
-determined by @racket[same?]. Within each equivalence class, @racket[group-by]
-preserves the ordering of the original list. Equivalence classes themselves are
-in order of first appearance in the input.
+将给定列表分组为等价类，等价性由 @racket[same?] 确定。
+在每个等价类内，@racket[group-by] 保持原始列表的顺序。
+等价类本身按照在输入中首次出现的顺序排列。
 
 @examples[#:eval list-eval
 (group-by (lambda (x) (modulo x 3)) '(1 2 1 2 54 2 5 43 7 2 643 1 2 0))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(cartesian-product [lst list?] ...)
          (listof list?)]{
 
-Computes the n-ary cartesian product of the given lists.
+计算给定列表的 n 元笛卡尔积。
 
 @examples[#:eval list-eval
 (cartesian-product '(1 2 3) '(a b c))
 (cartesian-product '(4 5 6) '(d e f) '(#t #f))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(remf [pred procedure?]
                [lst list?])
          list?]{
-Returns a list that is like @racket[lst], omitting the first element of @racket[lst]
-for which @racket[pred] produces a true value.
+
+返回一个类似 @racket[lst] 的列表，省略 @racket[lst] 中第一个 @racket[pred] 产生真值的元素。
 
 @examples[
 #:eval list-eval
 (remf negative? '(1 -2 3 4 -5))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 @defproc[(remf* [pred procedure?]
                 [lst list?])
          list?]{
-Like @racket[remf], but removes all the elements for which @racket[pred]
-produces a true value.
+
+像 @racket[remf]，但移除 @racket[pred] 产生真值的所有元素。
 
 @examples[
 #:eval list-eval
 (remf* negative? '(1 -2 3 4 -5))
 ]
-@history[#:added "6.3"]{}
-}
+@history[#:added "6.3"]{}}
 
 
 @; ----------------------------------------
-@section{More List Grouping}
+@section{更多列表分组}
 
 @note-lib-only[racket/list/grouping]
 
-The bindings in this section are provided by the @racket[sequence-tools-lib] package,
-which acts as an extension to the base sequence libraries.
+本节中的绑定由 @racket[sequence-tools-lib] 包提供，
+它作为基本序列库的扩展。
 
 @defproc[(windows [size exact-positive-integer?] [step exact-positive-integer?] [lst list?]) 
          (listof list?)]{
 
-Returns a list of sliding windows such that each window contains @racket[size] elements with the window
-sliding @racket[step] positions on each iteration. If the number of remaining elements is less than 
-@racket[size], then those elements are dropped.
+返回一个滑动窗口列表，使得每个窗口包含 @racket[size] 个元素，窗口每次滑动 @racket[step] 个位置。
+如果剩余元素数量少于 @racket[size]，则这些元素被丢弃。
 
 @examples[#:eval list-eval
   (windows 3 1 '(1 2 3 4))
@@ -1726,10 +1599,9 @@ sliding @racket[step] positions on each iteration. If the number of remaining el
 @defproc[(slice-by [proc (-> any/c any/c any/c)] [lst list?])
          (listof list?)]{
 
-Returns a list such that each element is a sublist (slice) that is 
-constructed from comparing each pair of adjacent elements. All pairs of 
-elements that satisfy @racket[proc] will be grouped together into a slice, otherwise 
-the element will start a new slice.
+返回一个列表，其中每个元素是一个子列表（切片），通过比较每对相邻元素构建。
+所有满足 @racket[proc] 的元素对将被分组到一个切片中，
+否则该元素将开始一个新的切片。
 
 @examples[#:eval list-eval
   (slice-by eq? '(1 1 2 1 3 3))
@@ -1740,42 +1612,37 @@ the element will start a new slice.
 
 
 @; ----------------------------------------
-@section{Immutable Cyclic Data}
+@section{不可变循环数据}
 
 @defproc[(make-reader-graph [v any/c])
          any/c]{
 
-Returns a value like @racket[v], with @deftech{placeholders} created by
-@racket[make-placeholder] replaced with the values that they contain, and
-with @deftech{hash placeholders} created by @racket[make-hash-placeholder]
-with an immutable hash table.  No part of @racket[v] is mutated; instead,
-parts of @racket[v] are copied as necessary to construct the resulting
-graph, where at most one copy is created for any given value.
+返回一个类似 @racket[v] 的值，其中由 @racket[make-placeholder] 创建的 @deftech{占位符}
+被替换为它们包含的值，由 @racket[make-hash-placeholder] 创建的 @deftech{哈希占位符}
+被替换为不可变哈希表。@racket[v] 的任何部分都不会被修改；
+相反，@racket[v] 的部分在必要时被复制以构建结果图，
+对于任何给定值最多创建一个副本。
 
-Since the copied values can be immutable, and since the copy is also
-immutable, @racket[make-reader-graph] can create cycles involving only
-immutable pairs, vectors, boxes, and hash tables.
+由于复制的值可以是不可变的，并且副本也是不可变的，
+@racket[make-reader-graph] 可以创建仅涉及不可变序对、向量、盒子和哈希表的循环。
 
-Only the following kinds of values are copied and traversed to detect
-placeholders:
+只有以下类型的值会被复制和遍历以检测占位符：
 
 @itemize[
 
- @item{pairs}
+ @item{序对}
 
- @item{vectors, both mutable and immutable}
+ @item{向量，可变和不可变的}
 
- @item{boxes, both mutable and immutable}
+ @item{盒子，可变和不可变的}
 
- @item{hash tables, both mutable and immutable}
+ @item{哈希表，可变和不可变的}
 
- @item{instances of a @techlink{prefab} structure type}
+ @item{@techlink{prefab} 结构类型的实例}
 
- @item{placeholders created by @racket[make-placeholder] and
-       @racket[make-hash-placeholder]}]
+ @item{由 @racket[make-placeholder] 和 @racket[make-hash-placeholder] 创建的占位符}]
 
-Due to these restrictions, @racket[make-reader-graph] creates exactly
-the same sort of cyclic values as @racket[read].
+由于这些限制，@racket[make-reader-graph] 创建与 @racket[read] 完全相同的循环值。
 
 @mz-examples[
   (let* ([ph (make-placeholder #f)]
@@ -1787,61 +1654,55 @@ the same sort of cyclic values as @racket[read].
 @defproc[(placeholder? [v any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{placeholder} created by
-@racket[make-placeholder], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[make-placeholder] 创建的 @tech{占位符}则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(make-placeholder [v any/c])
          placeholder?]{
 
-Returns a @tech{placeholder} for use with @racket[placeholder-set!]
-and @racket[make-reader-graph]. The @racket[v] argument supplies the
-initial value for the placeholder.}
+返回一个用于 @racket[placeholder-set!] 和 @racket[make-reader-graph] 的 @tech{占位符}。
+@racket[v] 参数提供占位符的初始值。}
 
 
 @defproc[(placeholder-set! [ph placeholder?] [datum any/c])
          void?]{
 
-Changes the value of @racket[ph] to @racket[v].}
+将 @racket[ph] 的值更改为 @racket[v]。}
 
 
 @defproc[(placeholder-get [ph placeholder?])
          any/c]{
 
-Returns the value of @racket[ph].}
+返回 @racket[ph] 的值。}
 
 
 @defproc[(hash-placeholder? [v any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{hash placeholder} created
-by @racket[make-hash-placeholder], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[make-hash-placeholder] 创建的 @tech{哈希占位符}则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(make-hash-placeholder [assocs (listof pair?)])
          hash-placeholder?]{
 
-Like @racket[make-immutable-hash], but produces a @tech{hash placeholder}
-for use with @racket[make-reader-graph].}
+像 @racket[make-immutable-hash]，但产生一个用于 @racket[make-reader-graph] 的 @tech{哈希占位符}。}
 
 
 @defproc[(make-hasheq-placeholder [assocs (listof pair?)])
          hash-placeholder?]{
 
-Like @racket[make-immutable-hasheq], but produces a @tech{hash placeholder}
-for use with @racket[make-reader-graph].}
+像 @racket[make-immutable-hasheq]，但产生一个用于 @racket[make-reader-graph] 的 @tech{哈希占位符}。}
 
 
 @defproc[(make-hasheqv-placeholder [assocs (listof pair?)])
          hash-placeholder?]{
 
-Like @racket[make-immutable-hasheqv], but produces a @tech{hash placeholder}
-for use with @racket[make-reader-graph].}
+像 @racket[make-immutable-hasheqv]，但产生一个用于 @racket[make-reader-graph] 的 @tech{哈希占位符}。}
+
 
 @defproc[(make-hashalw-placeholder [assocs (listof pair?)])
          hash-placeholder?]{
 
-Like @racket[make-immutable-hashalw], but produces a @tech{hash placeholder}
-for use with @racket[make-reader-graph].
+像 @racket[make-immutable-hashalw]，但产生一个用于 @racket[make-reader-graph] 的 @tech{哈希占位符}。
 
 @history[#:added "8.5.0.3"]}
