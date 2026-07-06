@@ -26,13 +26,11 @@
 
 @author["Matthew Flatt" "PLT"]
 
-This manual defines the core Racket language and describes its
-most prominent libraries. The companion manual @|Guide| provides a
-friendlier (though less precise and less complete) overview of the
-language.
+本手册定义了 Racket 核心语言并描述了其最突出的配套库。
+配套手册 @|Guide| 提供了对语言更友好（尽管不够精确和完整）的概述。
 
-@margin-note{The source of this manual is available on
-@hyperlink["https://github.com/racket/racket/tree/master/pkgs/racket-doc/scribblings/reference"]{GitHub}.}
+@margin-note{本手册的源码可在
+@hyperlink["https://github.com/racket/racket/tree/master/pkgs/racket-doc/scribblings/reference"]{GitHub} 上获取。}
 
 @defmodulelang*[(racket/base racket)
                 ;; Use sources for overlap with `scheme' and `mzscheme':
@@ -48,18 +46,13 @@ language.
                                racket/private/list
                                racket/private/base)]{
 
-Unless otherwise noted, the bindings defined in this manual are
-exported by the @racketmodname[racket/base] and @racketmodname[racket]
-languages.}
+除非另有说明，本手册中定义的绑定由 @racketmodname[racket/base] 和 @racketmodname[racket] 语言导出。}
 
 
-@margin-note{The @racketmodname[racket/base] library is much smaller than
-the @racketmodname[racket] library and will typically load faster.
+@margin-note{@racketmodname[racket/base] 库比 @racketmodname[racket] 库小得多，通常加载更快。
 
-The @racketmodname[racket] library combines
-@racketmodname[racket/base]@racket-extra-libs[].
-In addition, it re-exports @racket[for-syntax] everything from
-@racketmodname[racket/base].}
+@racketmodname[racket] 库将 @racketmodname[racket/base]@racket-extra-libs[] 组合在一起。
+此外，它从 @racketmodname[racket/base] 重新导出 @racket[for-syntax] 的所有内容。}
 
 @table-of-contents[]
 
@@ -88,7 +81,7 @@ In addition, it re-exports @racket[for-syntax] everything from
 
   (bib-entry #:key "Baker93"
              #:author "Henry G. Baker"
-             #:title "Equal Rights for Functional Objects or, the More Things Change, the More They are the Same"
+             #:title "函数对象的平等权利，或，事物变化越多，越是相同"
              #:date "1993"
              #:location "SIGPLAN OOPS Messenger"
              #:url "https://doi.org/10.1145/165593.165596")
@@ -100,202 +93,202 @@ In addition, it re-exports @racket[for-syntax] everything from
 
   (bib-entry #:key "Culpepper07"
              #:author "Ryan Culpepper, Sam Tobin-Hochstadt, and Matthew Flatt"
-             #:title "Advanced Macrology and the Implementation of Typed Scheme"
-             #:location "Workshop on Scheme and Functional Programming"
+             #:title "高级宏学与Typed Scheme的实现"
+             #:location "Scheme与函数式编程研讨会"
              #:url "https://www2.ccs.neu.edu/racket/pubs/scheme2007-ctf.pdf"
              #:date "2007")
 
   (bib-entry #:key "Danvy90"
              #:author "Olivier Danvy and Andre Filinski"
-             #:title "Abstracting Control"
-             #:location "LISP and Functional Programming"
+             #:title "抽象控制"
+             #:location "LISP与函数式编程"
              #:url "https://doi.org/10.1145/91556.91622"
              #:date "1990")
 
   (bib-entry #:key "Felleisen88a"
              #:author "Matthias Felleisen"
-             #:title "The theory and practice of first-class prompts"
-             #:location "Principles of Programming Languages"
+             #:title "first-class prompt的理论与实践"
+             #:location "编程语言原理"
              #:url "https://www.cs.tufts.edu/~nr/cs257/archive/matthias-felleisen/prompts.pdf"
              #:date "1988")
 
   (bib-entry #:key "Felleisen88"
              #:author "Matthias Felleisen, Mitch Wand, Dan Friedman, and Bruce Duba"
-             #:title "Abstract Continuations: A Mathematical Semantics for Handling Full Functional Jumps"
-             #:location "LISP and Functional Programming"
+             #:title "抽象延续：处理全函数跳转的数学语义"
+             #:location "LISP与函数式编程"
              #:url "https://help.luddy.indiana.edu/techreports/TRNNN.cgi?trnum=TR248"
              #:date "1988")
 
   (bib-entry #:key "Feltey18"
              #:author "Daniel Feltey, Ben Greenman, Christophe Scholliers, Robert Bruce Findler, and Vincent St-Amour"
-             #:title "Collapsible Contracts: Fixing a Pathology of Gradual Typing"
-             #:location "Object-Oriented Programming, Systems, and Languages (OOPSLA)"
+             #:title "可折叠契约：修复渐进类型化的病理"
+             #:location "面向对象编程、系统和语言（OOPSLA）"
              #:url "https://www.ccis.northeastern.edu/~types/publications/collapsible/fgsfs-oopsla-2018.pdf"
              #:date "2018")
 
   (bib-entry #:key "Flatt02"
              #:author "Matthew Flatt"
-             #:title "Composable and Compilable Macros: You Want it When?"
-             #:location "International Conference on Functional Programming (ICFP)"
+             #:title "可组合和可编译的宏：你什么时候想要它？"
+             #:location "函数式编程国际会议（ICFP）"
              #:url "https://www.cs.utah.edu/plt/publications/macromod.pdf"
              #:date "2002")
 
   (bib-entry #:key "Flatt07"
              #:author "Matthew Flatt, Gang Yu, Robert Bruce Findler, and Matthias Felleisen"
-             #:title "Adding Delimited and Composable Control to a Production Programming Environment"
-             #:location "International Conference on Functional Programming (ICFP)"
+             #:title "为生产编程环境添加有界和可组合的控制"
+             #:location "函数式编程国际会议（ICFP）"
              #:url "http://www.cs.utah.edu/plt/publications/icfp07-fyff.pdf"
              #:date "2007")
 
   (bib-entry #:key "Flatt13"
              #:author "Matthew Flatt"
-             #:title "Submodules in Racket: You Want It When, Again?"
-             #:location "International Conference on Generative Programming: Concepts & Experiences (GPCE'13)"
+             #:title "Racket中的子模块：你什么时候想要它，再一次？"
+             #:location "生成式编程：概念与经验国际会议（GPCE'13）"
              #:url "https://www.cs.utah.edu/plt/publications/gpce13-f-color.pdf"
              #:date "2013")
 
   (bib-entry #:key "Friedman95"
-             #:title "Exception system proposal"
+             #:title "异常系统提案"
              #:author "Daniel P. Friedman, C. T. Haynes, and R. Kent Dybvig"
-             #:location "web page"
+             #:location "网页"
              #:url "https://web.archive.org/web/20161012054505/http://www.cs.indiana.edu/scheme-repository/doc.proposals.exceptions.html"
              #:date "1995")
 
   (bib-entry #:key "Gasbichler02"
-             #:title "Processes vs. User-Level Threads in Scsh"
+             #:title "Scsh中的进程与用户级线程"
              #:author "Martin Gasbichler and Michael Sperber"
              #:date "2002"
              #:url "http://www.ccs.neu.edu/home/shivers/papers/scheme02/article/threads.pdf"
-             #:location "Workshop on Scheme and Functional Programming")
+             #:location "Scheme与函数式编程研讨会")
 
   (bib-entry #:key "Greenberg15"
              #:author "Michael Greenberg"
-             #:title "Space-Efficient Manifest Contracts"
-             #:location "Principles of Programming Languages (POPL)"
+             #:title "空间高效的Manifest契约"
+             #:location "编程语言原理（POPL）"
              #:url "https://cs.pomona.edu/~michael/papers/popl2015_space.pdf"
              #:date "2015")
 
  (bib-entry #:key "Gunter95"
             #:author "Carl Gunter, Didier Remy, and Jon Rieke"
-            #:title "A Generalization of Exceptions and Control in ML-like Languages"
-            #:location "Functional Programming Languages and Computer Architecture"
+            #:title "类ML语言中异常与控制的一般化"
+            #:location "函数式编程语言与计算机体系结构"
             #:url "http://gallium.inria.fr/~remy/ftp/prompt.pdf"
             #:date "1995")
 
  (bib-entry #:key "Haynes84"
             #:author "Christopher T. Haynes and Daniel P. Friedman"
-            #:title "Engines Build Process Abstractions"
-            #:location "Symposium on LISP and Functional Programming"
+            #:title "引擎构建进程抽象"
+            #:location "LISP与函数式编程研讨会"
             #:url "https://legacy.cs.indiana.edu/ftp/techreports/TR159.pdf"
             #:date "1984")
 
  (bib-entry #:key "Hayes97"
             #:author "Barry Hayes"
-            #:title "Ephemerons: a New Finalization Mechanism"
-            #:location "Object-Oriented Languages, Programming, Systems, and Applications"
+            #:title "Ephemerons：一种新的终结机制"
+            #:location "面向对象语言、编程、系统和应用"
             #:url "https://static.aminer.org/pdf/PDF/000/522/273/ephemerons_a_new_finalization_mechanism.pdf"
             #:date "1997")
 
  (bib-entry #:key "Hieb90"
             #:author "Robert Hieb and R. Kent Dybvig"
-            #:title "Continuations and Concurrency"
-            #:location "Principles and Practice of Parallel Programming"
+            #:title "延续与并发"
+            #:location "并行编程原理与实践"
             #:url "https://legacy.cs.indiana.edu/ftp/techreports/TR256.pdf"
             #:date "1990")
 
   (bib-entry #:key "Lamport79"
-             #:title "How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs"
+             #:title "如何制造能正确执行多进程程序的多处理器计算机"
              #:author "Leslie Lamport"
-             #:location "IEEE Transactions on Computers"
+             #:location "IEEE计算机汇刊"
              #:url "https://www.microsoft.com/en-us/research/uploads/prod/2016/12/How-to-Make-a-Multiprocessor-Computer-That-Correctly-Executes-Multiprocess-Programs.pdf"
              #:date "179")
 
   (bib-entry #:key "L'Ecuyer02"
             #:author "Pierre L'Ecuyer, Richard Simard, E. Jack Chen, and W. David Kelton"
-            #:title "An Object-Oriented Random-Number Package With Many Long Streams and Substreams"
-            #:location "Operations Research, 50(6)"
+            #:title "具有许多长流和子流的面向对象随机数包"
+            #:location "运筹学，50(6)"
             #:url "https://www.iro.umontreal.ca/~lecuyer/myftp/papers/streams00.pdf"
             #:date "2002")
 
   (bib-entry #:key "Queinnec91"
              #:author "Queinnec and Serpette"
-             #:title "A Dynamic Extent Control Operator for Partial Continuations"
-             #:location "Principles of Programming Languages"
+             #:title "用于部分延续的动态范围控制操作符"
+             #:location "编程语言原理"
              #:url "https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.40.9946&rep=rep1&type=pdf"
              #:date "1991")
 
   (bib-entry #:key "Reppy99"
              #:author "John H. Reppy"
-             #:title "Concurrent Programming in ML"
+             #:title "ML中的并发编程"
              #:is-book? #t
-             #:location "Cambridge University Press"
+             #:location "剑桥大学出版社"
              #:url "https://doi.org/10.1017/CBO9780511574962"
              #:date "1999")
 
   (bib-entry #:key "Roux14"
              #:author "Pierre Roux"
-             #:title "Innocuous Double Rounding of Basic Arithmetic Operations"
-             #:location @elem{@italic{Journal of Formalized Reasoning}, 7(1)}
+             #:title "基本算术运算的无害双重舍入"
+             #:location @elem{@italic{形式化推理期刊}, 7(1)}
              #:date "2014")
 
   (bib-entry #:key "Sapin18"
              #:author "Simon Sapin"
-             #:title "The WTF-8 Encoding"
+             #:title "WTF-8编码"
              #:url "https://wtf-8.codeberg.page"
              #:date "2018")
 
   (bib-entry #:key "Shan04"
              #:author "Ken Shan"
-             #:title "Shift to Control"
-             #:location "Workshop on Scheme and Functional Programming"
+             #:title "转向控制"
+             #:location "Scheme与函数式编程研讨会"
              #:url "http://homes.sice.indiana.edu/ccshan/recur/recur.pdf"
              #:date "2004")
 
  (bib-entry #:key "Sperber07"
             #:author "Michael Sperber, R. Kent Dybvig, Matthew Flatt, and Anton van Straaten (editors)"
-            #:title @elem{The Revised@superscript{6} Report on the Algorithmic Language Scheme}
+            #:title @elem{算法语言Scheme的修订@superscript{6}报告}
             #:date "2007"
             #:url "http://www.r6rs.org/")
 
   (bib-entry #:key "Sitaram90"
              #:author "Dorai Sitaram and Matthias Felleisen"
-             #:title "Control Delimiters and Their Hierarchies"
-             #:location @italic{Lisp and Symbolic Computation}
+             #:title "控制定界符及其层次"
+             #:location @italic{Lisp与符号计算}
              #:url "https://www2.ccs.neu.edu/racket/pubs/lasc1990-sf.pdf"
              #:date "1990")
 
   (bib-entry #:key "Sitaram93"
-             #:title "Handling Control"
+             #:title "处理控制"
              #:author "Dorai Sitaram"
-             #:location "Programming Language Design and Implementation"
+             #:location "编程语言设计与实现"
              #:url "http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.22.7256"
              #:date "1993")
 
   (bib-entry #:key "SRFI-42"
-             #:title "SRFI-42: Eager Comprehensions"
+             #:title "SRFI-42：急切推导式"
              #:author "Sebastian Egner"
              #:location "SRFI"
              #:url "http://srfi.schemers.org/srfi-42/"
              #:date "2003")
 
   (bib-entry #:key "Strickland12"
-             #:title "Chaperones and Impersonators: Run-time Support for Reasonable Interposition"
+             #:title "Chaperone与Impersonator：合理介入的运行时支持"
              #:author "T. Stephen Strickland, Sam Tobin-Hochstadt, Matthew Flatt, and Robert Bruce Findler"
-             #:location "Object-Oriented Programming, Systems, and Languages (OOPSLA)"
+             #:location "面向对象编程、系统和语言（OOPSLA）"
              #:url "http://www.eecs.northwestern.edu/~robby/pubs/papers/oopsla2012-stff.pdf"
              #:date "2012")
 
   (bib-entry #:key "Stucki15"
-             #:title "RRB Vector: A Practical General Purpose Immutable Sequence"
+             #:title "RRB Vector：实用的通用不可变序列"
              #:author "Nicolas Stucki, Tiark Rompf, Vlad Ureche, and Phil Bagwell"
-             #:location "International Conference on Functional Programming"
+             #:location "函数式编程国际会议"
              #:url "https://dl.acm.org/doi/abs/10.1145/2784731.2784739"
              #:date "2015")
 
   (bib-entry #:key "Torosyan21"
-             #:title "Runtime and Compiler Support for HAMTs"
+             #:title "HAMT的运行时和编译器支持"
              #:author "Son Torosyan, Jon Zeppieri, and Matthew Flatt"
-             #:location "Dynamic Languages Symposium (DLS)"
+             #:location "动态语言研讨会（DLS）"
              #:url "https://www.cs.utah.edu/plt/publications/dls21-tzf.pdf"
              #:date "2021")
   )
