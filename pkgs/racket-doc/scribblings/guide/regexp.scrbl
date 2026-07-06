@@ -3,16 +3,14 @@
 
 @(define rx-eval (make-base-eval))
 
-@title[#:tag "regexp" #:style 'toc]{Regular Expressions}
+@title[#:tag "regexp" #:style 'toc]{正则表达式}
 
-@margin-note{This chapter is a modified version of @cite["Sitaram05"].}
+@margin-note{本章是 @cite["Sitaram05"] 的修改版本。}
 
-A @deftech{regexp} value encapsulates a pattern that is described by a
-string or @tech{byte string}.  The regexp matcher tries to match this
-pattern against (a portion of) another string or byte string, which we
-will call the @deftech{text string}, when you call functions like
-@racket[regexp-match].  The text string is treated as raw text, and
-not as a pattern.
+@deftech{regexp} 值封装了一个由字符串或 @tech{byte string} 描述的
+模式。当调用 @racket[regexp-match] 等函数时，regexp 匹配器尝试将此
+模式与另一个字符串或字节串（我们称其为 @deftech{文本字符串}）的（部分）
+内容进行匹配。文本字符串被视为原始文本，而非模式。
 
 @local-table-of-contents[]
 
@@ -20,35 +18,35 @@ not as a pattern.
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-intro"]{Writing Regexp Patterns}
+@section[#:tag "regexp-intro"]{编写正则表达式模式}
 
-A string or @tech{byte string} can be used directly as a @tech{regexp}
-pattern, or it can be prefixed with @litchar{#rx} to form a literal
-@tech{regexp} value. For example, @racket[#rx"abc"] is a string-based
-@tech{regexp} value, and @racket[#rx#"abc"] is a @tech{byte
-string}-based @tech{regexp} value. Alternately, a string or byte
-string can be prefixed with @litchar{#px}, as in @racket[#px"abc"],
-for a slightly extended syntax of patterns within the string.
+字符串或 @tech{byte string} 可以直接用作 @tech{regexp}
+模式，也可以在前面加上 @litchar{#rx} 来形成字面的
+@tech{regexp} 值。 例如，@racket[#rx"abc"] 是一个基于字符串的
+@tech{regexp} 值，@racket[#rx#"abc"] 是一个基于 @tech{byte
+string} 的 @tech{regexp} 值。或者，字符串或字节串可以加上
+@litchar{#px} 前缀，如 @racket[#px"abc"]，
+使用稍作扩展的模式语法。
 
-Most of the characters in a @tech{regexp} pattern are meant to match
-occurrences of themselves in the @tech{text string}.  Thus, the pattern
-@racket[#rx"abc"] matches a string that contains the characters
-@litchar{a}, @litchar{b}, and @litchar{c} in succession. Other
-characters act as @deftech{metacharacters}, and some character
-sequences act as @deftech{metasequences}.  That is, they specify
-something other than their literal selves.  For example, in the
-pattern @racket[#rx"a.c"], the characters @litchar{a} and @litchar{c}
-stand for themselves, but the @tech{metacharacter} @litchar{.} can
-match @emph{any} character.  Therefore, the pattern @racket[#rx"a.c"]
-matches an @litchar{a}, any character, and @litchar{c} in succession.
+@tech{regexp} 模式中的大多数字符用于匹配
+它们在 @tech{文本字符串} 中的出现。因此，模式
+@racket[#rx"abc"] 匹配一个包含连续字符
+@litchar{a}、@litchar{b} 和 @litchar{c} 的字符串。其他
+字符充当 @deftech{元字符}，某些字符
+序列充当 @deftech{元序列}。也就是说，它们指定了
+非字面含义的内容。  例如，在模式
+@racket[#rx"a.c"] 中，字符 @litchar{a} 和 @litchar{c}
+代表它们自身，但 @tech{元字符} @litchar{.} 可以
+匹配 @emph{任意} 字符。因此，模式 @racket[#rx"a.c"]
+依次匹配 @litchar{a}、任意字符和 @litchar{c}。
 
-@margin-note{When we want a literal @litchar{\} inside a Racket string
-or regexp literal, we must escape it so that it shows up in the string
-at all. Racket strings use @litchar{\} as the escape character, so we
-end up with two @litchar{\}s: one Racket-string @litchar{\} to escape
-the regexp @litchar{\}, which then escapes the @litchar{.}.  Another
-character that would need escaping inside a Racket string is
-@litchar{"}.}
+@margin-note{当我们需要在 Racket 字符串或 regexp 字面量中使用字面的
+@litchar{\} 时，必须对其进行转义，使其最终出现在字符串中。
+Racket 字符串使用 @litchar{\} 作为转义字符，因此我们
+最终会得到两个 @litchar{\}：一个 Racket 字符串的 @litchar{\} 用于转义
+regexp 的 @litchar{\}，后者再转义 @litchar{.}。另外
+在 Racket 字符串中需要转义的字符是
+@litchar{"}。}
 
 If we needed to match the character @litchar{.} itself, we can escape
 it by preceding it with a @litchar{\}.  The character sequence
@@ -58,20 +56,20 @@ itself but rather just @litchar{.}.  So, to match @litchar{a},
 @racket[#rx"a\\.c"]; the double @litchar{\} is an artifact of Racket
 strings, not the @tech{regexp} pattern itself.
 
-The @racket[regexp] function takes a string or byte string and
-produces a @tech{regexp} value. Use @racket[regexp] when you construct
-a pattern to be matched against multiple strings, since a pattern is
-compiled to a @tech{regexp} value before it can be used in a match.
-The @racket[pregexp] function is like @racket[regexp], but using the
-extended syntax. Regexp values as literals with @litchar{#rx} or
-@litchar{#px} are compiled once and for all when they are read.
+@racket[regexp] 函数接受一个字符串或字节串，并
+生成一个 @tech{regexp} 值。当您构建一个要
+匹配多个字符串的模式时，请使用 @racket[regexp]，因为模式在
+用于匹配之前需要编译为 @tech{regexp} 值。
+@racket[pregexp] 函数类似于 @racket[regexp]，但使用
+扩展语法。使用 @litchar{#rx} 或
+@litchar{#px} 的字面 regexp 值在读取时一次性编译。
 
 
-The @racket[regexp-quote] function takes an arbitrary string and
-returns a string for a pattern that matches exactly the original
-string. In particular, characters in the input string that could serve
-as regexp metacharacters are escaped with a backslash, so that they
-safely match only themselves.
+@racket[regexp-quote] 函数接受任意字符串，
+返回一个字符串，该字符串构成的模式精确匹配原始
+字符串。特别地，输入字符串中可能作为
+regexp 元字符的字符会用反斜杠转义，使其
+安全地仅匹配自身。
 
 @interaction[
 #:eval rx-eval
@@ -79,19 +77,19 @@ safely match only themselves.
 (regexp-quote "list?")
 ]
 
-The @racket[regexp-quote] function is useful when building a composite
-@tech{regexp} from a mix of @tech{regexp} strings and verbatim strings.
+当从 @tech{regexp} 字符串和字面字符串的混合中构建复合
+@tech{regexp} 时，@racket[regexp-quote] 函数非常有用。
 
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-match"]{Matching Regexp Patterns}
+@section[#:tag "regexp-match"]{匹配正则表达式模式}
 
-The @racket[regexp-match-positions] function takes a @tech{regexp}
-pattern and a @tech{text string}, and it returns a match if the regexp
-matches (some part of) the @tech{text string}, or @racket[#f] if the regexp
-did not match the string. A successful match produces a list of
-@deftech{index pairs}.
+@racket[regexp-match-positions] 函数接受一个 @tech{regexp}
+模式和一个 @tech{文本字符串}，如果 regexp
+匹配了 @tech{文本字符串}（的某部分），则返回一个匹配结果；如果 regexp
+未能匹配该字符串，则返回 @racket[#f]。成功的匹配会生成一个
+@deftech{索引对} 的列表。
 
 @examples[
 #:eval rx-eval
@@ -99,25 +97,23 @@ did not match the string. A successful match produces a list of
 (regexp-match-positions #rx"needle" "hay needle stack")
 ]
 
-In the second example, the integers @racket[4] and @racket[10]
-identify the substring that was matched. The @racket[4] is the
-starting (inclusive) index, and @racket[10] the ending (exclusive)
-index of the matching substring:
+在第二个示例中，整数 @racket[4] 和 @racket[10]
+标识了匹配的子字符串。@racket[4] 是
+匹配子字符串的起始（含）索引，@racket[10] 是结束（不含）索引：
 
 @interaction[
 #:eval rx-eval
 (substring "hay needle stack" 4 10)
 ]
 
-In this first example, @racket[regexp-match-positions]'s return list
-contains only one index pair, and that pair represents the entire
-substring matched by the regexp.  When we discuss @tech{subpatterns}
-later, we will see how a single match operation can yield a list of
-@tech{submatch}es.
+在第一个示例中，@racket[regexp-match-positions] 的返回列表
+只包含一个索引对，该对表示 regexp 匹配的整个
+子字符串。稍后讨论 @tech{子模式} 时，
+我们将看到单次匹配操作如何产生一个
+@tech{子匹配} 列表。
 
-The @racket[regexp-match-positions] function takes optional third and
-fourth arguments that specify the indices of the @tech{text string} within
-which the matching should take place.
+@racket[regexp-match-positions] 函数接受可选的第三和
+第四个参数，用于指定 @tech{文本字符串} 中进行匹配的索引范围。
 
 @interaction[
 #:eval rx-eval
@@ -127,12 +123,11 @@ which the matching should take place.
  20 39)
 ]
 
-Note that the returned indices are still reckoned relative to the full
-@tech{text string}.
+请注意，返回的索引仍然是相对于完整的 @tech{文本字符串} 计算的。
 
-The @racket[regexp-match] function is like
-@racket[regexp-match-positions], but instead of returning index pairs,
-it returns the matching substrings:
+@racket[regexp-match] 函数类似于
+@racket[regexp-match-positions]，但它不返回索引对，
+而是返回匹配的子字符串：
 
 @interaction[
 #:eval rx-eval
@@ -140,22 +135,21 @@ it returns the matching substrings:
 (regexp-match #rx"needle" "hay needle stack")
 ]
 
-When @racket[regexp-match] is used with byte-string regexp, the result
-is a matching byte substring:
+当 @racket[regexp-match] 与字节串 regexp 一起使用时，结果
+是一个匹配的字节子串：
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx#"needle" #"hay needle stack")
 ]
 
-@margin-note{A byte-string regexp can be applied to a string, and a
-             string regexp can be applied to a byte string. In both
-             cases, the result is a byte string. Internally, all
-             regexp matching is in terms of bytes, and a string regexp
-             is expanded to a regexp that matches UTF-8 encodings of
-             characters. For maximum efficiency, use byte-string
-             matching instead of string, since matching bytes directly
-             avoids UTF-8 encodings.}
+@margin-note{字节串 regexp 可以应用于字符串，
+             字符串 regexp 也可以应用于字节串。在两种
+             情况下，结果都是字节串。在内部，所有
+             regexp 匹配都是以字节为单位的，字符串 regexp
+             会被展开为匹配字符 UTF-8 编码的 regexp。
+             为了获得最高效率，请使用字节串匹配而不是字符串匹配，
+             因为直接匹配字节避免了 UTF-8 编码。}
 
 If you have data that is in a port, there's no need to first read it
 into a string. Functions like @racket[regexp-match] can match on the
@@ -168,9 +162,9 @@ port directly:
 (regexp-match #rx#"needle" i)
 ]
 
-The @racket[regexp-match?] function is like
-@racket[regexp-match-positions], but simply returns a boolean
-indicating whether the match succeeded:
+@racket[regexp-match?] 函数类似于
+@racket[regexp-match-positions]，但只返回一个布尔值，
+表示匹配是否成功：
 
 @interaction[
 #:eval rx-eval
@@ -178,10 +172,9 @@ indicating whether the match succeeded:
 (regexp-match? #rx"needle" "hay needle stack")
 ]
 
-The @racket[regexp-split] function takes two arguments, a
-@tech{regexp} pattern and a text string, and it returns a list of
-substrings of the text string; the pattern identifies the delimiter
-separating the substrings.
+@racket[regexp-split] 函数接受两个参数：一个
+@tech{regexp} 模式和一个文本字符串，返回文本字符串的
+子字符串列表；模式标识了分隔子字符串的定界符。
 
 @interaction[
 #:eval rx-eval
@@ -189,16 +182,16 @@ separating the substrings.
 (regexp-split #rx" " "pea soup")
 ]
 
-If the first argument matches empty strings, then the list of all the
-single-character substrings is returned.
+如果第一个参数匹配空字符串，则返回所有
+单字符子字符串的列表。
 
 @interaction[
 #:eval rx-eval
 (regexp-split #rx"" "smithereens")
 ]
 
-Thus, to identify one-or-more spaces as the delimiter, take care to
-use the regexp @racket[#rx"\u20+"], not @racket[#rx"\u20*"].
+因此，要将一个或多个空格标识为定界符，请使用
+regexp @racket[#rx"\u20+"] 而非 @racket[#rx"\u20*"]。
 
 @interaction[
 #:eval rx-eval
@@ -206,10 +199,10 @@ use the regexp @racket[#rx"\u20+"], not @racket[#rx"\u20*"].
 (regexp-split #rx" *" "split pea     soup")
 ]
 
-The @racket[regexp-replace] function replaces the matched portion of
-the text string by another string.  The first argument is the pattern,
-the second the text string, and the third is either the string to be
-inserted or a procedure to convert matches to the insert string.
+@racket[regexp-replace] 函数用另一个字符串替换
+文本字符串中匹配的部分。第一个参数是模式，
+第二个是文本字符串，第三个是要插入的字符串
+或一个将匹配转换为插入字符串的过程。
 
 @interaction[
 #:eval rx-eval
@@ -220,8 +213,8 @@ inserted or a procedure to convert matches to the insert string.
 If the pattern doesn't occur in the text string, the returned string
 is identical to the text string.
 
-The @racket[regexp-replace*] function replaces @emph{all} matches in
-the text string by the insert string:
+@racket[regexp-replace*] 函数用插入字符串替换
+文本字符串中的 @emph{所有} 匹配：
 
 @interaction[
 #:eval rx-eval
@@ -231,30 +224,29 @@ the text string by the insert string:
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-assert"]{Basic Assertions}
+@section[#:tag "regexp-assert"]{基本断言}
 
-The @deftech{assertions} @litchar{^} and @litchar{$} identify the
-beginning and the end of the text string, respectively.  They ensure
-that their adjoining regexps match at one or other end of the text
-string:
+@deftech{断言} @litchar{^} 和 @litchar{$} 分别标识
+文本字符串的开始和结束。它们确保
+其相邻的 regexp 匹配文本字符串的一端或另一端：
 
 @interaction[
 #:eval rx-eval
 (regexp-match-positions #rx"^contact" "first contact")
 ]
 
-The @tech{regexp} above fails to match because @litchar{contact} does
-not occur at the beginning of the text string. In
+上面的 @tech{regexp} 匹配失败，因为 @litchar{contact}
+没有出现在文本字符串的开头。 In
 
 @interaction[
 #:eval rx-eval
 (regexp-match-positions #rx"laugh$" "laugh laugh laugh laugh")
 ]
 
-the regexp matches the @emph{last} @litchar{laugh}.
+regexp 匹配 @emph{最后一个} @litchar{laugh}。
 
-The metasequence @litchar{\b} asserts that a word boundary exists, but
-this metasequence works only with @litchar{#px} syntax. In
+元序列 @litchar{\b} 断言存在单词边界，但
+此元序列仅适用于 @litchar{#px} 语法。在
 
 @interaction[
 #:eval rx-eval
@@ -264,9 +256,8 @@ this metasequence works only with @litchar{#px} syntax. In
 the @litchar{yack} in @litchar{yackety} doesn't end at a word boundary
 so it isn't matched.  The second @litchar{yack} does and is.
 
-The metasequence @litchar{\B} (also @litchar{#px} only) has the
-opposite effect to @litchar{\b}; it asserts that a word boundary does
-not exist. In
+元序列 @litchar{\B}（同样仅限 @litchar{#px}）具有
+与 @litchar{\b} 相反的效果；它断言不存在单词边界。 In
 
 @interaction[
 #:eval rx-eval
@@ -277,45 +268,45 @@ the @litchar{an} that doesn't end in a word boundary is matched.
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-chars"]{Characters and Character Classes}
+@section[#:tag "regexp-chars"]{字符和字符类}
 
-Typically, a character in the regexp matches the same character in the
-text string.  Sometimes it is necessary or convenient to use a regexp
-@tech{metasequence} to refer to a single character. For example, the
-metasequence @litchar{\.} matches the period character.
+通常，regexp 中的字符匹配文本字符串中相同的
+字符。有时使用 regexp
+@tech{元序列} 来指代单个字符是必要或方便的。例如，
+元序列 @litchar{\.} 匹配句点字符。
 
-The @tech{metacharacter} @litchar{.} matches @emph{any} character
-(other than newline in @tech{multi-line mode}; see
-@secref["regexp-cloister"]):
+@tech{元字符} @litchar{.} 匹配 @emph{任意} 字符
+（在 @tech{多行模式} 下不匹配换行符；参见
+@secref["regexp-cloister"]）：
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"p.t" "pet")
 ]
 
-The above pattern also matches @litchar{pat}, @litchar{pit},
-@litchar{pot}, @litchar{put}, and @litchar{p8t}, but not
-@litchar{peat} or @litchar{pfffft}.
+以上模式也匹配 @litchar{pat}、@litchar{pit}、
+@litchar{pot}、@litchar{put} 和 @litchar{p8t}，但不匹配
+@litchar{peat} 或 @litchar{pfffft}。
 
-A @deftech{character class} matches any one character from a set of
-characters.  A typical format for this is the @deftech{bracketed
-character class} @litchar{[}...@litchar{]}, which matches any one
-character from the non-empty sequence of characters enclosed within
-the brackets.  Thus, @racket[#rx"p[aeiou]t"] matches @litchar{pat},
-@litchar{pet}, @litchar{pit}, @litchar{pot}, @litchar{put}, and
-nothing else.
+@deftech{字符类} 匹配一组字符中的任意一个
+字符。一种典型的格式是 @deftech{方括号
+字符类} @litchar{[}...@litchar{]}，它匹配方括号内
+非空字符序列中的任意一个字符。
+因此，@racket[#rx"p[aeiou]t"] 匹配 @litchar{pat}、
+@litchar{pet}、@litchar{pit}、@litchar{pot}、@litchar{put}，
+仅此而已。
 
-Inside the brackets, a @litchar{-} between two characters specifies
-the Unicode range between the characters.  For example,
-@racket[#rx"ta[b-dgn-p]"] matches @litchar{tab}, @litchar{tac},
-@litchar{tad}, @litchar{tag}, @litchar{tan}, @litchar{tao}, and
-@litchar{tap}.
+在方括号内部，两个字符之间的 @litchar{-}
+指定了这两个字符之间的 Unicode 范围。例如，
+@racket[#rx"ta[b-dgn-p]"] 匹配 @litchar{tab}、@litchar{tac}、
+@litchar{tad}、@litchar{tag}、@litchar{tan}、@litchar{tao} 和
+@litchar{tap}。
 
-An initial @litchar{^} after the left bracket inverts the set
-specified by the rest of the contents; i.e., it specifies the set of
-characters @emph{other than} those identified in the brackets. For
-example, @racket[#rx"do[^g]"] matches all three-character sequences
-starting with @litchar{do} except @litchar{dog}.
+左括号后的初始 @litchar{^} 反转由其余内容指定的
+集合；也就是说，它指定了在方括号中标识的字符
+@emph{之外} 的字符集合。例如，
+@racket[#rx"do[^g]"] 匹配所有以 @litchar{do} 开头的三字符序列，
+但不包括 @litchar{dog}。
 
 Note that the @tech{metacharacter} @litchar{^} inside brackets means
 something quite different from what it means outside.  Most other
@@ -338,7 +329,7 @@ Furthermore, since empty bracketed character classes are disallowed, a
 doesn't need to be a metacharacter.  For example, @racket[#rx"[]ab]"]
 matches @litchar{]}, @litchar{a}, and @litchar{b}.
 
-@subsection{Some Frequently Used Character Classes}
+@subsection{一些常用的字符类}
 
 In @litchar{#px} syntax, some standard character classes can be
 conveniently represented as metasequences instead of as explicit
@@ -356,8 +347,8 @@ inversions of the corresponding character classes: @litchar{\D}
 matches a non-digit, @litchar{\S} a non-whitespace character, and
 @litchar{\W} a non-``word'' character.
 
-Remember to include a double backslash when putting these
-metasequences in a Racket string:
+请记住，在 Racket 字符串中使用这些
+元序列时要使用双反斜杠：
 
 @interaction[
 #:eval rx-eval
@@ -365,49 +356,49 @@ metasequences in a Racket string:
  "0 dear, 1 have 2 read catch 22 before 9")
 ]
 
-These character classes can be used inside a bracketed expression. For
-example, @racket[#px"[a-z\\d]"] matches a lower-case letter or a
-digit.
+这些字符类可以在方括号表达式中使用。例如，
+@racket[#px"[a-z\\d]"] 匹配一个小写字母或一个
+数字。
 
-@subsection{POSIX character classes}
+@subsection{POSIX 字符类}
 
-A @deftech{POSIX character class} is a special @tech{metasequence} of
-the form @litchar{[:}...@litchar{:]} that can be used only inside a
-bracketed expression in @litchar{#px} syntax.  The POSIX classes
-supported are
+@deftech{POSIX 字符类} 是一种特殊的 @tech{元序列}，
+形式为 @litchar{[:}...@litchar{:]}，只能在
+@litchar{#px} 语法的方括号表达式中使用。支持的
+POSIX 类有
 
 @itemize[#:style (make-style "compact" null)
 
- @item{@litchar{[:alnum:]} --- ASCII letters and digits}
+ @item{@litchar{[:alnum:]} --- ASCII 字母和数字}
 
- @item{@litchar{[:alpha:]} --- ASCII letters}
+ @item{@litchar{[:alpha:]} --- ASCII 字母}
 
- @item{@litchar{[:ascii:]} --- ASCII characters}
+ @item{@litchar{[:ascii:]} --- ASCII 字符}
 
- @item{@litchar{[:blank:]} --- ASCII widthful whitespace: space and tab}
+ @item{@litchar{[:blank:]} --- ASCII 等宽空白：空格和制表符}
 
  @item{@litchar{[:cntrl:]} --- ``control'' characters: ASCII 0 to 31}
 
- @item{@litchar{[:digit:]} --- ASCII digits, same as @litchar{\d}}
+ @item{@litchar{[:digit:]} --- ASCII 数字，等同于 @litchar{\d}}
 
- @item{@litchar{[:graph:]} --- ASCII characters that use ink}
+ @item{@litchar{[:graph:]} --- 占用墨迹的 ASCII 字符}
 
- @item{@litchar{[:lower:]} --- ASCII lower-case letters}
+ @item{@litchar{[:lower:]} --- ASCII 小写字母}
 
- @item{@litchar{[:print:]} --- ASCII ink-users plus widthful whitespace}
+ @item{@litchar{[:print:]} --- ASCII 占用墨迹的字符加上等宽空白}
 
- @item{@litchar{[:space:]} --- ASCII whitespace, same as @litchar{\s}}
+ @item{@litchar{[:space:]} --- ASCII 空白，等同于 @litchar{\s}}
 
- @item{@litchar{[:upper:]} --- ASCII upper-case letters}
+ @item{@litchar{[:upper:]} --- ASCII 大写字母}
 
- @item{@litchar{[:word:]} --- ASCII letters and @litchar{_}, same as @litchar{\w}}
+ @item{@litchar{[:word:]} --- ASCII 字母和 @litchar{_}，等同于 @litchar{\w}}
 
- @item{@litchar{[:xdigit:]} --- ASCII hex digits}
+ @item{@litchar{[:xdigit:]} --- ASCII 十六进制数字}
 
 ]
 
-For example, the @racket[#px"[[:alpha:]_]"] matches a letter or
-underscore.
+例如，@racket[#px"[[:alpha:]_]"] 匹配字母或
+下划线。
 
 @interaction[
 #:eval rx-eval
@@ -416,12 +407,12 @@ underscore.
 (regexp-match #px"[[:alpha:]_]" "--:--")
 ]
 
-The POSIX class notation is valid @emph{only} inside a bracketed
-expression.  For instance, @litchar{[:alpha:]}, when not inside a
-bracketed expression, will not be read as the letter class.  Rather,
-it is (from previous principles) the character class containing the
-characters @litchar{:}, @litchar{a}, @litchar{l}, @litchar{p},
-@litchar{h}.
+POSIX 类表示法 @emph{仅} 在方括号
+表达式内部有效。例如，@litchar{[:alpha:]} 不在
+方括号表达式中时，不会被读取为字母类。
+相反，它（根据前述原理）是一个包含
+字符 @litchar{:}、@litchar{a}、@litchar{l}、@litchar{p}、
+@litchar{h} 的字符类。
 
 @interaction[
 #:eval rx-eval
@@ -431,11 +422,11 @@ characters @litchar{:}, @litchar{a}, @litchar{l}, @litchar{p},
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-quant"]{Quantifiers}
+@section[#:tag "regexp-quant"]{量词}
 
-The @deftech{quantifiers} @litchar{*}, @litchar{+}, and @litchar{?}
-match respectively: zero or more, one or more, and zero or one
-instances of the preceding subpattern.
+@deftech{量词} @litchar{*}、@litchar{+} 和 @litchar{?}
+分别匹配：前一个子模式的零个或多个、一个或多个、零个或一个
+实例。
 
 @interaction[
 #:eval rx-eval
@@ -450,29 +441,28 @@ instances of the preceding subpattern.
 (regexp-match-positions #rx"c[ad]?r" "car")
 ]
 
-In @litchar{#px} syntax, you can use braces to specify much
-finer-tuned quantification than is possible with @litchar{*},
-@litchar{+}, @litchar{?}:
+在 @litchar{#px} 语法中，可以使用花括号来指定比
+@litchar{*}、@litchar{+}、@litchar{?} 更精细的量词：
 
 @itemize[
 
- @item{The quantifier @litchar["{"]@math{m}@litchar["}"] matches
-       @emph{exactly} @math{m} instances of the preceding
-       @tech{subpattern}; @math{m} must be a nonnegative integer.}
+ @item{量词 @litchar["{"]@math{m}@litchar["}"] 匹配
+       @emph{正好} @math{m} 个前一个
+       @tech{子模式} 的实例；@math{m} 必须是非负整数。}
 
- @item{The quantifier
-       @litchar["{"]@math{m}@litchar{,}@math{n}@litchar["}"] matches
-       at least @math{m} and at most @math{n} instances.  @litchar{m}
-       and @litchar{n} are nonnegative integers with @math{m} less or
-       equal to @math{n}.  You may omit either or both numbers, in
-       which case @math{m} defaults to @math{0} and @math{n} to
-       infinity.}
+ @item{量词
+       @litchar["{"]@math{m}@litchar{,}@math{n}@litchar["}"] 匹配
+       至少 @math{m} 个、最多 @math{n} 个实例。@litchar{m}
+       和 @litchar{n} 是非负整数，且 @math{m} 小于或
+       等于 @math{n}。可以省略其中一个或两个数字，
+       此时 @math{m} 默认为 @math{0}，@math{n} 默认为
+       无穷大。}
 
 ]
 
-It is evident that @litchar{+} and @litchar{?} are abbreviations for
-@litchar{{1,}} and @litchar{{0,1}} respectively, and @litchar{*}
-abbreviates @litchar{{,}}, which is the same as @litchar{{0,}}.
+显然，@litchar{+} 和 @litchar{?} 分别是
+@litchar{{1,}} 和 @litchar{{0,1}} 的简写，而 @litchar{*}
+是 @litchar{{,}} 的简写，后者等同于 @litchar{{0,}}。
 
 @interaction[
 #:eval rx-eval
@@ -482,70 +472,70 @@ abbreviates @litchar{{,}}, which is the same as @litchar{{0,}}.
 (regexp-match #px"[aeiou]{2,3}" "zeugma")
 ]
 
-The quantifiers described so far are all @deftech{greedy}: they match
-the maximal number of instances that would still lead to an overall
-match for the full pattern.
+目前为止描述的量词都是 @deftech{贪婪} 的：它们匹配
+仍然能导致整个模式整体匹配的
+最大数量实例。
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"<.*>" "<tag1> <tag2> <tag3>")
 ]
 
-To make these quantifiers @deftech{non-greedy}, append a @litchar{?}
-to them.  Non-greedy quantifiers match the minimal number of instances
-needed to ensure an overall match.
+要使这些量词变为 @deftech{非贪婪}，在它们后面
+添加一个 @litchar{?}。非贪婪量词匹配确保
+整体匹配所需的最少实例数。
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"<.*?>" "<tag1> <tag2> <tag3>")
 ]
 
-The non-greedy quantifiers are @litchar{*?}, @litchar{+?},
-@litchar{??}, @litchar["{"]@math{m}@litchar["}?"], and
-@litchar["{"]@math{m}@litchar{,}@math{n}@litchar["}?"], although
-@litchar["{"]@math{m}@litchar["}?"] is always the same as
-@litchar["{"]@math{m}@litchar["}"]. Note that the metacharacter
-@litchar{?} has two different uses, and both uses are represented in
-@litchar{??}.
+非贪婪量词有 @litchar{*?}、@litchar{+?}、
+@litchar{??}、@litchar["{"]@math{m}@litchar["}?"] 和
+@litchar["{"]@math{m}@litchar{,}@math{n}@litchar["}?"]，虽然
+@litchar["{"]@math{m}@litchar["}?"] 总是等同于
+@litchar["{"]@math{m}@litchar["}"]。请注意，元字符
+@litchar{?} 有两种不同的用途，这两种用途都体现在
+@litchar{??} 中。
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-clusters"]{Clusters}
+@section[#:tag "regexp-clusters"]{分组}
 
-@deftech{Clustering}---enclosure within parens
-@litchar{(}...@litchar{)}---identifies the enclosed
-@deftech{subpattern} as a single entity.  It causes the matcher to
-capture the @deftech{submatch}, or the portion of the string matching
-the subpattern, in addition to the overall match:
+@deftech{分组}---用括号包围
+@litchar{(}...@litchar{)}---将封闭的
+@deftech{子模式} 标识为单个实体。它导致匹配器在
+整体匹配之外，还捕获 @deftech{子匹配}，即匹配
+子模式的字符串部分：
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"([a-z]+) ([0-9]+), ([0-9]+)" "jan 1, 1970")
 ]
 
-Clustering also causes a following quantifier to treat the entire
-enclosed subpattern as an entity:
+分组还会使后面的量词将整个封闭的
+子模式视为一个实体：
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"(pu )*" "pu pu platter")
 ]
 
-The number of submatches returned is always equal to the number of
-subpatterns specified in the regexp, even if a particular subpattern
-happens to match more than one substring or no substring at all.
+返回的子匹配数量始终等于
+regexp 中指定的子模式数量，即使某个子模式
+恰好匹配了多个子字符串或完全没有匹配。
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"([a-z ]+;)*" "lather; rinse; repeat;")
 ]
 
-Here, the @litchar{*}-quantified subpattern matches three times, but
-it is the last submatch that is returned.
+这里，被 @litchar{*} 量化的子模式匹配了三次，但
+返回的是最后一个子匹配。
 
-It is also possible for a quantified subpattern to fail to match, even
-if the overall pattern matches.  In such cases, the failing submatch
-is represented by @racket[#f]
+即使整体模式匹配，量化的子模式也有可能
+匹配失败。在这种情况下，失败的子匹配
+由 @racket[#f] 表示
 
 @interaction[
 #:eval rx-eval
@@ -558,14 +548,14 @@ is represented by @racket[#f]
 ]
 
 
-@subsection{Backreferences}
+@subsection{反向引用}
 
-@tech{Submatch}es can be used in the insert string argument of the
-procedures @racket[regexp-replace] and @racket[regexp-replace*].  The
-insert string can use @litchar{\}@math{n} as a @deftech{backreference}
-to refer back to the @math{n}th submatch, which is the substring
-that matched the @math{n}th subpattern.  A @litchar{\0} refers to the
-entire match, and it can also be specified as @litchar{\&}.
+@tech{子匹配} 可以在过程
+@racket[regexp-replace] 和 @racket[regexp-replace*] 的插入字符串参数中使用。
+插入字符串可以使用 @litchar{\}@math{n} 作为 @deftech{反向引用}，
+引用第 @math{n} 个子匹配，即匹配第 @math{n} 个
+子模式的子字符串。@litchar{\0} 引用
+整个匹配，也可以指定为 @litchar{\&}。
 
 @interaction[
 #:eval rx-eval
@@ -581,12 +571,11 @@ entire match, and it can also be specified as @litchar{\&}.
   "\\3 \\2 \\1")
 ]
 
-Use @litchar{\\} in the insert string to specify a literal backslash.
-Also, @litchar{\$} stands for an empty string, and is useful for
-separating a backreference @litchar{\}@math{n} from an immediately
-following number.
+在插入字符串中使用 @litchar{\\} 来指定字面反斜杠。
+此外，@litchar{\$} 表示空字符串，用于将
+反向引用 @litchar{\}@math{n} 与紧随其后的数字分隔开，非常有用。
 
-Backreferences can also be used within a @litchar{#px} pattern to
+反向引用 can also be used within a @litchar{#px} pattern to
 refer back to an already matched subpattern in the pattern.
 @litchar{\}@math{n} stands for an exact repeat of the @math{n}th
 submatch. Note that @litchar{\0}, which is useful in an insert string,
@@ -599,14 +588,14 @@ has not matched yet so you cannot refer back to it.}
               "billions and billions")
 ]
 
-Note that the @tech{backreference} is not simply a repeat of the
-previous subpattern.  Rather it is a repeat of the particular
-substring already matched by the subpattern.
+请注意，@tech{反向引用} 并非简单重复
+之前的子模式。相反，它是重复子模式
+已经匹配的特定子字符串。
 
-In the above example, the @tech{backreference} can only match
-@litchar{billions}.  It will not match @litchar{millions}, even though
-the subpattern it harks back to---@litchar{([a-z]+)}---would have had
-no problem doing so:
+在上面的示例中，@tech{反向引用} 只能匹配
+@litchar{billions}。它不会匹配 @litchar{millions}，即使
+它回溯的子模式---@litchar{([a-z]+)}---本来可以
+毫无问题地做到这一点：
 
 @interaction[
 #:eval rx-eval
@@ -614,8 +603,7 @@ no problem doing so:
               "billions and millions")
 ]
 
-The following example marks all immediately repeating patterns in a
-number string:
+以下示例标记数字字符串中所有立即重复的模式：
 
 @interaction[
 #:eval rx-eval
@@ -624,7 +612,7 @@ number string:
   "{\\1,\\1}")
 ]
 
-The following example corrects doubled words:
+以下示例修正重复的单词：
 
 @interaction[
 #:eval rx-eval
@@ -634,13 +622,13 @@ The following example corrects doubled words:
   "\\1")
 ]
 
-@subsection{Non-capturing Clusters}
+@subsection{Non-capturing 分组}
 
-It is often required to specify a cluster (typically for
-quantification) but without triggering the capture of @tech{submatch}
-information.  Such clusters are called @deftech{non-capturing}.  To
-create a non-capturing cluster, use @litchar{(?:} instead of
-@litchar{(} as the cluster opener.
+经常需要指定一个分组（通常用于
+量化），但不触发 @tech{子匹配}
+信息的捕获。这样的分组称为 @deftech{非捕获} 分组。要
+创建非捕获分组，使用 @litchar{(?:} 而非
+@litchar{(} 作为分组的开头。
 
 In the following example, a non-capturing cluster eliminates the
 ``directory'' portion of a given Unix pathname, and a capturing
@@ -655,26 +643,25 @@ cluster identifies the basename.
               "/usr/local/bin/racket")
 ]
 
-@subsection[#:tag "regexp-cloister"]{Cloisters}
+@subsection[#:tag "regexp-cloister"]{修饰符}
 
-The location between the @litchar{?} and the @litchar{:} of a
-non-capturing cluster is called a @deftech{cloister}. You can put
-modifiers there that will cause the enclustered @tech{subpattern} to
-be treated specially.  The modifier @litchar{i} causes the subpattern
-to match case-insensitively:
+非捕获分组中 @litchar{?} 和 @litchar{:} 之间的位置
+称为 @deftech{修饰区}。可以在其中放置修饰符，
+使被包围的 @tech{子模式} 得到特殊处理。
+修饰符 @litchar{i} 使子模式不区分大小写匹配：
 
-@margin-note{The term @defterm{cloister} is a useful, if terminally
-cute, coinage from the abbots of Perl.}
+@margin-note{@defterm{cloister} 一词是一个有用的术语，尽管有些过于
+俏皮，源自 Perl 大师们的创造。}
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"(?i:hearth)" "HeartH")
 ]
 
-The modifier @litchar{m} causes the @tech{subpattern} to match in
-@deftech{multi-line mode}, where @litchar{.} does not match a newline
-character, @litchar{^} can match just after a newline, and @litchar{$}
-can match just before a newline.
+修饰符 @litchar{m} 使 @tech{子模式} 在
+@deftech{多行模式} 下匹配，此模式下 @litchar{.} 不匹配换行符，
+@litchar{^} 可以匹配换行符之后的位置，@litchar{$}
+可以匹配换行符之前的位置。
 
 @interaction[
 #:eval rx-eval
@@ -684,16 +671,16 @@ can match just before a newline.
 (regexp-match #rx"(?m:^A plan$)" "A man\nA plan\nA canal")
 ]
 
-You can put more than one modifier in the cloister:
+可以在修饰区中放置多个修饰符：
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"(?mi:^A Plan$)" "a man\na plan\na canal")
 ]
 
-A minus sign before a modifier inverts its meaning.  Thus, you can use
-@litchar{-i} in a @deftech{subcluster} to overturn the
-case-insensitivities caused by an enclosing cluster.
+修饰符前的减号反转其含义。因此，可以在
+@deftech{子分组} 中使用 @litchar{-i} 来撤销
+外层分组造成的不区分大小写效果。
 
 @interaction[
 #:eval rx-eval
@@ -701,18 +688,18 @@ case-insensitivities caused by an enclosing cluster.
               "The TeXbook")
 ]
 
-The above regexp will allow any casing for @litchar{the} and
-@litchar{book}, but it insists that @litchar{TeX} not be differently
-cased.
+上面的 regexp 允许 @litchar{the} 和 @litchar{book}
+的任意大小写，但坚持 @litchar{TeX}
+必须保持相同的大小写。
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-alternation"]{Alternation}
+@section[#:tag "regexp-alternation"]{选择}
 
-You can specify a list of @emph{alternate} @tech{subpatterns} by
-separating them by @litchar{|}.  The @litchar{|} separates
-@tech{subpatterns} in the nearest enclosing cluster (or in the entire
-pattern string if there are no enclosing parens).
+可以通过用 @litchar{|} 分隔来指定一列
+@emph{候选} @tech{子模式}。@litchar{|} 在最近的外层
+分组中分隔 @tech{子模式}（如果没有外层括号，则在
+整个模式字符串中分隔）。
 
 @interaction[
 #:eval rx-eval
@@ -724,19 +711,19 @@ pattern string if there are no enclosing parens).
                  "\\1z\\2")
 ]
  
-Note again that if you wish to use clustering merely to specify a list
-of alternate subpatterns but do not want the submatch, use
-@litchar{(?:} instead of @litchar{(}.
+再次注意，如果您只想使用分组来指定候选子模式的
+列表但不想要子匹配，请使用
+@litchar{(?:} 而非 @litchar{(}。
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"f(?:ee|i|o|um)" "fun for all")
 ]
 
-An important thing to note about alternation is that the leftmost
-matching alternate is picked regardless of its length.  Thus, if one
-of the alternates is a prefix of a later alternate, the latter may not
-have a chance to match.
+关于选择的一个重要注意事项是，最左边的
+匹配候选项会被选取，无论其长度如何。因此，如果某个
+候选项是后面某个候选项的前缀，则后者可能
+没有机会被匹配。
 
 @interaction[
 #:eval rx-eval
@@ -744,8 +731,8 @@ have a chance to match.
               "call-with-current-continuation")
 ]
 
-To allow the longer alternate to have a shot at matching, place it
-before the shorter one:
+为了让更长的候选项有机会被匹配，将其
+放在较短的候选项之前：
 
 @interaction[
 #:eval rx-eval
@@ -753,10 +740,10 @@ before the shorter one:
               "call-with-current-continuation")
 ]
 
-In any case, an overall match for the entire regexp is always
-preferred to an overall non-match.  In the following, the longer
-alternate still wins, because its preferred shorter prefix fails to
-yield an overall match.
+无论如何，整个 regexp 的整体匹配总是
+优于整体不匹配。在下例中，更长的
+候选项仍然胜出，因为其首选的较短前缀未能
+产生整体匹配。
 
 @interaction[
 #:eval rx-eval
@@ -767,7 +754,7 @@ yield an overall match.
 
 @; ----------------------------------------
 
-@section{Backtracking}
+@section{回溯}
 
 We've already seen that greedy quantifiers match the maximal number of
 times, but the overriding priority is that the overall match succeed.
@@ -778,29 +765,29 @@ Consider
 (regexp-match #rx"a*a" "aaaa")
 ]
 
-The regexp consists of two subregexps: @litchar{a*} followed by
-@litchar{a}.  The subregexp @litchar{a*} cannot be allowed to match
-all four @litchar{a}'s in the text string @racket[aaaa], even though
-@litchar{*} is a greedy quantifier.  It may match only the first
-three, leaving the last one for the second subregexp.  This ensures
-that the full regexp matches successfully.
+regexp 由两个子 regexp 组成：@litchar{a*} 后跟
+@litchar{a}。子 regexp @litchar{a*} 不能匹配
+文本字符串 @racket[aaaa] 中所有的四个 @litchar{a}，即使
+@litchar{*} 是贪婪量词。它只能匹配前
+三个，将最后一个留给第二个子 regexp。这确保了
+整个 regexp 成功匹配。
 
-The regexp matcher accomplishes this via a process called
-@deftech{backtracking}.  The matcher tentatively allows the greedy
-quantifier to match all four @litchar{a}'s, but then when it becomes
-clear that the overall match is in jeopardy, it @emph{backtracks} to a
-less greedy match of three @litchar{a}'s.  If even this fails, as in
-the call
+regexp 匹配器通过一个称为 @deftech{回溯} 的过程
+来实现这一点。匹配器暂时允许贪婪
+量词匹配所有四个 @litchar{a}，但当明确
+整体匹配面临危险时，它会 @emph{回溯} 到较少的
+三个 @litchar{a} 的匹配。如果这仍然失败，如
+以下调用中
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"a*aa" "aaaa")
 ]
 
-the matcher backtracks even further.  Overall failure is conceded
-only when all possible backtracking has been tried with no success.
+匹配器进一步回溯。只有当所有可能的回溯
+都已尝试且未成功时，才会承认整体失败。
 
-Backtracking is not restricted to greedy quantifiers.
+回溯 is not restricted to greedy quantifiers.
 Nongreedy quantifiers match as few instances as
 possible, and progressively backtrack to more and more
 instances in order to attain an overall match.  There
@@ -808,25 +795,25 @@ is backtracking in alternation too, as the more
 rightward alternates are tried when locally successful
 leftward ones fail to yield an overall match.
 
-Sometimes it is efficient to disable backtracking.  For example, we
-may wish to commit to a choice, or we know that trying alternatives is
-fruitless.  A nonbacktracking regexp is enclosed in
-@litchar{(?>}...@litchar{)}.
+有时禁用回溯是高效的。例如，我们
+可能希望提交一个选择，或者我们知道尝试替代方案是
+徒劳的。非回溯 regexp 用
+@litchar{(?>}...@litchar{)} 包围。
 
 @interaction[
 #:eval rx-eval
 (regexp-match #rx"(?>a+)." "aaaa")
 ]
 
-In this call, the subregexp @litchar{?>a+} greedily matches all four
-@litchar{a}'s, and is denied the opportunity to backtrack.  So, the
-overall match is denied.  The effect of the regexp is therefore to
-match one or more @litchar{a}'s followed by something that is
-definitely non-@litchar{a}.
+在此调用中，子 regexp @litchar{?>a+} 贪婪地匹配所有四个
+@litchar{a}，并且被剥夺了回溯的机会。因此，
+整体匹配被拒绝。该 regexp 的效果是
+匹配一个或多个 @litchar{a}，后跟
+绝对非 @litchar{a} 的某个字符。
 
 @; ----------------------------------------
 
-@section{Looking Ahead and Behind}
+@section{前瞻与后顾}
 
 You can have assertions in your pattern that look @emph{ahead} or
 @emph{behind} to ensure that a subpattern does or does not occur.
@@ -838,10 +825,10 @@ lookahead), @litchar{?<=} (positive lookbehind), @litchar{?<!}
 not generate a match in the final result; it merely allows or
 disallows the rest of the match.
 
-@subsection{Lookahead}
+@subsection{前瞻}
 
-Positive lookahead with @litchar{?=} peeks ahead to ensure that
-its subpattern @emph{could} match.  
+使用 @litchar{?=} 的正向前瞻向前查看，确保
+其子模式 @emph{可能} 匹配。  
 
 @interaction[
 #:eval rx-eval
@@ -849,12 +836,12 @@ its subpattern @emph{could} match.
   "i left my grey socks at the greyhound") 
 ]
 
-The regexp @racket[#rx"grey(?=hound)"] matches @litchar{grey}, but
-@emph{only} if it is followed by @litchar{hound}.  Thus, the first
-@litchar{grey} in the text string is not matched.
+regexp @racket[#rx"grey(?=hound)"] 匹配 @litchar{grey}，但
+@emph{仅当} 它后跟 @litchar{hound} 时。因此，
+文本字符串中第一个 @litchar{grey} 不被匹配。
 
-Negative lookahead with @litchar{?!} peeks ahead to ensure that its
-subpattern @emph{could not} possibly match.
+使用 @litchar{?!} 的负向前瞻向前查看，确保其
+子模式 @emph{不可能} 匹配。
 
 @interaction[
 #:eval rx-eval
@@ -862,15 +849,14 @@ subpattern @emph{could not} possibly match.
   "the gray greyhound ate the grey socks") 
 ]
 
-The regexp @racket[#rx"grey(?!hound)"] matches @litchar{grey}, but
-only if it is @emph{not} followed by @litchar{hound}.  Thus the
-@litchar{grey} just before @litchar{socks} is matched.
+regexp @racket[#rx"grey(?!hound)"] 匹配 @litchar{grey}，但
+仅当它后面 @emph{不是} @litchar{hound} 时。因此
+@litchar{socks} 前面的 @litchar{grey} 被匹配。
 
-@subsection{Lookbehind}
+@subsection{后顾}
 
-Positive lookbehind with @litchar{?<=} checks that its subpattern
-@emph{could} match immediately to the left of the current position in
-the text string.
+使用 @litchar{?<=} 的正向后顾检查其子模式
+@emph{可能} 在文本字符串当前位置的紧左侧匹配。
 
 @interaction[
 #:eval rx-eval
@@ -878,11 +864,11 @@ the text string.
   "the hound in the picture is not a greyhound") 
 ]
 
-The regexp @racket[#rx"(?<=grey)hound"] matches @litchar{hound}, but
-only if it is preceded by @litchar{grey}.
+regexp @racket[#rx"(?<=grey)hound"] 匹配 @litchar{hound}，但
+仅当它前面是 @litchar{grey} 时。
 
-Negative lookbehind with @litchar{?<!} checks that its subpattern
-could not possibly match immediately to the left.
+使用 @litchar{?<!} 的负向后顾检查其子模式
+不可能在紧左侧匹配。
 
 @interaction[
 #:eval rx-eval
@@ -890,15 +876,15 @@ could not possibly match immediately to the left.
   "the greyhound in the picture is not a hound")
 ]
 
-The regexp @racket[#rx"(?<!grey)hound"] matches @litchar{hound}, but
-only if it is @emph{not} preceded by @litchar{grey}.
+regexp @racket[#rx"(?<!grey)hound"] 匹配 @litchar{hound}，但
+仅当它前面 @emph{不是} @litchar{grey} 时。
 
-Lookaheads and lookbehinds can be convenient when they
+前瞻s and lookbehinds can be convenient when they
 are not confusing.  
 
 @; ----------------------------------------
 
-@section{An Extended Example}
+@section{一个扩展示例}
 
 @(define ex-eval (make-base-eval))
 
@@ -908,8 +894,8 @@ this chapter.  The problem is to fashion a regexp that will match any
 and only IP addresses or @emph{dotted quads}: four numbers separated
 by three dots, with each number between 0 and 255.
 
-First, we define a subregexp @racket[n0-255] that matches 0 through
-255:
+首先，我们定义一个子 regexp @racket[n0-255]，它匹配从 0 到
+255 的数字：
 
 @interaction[
 #:eval ex-eval
@@ -924,22 +910,21 @@ First, we define a subregexp @racket[n0-255] that matches 0 through
    ")"))
 ]
 
-@margin-note{Note that @racket[n0-255] lists prefixes as preferred
-alternates, which is something we cautioned against in
-@secref["regexp-alternation"].  However, since we intend to anchor
-this subregexp explicitly to force an overall match, the order of the
-alternates does not matter.}
+@margin-note{请注意，@racket[n0-255] 将前缀列为优先
+候选项，这是我们在 @secref["regexp-alternation"] 中
+警告过的做法。但是，由于我们打算显式地锚定
+此子 regexp 以强制整体匹配，候选项的顺序无关紧要。}
 
-The first two alternates simply get all single- and
-double-digit numbers.  Since 0-padding is allowed, we
-need to match both 1 and 01.  We need to be careful
-when getting 3-digit numbers, since numbers above 255
-must be excluded.  So we fashion alternates to get 000
-through 199, then 200 through 249, and finally 250
-through 255.
+前两个候选项简单地获取所有一位和
+两位数字。由于允许 0 填充，我们
+需要同时匹配 1 和 01。在处理
+三位数字时需要小心，因为必须排除大于 255 的
+数字。因此我们构造候选项来获取 000
+到 199，然后是 200 到 249，最后是 250
+到 255。
 
-An IP-address is a string that consists of four @racket[n0-255]s with
-three dots separating them.
+IP 地址是由四个 @racket[n0-255] 组成的字符串，
+中间有三个点分隔。
 
 @interaction[
 #:eval ex-eval
@@ -963,14 +948,14 @@ Let's try it out:
 (regexp-match (pregexp ip-re1) "55.155.255.265")
 ]
 
-which is fine, except that we also have
+这很好，除了我们还有
 
 @interaction[
 #:eval ex-eval
 (regexp-match (pregexp ip-re1) "0.00.000.00")
 ]
 
-All-zero sequences are not valid IP addresses!  Lookahead to the
+All-zero sequences are not valid IP addresses!  前瞻 to the
 rescue.  Before starting to match @racket[ip-re1], we look ahead to
 ensure we don't have all zeros.  We could use positive lookahead to
 ensure there @emph{is} a digit other than zero.
@@ -997,7 +982,7 @@ composed of @emph{only} zeros and dots.
      ip-re1)))
 ]
 
-The regexp @racket[ip-re] will match all and only valid IP addresses.
+regexp @racket[ip-re] 将匹配所有且仅匹配有效的 IP 地址。
 
 @interaction[
 #:eval ex-eval
