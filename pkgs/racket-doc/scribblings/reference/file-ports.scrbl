@@ -35,85 +35,44 @@
 
 @(define default-permissions @racketvalfont{#o666})
 
-@title[#:tag "file-ports"]{File Ports}
+@title[#:tag "file-ports"]{文件端口}
 
-A port created by @racket[open-input-file], @racket[open-output-file],
-@racket[subprocess], and related functions is a @deftech{file-stream
-port}.  The initial input, output, and error ports in @exec{racket}
-are also file-stream ports. The @racket[file-stream-port?]  predicate
-recognizes file-stream ports.
+由 @racket[open-input-file]、@racket[open-output-file]、@racket[subprocess] 及相关函数创建的 port 是 @deftech{file-stream port}。@exec{racket} 中的初始输入、输出和错误端口也都是 file-stream port。@racket[file-stream-port?] 谓词用于识别 file-stream port。
 
-When an input or output file-stream port is created, it is placed into
-the management of the current custodian (see
-@secref["custodians"]). In the case of an output port, a @tech{flush
-callback} is registered with the @tech{current plumber} to flush the port.
+当创建输入或输出的 file-stream port 时，它会被交由当前 custodian 管理（参见 @secref["custodians"]）。对于 output port，还会向 @tech{current plumber} 注册一个 @tech{flush callback} 以刷新该 port。
 
 @defproc[(open-input-file [path path-string?]
                           [#:mode mode-flag (or/c 'binary 'text) 'binary]
                           [#:for-module? for-module? any/c #f])
          input-port?]{
 
-Opens the file specified by @racket[path] for input. The
-@racket[mode-flag] argument specifies how the file's bytes are
-translated on input:
+打开 @racket[path] 指定的文件用于输入。@racket[mode-flag] 参数指定文件字节在输入时的转换方式：
 
 @itemize[
 
- @item{@indexed-racket['binary] --- bytes are returned from the port
- exactly as they are read from the file.}
+ @item{@indexed-racket['binary] --- 字节按从文件读取时的原样返回。}
 
- @item{@indexed-racket['text] --- return and linefeed bytes (10 and
- 13) as read from the file are filtered by the port in a platform
- specific manner:
+ @item{@indexed-racket['text] --- 文件中读取的 return 和 linefeed 字节（10 和 13）由 port 按平台特定方式过滤：
 
   @itemize[
 
-  @item{@|AllUnix|: no filtering occurs.}
+  @item{@|AllUnix|: 不进行过滤。}
 
-  @item{Windows: a return-linefeed combination from a file is returned
-        by the port as a single linefeed; no filtering occurs for
-        return bytes that are not followed by a linefeed, or for a
-        linefeed that is not preceded by a return.}
+  @item{Windows: 文件中的 return-linefeed 组合由 port 作为单个 linefeed 返回；未后跟 linefeed 的 return 字节或未前跟 return 的 linefeed 不过滤。}
   ]}
 ]
 
-On Windows, @racket['text] mode works only with regular files;
-attempting to use @racket['text] with other kinds of files triggers an
-@racket[exn:fail:filesystem] exception.
+在 Windows 上，@racket['text] 模式仅适用于常规文件；尝试将 @racket['text] 用于其他类型的文件会引发 @racket[exn:fail:filesystem] 异常。
 
-Otherwise, the file specified by @racket[path] need not be a regular
-file. It might be a device that is connected through the filesystem, such
-as @filepath{aux} on Windows or @filepath{/dev/null} on Unix. In all
-cases, the port is buffered by default.
+否则，@racket[path] 指定的文件不必是常规文件。它可能是通过文件系统连接的设备，例如 Windows 上的 @filepath{aux} 或 Unix 上的 @filepath{/dev/null}。所有情况下，port 默认都是带缓冲的。
 
-The port produced by @racket[open-input-file] should be explicitly
-closed, either though @racket[close-input-port] or indirectly via
-@racket[custodian-shutdown-all], to release the OS-level file
-handle. The input port will not be closed automatically even if it is
-otherwise available for garbage collection (see
-@secref["gc-model"]); a @tech{will} could be associated with an input port
-to close it more automatically (see @secref["willexecutor"]).
+@racket[open-input-file] 产生的 port 应显式关闭，无论是通过 @racket[close-input-port] 还是间接通过 @racket[custodian-shutdown-all]，以释放 OS 级别的 file handle。即使 input port 可供垃圾回收，它也不会自动关闭（参见 @secref["gc-model"]）；可以将 @tech{will} 与 input port 关联以更自动地关闭它（参见 @secref["willexecutor"]）。
 
-A @tech{path} value that is the @tech{cleanse}d version of
-@racket[path] is used as the name of the opened port.
+用作已打开端口名称的 @tech{path} 值是 @racket[path] 的 @tech{cleanse}d 版本。
 
-On variants of Unix and MacOS that support @tt{O_CLOEXEC}, the file is
-opened with @tt{O_CLOEXEC} so that the underlying file descriptor is
-not shared with a subprocess created by @racket[subprocess]. On
-Windows, the file is opened as a non-inherited handle.
+在支持 @tt{O_CLOEXEC} 的 Unix 和 MacOS 变体上，文件以 @tt{O_CLOEXEC} 标志打开，使得底层 file descriptor 不会与 @racket[subprocess] 创建的子进程共享。在 Windows 上，文件作为非继承 handle 打开。
 
-If opening the file fails due to an error in the filesystem,
-then @exnraise[exn:fail:filesystem:errno]---as long as
-@racket[for-module?] is @racket[#f],
-@racket[current-module-path-for-load] has a non-@racket[#f] value, or
-the filesystem error is not recognized as a file-not-found error. Otherwise,
-when @racket[for-module?] is true,
-@racket[current-module-path-for-load] has a non-@racket[#f] value,
-and the filesystem error is recognized as a file-not-found error, 
-then the raised exception is either
-@racket[exn:fail:syntax:missing-module] (if the value of
-@racket[current-module-path-for-load] is a @tech{syntax object}) or
-@racket[exn:fail:filesystem:missing-module] (otherwise).
+如果因文件系统错误导致文件打开失败，则引发 @exnraise[exn:fail:filesystem:errno]——前提为：@racket[for-module?] 是 @racket[#f]，或 @racket[current-module-path-for-load] 具有非 @racket[#f] 的值，或该文件系统错误不被识别为文件未找到错误。否则，当 @racket[for-module?] 为真，@racket[current-module-path-for-load] 具有非 @racket[#f] 的值，且文件系统错误被识别为文件未找到错误时，引发的异常是 @racket[exn:fail:syntax:missing-module]（当 @racket[current-module-path-for-load] 的值是 @tech{syntax object} 时）或 @racket[exn:fail:filesystem:missing-module]（其它情况）。
 
 @history[#:changed "6.0.1.6" @elem{Added @racket[#:for-module?].}
          #:changed "8.11.1.6" @elem{Changed to use @tt{O_CLOEXEC}
@@ -137,104 +96,51 @@ then the raised exception is either
                            [#:replace-permissions? replace-permissions? any/c #f])
           output-port?]{
 
-Opens the file specified by @racket[path] for output. The
-@racket[mode-flag] argument specifies how bytes written to the port
-are translated when written to the file:
+打开 @racket[path] 指定的文件用于输出。@racket[mode-flag] 参数指定写入 port 的字节在写入文件时的转换方式：
 
 @itemize[
 
- @item{@racket['binary] --- bytes are written to the file exactly
- as written to the port.}
+ @item{@racket['binary] --- 字节按写入 port 时的原样写入文件。}
 
- @item{@racket['text] --- on Windows, a linefeed byte (10) written
- to the port is translated to a return-linefeed combination in the
- file; no filtering occurs for returns.}
+ @item{@racket['text] --- 在 Windows 上，写入 port 的 linefeed 字节（10）被转换为文件中的 return-linefeed 组合；return 不进行过滤。}
 
 ]
 
-On Windows, @racket['text] mode works only with regular files;
-attempting to use @racket['text] with other kinds of files triggers an
-@racket[exn:fail:filesystem] exception.
+在 Windows 上，@racket['text] 模式仅适用于常规文件；尝试将 @racket['text] 用于其他类型的文件会引发 @racket[exn:fail:filesystem] 异常。
 
-The @racket[exists-flag] argument specifies how to handle/require
-files that already exist:
+@racket[exists-flag] 参数指定如何处理/要求已存在的文件：
 
 @itemize[
 
- @item{@indexed-racket['error] --- raise @racket[exn:fail:filesystem]
-       if the file exists.}
+ @item{@indexed-racket['error] --- 如果文件存在，则引发 @racket[exn:fail:filesystem]。}
 
- @item{@indexed-racket['replace] --- remove the old file, if it
-       exists, and write a new one.}
+ @item{@indexed-racket['replace] --- 如果旧文件存在，则删除它并写入新文件。}
 
- @item{@indexed-racket['truncate] --- remove all old data, if the file
-       exists.}
+ @item{@indexed-racket['truncate] --- 如果文件存在，则删除所有旧数据。}
 
- @item{@indexed-racket['must-truncate] --- remove all old data in an
-       existing file; if the file does not exist, the
-       @exnraise[exn:fail:filesystem].}
+ @item{@indexed-racket['must-truncate] --- 删除现有文件中的所有旧数据；如果文件不存在，则引发 @exnraise[exn:fail:filesystem]。}
 
- @item{@indexed-racket['truncate/replace] --- try @racket['truncate];
-       if it fails (perhaps due to file permissions), try
-       @racket['replace].}
+ @item{@indexed-racket['truncate/replace] --- 尝试 @racket['truncate]；如果失败（可能由于文件权限），则尝试 @racket['replace]。}
 
- @item{@indexed-racket['update] --- open an existing file without
-       truncating it; if the file does not exist, the
-       @exnraise[exn:fail:filesystem]. Use @racket[file-position]
-       to change the current read/write position.}
+ @item{@indexed-racket['update] --- 打开现有文件而不截断它；如果文件不存在，则引发 @exnraise[exn:fail:filesystem]。使用 @racket[file-position] 改变当前读/写位置。}
 
- @item{@indexed-racket['can-update] --- open an existing file without
-       truncating it, or create the file if it does not exist.}
+ @item{@indexed-racket['can-update] --- 打开现有文件而不截断它，或者如果文件不存在则创建它。}
 
- @item{@indexed-racket['append] --- append to the end of the file,
-       whether it already exists or not; on Windows,
-       @racket['append] is equivalent to @racket['update], except that
-       the file is not required to exist, and the file position is
-       immediately set to the end of the file after opening it.}
+ @item{@indexed-racket['append] --- 追加到文件末尾，无论文件是否已存在；在 Windows 上，@racket['append] 等同于 @racket['update]，只是文件不必存在，且文件位置在打开后立即设置为文件末尾。}
 
 ]
 
-When the file specified by @racket[path] is created,
-@racket[permissions] specifies the permissions of the created file,
-where an integer representation of permissions is treated the same as
-for @racket[file-or-directory-permissions]. On Unix and Mac OS, these
-permissions bits are combined with the process's umask. On Windows,
-the only relevant property of @racket[permissions] is whether it has
-the @racketvalfont{#o2} bit set for write permission. Note that a
-read-only file can be created with @racket[open-output-file], in which
-case writing is prohibited only for later attempts to open the file.
-If @racket[replace-permissions?] is a true value, then independent of
-whether the opened file is newly created, the value of
-@racket[permissions] is applied to the opened file, and it is applied
-independent of the process's umask on Unix and Mac OS.
+当创建 @racket[path] 指定的文件时，@racket[permissions] 指定所创建文件的权限，其中权限的整数表示与 @racket[file-or-directory-permissions] 中的处理方式相同。在 Unix 和 Mac OS 上，这些权限位与进程的 umask 组合。在 Windows 上，@racket[permissions] 唯一相关的属性是是否设置了 @racketvalfont{#o2} 位用于写权限。注意，可以使用 @racket[open-output-file] 创建只读文件，此时写操作仅禁止后续尝试打开该文件。如果 @racket[replace-permissions?] 为真值，则无论打开的文件是否新创建，@racket[permissions] 的值都会应用于打开的文件，并且在 Unix 和 Mac OS 上独立于进程的 umask 应用。
 
-The file specified by @racket[path] need not be a regular file. It
-might be a device that is connected through the filesystem, such as
-@filepath{aux} on Windows or @filepath{/dev/null} on Unix. The output
-port is block-buffered by default, unless the file corresponds to a
-terminal, in which case it is line-buffered by default. On Unix and
-Mac OS, if the file is a fifo, then the port will block for writing
-until a reader for the fifo is available; see also
-@racket[port-waiting-peer?].
+@racket[path] 指定的文件不必是常规文件。它可能是通过文件系统连接的设备，例如 Windows 上的 @filepath{aux} 或 Unix 上的 @filepath{/dev/null}。output port 默认是块缓冲的，除非文件对应于终端，此时默认是行缓冲的。在 Unix 和 Mac OS 上，如果文件是 fifo，则 port 将阻塞写入直到 fifo 的读取者可用；另请参见 @racket[port-waiting-peer?]。
 
-The port produced by @racket[open-output-file] should be explicitly
-closed, either though @racket[close-output-port] or indirectly via
-@racket[custodian-shutdown-all], to release the OS-level file
-handle. The output port will not be closed automatically even if it is
-otherwise available for garbage collection (see
-@secref["gc-model"]); a @tech{will} could be associated with an output port
-to close it more automatically (see @secref["willexecutor"]).
+@racket[open-output-file] 产生的 port 应显式关闭，无论是通过 @racket[close-output-port] 还是间接通过 @racket[custodian-shutdown-all]，以释放 OS 级别的 file handle。即使 output port 可供垃圾回收，它也不会自动关闭（参见 @secref["gc-model"]）；可以将 @tech{will} 与 output port 关联以更自动地关闭它（参见 @secref["willexecutor"]）。
 
-A @tech{path} value that is the @tech{cleanse}d version of
-@racket[path] is used as the name of the opened port.
+用作已打开端口名称的 @tech{path} 值是 @racket[path] 的 @tech{cleanse}d 版本。
 
-On variants of Unix and MacOS that support @tt{O_CLOEXEC}, the file is
-opened with @tt{O_CLOEXEC} so that the underlying file descriptor is
-not shared with a subprocess created by @racket[subprocess]. On
-Windows, the file is opened as a non-inherited handle.
+在支持 @tt{O_CLOEXEC} 的 Unix 和 MacOS 变体上，文件以 @tt{O_CLOEXEC} 标志打开，使得底层 file descriptor 不会与 @racket[subprocess] 创建的子进程共享。在 Windows 上，文件作为非继承 handle 打开。
 
-If opening the file fails due to an error in the underlying filesystem
-then @exnraise[exn:fail:filesystem:errno].
+如果因底层文件系统错误导致文件打开失败，则引发 @exnraise[exn:fail:filesystem:errno]。
 
 @file-examples[
 (define out (open-output-file some-file))
@@ -263,16 +169,7 @@ then @exnraise[exn:fail:filesystem:errno].
                            [#:replace-permissions? replace-permissions? any/c #f])
           (values input-port? output-port?)]{
 
-Like @racket[open-output-file], but producing two values: an input
-port and an output port. The two ports are connected in that they
-share the underlying file descriptor. This procedure is intended for use
-with special devices that can be opened by only one process, such as
-@filepath{COM1} in Windows. For regular files, sharing the file descriptor can be
-confusing. For example, using one port does not automatically flush
-the other port's buffer, and reading or writing in one port moves the
-file position (if any) for the other port. For regular files, use
-separate @racket[open-input-file] and @racket[open-output-file] calls
-to avoid confusion.
+类似于 @racket[open-output-file]，但产生两个值：一个 input port 和一个 output port。两个 port 共享底层 file descriptor。此过程旨在用于只能由一个进程打开的特殊设备，例如 Windows 上的 @filepath{COM1}。对于常规文件，共享 file descriptor 可能会造成混乱。例如，使用一个 port 不会自动刷新另一个 port 的缓冲区，并且在一个 port 中读取或写入会移动另一个 port 的文件位置（如果有）。对于常规文件，请使用单独的 @racket[open-input-file] 和 @racket[open-output-file] 调用来避免混淆。
 
 @history[#:changed "8.1.0.3" @elem{Added the @racket[#:permissions] argument.}
          #:changed "8.7.0.10" @elem{Added the @racket[#:replace-permissions?] argument.}]}
@@ -281,11 +178,7 @@ to avoid confusion.
                                [proc (input-port? . -> . any)]
                                [#:mode mode-flag (or/c 'binary 'text) 'binary])
          any]{
-Calls @racket[open-input-file] with the @racket[path] and
-@racket[mode-flag] arguments, and passes the resulting port
-to @racket[proc]. The result of @racket[proc] is the result of the
-@racket[call-with-input-file] call, but the newly opened port is closed
-when @racket[proc] returns.
+使用 @racket[path] 和 @racket[mode-flag] 参数调用 @racket[open-input-file]，并将产生的 port 传递给 @racket[proc]。@racket[proc] 的结果即为 @racket[call-with-input-file] 调用的结果，但新打开的 port 会在 @racket[proc] 返回时关闭。
 
 @file-examples[
 (with-output-to-file some-file
@@ -303,9 +196,7 @@ when @racket[proc] returns.
                                 [#:permissions permissions (integer-in 0 65535) @#,default-permissions]
                                 [#:replace-permissions? replace-permissions? any/c #f])
          any]{
-Analogous to @racket[call-with-input-file], but passing @racket[path],
-@racket[mode-flag], @racket[exists-flag], @racket[permissions], and @racket[replace-permissions?] to
-@racket[open-output-file].
+类似于 @racket[call-with-input-file]，但将 @racket[path]、@racket[mode-flag]、@racket[exists-flag]、@racket[permissions] 和 @racket[replace-permissions?] 传递给 @racket[open-output-file]。
 
 @file-examples[
 (call-with-output-file some-file
@@ -323,10 +214,7 @@ Analogous to @racket[call-with-input-file], but passing @racket[path],
                                 [proc (input-port? . -> . any)]
                                 [#:mode mode-flag (or/c 'binary 'text) 'binary])
          any]{
-Like @racket[call-with-input-file], but the newly opened port is
-closed whenever control escapes the dynamic extent of the
-@racket[call-with-input-file*] call, whether through @racket[proc]'s
-return, a continuation application, or a prompt-based abort.}
+类似于 @racket[call-with-input-file]，但新打开的 port 在控制逃离 @racket[call-with-input-file*] 调用的动态范围时关闭，无论是通过 @racket[proc] 的返回、continuation 应用还是基于 prompt 的中止。}
 
 @defproc[(call-with-output-file* [path path-string?]
                                  [proc (output-port? . -> . any)]
@@ -337,10 +225,7 @@ return, a continuation application, or a prompt-based abort.}
                                  [#:permissions permissions (integer-in 0 65535) @#,default-permissions]
                                  [#:replace-permissions? replace-permissions? any/c #f])
          any]{
-Like @racket[call-with-output-file], but the newly opened port is
-closed whenever control escapes the dynamic extent of the
-@racket[call-with-output-file*] call, whether through @racket[proc]'s
-return, a continuation application, or a prompt-based abort.
+类似于 @racket[call-with-output-file]，但新打开的 port 在控制逃离 @racket[call-with-output-file*] 调用的动态范围时关闭，无论是通过 @racket[proc] 的返回、continuation 应用还是基于 prompt 的中止。
 
 @history[#:changed "8.1.0.3" @elem{Added the @racket[#:permissions] argument.}
          #:changed "8.7.0.10" @elem{Added the @racket[#:replace-permissions?] argument.}]}
@@ -349,10 +234,7 @@ return, a continuation application, or a prompt-based abort.
                                [thunk (-> any)]
                                [#:mode mode-flag (or/c 'binary 'text) 'binary])
          any]{
-Like @racket[call-with-input-file*], but instead of passing the newly
-opened port to the given procedure argument, the port is installed as
-the current input port (see @racket[current-input-port]) using
-@racket[parameterize] around the call to @racket[thunk].
+类似于 @racket[call-with-input-file*]，但不是将新打开的 port 传递给给定的过程参数，而是将该 port 作为当前 input port 安装（参见 @racket[current-input-port]），使用 @racket[parameterize] 包裹对 @racket[thunk] 的调用。
 
 @file-examples[
 (with-output-to-file some-file
@@ -370,10 +252,7 @@ the current input port (see @racket[current-input-port]) using
                               [#:permissions permissions (integer-in 0 65535) @#,default-permissions]
                               [#:replace-permissions? replace-permissions? any/c #f])
          any]{
-Like @racket[call-with-output-file*], but instead of passing the newly
-opened port to the given procedure argument, the port is installed as
-the current output port (see @racket[current-output-port]) using
-@racket[parameterize] around the call to @racket[thunk].
+类似于 @racket[call-with-output-file*]，但不是将新打开的 port 传递给给定的过程参数，而是将该 port 作为当前 output port 安装（参见 @racket[current-output-port]），使用 @racket[parameterize] 包裹对 @racket[thunk] 的调用。
 
 @file-examples[
 (with-output-to-file some-file
@@ -390,71 +269,26 @@ the current output port (see @racket[current-output-port]) using
                               [mode (or/c 'shared 'exclusive)])
          boolean?]{
 
-Attempts to acquire a lock on the file using the current platform's
-facilities for file locking. Multiple processes can acquire a
-@racket['shared] lock on a file, but at most one process can hold an
-@racket['exclusive] lock, and @racket['shared] and @racket['exclusive]
-locks are mutually exclusive. When @racket[mode] is @racket['shared],
-then @racket[port] must be an input port; when @racket[mode] is
-@racket['exclusive], then @racket[port] must be an output port.
+尝试使用当前平台的文件锁定设施获取文件上的锁。多个进程可以获取文件上的 @racket['shared] 锁，但最多只有一个进程可以持有 @racket['exclusive] 锁，且 @racket['shared] 和 @racket['exclusive] 锁互斥。当 @racket[mode] 为 @racket['shared] 时，@racket[port] 必须是 input port；当 @racket[mode] 为 @racket['exclusive] 时，@racket[port] 必须是 output port。
 
-The result is @racket[#t] if the requested lock is acquired,
-@racket[#f] otherwise. When a lock is acquired, it is held until
-either it is released with @racket[port-file-unlock] or the port is closed
-(perhaps because the process terminates).
+如果获取了请求的锁，结果为 @racket[#t]，否则为 @racket[#f]。获取锁后，锁会一直保持，直到通过 @racket[port-file-unlock] 释放或 port 关闭（可能因为进程终止）。
 
-Depending on the platform, locks may be merely advisory (i.e., locks
-affect only the ability of processes to acquire locks) or they may
-correspond to mandatory locks that prevent reads and writes to the
-locked file. Specifically, locks are mandatory on Windows and advisory
-on other platforms. Multiple tries for a @racket['shared] lock on a
-single port can succeed; on Unix and Mac OS, a single
-@racket[port-file-unlock] release the lock, while on other Windows, a
-@racket[port-file-unlock] is needed for each successful
-@racket[port-try-file-lock?]. On Unix and Mac OS, multiple tries for
-a @racket['exclusive] lock can succeed and a single
-@racket[port-file-unlock] releases the lock, while on Windows, a try
-for an @racket['exclusive] lock fails for a given port if the port
-already holds the lock.
+取决于平台，锁可能仅是建议性的（即锁仅影响进程获取锁的能力），或者可能对应于阻止对锁定文件进行读写的强制锁。具体而言，Windows 上的锁是强制性的，其他平台上是建议性的。对单个 port 的 @racket['shared] 锁的多次尝试可以成功；在 Unix 和 Mac OS 上，一次 @racket[port-file-unlock] 释放锁，而在 Windows 上，每次成功的 @racket[port-try-file-lock?] 都需要一个 @racket[port-file-unlock]。在 Unix 和 Mac OS 上，对 @racket['exclusive] 锁的多次尝试可以成功，且一次 @racket[port-file-unlock] 释放锁，而在 Windows 上，如果 port 已持有锁，则对 @racket['exclusive] 锁的尝试失败。
 
-A lock acquired for an input port from @racket[open-input-output-file]
-can be released through @racket[port-file-unlock] on the corresponding
-output port, and vice versa. If the output port from
-@racket[open-input-output-file] holds an @racket['exclusive] lock, the
-corresponding input port can still acquire a @racket['shared] lock,
-even multiple times; on Windows, a @racket[port-file-unlock] is needed
-for each successful lock try, while a single @racket[port-file-unlock]
-balances the lock tries on Unix and Mac OS. A @racket['shared] lock on
-an input port can be upgraded to an @racket['exclusive] lock through the
-corresponding output port on Unix and Mac OS, in which case a single
-@racket[port-file-unlock] (on either port) releases the lock, while
-such upgrades are not allowed on Windows.
+从 @racket[open-input-output-file] 为 input port 获取的锁可以通过相应 output port 上的 @racket[port-file-unlock] 释放，反之亦然。如果 @racket[open-input-output-file] 的 output port 持有 @racket['exclusive] 锁，相应的 input port 仍然可以获取 @racket['shared] 锁，甚至可以多次；在 Windows 上，每次成功的锁尝试都需要一个 @racket[port-file-unlock]，而在 Unix 和 Mac OS 上，一次 @racket[port-file-unlock] 平衡锁尝试。在 Unix 和 Mac OS 上，input port 上的 @racket['shared] 锁可以通过相应的 output port 升级为 @racket['exclusive] 锁，此时一次 @racket[port-file-unlock]（在任一 port 上）释放锁，而在 Windows 上不允许此类升级。
 
-Locking is normally supported only for file ports, and attempting to
-acquire a lock with other kinds of file-stream ports raises an
-@racket[exn:fail:filesystem] exception.}
+锁定通常仅对 file port 支持，尝试使用其他类型的 file-stream port 获取锁会引发 @racket[exn:fail:filesystem] 异常。}
 
 
 @defproc[(port-file-unlock [port file-stream-port?])
          void?]{
 
-Releases a lock held by the current process on the file of
-@racket[port].}
+释放当前进程对 @racket[port] 文件持有的锁。}
 
 
 @defproc[(port-file-identity [port file-stream-port?]) exact-positive-integer?]{
 
-@index['("inode")]{Returns} a number that represents
-the identity of the device and file read or written by
-@racket[port]. For two ports whose open times overlap, the
-result of @racket[port-file-identity] is the same for both ports if
-and only if the ports access the same device and file. For ports whose
-open times do not overlap, no guarantee can be provided for the port
-identities (even if the ports actually access the same file)---except
-as can be inferred through relationships with other ports. If
-@racket[port] is closed, the @exnraise[exn:fail].  On
-Windows 95, 98, and Me, if @racket[port] is connected to a
-pipe instead of a file, the @exnraise[exn:fail:filesystem].
+@index['("inode")]{返回} 一个表示 @racket[port] 读取或写入的设备和文件身份的数字。如果两个端口开放时间重叠，当且仅当两个端口访问相同的设备和文件时，@racket[port-file-identity] 的结果相同。对于开放时间不重叠的端口，无法提供端口身份的保证（即使端口实际访问同一文件）——除非可以通过与其他端口的关系推断。如果 @racket[port] 已关闭，则引发 @exnraise[exn:fail]。在 Windows 95、98 和 Me 上，如果 @racket[port] 连接的是 pipe 而非文件，则引发 @exnraise[exn:fail:filesystem]。
 
 @file-examples[
 (define file1 (open-output-file some-file))
@@ -467,7 +301,6 @@ pipe instead of a file, the @exnraise[exn:fail:filesystem].
 
 @defproc[(port-file-stat [port file-stream-port?]) (and/c (hash/c symbol? any/c) hash-eq?)]{
 
-Like @racket[file-or-directory-stat], but returns information for an
-open file represented by a port, instead using of the file's path.
+类似于 @racket[file-or-directory-stat]，但返回由 port 表示的打开文件的信息，而不是使用文件的路径。
 
 @history[#:added "8.15.0.6"]}
