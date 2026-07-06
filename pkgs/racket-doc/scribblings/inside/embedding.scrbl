@@ -16,154 +16,144 @@ Racket 运行时系统可以嵌入到更大的程序中。Racket CGC 与 Racket 
 
 @itemize[
 
- @item{Locate or @seclink["src-build"]{build}
-  the Racket CGC libraries. Since the
-  standard distribution provides 3m libraries, only, you will most
-  likely have to @seclink["src-build"]{build from source}.
+ @item{找到或 @seclink["src-build"]{自己构建}
+  Racket CGC 库。由于
+  标准发行版仅提供 3m 库，你很可能
+  需要 @seclink["src-build"]{从源代码构建}。
 
-  On Unix, the libraries are @as-index{@filepath{libracket.a}},
-  @as-index{@filepath{librktio.a}},
-  and @as-index{@filepath{libmzgc.a}} (or
-  @as-index{@filepath{libracket.so}},
-  @as-index{@filepath{librrktio.so}}, and
-  @as-index{@filepath{libmzgc.so}} for a dynamic-library build, with
-  @as-index{@filepath{libracket.la}},
-  @as-index{@filepath{librktio.la}}, and
-  @as-index{@filepath{libmzgc.la}} files for use with
-  @exec{libtool}). Building from source and installing places the
-  libraries into the installation's @filepath{lib} directory. Be sure
-  to build the CGC variant, since the default is 3m.
+  在 Unix 上，库文件为 @as-index{@filepath{libracket.a}}、
+  @as-index{@filepath{librktio.a}}
+  和 @as-index{@filepath{libmzgc.a}}（或者
+  @as-index{@filepath{libracket.so}}、
+  @as-index{@filepath{librrktio.so}} 和
+  @as-index{@filepath{libmzgc.so}} 用于动态库构建，配合
+  @as-index{@filepath{libracket.la}}、
+  @as-index{@filepath{librktio.la}} 和
+  @as-index{@filepath{libmzgc.la}} 文件供
+  @exec{libtool} 使用）。从源代码构建并安装会将
+  库文件放入安装目录的 @filepath{lib} 子目录中。请确保
+  构建的是 CGC 变体，因为默认为 3m。
 
-  On Windows, link to @filepath{libracket@italic{x}.dll} and
-  @filepath{libmzgc@italic{x}.dll} (where @italic{x} represents the
-  version number). At run time, either
-  @filepath{libracket@italic{x}.dll} and
-  @filepath{libmzgc@italic{x}.dll} must be moved to a location in the
-  standard DLL search path, or your embedding application must
-  ``delayload'' link the DLLs and explicitly load them before use.
-  (@filepath{Racket.exe} uses the latter strategy.) See also
-  @secref["link-dll"].
+  在 Windows 上，链接到 @filepath{libracket@italic{x}.dll} 和
+  @filepath{libmzgc@italic{x}.dll}（其中 @italic{x} 表示
+  版本号）。在运行时，要么将
+  @filepath{libracket@italic{x}.dll} 和
+  @filepath{libmzgc@italic{x}.dll} 移动到
+  标准 DLL 搜索路径中的某个位置，要么你的嵌入应用程序必须
+  对 DLL 进行 ``delayload'' 链接并在使用前显式加载它们。
+  （@filepath{Racket.exe} 采用后一种策略。）另请参见
+  @secref["link-dll"]。
 
-  On Mac OS, dynamic libraries are provided by the
-  @filepath{Racket} framework, which is typically installed in
-  @filepath{lib} sub-directory of the installation. Supply
-  @exec{-framework Racket} to @exec{gcc} when linking, along
-  with @exec{-F} and a path to the @filepath{lib} directory. Beware
-  that CGC and 3m libraries are installed as different versions within
-  a single framework, and installation marks one version or the other
-  as the default (by setting symbolic links); install only CGC to
-  simplify accessing the CGC version within the framework.  At run
-  time, either @filepath{Racket.framework} must be moved to a
-  location in the standard framework search path, or your embedding
-  executable must provide a specific path to the framework (possibly
-  an executable-relative path using the Mach-O @tt["@executable_path"]
-  prefix).}
+  在 Mac OS 上，动态库由
+  @filepath{Racket} framework 提供，通常安装在
+  安装目录的 @filepath{lib} 子目录中。链接时向 @exec{gcc} 提供
+  @exec{-framework Racket}，以及
+  @exec{-F} 和指向 @filepath{lib} 目录的路径。请注意，
+  CGC 和 3m 库在单个 framework 中作为不同版本安装，
+  安装过程通过设置符号链接标记其中一个版本为默认；
+  仅安装 CGC 可以简化在 framework 中访问 CGC 版本的过程。在
+  运行时，要么将 @filepath{Racket.framework} 移动到
+  标准 framework 搜索路径中的某个位置，要么你的嵌入
+  可执行文件必须提供指向该 framework 的特定路径（可能
+  是使用 Mach-O @tt["@executable_path"]
+  前缀的可执行文件相对路径）。}
 
- @item{For each C file that uses Racket library functions,
-  @cpp{#include} the file @as-index{@filepath{scheme.h}}.
+ @item{对于每个使用 Racket 库函数的 C 文件，
+  在文件中 @cpp{#include} @as-index{@filepath{scheme.h}}。
 
-  The C preprocessor symbol @cppi{SCHEME_DIRECT_EMBEDDED} is defined
-  as @cpp{1} when @filepath{scheme.h} is @cpp{#include}d, or as
-  @cpp{0} when @filepath{escheme.h} is @cpp{#include}d.
+  C 预处理器符号 @cppi{SCHEME_DIRECT_EMBEDDED} 在
+  @cpp{#include} @filepath{scheme.h} 时被定义为
+  @cpp{1}，而在 @cpp{#include} @filepath{escheme.h} 时
+  被定义为 @cpp{0}。
 
-  The @filepath{scheme.h} file is distributed with the Racket software in
-  the installation's @filepath{include} directory. Building and
-  installing from source also places this file in the installation's
-  @filepath{include} directory.}
+  @filepath{scheme.h} 文件随 Racket 软件一起分发，位于
+  安装目录的 @filepath{include} 子目录中。从源代码构建并
+  安装也会将此文件放入安装目录的
+  @filepath{include} 子目录中。}
 
- @item{Start your main program through the @cpp{scheme_main_setup} (or
-  @cpp{scheme_main_stack_setup}) trampoline, and put all uses of
-  Racket functions inside the function passed to
-  @cpp{scheme_main_setup}. The @cpp{scheme_main_setup} function
-  registers the current C stack location with the memory manager. It
-  also creates the initial namespace @cpp{Scheme_Env*} by calling
-  @cppi{scheme_basic_env} and passing the result to the function
-  provided to @cpp{scheme_main_setup}. (The
-  @cpp{scheme_main_stack_setup} trampoline registers the C stack with
-  the memory manager without creating a namespace.)
+ @item{通过 @cpp{scheme_main_setup}（或
+  @cpp{scheme_main_stack_setup}）trampoline 启动你的主程序，并将所有对
+  Racket 函数的使用放在传递给
+  @cpp{scheme_main_setup} 的函数内部。@cpp{scheme_main_setup} 函数
+  会将当前的 C 栈位置注册到内存管理器中。它
+  还会通过调用 @cppi{scheme_basic_env}
+  并将结果传递给提供给 @cpp{scheme_main_setup} 的函数来
+  创建初始命名空间 @cpp{Scheme_Env*}。（
+  @cpp{scheme_main_stack_setup} trampoline 会向
+  内存管理器注册 C 栈而不创建命名空间。）
 
-  On Windows, when support for parallelism is enabled in the Racket
-  build (as is the default), then before calling
-  @cpp{scheme_main_setup}, your embedding application must first call
-  @cppi{scheme_register_tls_space}:
+  在 Windows 上，当 Racket 构建中启用了并行支持时
+  （这是默认设置），那么在调用
+  @cpp{scheme_main_setup} 之前，你的嵌入应用程序必须先调用
+  @cppi{scheme_register_tls_space}：
 
   @verbatim[#:indent 2]{
    scheme_register_tls_space(&tls_space, 0);
   }
 
-  where @cpp{tls_space} is declared as a thread-local pointer variable
-  in the main executable (i.e., not in a dynamically linked DLL):
+  其中 @cpp{tls_space} 在主可执行文件（即，不在动态链接的 DLL 中）
+  中声明为线程局部指针变量：
 
   @verbatim[#:indent 2]{
    static __declspec(thread) void *tls_space;
   }
 
-  @history[#:changed "6.3" @elem{Calling @cpp{scheme_register_tls_space} is
-                                 required on all Windows variants, although the call
-                                 may be a no-op, depending on how Racket is
-                                 built.}]}
+  @history[#:changed "6.3" @elem{调用 @cpp{scheme_register_tls_space} 在
+                                 所有 Windows 变体上都是必需的，尽管该调用
+                                 可能是空操作，具体取决于 Racket 的构建
+                                 方式。}]}
 
- @item{Configure the namespace by adding module declarations. The
-  initial namespace contains declarations only for a few primitive
-  modules, such as @racket['#%kernel], and no bindings are imported
-  into the top-level environment.
+ @item{通过添加模块声明来配置命名空间。
+  初始命名空间仅包含少数几个原始
+  模块的声明，例如 @racket['#%kernel]，并且没有绑定被导入
+  到顶层环境中。
 
-  To embed a module like @racketmodname[racket/base] (along with all
-  its dependencies), use
-  @seclink["c-mods" #:doc raco-doc]{@exec{raco ctool --c-mods @nonterm{dest}}},
-  which generates a C file @nonterm{dest}
-  that contains modules in bytecode form as encapsulated in a static
-  array. The generated C file defines a @cppi{declare_modules}
-  function that takes a @cpp{Scheme_Env*}, installs the modules into
-  the environment, and it adjusts the module name resolver to access the
-  embedded declarations. If embedded modules refer to runtime files
-  that need to be carried along, supply @DFlag{runtime} to
-  @exec{raco ctool --c-mods} to collect the runtime files into a
-  directory; see @secref[#:doc raco-doc "c-mods"] for more information.
+  要嵌入像 @racketmodname[racket/base] 这样的模块（以及其
+  所有依赖项），请使用
+  @seclink["c-mods" #:doc raco-doc]{@exec{raco ctool --c-mods @nonterm{dest}}}，
+  该命令生成一个 C 文件 @nonterm{dest}，
+  其中包含以字节码形式封装在静态
+  数组中的模块。生成的 C 文件定义了一个 @cppi{declare_modules}
+  函数，该函数接受一个 @cpp{Scheme_Env*}，将模块安装到
+  该环境中，并调整模块名称解析器以访问
+  嵌入的声明。如果嵌入的模块引用了需要携带的运行时文件，
+  请为 @exec{raco ctool --c-mods} 提供 @DFlag{runtime} 标志
+  来将运行时文件收集到一个目录中；有关更多信息，
+  请参见 @secref[#:doc raco-doc "c-mods"]。
 
-  Alternatively, use @cpp{scheme_set_collects_path} and
-  @cpp{scheme_init_collection_paths} to configure and install a path
-  for finding modules at run time.
+  或者，使用 @cpp{scheme_set_collects_path} 和
+  @cpp{scheme_init_collection_paths} 来配置和安装
+  在运行时查找模块的路径。
 
-  On Windows, @exec{raco ctool --c-mods @nonterm{dest} --runtime
-  @nonterm{dest-dir}} includes in @nonterm{dest-dir} optional DLLs
-  that are referenced by the Racket library to support @tech[#:doc
-  reference-doc]{extflonums} and @racket[bytes-open-converter]. Call
-  @cpp{scheme_set_dll_path} to register @nonterm{dest-dir} so that
-  those DLLs can be found at run time.}
+  在 Windows 上，@exec{raco ctool --c-mods @nonterm{dest} --runtime
+  @nonterm{dest-dir}} 会在 @nonterm{dest-dir} 中包含可选的 DLL，
+  这些 DLL 被 Racket 库引用，用于支持 @tech[#:doc
+  reference-doc]{extflonums} 和 @racket[bytes-open-converter]。调用
+  @cpp{scheme_set_dll_path} 来注册 @nonterm{dest-dir}，以便
+  这些 DLL 可以在运行时被找到。}
 
- @item{Access Racket through @cppi{scheme_dynamic_require},
-  @cppi{scheme_load}, @cppi{scheme_eval}, and/or other functions
-  described in this manual.
+ @item{通过 @cppi{scheme_dynamic_require}、
+  @cppi{scheme_load}、@cppi{scheme_eval} 和/或本手册中描述的
+  其他函数来访问 Racket。
 
-  If the embedding program configures built-in parameters in a way
-  that should be considered part of the default configuration, then
-  call @cpp{scheme_seal_parameters} afterward. The snapshot of
-  parameter values taken by @cpp{scheme_seal_parameters} is used for
-  certain privileged operations, such as installing a @|PLaneT|
-  package.}
+  如果嵌入程序以某种方式配置了内置参数，而这些配置
+  应被视为默认配置的一部分，那么
+  之后请调用 @cpp{scheme_seal_parameters}。由
+  @cpp{scheme_seal_parameters} 获取的参数值快照将用于
+  某些特权操作，例如安装 @|PLaneT|
+  包。}
 
  @item{编译程序并将其与 Racket 库链接。}
 
 ]
 
-@index['("allocation")]{With} Racket CGC, Racket values are
-garbage collected using a conservative garbage collector, so pointers
-to Racket objects can be kept in registers, stack variables, or
-structures allocated with @cppi{scheme_malloc}. In an embedding
-application on some platforms, static variables are also automatically
-registered as roots for garbage collection (but see notes below
-specific to Mac OS and Windows).
+@index['("allocation")]{在} Racket CGC 中，Racket 值通过保守垃圾回收器进行回收，因此指向 Racket 对象的指针可以保存在寄存器、栈变量或通过 @cppi{scheme_malloc} 分配的结构体中。在某些平台上的嵌入应用中，静态变量也会自动注册为垃圾回收的根（但请参见下文关于 Mac OS 和 Windows 的具体说明）。
 
-For example, the following is a simple embedding program that runs a
-module @filepath{run.rkt}, assuming that @filepath{run.c} is created
-as
+例如，下面是一个简单的嵌入程序，它运行模块 @filepath{run.rkt}，假设 @filepath{run.c} 是通过以下命令创建的
 
 @commandline{raco ctool --c-mods run.c "run.rkt"}
 
-to generate @filepath{run.c}, which encapsulates the compiled form of
-@filepath{run.rkt} and all of its transitive imports (so that they
-need not be found separately a run time).
+来生成 @filepath{run.c}，其中封装了 @filepath{run.rkt} 的编译形式及其所有传递导入（因此它们无需在运行时单独查找）。
 
 @filebox["main.c"]{
 @verbatim[#:indent 2]{
@@ -193,15 +183,11 @@ int main(int argc, char *argv[])
 }
 }}
 
-As another example, the following is a simple embedding program that
-evaluates all expressions provided on the command line and displays
-the results, then runs a @racket[read]-@racket[eval]-@racket[print]
-loop, all using @racketmodname[racket/base]. Run
+另一个例子，下面是一个简单的嵌入程序，它评估命令行上提供的所有表达式并显示结果，然后运行一个 @racket[read]-@racket[eval]-@racket[print] 循环，全部使用 @racketmodname[racket/base]。运行
 
 @commandline{raco ctool --c-mods base.c ++lib racket/base}
 
-to generate @filepath{base.c}, which encapsulates @racket[racket/base]
-and all of its transitive imports.
+来生成 @filepath{base.c}，其中封装了 @racket[racket/base] 及其所有传递导入。
 
 @filebox["main.c"]{
 @verbatim[#:indent 2]{
@@ -252,81 +238,47 @@ int main(int argc, char *argv[])
 }
 }}
 
-If modules embedded in the executable need to access runtime files
-(via @racketmodname[racket/runtime-path] forms), supply the
-@DFlag{runtime} flag to @seclink["ctool" #:doc raco-doc]{@exec{raco ctool}}, specifying a directory
-where the runtime files are to be gathered. The modules in the
-generated @filepath{.c} file will then refer to the files in that
-directory; the directory is normally specified relative to the
-executable, but the embedding application must call
-@cppi{scheme_set_exec_cmd} to set the executable path (typically
-@cpp{argv[0]}) before declaring modules.
+如果嵌入到可执行文件中的模块需要访问运行时代码文件（通过 @racketmodname[racket/runtime-path] form），请为 @seclink["ctool" #:doc raco-doc]{@exec{raco ctool}} 提供 @DFlag{runtime} 标志，指定一个目录来收集运行时文件。生成的 @filepath{.c} 文件中的模块将引用该目录中的文件；该目录通常相对于可执行文件指定，但嵌入应用程序在声明模块之前必须调用 @cppi{scheme_set_exec_cmd} 来设置可执行文件路径（通常是 @cpp{argv[0]}）。
 
-On Mac OS, or on Windows when Racket is compiled to a DLL
-using Cygwin, the garbage collector cannot find static variables
-automatically. In that case, @cppi{scheme_main_setup} must be called with a
-non-zero first argument.
+在 Mac OS 上，或者当 Racket 在 Windows 上使用 Cygwin 编译为 DLL 时，垃圾回收器无法自动找到静态变量。在这种情况下，必须使用非零的第一个参数调用 @cppi{scheme_main_setup}。
 
-On Windows (for any other build mode), the garbage collector finds
-static variables in an embedding program by examining all memory
-pages. This strategy fails if a program contains multiple Windows
-threads; a page may get unmapped by a thread while the collector is
-examining the page, causing the collector to crash. To avoid this
-problem, call @cpp{scheme_main_setup} with a non-zero first argument.
+在 Windows 上（对于任何其他构建模式），垃圾回收器通过检查所有内存页面来查找嵌入程序中的静态变量。如果程序包含多个 Windows 线程，此策略可能会失败；当回收器正在检查页面时，线程可能会取消映射该页面，导致回收器崩溃。为避免此问题，请使用非零的第一个参数调用 @cpp{scheme_main_setup}。
 
-When an embedding application calls @cpp{scheme_main_setup} with a non-zero
-first argument, it must register each of its static variables with
-@cppi{MZ_REGISTER_STATIC} if the variable can contain a GCable
-pointer. For example, if @cpp{curout} above is made @cpp{static}, then
-@cpp{MZ_REGISTER_STATIC(curout)} should be inserted before the call to
-@cpp{scheme_get_param}.
+当嵌入应用程序使用非零的第一个参数调用 @cpp{scheme_main_setup} 时，如果该变量可能包含可 GC 的指针，则必须使用 @cppi{MZ_REGISTER_STATIC} 注册其每个静态变量。例如，如果上面的 @cpp{curout} 被设为 @cpp{static}，那么应该在调用 @cpp{scheme_get_param} 之前插入 @cpp{MZ_REGISTER_STATIC(curout)}。
 
-When building an embedded Racket CGC to use SenoraGC (SGC) instead of
-the default collector, @cpp{scheme_main_setup} must be called with a
-non-zero first argument.  See @secref["im:memoryalloc"] for more
-information.
+当构建嵌入式 Racket CGC 以使用 SenoraGC (SGC) 而非默认回收器时，必须使用非零的第一个参数调用 @cpp{scheme_main_setup}。有关更多信息，请参见 @secref["im:memoryalloc"]。
 
 
 @section{3m 嵌入}
 
-Racket 3m can be embedded mostly the same as Racket, as long as the
-embedding program cooperates with the precise garbage collector as
-described in @secref["im:3m"].
+Racket 3m 的嵌入方式与 Racket CGC 基本相同，只要嵌入程序按照 @secref["im:3m"] 中所述与精确垃圾回收器配合即可。
 
-In either your source in the in compiler command line, @cpp{#define}
-@cpp{MZ_PRECISE_GC} before including @filepath{scheme.h}. When using
-@|mzc| with the @DFlag{cc} and @DFlag{3m} flags, @cpp{MZ_PRECISE_GC}
-is automatically defined.
+在源代码或编译器命令行中，在 include @filepath{scheme.h} 之前 @cpp{#define} @cpp{MZ_PRECISE_GC}。当使用 @|mzc| 并带有 @DFlag{cc} 和 @DFlag{3m} 标志时，@cpp{MZ_PRECISE_GC} 会被自动定义。
 
 此外，一些库细节有所不同：
 
 @itemize[
 
- @item{On Unix, the libraries are just
-  @as-index{@filepath{libracket3m.a}} and @as-index{@filepath{librrktio.a}} (or
-  @as-index{@filepath{libracket3m.so}} and @as-index{@filepath{librktio.so}} for a dynamic-library build,
-  with @as-index{@filepath{libracket3m.la}} and @as-index{@filepath{librktio.la}} for use with
-  @exec{libtool}). There is no separate library for 3m analogous to
-  CGC's @filepath{libmzgc.a}.}
+ @item{在 Unix 上，库文件仅为
+  @as-index{@filepath{libracket3m.a}} 和 @as-index{@filepath{librrktio.a}}（或者
+  @as-index{@filepath{libracket3m.so}} 和 @as-index{@filepath{librktio.so}} 用于动态库构建，
+  配合 @as-index{@filepath{libracket3m.la}} 和 @as-index{@filepath{librktio.la}} 供
+  @exec{libtool} 使用）。3m 没有类似于
+  CGC 的 @filepath{libmzgc.a} 的单独库。}
 
- @item{On Windows, link to @filepath{libracket3m@italic{x}.dll}. There
-  is no separate library for 3m analogous to CGC's
-  @filepath{libmzgc@italic{x}.lib}.}
+ @item{在 Windows 上，链接到 @filepath{libracket3m@italic{x}.dll}。
+  3m 没有类似于 CGC 的
+  @filepath{libmzgc@italic{x}.lib} 的单独库。}
 
-  @item{On Mac OS, 3m dynamic libraries are provided by the
-  @filepath{Racket} framework, just as for CGC, but as a version
-  suffixed with @filepath{_3m}.}
+  @item{在 Mac OS 上，3m 动态库由
+  @filepath{Racket} framework 提供，与 CGC 相同，但作为以
+  @filepath{_3m} 后缀结尾的版本。}
 
 ]
 
-For Racket 3m, an embedding application must call @cpp{scheme_main_setup}
-with a non-zero first argument.
+对于 Racket 3m，嵌入应用程序必须使用非零的第一个参数调用 @cpp{scheme_main_setup}。
 
-The simple embedding programs from the previous section can be
-processed by  @seclink["cc" #:doc raco-doc]{@exec{raco ctool --xform}}, then compiled
-and linked with Racket 3m. Alternately, the source code can be
-extended to work with either CGC or 3m depending on whether
-@cpp{MZ_PRECISE_GC} is defined on the compiler's command line:
+前一节的简单嵌入程序可以通过 @seclink["cc" #:doc raco-doc]{@exec{raco ctool --xform}} 处理，然后使用 Racket 3m 编译和链接。或者，源代码可以扩展为同时支持 CGC 或 3m，具体取决于编译器命令行上是否定义了 @cpp{MZ_PRECISE_GC}：
 
 @filebox["main.c"]{
 @verbatim[#:indent 2]{
@@ -434,11 +386,7 @@ int main(int argc, char *argv[])
 }
 }
 
-Strictly speaking, the @cpp{config} and @cpp{v} variables above need
-not be registered with the garbage collector, since their values are
-not needed across function calls that allocate. The code is much
-easier to maintain, however, when all local variables are registered
-and when all temporary values are put into variables.
+严格来说，上面的 @cpp{config} 和 @cpp{v} 变量不需要向垃圾回收器注册，因为它们的值在会进行分配的函数调用之间并不需要保留。然而，当所有局部变量都已注册，并且所有临时值都放入变量中时，代码维护起来会容易得多。
 
 @; ----------------------------------------
 @include-section["hooks.scrbl"]
