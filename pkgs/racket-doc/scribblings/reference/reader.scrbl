@@ -12,22 +12,13 @@
    (define (graph-defn) @elem{@litchar{#}@graph-tag[]@litchar{=}})
    (define (graph-ref) @elem{@litchar{#}@graph-tag[]@litchar{#}}))
 
-@title[#:tag "reader" #:style 'quiet]{The Reader}
+@title[#:tag "reader" #:style 'quiet]{读取器}
 
-Racket's reader is a recursive-descent parser that can be configured
-through a @seclink["readtables"]{readtable} and various other
-@tech{parameters}. This section describes the reader's parsing when
-using the default readtable.
+Racket 的读取器是一个递归下降解析器，可以通过 @seclink["readtables"]{readtable} 和各种其他 @tech{parameters} 进行配置。本节描述了使用默认 readtable 时读取器的解析行为。
 
-Reading from a stream produces one @deftech{datum}. If the result
-datum is a compound value, then reading the datum typically requires
-the reader to call itself recursively to read the component data.
+从流中读取产生一个 @deftech{datum}。如果结果 datum 是一个复合值，则读取该 datum 通常需要读取器递归调用自身以读取组件数据。
 
-The reader can be invoked in either of two modes: @racket[read] mode,
-or @racket[read-syntax] mode. In @racket[read-syntax] mode, the result
-is always a @techlink{syntax object} that includes
-source-location and (initially empty) lexical information wrapped
-around the sort of datum that @racket[read] mode would produce. In the
+读取器可以以两种模式之一调用：@racket[read] 模式或 @racket[read-syntax] 模式。在 @racket[read-syntax] 模式下，结果始终是一个 @techlink{syntax object}，包含源代码位置和（初始为空的）词法信息，包装在 @racket[read] 模式会产生的那种 datum 周围。 In the
 case of @tech{pairs}, @tech{vectors}, and @tech{box}es, the content is also
 wrapped recursively as a syntax object. Unless specified otherwise,
 this section describes the reader's behavior in @racket[read] mode,
@@ -38,35 +29,18 @@ Reading is defined in terms of Unicode characters; see
 @secref["ports"] for information on how a byte stream is converted
 to a character stream.
 
-Symbols, keywords, strings, byte strings, regexps, characters, and
-numbers produced by the reader in @racket[read-syntax] mode are
-@deftech{interned}, which means that such values in the result of
-@racket[read-syntax] are always @racket[eq?] when they are
-@racket[equal?] (whether from the same call or different calls to
-@racket[read-syntax]). Symbols and keywords are interned in
-both @racket[read] and @racket[read-syntax] mode. When a quoted value
-is in compiled code that written and then read back in (see
-@secref["print-compiled"]), only strings and byte strings are
-interned when reading the code. Sending an
+在 @racket[read-syntax] 模式下由读取器产生的符号、关键字、字符串、字节字符串、regexp、字符和数字是 @deftech{interned}，这意味着 @racket[read-syntax] 结果中的这些值在 @racket[equal?] 时总是 @racket[eq?]（无论是来自同一次调用还是不同次调用 @racket[read-syntax]）。 符号和关键字在 @racket[read] 和 @racket[read-syntax] 两种模式下都被 interned。当引用值在编译后的代码中被写入然后重新读入时（参见 @secref["print-compiled"]），只有字符串和字节字符串在读取代码时被 interned。 Sending an
 interned value across a @tech{place channel} does not
 necessarily produce an interned value at the receiving
 @tech{place}. See also @racket[datum-intern-literal] and
 @racket[datum->syntax].
 
-Note that @tech{interned} values are only weakly held by the reader's
-internal table, so they may be @tech[#:key "garbage collection"]{garbage
-collected} if they are no longer otherwise @tech{reachable}. This weakness
-can never affect the result of an @racket[eq?], @racket[eqv?], or
-@racket[equal?] test, but an interned value may disappear when placed into
-a weak box (see @secref["weakbox"]), used as the key in a weak @tech{hash
-table} (see @secref["hashtables"]), or used as an ephemeron key (see
-@secref["ephemerons"]).
+请注意，@tech{interned} 值仅被读取器的内部表弱引用持有，因此如果它们不再以其他方式 @tech{reachable}，则可能被 @tech[#:key "garbage collection"]{garbage collected}。这种弱引用性永远不会影响 @racket[eq?]、@racket[eqv?] 或 @racket[equal?] 测试的结果，但 interned 值在放入 weak box（参见 @secref["weakbox"]）、用作弱 @tech{hash table} 的键（参见 @secref["hashtables"]）或用作 ephemeron 键（参见 @secref["ephemerons"]）时可能消失。
 
 @;------------------------------------------------------------------------
-@section[#:tag "default-readtable-dispatch"]{Delimiters and Dispatch}
+@section[#:tag "default-readtable-dispatch"]{分隔符与分发}
 
-Along with @racketlink[char-whitespace?]{whitespace} and a BOM
-character, the following characters are @deftech{delimiters}:
+除 @racketlink[char-whitespace?]{whitespace} 和 BOM 字符外，以下字符是 @deftech{delimiters}：
 
 @t{
   @hspace[2] @ilitchar{(} @ilitchar{)} @ilitchar{[} @ilitchar{]}
@@ -75,26 +49,15 @@ character, the following characters are @deftech{delimiters}:
   @ilitchar{;}
 }
 
-A delimited sequence that starts with any other character is typically
-parsed as either a symbol, number, or @tech{extflonum}, but a few non-delimiter
-characters play special roles:
+以任何其他字符开头的分隔序列通常被解析为符号、数字或 @tech{extflonum}，但少数非分隔符字符扮演特殊角色：
 
 @itemize[
 
- @item{@litchar{#} has a special meaning as an initial character in a
-       delimited sequence; its meaning depends on the characters that
-       follow; see below.}
+ @item{@litchar{#} 作为分隔序列中的起始字符具有特殊含义；其含义取决于后面的字符；见下文。}
 
- @item{@as-index{@litchar{|}} starts a subsequence of characters to
-       be included verbatim in the delimited sequence (i.e., they are
-       never treated as delimiters, and they are not case-folded when
-       case-insensitivity is enabled); the subsequence is terminated
-       by another @litchar{|}, and neither the initial nor
-       terminating @litchar{|} is part of the subsequence.}
+ @item{@as-index{@litchar{|}} 启动一个字符子序列，该子序列将被逐字包含在分隔序列中（即，它们永远不会被视为分隔符，并且在启用大小写不敏感时不会被折叠大小写）；子序列由另一个 @litchar{|} 终止，起始和终止的 @litchar{|} 都不是子序列的一部分。}
 
- @item{@as-index{@litchar{\}} outside of a @litchar{|} pair causes
-       the following character to be included verbatim in a delimited
-       sequence.}
+ @item{@as-index{@litchar{\}} 在 @litchar{|} 对之外，会导致后面的字符被逐字包含在分隔序列中。}
 
 ]
 
@@ -104,18 +67,18 @@ characters in the input stream as follows:
 
 @dispatch-table[
 
-  @dispatch[@litchar{(}]{starts a @tech{pair} or @tech{list}; see @secref["parse-pair"]}
-  @dispatch[@litchar{[}]{starts a @tech{pair} or @tech{list}; see @secref["parse-pair"]}
-  @dispatch[@litchar["{"]]{starts a @tech{pair} or @tech{list}; see @secref["parse-pair"]}
+  @dispatch[@litchar{(}]{开始一个 @tech{pair} 或 @tech{list}；参见 @secref["parse-pair"]}
+  @dispatch[@litchar{[}]{开始一个 @tech{pair} 或 @tech{list}；参见 @secref["parse-pair"]}
+  @dispatch[@litchar["{"]]{开始一个 @tech{pair} 或 @tech{list}；参见 @secref["parse-pair"]}
 
-  @dispatch[@litchar{)}]{matches @litchar{(} or raises @Exn[exn:fail:read]}
-  @dispatch[@litchar{]}]{matches @litchar{[} or raises @Exn[exn:fail:read]}
+  @dispatch[@litchar{)}]{匹配 @litchar{(} 或引发 @Exn[exn:fail:read]}
+  @dispatch[@litchar{]}]{匹配 @litchar{[} 或引发 @Exn[exn:fail:read]}
   @dispatch[@litchar["}"]]{matches @litchar["{"] or raises @Exn[exn:fail:read]}
 
-  @dispatch[@litchar{"}]{starts a @tech{string}; see @secref["parse-string"]}
-  @dispatch[@litchar{'}]{starts a quote; see @secref["parse-quote"]}
-  @dispatch[@litchar{`}]{starts a quasiquote; see @secref["parse-quote"]}
-  @dispatch[@litchar{,}]{starts a [splicing] unquote; see @secref["parse-quote"]}
+  @dispatch[@litchar{"}]{开始一个 @tech{string}；参见 @secref["parse-string"]}
+  @dispatch[@litchar{'}]{开始一个 quote；参见 @secref["parse-quote"]}
+  @dispatch[@litchar{`}]{开始一个 quasiquote；参见 @secref["parse-quote"]}
+  @dispatch[@litchar{,}]{开始一个 [splicing] unquote；参见 @secref["parse-quote"]}
 
   @dispatch[@litchar{;}]{starts a line comment; see @secref["parse-comment"]}
 
@@ -141,39 +104,39 @@ characters in the input stream as follows:
   @dispatch[@litchar{#\}]{starts a @tech{character}; see @secref["parse-character"]}
 
   @dispatch[@litchar{#"}]{starts a @tech{byte string}; see @secref["parse-string"]}
-  @dispatch[@litchar{#%}]{starts a @tech{symbol}; see @secref["parse-symbol"]}
+  @dispatch[@litchar{#%}]{开始一个 @tech{symbol}；参见 @secref["parse-symbol"]}
   @dispatch[@litchar{#:}]{starts a @tech{keyword}; see @secref["parse-keyword"]}
   @dispatch[@litchar{#&}]{starts a @tech{box}; see @secref["parse-box"]}
 
   @dispatch[@litchar{#|}]{starts a block comment; see @secref["parse-comment"]}
   @dispatch[@litchar{#;}]{starts an S-expression comment; see @secref["parse-comment"]}
-  @dispatch[@litchar{#'}]{starts a syntax quote; see @secref["parse-quote"]}
+  @dispatch[@litchar{#'}]{开始一个 syntax quote；参见 @secref["parse-quote"]}
   @dispatch[@litchar{#! }]{starts a line comment; see @secref["parse-comment"]}
   @dispatch[@litchar{#!/}]{starts a line comment; see @secref["parse-comment"]}
   @dispatch[@litchar{#!}]{may start a reader extension; see @secref["parse-reader"]}
-  @dispatch[@litchar{#`}]{starts a syntax quasiquote; see @secref["parse-quote"]}
-  @dispatch[@litchar{#,}]{starts a syntax [splicing] unquote; see @secref["parse-quote"]}
-  @dispatch[@litchar{#~}]{starts compiled code; see @secref["print-compiled"]}
+  @dispatch[@litchar{#`}]{开始一个 syntax quasiquote；参见 @secref["parse-quote"]}
+  @dispatch[@litchar{#,}]{开始一个 syntax [splicing] unquote；参见 @secref["parse-quote"]}
+  @dispatch[@litchar{#~}]{开始编译后的代码；参见 @secref["print-compiled"]}
 
-  @dispatch[@cilitchar{#i}]{starts a @tech{number}; see @secref["parse-number"]}
-  @dispatch[@cilitchar{#e}]{starts a @tech{number}; see @secref["parse-number"]}
-  @dispatch[@cilitchar{#x}]{starts a @tech{number} or @tech{extflonum}; see @secref["parse-number"]}
-  @dispatch[@cilitchar{#o}]{starts a @tech{number} or @tech{extflonum}; see @secref["parse-number"]}
-  @dispatch[@cilitchar{#d}]{starts a @tech{number} or @tech{extflonum}; see @secref["parse-number"]}
-  @dispatch[@cilitchar{#b}]{starts a @tech{number} or @tech{extflonum}; see @secref["parse-number"]}
+  @dispatch[@cilitchar{#i}]{开始一个 @tech{number}；参见 @secref["parse-number"]}
+  @dispatch[@cilitchar{#e}]{开始一个 @tech{number}；参见 @secref["parse-number"]}
+  @dispatch[@cilitchar{#x}]{开始一个 @tech{number} 或 @tech{extflonum}；参见 @secref["parse-number"]}
+  @dispatch[@cilitchar{#o}]{开始一个 @tech{number} 或 @tech{extflonum}；参见 @secref["parse-number"]}
+  @dispatch[@cilitchar{#d}]{开始一个 @tech{number} 或 @tech{extflonum}；参见 @secref["parse-number"]}
+  @dispatch[@cilitchar{#b}]{开始一个 @tech{number} 或 @tech{extflonum}；参见 @secref["parse-number"]}
 
-  @dispatch[@cilitchar["#<<"]]{starts a @tech{string}; see @secref["parse-string"]}
+  @dispatch[@cilitchar["#<<"]]{开始一个 @tech{string}；参见 @secref["parse-string"]}
 
   @dispatch[@litchar{#rx}]{starts a @tech{regular expression}; see @secref["parse-regexp"]}
   @dispatch[@litchar{#px}]{starts a @tech{regular expression}; see @secref["parse-regexp"]}
 
-  @dispatch[@cilitchar{#ci}]{switches case sensitivity; see @secref["parse-symbol"]}
-  @dispatch[@cilitchar{#cs}]{switches case sensitivity; see @secref["parse-symbol"]}
+  @dispatch[@cilitchar{#ci}]{切换大小写敏感性；参见 @secref["parse-symbol"]}
+  @dispatch[@cilitchar{#cs}]{切换大小写敏感性；参见 @secref["parse-symbol"]}
 
-  @dispatch[@litchar{#hash}]{starts a @tech{hash table}; see @secref["parse-hashtable"]}
+  @dispatch[@litchar{#hash}]{开始一个 @tech{hash table}；参见 @secref["parse-hashtable"]}
 
-  @dispatch[@litchar{#reader}]{starts a reader extension use; see @secref["parse-reader"]}
-  @dispatch[@litchar{#lang}]{starts a reader extension use; see @secref["parse-reader"]}
+  @dispatch[@litchar{#reader}]{开始一个 reader extension 使用；参见 @secref["parse-reader"]}
+  @dispatch[@litchar{#lang}]{开始一个 reader extension 使用；参见 @secref["parse-reader"]}
 
   @dispatch[@elem{@litchar{#}@kleeneplus{@nonterm{digit@sub{10}}}@litchar{(}}]{starts a vector; see @secref["parse-vector"]}
   @dispatch[@elem{@litchar{#}@kleeneplus{@nonterm{digit@sub{10}}}@litchar{[}}]{starts a vector; see @secref["parse-vector"]}
@@ -195,10 +158,10 @@ characters in the input stream as follows:
   @dispatch[@elem{@litchar{#Fx}@kleeneplus{@nonterm{digit@sub{10}}}@litchar{[}}]{starts a fxvector; see @secref["parse-vector"]}
   @dispatch[@elem{@litchar{#Fx}@kleeneplus{@nonterm{digit@sub{10}}}@litchar["{"]}]{starts a fxvector; see @secref["parse-vector"]}
 
-  @dispatch[@graph-defn[]]{binds a graph tag; see @secref["parse-graph"]}
-  @dispatch[@graph-ref[]]{uses a graph tag; see @secref["parse-graph"]}
+  @dispatch[@graph-defn[]]{绑定一个 graph tag；参见 @secref["parse-graph"]}
+  @dispatch[@graph-ref[]]{使用一个 graph tag；参见 @secref["parse-graph"]}
 
-  @dispatch[@italic{otherwise}]{starts a @tech{symbol}; see @secref["parse-symbol"]}
+  @dispatch[@italic{otherwise}]{开始一个 @tech{symbol}；参见 @secref["parse-symbol"]}
 
 ]
 
@@ -208,7 +171,7 @@ characters in the input stream as follows:
                                    that comments are allowed.}]
 
 
-@section[#:tag "parse-symbol"]{Reading Symbols}
+@section[#:tag "parse-symbol"]{读取符号}
 
 @guideintro["symbols"]{the syntax of symbols}
 
@@ -221,20 +184,18 @@ parsed as a symbol or number (unless the @racket[read-accept-dot]
 parameter is set to @racket[#f]). A successful
 number or extflonum parse takes precedence over a symbol parse.
 A @as-index{@litchar{#%}} also
-starts a symbol. The resulting symbol is @tech{interned}.
+starts a symbol. 结果符号是 @tech{interned}。
 See the start of @secref["default-readtable-dispatch"] for information
 about @litchar{|} and @litchar{\} in parsing symbols.
 
 @index["case-sensitivity"]{@index["case-insensitive"]{When}} the
 @racket[read-case-sensitive] @tech{parameter} is set to @racket[#f],
 characters in the sequence that are not quoted by @litchar{|} or
-@litchar{\} are first case-normalized. If the reader encounters
+@litchar{\} are first case-normalized. 如果读取器遇到
 @as-index{@litchar{#ci}}, @litchar{#CI}, @litchar{#Ci}, or
-@litchar{#cI}, then it recursively reads the following datum in
-case-insensitive mode. If the reader encounters
+@litchar{#cI}, 则以大小写不敏感模式递归读取随后的 datum。 如果读取器遇到
 @as-index{@litchar{#cs}}, @litchar{#CS}, @litchar{#Cs}, or
-@litchar{#cS}, then it recursively reads the following datum in
-case-sensitive mode.
+@litchar{#cS}, 则以大小写敏感模式递归读取随后的 datum。
 
 @reader-examples[#:symbols? #f
 "Apple"
@@ -249,7 +210,7 @@ case-sensitive mode.
 "#%Apple"
 ]
 
-@section[#:tag "parse-number"]{Reading Numbers}
+@section[#:tag "parse-number"]{读取数字}
 
 @guideintro["numbers"]{the syntax of numbers}
 
@@ -272,7 +233,7 @@ inexact number, otherwise it is parsed as an exact number. If the
 all numbers without an exactness specifier are instead parsed as
 exact.
 
-If the reader encounters @as-index{@litchar{#b}} (binary),
+如果读取器遇到 @as-index{@litchar{#b}} (binary),
 @as-index{@litchar{#o}} (octal), @as-index{@litchar{#d}} (decimal), or
 @as-index{@litchar{#x}} (hexadecimal), it must be followed by a
 sequence that is terminated by a @tech{delimiter} or end-of-file, and that
@@ -286,8 +247,7 @@ A @litchar{#e} or @litchar{#i} followed immediately by @litchar{#b},
 reverse order: @litchar{#b}, @litchar{#o}, @litchar{#d}, or
 @litchar{#x} followed by @litchar{#e} or @litchar{#i}.
 
-An @nunterm{exponent-mark} in an inexact number serves both to specify
-an exponent and to specify a numerical precision. If
+非精确数字中的 @nunterm{exponent-mark} 既用于指定指数，也用于指定数值精度。 If
 @tech{single-flonums} are supported (see @secref["numbers"]) and the
 @racket[read-single-flonum] @tech{parameter} is set to @racket[#t],
 the marks @litchar{f} and @litchar{s} specify single-flonums. If
@@ -305,8 +265,7 @@ A @litchar{#} in an @nunterm{inexact} number is the same as
 @litchar{0}, but @litchar{#} can be used to suggest
 that the digit's actual value is unknown.
 
-All letters in a number representation are parsed case-insensitively,
-independent of the @racket[read-case-sensitive] parameter. For
+数字表示中的所有字母都以大小写不敏感的方式解析，与 @racket[read-case-sensitive] parameter 无关。 For
 example, @litchar{#I#D+InF.F+3I} is parsed the same as
 @litchar{#i#d+inf.f+3i}. In the grammar below, each literal lowercase
 letter stands for both itself and its uppercase form.
@@ -476,7 +435,7 @@ If the @racket[read-accept-dot] @tech{parameter} is set to
 then multiple delimited @litchar{.}s trigger an @racket[exn:fail:read]
 exception, instead of the infix conversion.
 
-@section[#:tag "parse-string"]{Reading Strings}
+@section[#:tag "parse-string"]{读取字符串}
 
 @guideintro["strings"]{the syntax of strings}
 
@@ -488,8 +447,7 @@ terminated by another @litchar{"} (that is not escaped by
 @litchar{\}). The resulting string is @tech{interned} in 
 @racket[read-syntax] mode.
 
-Within a string sequence, the following escape sequences are
- recognized:
+在字符串序列中，识别以下转义序列：
 
 @itemize[
 
@@ -557,7 +515,7 @@ Within a string sequence, the following escape sequences are
 
 ]
 
-If the reader encounters any other use of a backslash in a string
+如果读取器遇到 any other use of a backslash in a string
 constant, the @exnraise[exn:fail:read].
 
 @guideintro["bytestrings"]{the syntax of byte strings}
@@ -568,8 +526,7 @@ constant, the @exnraise[exn:fail:read].
 A string constant preceded by @litchar{#} is parsed as a
 @tech{byte string}. (That is, @as-index{@litchar{#"}} starts a byte-string
 literal.) See @secref["bytestrings"] for information on byte
-strings. The resulting byte string is @tech{interned} in 
-@racket[read-syntax] mode.
+strings. 结果字节字符串在 @racket[read-syntax] 模式下是 @tech{interned}。
 Byte-string constants support the same escape sequences as
 character strings, except @litchar{\u} and @litchar{\U}. Otherwise, each
 character within the byte-string quotes must have a Unicode code-point number
@@ -584,9 +541,7 @@ a line whose only content is the specified terminator. More precisely,
 the content of the string starts after a newline following
 @litchar{#<<}, and it ends before a newline that is followed by the
 terminator, where the terminator is itself followed by either a
-newline or end-of-file. No escape sequences are recognized between the
-starting and terminating lines; all characters are included in the
-string (and terminator) literally. A return character is not treated
+newline or end-of-file. 在起始行和终止行之间不识别任何转义序列；所有字符（包括终止符）均按字面包含在字符串中。 A return character is not treated
 as a line separator in this context. If no characters appear between
 @litchar{#<<} and a newline or end-of-file, or if an end-of-file is
 encountered before a terminating line, the @exnraise[exn:fail:read].
@@ -599,7 +554,7 @@ encountered before a terminating line, the @exnraise[exn:fail:read].
 "#\"Apple\""
 ]
 
-@section[#:tag "parse-quote"]{Reading Quotes}
+@section[#:tag "parse-quote"]{读取引用}
 
 When the reader encounters @as-index{@litchar{'}}, it recursively
 reads one datum and forms a new list containing the @tech{symbol}
@@ -607,8 +562,7 @@ reads one datum and forms a new list containing the @tech{symbol}
 useful for reading Racket code, where @racket['s] can be used as a
 shorthand for @racket[(code:quote s)].
 
-Several other sequences are recognized and transformed in a similar
-way. Longer prefixes take precedence over short ones:
+以类似方式识别和转换其他几个序列。更长前缀优先于短前缀：
 
 @read-quote-table[(list @litchar{'} @racket[quote])
                   (list @as-index{@litchar{`}} @racket[quasiquote])
@@ -628,7 +582,7 @@ The @litchar{`}, @litchar{,}, and @litchar[",@"] forms are disabled when
 the @racket[read-accept-quasiquote] @tech{parameter} is set to
 @racket[#f], in which case the @exnraise[exn:fail:read] instead.
 
-@section[#:tag "parse-comment"]{Reading Comments}
+@section[#:tag "parse-comment"]{读取注释}
 
 A @as-index{@litchar{;}} starts a line comment. When the reader
 encounters @litchar{;}, it skips past all characters until the
@@ -661,12 +615,10 @@ file.
 "#! /bin/sh"
 ]
 
-@section[#:tag "parse-vector"]{Reading Vectors}
+@section[#:tag "parse-vector"]{读取向量}
 
 When the reader encounters a @as-index{@litchar{#(}},
-@as-index{@litchar{#[}}, or @as-index{@litchar["#{"]}, it starts
-parsing a @tech{vector}; see @secref["vectors"] for information on
-vectors. A @as-index{@litchar{#fl}} in place of @litchar{#} starts an
+@as-index{@litchar{#[}}, or @as-index{@litchar["#{"]}, it 开始解析 @tech{vector}；关于向量的信息参见 @secref["vectors"]。 A @as-index{@litchar{#fl}} in place of @litchar{#} starts an
 @tech{flvector}, but is not allowed in @racket[read-syntax] mode; see
 @secref["flvectors"] for information on flvectors.  A
 @as-index{@litchar{#fx}} in place of @litchar{#} starts an
@@ -694,10 +646,7 @@ fewer elements are provided, the last provided element is used for the
 remaining vector slots; if no elements are provided, then @racket[0]
 is used for all slots.
 
-In @racket[read-syntax] mode, each recursive read for vector
-elements is also in @racket[read-syntax] mode, so that the wrapped
-vector's elements are also wrapped as syntax objects, and the vector is
-immutable.
+在 @racket[read-syntax] 模式下，向量元素的每次递归读取也处于 @racket[read-syntax] 模式，因此被包装的向量的元素也被包装为 syntax object，且向量是不可变的。
 
 @reader-examples[
 "#(1 apple 3)"
@@ -706,12 +655,10 @@ immutable.
 ]
 
 
-@section[#:tag "parse-structure"]{Reading Structures}
+@section[#:tag "parse-structure"]{读取结构体}
 
 When the reader encounters a @as-index{@litchar{#s(}},
-@as-index{@litchar{#s[}}, or @as-index{@litchar["#s{"]}, it starts
-parsing an instance of a @tech{prefab} @tech{structure type}; see
-@secref["structures"] for information on @tech{structure types}.  The
+@as-index{@litchar{#s[}}, or @as-index{@litchar["#s{"]}, it 开始解析 @tech{prefab} @tech{structure type} 的实例；关于 @tech{structure types} 的信息参见 @secref["structures"]。  The
 @litchar{#s[} and @litchar["#s{"] forms can be disabled through the
 @racket[read-square-bracket-as-paren] and
 @racket[read-curly-brace-as-paren] @tech{parameters}.
@@ -728,17 +675,14 @@ have the form (when quoted) of a possible argument to
 symbol. The remaining elements correspond to field values within the
 structure.
 
-In @racket[read-syntax] mode, the structure type must not have any
-mutable fields. The structure's elements are read in
-@racket[read-syntax] mode, so that the wrapped structure's elements
-are also wrapped as syntax objects.
+在 @racket[read-syntax] 模式下，结构体类型不得具有任何可变字段。结构体的元素在 @racket[read-syntax] 模式下读取，因此被包装的结构体的元素也被包装为 syntax object。
 
 If the first structure element is not a valid @tech{prefab} structure
 type key, or if the number of provided fields is inconsistent with the
 indicated @tech{prefab} structure type, the @exnraise[exn:fail:read].
 
 
-@section[#:tag "parse-hashtable"]{Reading Hash Tables}
+@section[#:tag "parse-hashtable"]{读取哈希表}
 
 A @as-index{@litchar{#hash}} starts an immutable @tech{hash-table} constant
 with key matching based on @racket[equal?]. The characters after
@@ -761,9 +705,7 @@ A @as-index{@litchar{#hasheqv}} starts a hash table like
 @litchar{#hash}, except that it constructs a hash table based on
 @racket[eqv?] instead of @racket[equal?].
 
-In all cases, the table is constructed by adding each mapping to the
- hash table from left to right, so later mappings can hide earlier
- mappings if the keys are equivalent.
+在所有情况下，表都是通过从左到右将每个映射添加到哈希表来构造的，因此如果键等价，后面的映射可以隐藏前面的映射。
 
 @reader-examples[
 #:example-note @elem{, where @racket[make-...] stands for @racket[make-immutable-hash]}
@@ -774,16 +716,11 @@ In all cases, the table is constructed by adding each mapping to the
 "#hasheq((a . 5) (a . 7))"
 ]
 
-@section[#:tag "parse-box"]{Reading Boxes}
+@section[#:tag "parse-box"]{读取 Box}
 
-When the reader encounters a @as-index{@litchar{#&}}, it starts
-parsing a @tech{box}; see @secref["boxes"] for information on boxes. The
-content of the box is determined by recursively reading the next
-datum.
+When the reader encounters a @as-index{@litchar{#&}}, it 开始解析 @tech{box}；关于 box 的信息参见 @secref["boxes"]。box 的内容是通过递归读取下一个 datum 来确定的。
 
-In @racket[read-syntax] mode, the recursive read for the box content
-is also in @racket[read-syntax] mode, so that the wrapped box's
-content is also wrapped as a syntax object, and the box is immutable.
+在 @racket[read-syntax] 模式下，box 内容的递归读取也处于 @racket[read-syntax] 模式，因此被包装的 box 的内容也被包装为 syntax object，且 box 是不可变的。
 
 @reader-examples[
 "#&17"
@@ -847,7 +784,7 @@ one of the following forms:
 "#\\\u3BB"
 ]
 
-@section[#:tag "parse-keyword"]{Reading Keywords}
+@section[#:tag "parse-keyword"]{读取关键字}
 
 A @as-index{@litchar{#:}} starts a @tech{keyword}. The parsing of a keyword
 after the @litchar{#:} is the same as for a symbol, including
@@ -860,7 +797,7 @@ case-folding in case-insensitive mode, except that the part after
 "#:1"
 ]
 
-@section[#:tag "parse-regexp"]{Reading Regular Expressions}
+@section[#:tag "parse-regexp"]{读取正则表达式}
 
 A @as-index{@litchar{#rx}} or @as-index{@litchar{#px}} starts a
 @tech{regular expression}. The characters immediately after @litchar{#rx} or
@@ -869,8 +806,7 @@ A @as-index{@litchar{#rx}} or @as-index{@litchar{#px}} starts a
 expression as would be constructed by @racket[regexp], @litchar{#px}
 as constructed by @racket[pregexp], @litchar{#rx#} as constructed by
 @racket[byte-regexp], and @litchar{#px#} as constructed by
-@racket[byte-pregexp]. The resulting regular expression is @tech{interned} in 
-@racket[read-syntax] mode. 
+@racket[byte-pregexp]. 结果正则表达式在 @racket[read-syntax] 模式下是 @tech{interned}。 
 
 @reader-examples[
 "#rx\".*\""
@@ -879,7 +815,7 @@ as constructed by @racket[pregexp], @litchar{#rx#} as constructed by
 "#px#\"[\\\\s]*\""
 ]
 
-@section[#:tag "parse-graph"]{Reading Graph Structure}
+@section[#:tag "parse-graph"]{读取图结构}
 
 @section-index["#0="]
 @section-index["#0#"]
@@ -929,7 +865,7 @@ neither defines nor uses graph tags for other top-level forms.
 
 @local-table-of-contents[]
 
-@section[#:tag "parse-reader"]{Reading via an Extension}
+@section[#:tag "parse-reader"]{通过扩展读取}
 
 @guideintro["hash-reader"]{reader extension}
 
@@ -1003,8 +939,7 @@ certain grammars, such as that of R@superscript{6}RS
 @margin-note{The @racketmodname[syntax/module-reader] library provides a
              domain-specific language for writing language readers.}
 
-By convention, @litchar{#lang} normally appears at the beginning of a
-file, possibly after comment forms, to specify the syntax of a module.
+按照惯例，@litchar{#lang} 通常出现在文件的开头，可能在注释形式之后，以指定模块的语法。
 
 If the @racket[read-accept-reader] or @racket[read-accept-lang]
 @tech{parameter} is set to @racket[#f], then if the reader encounters
@@ -1014,7 +949,7 @@ If the @racket[read-accept-reader] or @racket[read-accept-lang]
                                    and @litchar{#lang} to hold the current namespace
                                    registry's lock.}]
 
-@section[#:tag "parse-cdot"]{Reading with C-style Infix-Dot Notation}
+@section[#:tag "parse-cdot"]{使用 C 风格中缀点表示法读取}
 
 When the @racket[read-cdot] @tech{parameter} is set to @racket[#t],
 then a variety of changes occur in the reader.
@@ -1045,7 +980,7 @@ source location information of the @litchar{.} character and the
 entire list has the source location information spanning from the
 start of @racket[_x] to the end of @racket[_y].
 
-@subsection{S-Expression Reader Language}
+@subsection{S-Expression 读取器语言}
 
 @defmodulelang[s-exp]
 
@@ -1076,7 +1011,7 @@ if the port name is a filename path, the filename without its
 directory path and extension is used for @racket[_name-id], otherwise
 @racket[_name-id] is @racket[anonymous-module].
 
-@subsection{Chaining Reader Language}
+@subsection{链式读取器语言}
 
 @defmodulelang[reader]
 
