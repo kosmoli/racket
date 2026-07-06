@@ -4,16 +4,14 @@
 @(define si-eval (make-base-eval))
 
 
-@title{Byte and String Input}
+@title{字节与字符串输入}
 
 @defproc[(read-char [in input-port? (current-input-port)]) 
          (or/c char? eof-object?)]{
 
-Reads a single character from @racket[in]---which may involve reading
-several bytes to UTF-8-decode them into a character (see
-@secref["ports"]); a minimal number of bytes are read/@tech{peek}ed to
-perform the decoding. If no bytes are available before an end-of-file,
-then @racket[eof] is returned.}
+从 @racket[in] 读取单个字符——可能涉及读取若干字节以进行 UTF-8 解码（参见
+@secref["ports"]）；读取/回看最少数量的字节以完成解码。如果在文件结束前无可用的字节，
+则返回 @racket[eof]。}
 
 @examples[#:eval si-eval
 (let ([ip (open-input-string "S2")])
@@ -32,8 +30,7 @@ then @racket[eof] is returned.}
 @defproc[(read-byte [in input-port? (current-input-port)]) 
          (or/c byte? eof-object?)]{
 
-Reads a single byte from @racket[in]. If no bytes are available before
-an end-of-file, then @racket[eof] is returned.}
+从 @racket[in] 读取单个字节。如果在文件结束前无可用的字节，则返回 @racket[eof]。}
 
 
 @examples[#:eval si-eval
@@ -51,46 +48,34 @@ an end-of-file, then @racket[eof] is returned.}
                     [mode (or/c 'linefeed 'return 'return-linefeed 'any 'any-one) 'linefeed])
          (or/c string? eof-object?)]{
 
-Returns a string containing the next line of bytes from @racket[in].
+返回包含 @racket[in] 中下一行字节的字符串。
 
-Characters are read from @racket[in] until a line separator or an
-end-of-file is read. The line separator is not included in the result
-string (but it is removed from the port's stream). If no characters
-are read before an end-of-file is encountered, @racket[eof] is
-returned.
+从 @racket[in] 持续读取字符直到遇到行分隔符或文件结束。行分隔符不包含在结果
+字符串中（但会从端口流中移除）。如果在遇到文件结束前未读取任何字符，则返回 @racket[eof]。
 
-The @racket[mode] argument determines the line separator(s). It
-must be one of the following symbols:
+@racket[mode] 参数决定行分隔符。必须是以下符号之一：
 
  @itemize[
 
-  @item{@indexed-racket['linefeed] breaks lines on linefeed characters.}
+  @item{@indexed-racket['linefeed] 在换行字符（linefeed）处换行。}
 
-  @item{@indexed-racket['return] breaks lines on return characters.}
+  @item{@indexed-racket['return] 在回车字符（return）处换行。}
 
-  @item{@indexed-racket['return-linefeed] breaks lines on
-  return-linefeed combinations. If a return character is not followed
-  by a linefeed character, it is included in the result string;
-  similarly, a linefeed that is not preceded by a return is included
-  in the result string.}
+  @item{@indexed-racket['return-linefeed] 在回车-换行组合处换行。
+  若回车字符后未紧跟换行字符，则回车字符会包含在结果字符串中；
+  类似地，前面没有回车的换行字符也会被包含在结果字符串中。}
 
-  @item{@indexed-racket['any] breaks lines on any of a return
-  character, linefeed character, or return-linefeed combination. If a
-  return character is followed by a linefeed character, the two are
-  treated as a combination.}
+  @item{@indexed-racket['any] 在回车字符、换行字符或回车-换行组合处均可换行。
+  若回车字符后紧跟换行字符，则两者被视为一个组合。}
 
-  @item{@indexed-racket['any-one] breaks lines on either a return or
-  linefeed character, without recognizing return-linefeed
-  combinations.}
+  @item{@indexed-racket['any-one] 在回车字符或换行字符处换行，但不识别
+  回车-换行组合。}
 
 ]
 
-Return and linefeed characters are detected after the conversions that
-are automatically performed when reading a file in text mode. For
-example, reading a file in text mode on Windows automatically
-changes return-linefeed combinations to a linefeed. Thus, when a file
-is opened in text mode, @racket['linefeed] is usually the appropriate
-@racket[read-line] mode.}
+回车和换行字符的检测是在以文本模式读取文件时自动执行的转换之后进行的。
+例如，在 Windows 上以文本模式读取文件时会自动将回车-换行组合转换为换行字符。
+因此，当文件以文本模式打开时，@racket['linefeed] 通常是 @racket[read-line] 的合适模式。}
 
 @examples[#:eval si-eval
 (let ([ip (open-input-string "x\ny\n")])
@@ -116,30 +101,24 @@ is opened in text mode, @racket['linefeed] is usually the appropriate
 @defproc[(read-bytes-line [in input-port? (current-input-port)] 
                     [mode (or/c 'linefeed 'return 'return-linefeed 'any 'any-one) 'linefeed])
          (or/c bytes? eof-object?)]{
-Like @racket[read-line], but reads bytes and produces a byte string.}
+类似于 @racket[read-line]，但读取的是字节，返回字节字符串。}
 
 @defproc[(read-string [amt exact-nonnegative-integer?]
                       [in input-port? (current-input-port)])
          (or/c string? eof-object?)]{
 
-@margin-note{To read an entire port as a string, use @racket[port->string].}
+@margin-note{若想将整个端口读取为字符串，请使用 @racket[port->string]。}
 
-Returns a string containing the next @racket[amt] characters from
-@racket[in].
+返回包含 @racket[in] 中接下来 @racket[amt] 个字符的字符串。
 
-If @racket[amt] is @racket[0], then the empty string is
-returned. Otherwise, if fewer than @racket[amt] characters are
-available before an end-of-file is encountered, then the returned
-string will contain only those characters before the end-of-file; that
-is, the returned string's length will be less than @racket[amt]. (A
-temporary string of size @racket[amt] is allocated while reading the
-input, even if the size of the result is less than @racket[amt]
-characters.) If no characters are available before an end-of-file,
-then @racket[eof] is returned.
+若 @racket[amt] 为 @racket[0]，则返回空字符串。否则，若在遇到文件结束前可用的字符数
+少于 @racket[amt]，则返回的字符串仅包含文件结束前的那些字符；
+也就是说，返回字符串的长度将小于 @racket[amt]。（读取输入时会分配一个大小为 @racket[amt] 的
+临时字符串，即使结果的字符数少于 @racket[amt]。）若在文件结束前无可用的字符，
+则返回 @racket[eof]。
 
-If an error occurs during reading, some characters may be lost; that
-is, if @racket[read-string] successfully reads some characters before
-encountering an error, the characters are dropped.}
+若读取过程中发生错误，部分字符可能丢失；也就是说，若 @racket[read-string]
+在遇到错误前成功读取了一些字符，这些字符将被丢弃。}
 
 @examples[#:eval si-eval
 (let ([ip (open-input-string "supercalifragilisticexpialidocious")])
@@ -149,8 +128,8 @@ encountering an error, the characters are dropped.}
 @defproc[(read-bytes [amt exact-nonnegative-integer?]
                      [in input-port? (current-input-port)])
          (or/c bytes? eof-object?)]{
-@margin-note{To read an entire port as bytes, use @racket[port->bytes].}
-Like @racket[read-string], but reads bytes and produces a byte string.}
+@margin-note{若想将整个端口读取为字节，请使用 @racket[port->bytes]。}
+类似于 @racket[read-string]，但读取的是字节，返回字节字符串。}
 
 @examples[#:eval si-eval
 (let ([ip (open-input-bytes 
@@ -167,18 +146,12 @@ Like @racket[read-string], but reads bytes and produces a byte string.}
                        [end-pos exact-nonnegative-integer? (string-length str)])
          (or/c exact-nonnegative-integer? eof-object?)]{
 
-Reads characters from @racket[in] like @racket[read-string], but puts
-them into @racket[str] starting from index @racket[start-pos]
-(inclusive) up to @racket[end-pos] (exclusive). Like
-@racket[substring], the @exnraise[exn:fail:contract] if
-@racket[start-pos] or @racket[end-pos] is out-of-range for
-@racket[str].
+像 @racket[read-string] 一样从 @racket[in] 读取字符，但将字符放入 @racket[str] 中，
+从索引 @racket[start-pos]（包含）开始到 @racket[end-pos]（不包含）。与 @racket[substring] 类似，
+若 @racket[start-pos] 或 @racket[end-pos] 超出 @racket[str] 的范围，则 @exnraise[exn:fail:contract]。
 
-If the difference between @racket[start-pos] and @racket[end-pos] is
-@racket[0], then @racket[0] is returned and @racket[str] is not
-modified. If no bytes are available before an end-of-file, then
-@racket[eof] is returned. Otherwise, the return value is the number of
-characters read. If @math{m} characters are read and
+若 @racket[start-pos] 与 @racket[end-pos] 之差为 @racket[0]，则返回 @racket[0]，
+@racket[str] 不被修改。 若在文件结束前无可用的字节，则返回 @racket[eof]。 否则，返回值为读取的字符数。 If @math{m} characters are read and
 @math{m<@racket[end-pos]-@racket[start-pos]}, then @racket[str] is
 not modified at indices @math{@racket[start-pos]+m} through
 @racket[end-pos].}
@@ -198,8 +171,7 @@ not modified at indices @math{@racket[start-pos]+m} through
                       [start-pos exact-nonnegative-integer? 0]
                       [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object?)]{
-Like @racket[read-string!], but reads bytes, puts them into a byte
-string, and returns the number of bytes read.
+类似于 @racket[read-string!]，但读取字节，放入字节字符串中，并返回读取的字节数。
 
 @examples[
 (let ([buffer (make-bytes 10 (char->integer #\_))]
@@ -218,27 +190,18 @@ string, and returns the number of bytes read.
                             [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object? procedure?)]{
 
-Like @racket[read-bytes!], but returns without blocking after having
-read the immediately available bytes, and it may return a procedure for
-a ``special'' result. The @racket[read-bytes-avail!] procedure blocks
-only if no bytes (or specials) are yet available. Also unlike
-@racket[read-bytes!], @racket[read-bytes-avail!] never drops bytes; if
-@racket[read-bytes-avail!] successfully reads some bytes and then
-encounters an error, it suppresses the error (treating it roughly like
-an end-of-file) and returns the read bytes.  (The error will be
-triggered by future reads.) If an error is encountered before any
-bytes have been read, an exception is raised.
+类似于 @racket[read-bytes!]，但在读取立即可用的字节后不阻塞而直接返回，并且可能
+为了「special」结果返回一个过程。@racket[read-bytes-avail!] 过程仅在尚无可用字节（或特殊值）时才会阻塞。
+与 @racket[read-bytes!] 不同，@racket[read-bytes-avail!] 从不丢弃字节；
+若 @racket[read-bytes-avail!] 成功读取了若干字节后遇到错误，则会抑制该错误
+（大致将其视为文件结束处理）并返回已读取的字节。（该错误将在后续读取时触发。）
+若在读取任何字节之前遇到错误，则引发异常。
 
-When @racket[in] produces a special value, as described in
-@secref["customport"], the result is a procedure of four
-arguments. The four arguments correspond to the location of the
-special value within the port, as described in
-@secref["customport"]. If the procedure is called more than once
-with valid arguments, the @exnraise[exn:fail:contract]. If
-@racket[read-bytes-avail!] returns a special-producing procedure, then
-it does not place characters in @racket[bstr]. Similarly,
-@racket[read-bytes-avail!] places only as many bytes into @racket[bstr]
-as are available before a special value in the port's stream.}
+当 @racket[in] 产生特殊值时（如 @secref["customport"] 中所述），结果是一个接受四个参数的过程。
+这四个参数对应于端口内特殊值的位置（如 @secref["customport"] 中所述）。
+若该过程被以有效参数调用超过一次，则 @exnraise[exn:fail:contract]。
+若 @racket[read-bytes-avail!] 返回一个产生特殊值的过程，则它不会向 @racket[bstr] 中放入字符。
+同样地，@racket[read-bytes-avail!] 仅将端口流中特殊值出现之前可用的字节放入 @racket[bstr] 中。}
 
 @defproc[(read-bytes-avail!* [bstr bytes?]
                              [in input-port? (current-input-port)]
@@ -246,9 +209,8 @@ as are available before a special value in the port's stream.}
                              [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object? procedure?)]{
 
-Like @racket[read-bytes-avail!], but returns @racket[0] immediately if
-no bytes (or specials) are available for reading and the end-of-file
-is not reached.}
+类似于 @racket[read-bytes-avail!]，但在无可读取的字节（或特殊值）且未到达文件结束时，
+立即返回 @racket[0]。}
 
 @defproc[(read-bytes-avail!/enable-break [bstr bytes?]
                                          [in input-port? (current-input-port)]
@@ -256,11 +218,9 @@ is not reached.}
                                          [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object? procedure?)]{
 
-Like @racket[read-bytes-avail!], but breaks are enabled during the
-read (see also @secref["breakhandler"]). If breaking is disabled
-when @racket[read-bytes-avail!/enable-break] is called, and if the
-@racket[exn:break] exception is raised as a result of the call, then
-no bytes will have been read from @racket[in].}
+类似于 @racket[read-bytes-avail!]，但在读取期间允许中断（另请参见 @secref["breakhandler"]）。
+若调用 @racket[read-bytes-avail!/enable-break] 时中断功能被禁用，且因调用导致
+@racket[exn:break] 异常被引发，则不会从 @racket[in] 读取任何字节。}
 
 
 @defproc[(peek-string [amt exact-nonnegative-integer?]
@@ -268,33 +228,26 @@ no bytes will have been read from @racket[in].}
                       [in input-port? (current-input-port)])
          (or/c string? eof-object?)]{
 
-Similar to @racket[read-string], except that the returned characters
-are @tech{peek}ed: preserved in the port for future reads and @tech{peeks}. (More precisely, undecoded
-bytes are left for future reads and peeks.) The @racket[skip-bytes-amt] argument
-indicates a number of bytes (@italic{not} characters) in the input
-stream to skip before collecting characters to return; thus, in total,
-the next @racket[skip-bytes-amt] bytes plus @racket[amt] characters
-are inspected.
+与 @racket[read-string] 类似，但返回的字符是 @tech{peek} 操作：保留在端口中供将来
+读取和回看。（更准确地说，未解码的字节被留下供将来读取和回看。）
+@racket[skip-bytes-amt] 参数指定在输入流中需要跳过的字节数（@italic{不是}字符数），
+然后再收集要返回的字符；因此，总共会检查接下来的 @racket[skip-bytes-amt] 个字节加上
+@racket[amt] 个字符。
 
-For most kinds of ports, inspecting @racket[skip-bytes-amt] bytes and
-@racket[amt] characters requires at least
-@math{@racket[skip-bytes-amt]+@racket[amt]} bytes of memory overhead
-associated with the port, at least until the bytes/characters are
-read. No such overhead is required when peeking into a string port
-(see @secref["stringport"]), a pipe port (see
-@secref["pipeports"]), or a custom port with a specific peek
-procedure (depending on how the peek procedure is implemented; see
-@secref["customport"]).
+对于大多数类型的端口，检查 @racket[skip-bytes-amt] 个字节和 @racket[amt] 个字符
+至少需要 @math{@racket[skip-bytes-amt]+@racket[amt]} 字节的内存开销（与端口关联），
+至少在读取这些字节/字符之前如此。对字符串端口（参见 @secref["stringport"]）、
+管道端口（参见 @secref["pipeports"]）或具有特定 peek 过程的自定义端口进行回看时，
+不需要这样的开销（取决于 peek 过程的实现方式；参见 @secref["customport"]）。
 
-If a port produces @racket[eof] mid-stream, attempts to skip beyond the
-@racket[eof] for a @tech{peek} always produce @racket[eof] until the @racket[eof] is
-read.}
+若端口在流中途产生 @racket[eof]，则对于 @tech{peek} 操作，试图跳过超过 @racket[eof]
+的位置总是会返回 @racket[eof]，直到该 @racket[eof] 被读取。}
 
 @defproc[(peek-bytes [amt exact-nonnegative-integer?]
                      [skip-bytes-amt exact-nonnegative-integer?]
                      [in input-port? (current-input-port)])
          (or/c bytes? eof-object?)]{
-Like @racket[peek-string], but @tech{peeks} bytes and produces a byte string.}
+类似于 @racket[peek-string]，但 @tech{peek} 的是字节，返回字节字符串。}
 
 @defproc[(peek-string! [str (and/c string? (not/c immutable?))]
                        [skip-bytes-amt exact-nonnegative-integer?]
@@ -302,8 +255,8 @@ Like @racket[peek-string], but @tech{peeks} bytes and produces a byte string.}
                        [start-pos exact-nonnegative-integer? 0]
                        [end-pos exact-nonnegative-integer? (string-length str)])
          (or/c exact-nonnegative-integer? eof-object?)]{
-Like @racket[read-string!], but for @tech{peek}ing, and with a
-@racket[skip-bytes-amt] argument like @racket[peek-string].}
+类似于 @racket[read-string!]，但用于 @tech{peek} 操作，并接受一个
+@racket[skip-bytes-amt] 参数（如 @racket[peek-string] 中所示）。}
 
 @defproc[(peek-bytes! [bstr (and/c bytes? (not/c immutable?))]
                       [skip-bytes-amt exact-nonnegative-integer?]
@@ -311,8 +264,8 @@ Like @racket[read-string!], but for @tech{peek}ing, and with a
                       [start-pos exact-nonnegative-integer? 0]
                       [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object?)]{
-Like @racket[peek-string!], but @tech{peeks} bytes, puts them into a byte
-string, and returns the number of bytes read.}
+类似于 @racket[peek-string!]，但 @tech{peek} 的是字节，放入字节字符串中，
+并返回读取的字节数。}
 
 @defproc[(peek-bytes-avail! [bstr (and/c bytes? (not/c immutable?))]
                             [skip-bytes-amt exact-nonnegative-integer?]
@@ -322,26 +275,21 @@ string, and returns the number of bytes read.}
                             [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object? procedure?)]{
 
-Like @racket[read-bytes-avail!], but for @tech{peek}ing, and with two extra
-arguments. The @racket[skip-bytes-amt] argument is as in
-@racket[peek-bytes].  The @racket[progress] argument must be either
-@racket[#f] or an event produced by
-@racket[port-progress-evt] for @racket[in].
+类似于 @racket[read-bytes-avail!]，但用于 @tech{peek} 操作，并额外接受两个参数。
+@racket[skip-bytes-amt] 参数与 @racket[peek-bytes] 中相同。@racket[progress] 参数
+必须是 @racket[#f] 或由 @racket[port-progress-evt] 为 @racket[in] 生成的事件。
 
-To @tech{peek}, @racket[peek-bytes-avail!] blocks until finding an
-end-of-file, at least one byte (or special) past the skipped bytes, or
-until a non-@racket[#f] @racket[progress] becomes ready. Furthermore,
-if @racket[progress] is ready before bytes are peeked, no bytes are
-peeked or skipped, and @racket[progress] may cut short the skipping
-process if it becomes available during the peek attempt. Furthermore,
-@racket[progress] is checked even before determining whether the port
-is still open.
+为了进行 @tech{peek}，@racket[peek-bytes-avail!] 会阻塞直到找到文件结束、
+跳过的字节之后至少一个字节（或特殊值），或者直到非 @racket[#f] 的 @racket[progress]
+变为就绪状态。此外，若 @racket[progress] 在 peek 字节之前就绪，则不会 peek 或跳过任何字节，
+并且如果 @racket[progress] 在 peek 尝试期间变得可用，则可能缩短跳过过程。此外，
+@racket[progress] 甚至在确定端口是否仍处于打开状态之前就被检查。
 
-The result of @racket[peek-bytes-avail!] is @racket[0] only
+@racket[peek-bytes-avail!] 的结果为 @racket[0] 仅发生在以下情况：
 
 @itemlist[
-  @item{when @racket[start-pos] is equal to @racket[end-pos], or}
-  @item{when @racket[progress] becomes ready before bytes are peeked.}
+  @item{当 @racket[start-pos] 等于 @racket[end-pos] 时，或}
+  @item{当 bytes 被 peek 之前 @racket[progress] 已就绪。}
 ]}
 
 @defproc[(peek-bytes-avail!* [bstr (and/c bytes? (not/c immutable?))]
@@ -352,11 +300,9 @@ The result of @racket[peek-bytes-avail!] is @racket[0] only
                              [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object? procedure?)]{
 
-Like @racket[read-bytes-avail!*], but for @tech{peek}ing, and with
-@racket[skip-bytes-amt] and @racket[progress] arguments like
-@racket[peek-bytes-avail!]. Since this procedure never blocks, it may
-return before even @racket[skip-bytes-amt] bytes are available from the
-port.}
+类似于 @racket[read-bytes-avail!*]，但用于 @tech{peek} 操作，并接受
+@racket[skip-bytes-amt] 和 @racket[progress] 参数（如 @racket[peek-bytes-avail!] 中所示）。
+由于此过程从不阻塞，它可能在连 @racket[skip-bytes-amt] 个字节尚未从端口可用时就返回了。}
 
 @defproc[(peek-bytes-avail!/enable-break [bstr (and/c bytes? (not/c immutable?))]
                                          [skip-bytes-amt exact-nonnegative-integer?]
@@ -365,9 +311,9 @@ port.}
                                          [start-pos exact-nonnegative-integer? 0]
                                          [end-pos exact-nonnegative-integer? (bytes-length bstr)])
          (or/c exact-nonnegative-integer? eof-object? procedure?)]{
-Like @racket[read-bytes-avail!/enable-break], but for @tech{peek}ing, and
-with @racket[skip-bytes-amt] and @racket[progress] arguments like
-@racket[peek-bytes-avail!].}
+类似于 @racket[read-bytes-avail!/enable-break]，但用于 @tech{peek} 操作，
+并接受 @racket[skip-bytes-amt] 和 @racket[progress] 参数
+（如 @racket[peek-bytes-avail!] 中所示）。}
 
 
 @defproc[(read-char-or-special [in input-port? (current-input-port)]
@@ -375,35 +321,31 @@ with @racket[skip-bytes-amt] and @racket[progress] arguments like
                                [source-name any/c #f])
          (or/c char? eof-object? any/c)]{
 
-Like @racket[read-char], but if the input port returns a
-@tech{special} value (through a value-generating procedure in a custom
-port, where @racket[source-name] is provided to the procedure; see
-@secref["customport"] and @secref["special-comments"] for details),
-then the result of applying @racket[special-wrap] to the
-@tech{special} value is returned. A @racket[#f] value for
-@racket[special-wrap] is treated the same as the identity function.
+类似于 @racket[read-char]，但若输入端口返回一个 @tech{special} 值
+（通过自定义端口中的值生成过程，其中 @racket[source-name] 被提供给该过程；
+详见 @secref["customport"] 和 @secref["special-comments"]），
+则返回将 @racket[special-wrap] 应用于该 @tech{special} 值的结果。
+@racket[#f] 作为 @racket[special-wrap] 的值时，与恒等函数同样处理。
 
-@history[#:changed "6.8.0.2" @elem{Added the @racket[special-wrap] and
-                                   @racket[source-name] arguments.}]}
+@history[#:changed "6.8.0.2" @elem{添加了 @racket[special-wrap] 和
+                                   @racket[source-name] 参数。}]}
 
 @defproc[(read-byte-or-special [in input-port? (current-input-port)]
                                [special-wrap (or/c (any/c . -> . any/c) #f) #f]
                                [source-name any/c #f])
          (or/c byte? eof-object? any/c)]{
 
-Like @racket[read-char-or-special], but reads and returns a byte
-instead of a character.
+类似于 @racket[read-char-or-special]，但读取并返回字节而非字符。
 
-@history[#:changed "6.8.0.2" @elem{Added the @racket[special-wrap] and
-                                   @racket[source-name] arguments.}]}
+@history[#:changed "6.8.0.2" @elem{添加了 @racket[special-wrap] 和
+                                   @racket[source-name] 参数。}]}
 
 @defproc[(peek-char [in input-port? (current-input-port)]
                     [skip-bytes-amt exact-nonnegative-integer? 0])
          (or/c char? eof-object?)]{
 
-Like @racket[read-char], but @tech{peeks} instead of reading, and skips
-@racket[skip-bytes-amt] bytes (not characters) at the start of the
-port.}
+类似于 @racket[read-char]，但进行 @tech{peek} 而非读取，并在端口开头跳过
+@racket[skip-bytes-amt] 个字节（不是字符）。}
 
 @defproc[(peek-byte [in input-port? (current-input-port)]
                     [skip-bytes-amt exact-nonnegative-integer? 0])
@@ -418,30 +360,25 @@ character.}
                                [source-name any/c #f])
          (or/c char? eof-object? any/c)]{
 
-Like @racket[peek-char], but if the input port returns a non-byte
-value after @racket[skip-bytes-amt] byte positions, then the result
-depends on @racket[special-wrap]:
+类似于 @racket[peek-char]，但若输入端口在 @racket[skip-bytes-amt] 个字节位置之后返回
+非字节值，则结果取决于 @racket[special-wrap]：
 
 @itemlist[
 
- @item{If @racket[special-wrap] is @racket[#f], then the special value
-       is returned (as for @racket[read-char-or-special]).}
+ @item{若 @racket[special-wrap] 为 @racket[#f]，则返回该特殊值
+       （如 @racket[read-char-or-special] 中所示）。}
 
-@item{If @racket[special-wrap] is a procedure, then it is applied the
-       special value to produce the result (as for
-       @racket[read-char-or-special]).}
+@item{若 @racket[special-wrap] 是一个过程，则将其应用于该特殊值以产生结果
+       （如 @racket[read-char-or-special] 中所示）。}
 
- @item{If @racket[special-wrap] is @racket['special], then
-       @racket['special] is returned in place of the special
-       value---without calling the special-value procedure that is
-       returned by the input-port implementation.}
+ @item{若 @racket[special-wrap] 为 @racket['special]，则返回 @racket['special]
+       代替该特殊值——而不调用输入端口实现所返回的特殊值生产过程。}
 
 ]
 
-@history[#:changed "6.8.0.2" @elem{Added the @racket[special-wrap] and
-                                   @racket[source-name] arguments.}
-         #:changed "6.90.0.16" @elem{Added @racket['special] as an option
-                                     for @racket[special-wrap].}]}
+@history[#:changed "6.8.0.2" @elem{添加了 @racket[special-wrap] 和
+                                   @racket[source-name] 参数。}
+         #:changed "6.90.0.16" @elem{添加了 @racket['special] 作为 @racket[special-wrap] 的一个选项。}]}
 
 @defproc[(peek-byte-or-special [in input-port? (current-input-port)]
                                [skip-bytes-amt exact-nonnegative-integer? 0]
@@ -450,32 +387,28 @@ depends on @racket[special-wrap]:
                                [source-name any/c #f])
          (or/c byte? eof-object? any/c)]{
 
-Like @racket[peek-char-or-special], but @tech{peeks} and returns a byte
-instead of a character, and it supports a @racket[progress] argument
-like @racket[peek-bytes-avail!].
+类似于 @racket[peek-char-or-special]，但 @tech{peek} 并返回字节而非字符，
+并支持类似 @racket[peek-bytes-avail!] 中的 @racket[progress] 参数。
 
-@history[#:changed "6.8.0.2" @elem{Added the @racket[special-wrap] and
-                                   @racket[source-name] arguments.}
-         #:changed "6.90.0.16" @elem{Added @racket['special] as an option
-                                     for @racket[special-wrap].}]}
+@history[#:changed "6.8.0.2" @elem{添加了 @racket[special-wrap] 和
+                                   @racket[source-name] 参数。}
+         #:changed "6.90.0.16" @elem{添加了 @racket['special] 作为 @racket[special-wrap] 的一个选项。}]}
 
 
 @defproc[(port-progress-evt [in (and/c input-port? port-provides-progress-evts?)
                                 (current-input-port)])
          progress-evt?]{
 
-Returns a @tech{synchronizable event} (see @secref["sync"]) that
-becomes @tech{ready for synchronization} after any subsequent read
-from @racket[in] or after @racket[in] is closed. After the event
-becomes ready, it remains ready. @ResultItself{progress event}.}
+返回一个 @tech{synchronizable event}（参见 @secref["sync"]），该事件在 @racket[in]
+的任意后续读取之后或 @racket[in] 关闭之后变为 @tech{ready for synchronization}。
+事件就绪后将一直保持就绪状态。@ResultItself{progress event}。}
 
 
 @defproc[(port-provides-progress-evts? [in input-port?]) boolean]{
 
-Returns @racket[#t] if @racket[port-progress-evt] can return an event
-for @racket[in]. All built-in kinds of ports support progress events,
-but ports created with @racket[make-input-port] (see
-@secref["customport"]) may not.}
+若 @racket[port-progress-evt] 可以为 @racket[in] 返回一个事件，则返回 @racket[#t]。
+所有内置类型的端口都支持 progress event，但通过 @racket[make-input-port]
+创建的端口（参见 @secref["customport"]）可能不支持。}
 
  
 @defproc[(port-commit-peeked [amt exact-nonnegative-integer?]
@@ -484,35 +417,27 @@ but ports created with @racket[make-input-port] (see
                              [in input-port? (current-input-port)])
          boolean?]{
 
-Attempts to @tech{commit} as read the first @racket[amt] previously @tech{peek}ed
-bytes, non-byte specials, and @racket[eof]s from @racket[in], or the
-first @racket[eof] or special value peeked from
-@racket[in]. Mid-stream @racket[eof]s can be
-committed, but an @racket[eof] when the port is exhausted does not
-necessarily commit, since it does not correspond to data in the stream.
+尝试将 @racket[in] 中先前 @tech{peek} 的前 @racket[amt] 个字节、非字节特殊值和
+@racket[eof] 中第一个提交为已读取，或者将 @racket[in] 中第一个已 @tech{peek} 的
+@racket[eof] 或特殊值提交为已读取。流中途的 @racket[eof] 可以被提交，
+但当端口耗尽时的 @racket[eof] 不一定被提交，因为它不对应于流中的数据。
 
-The read commits only if @racket[progress] does not become ready first
-(i.e., if no other process reads from @racket[in] first), and only if
-@racket[evt] is chosen by a @racket[sync] within
-@racket[port-commit-peeked] (in which case the event result is
-ignored); the @racket[evt] must be either a channel-put event,
-channel, semaphore, semaphore-peek event, always event, or never
-event. Suspending the thread that calls @racket[port-commit-peeked]
-may or may not prevent the commit from proceeding.
+仅当 @racket[progress] 未首先就绪（即没有其他进程先从 @racket[in] 读取），
+且 @racket[evt] 在 @racket[port-commit-peeked] 内部被 @racket[sync] 选中时
+（此时事件结果被忽略），读取才会被提交；@racket[evt] 必须是 channel-put event、
+channel、semaphore、semaphore-peek event、always event 或 never event 之一。
+挂起调用 @racket[port-commit-peeked] 的线程可能阻止也可能不阻止提交的进行。
 
-The result from @racket[port-commit-peeked] is @racket[#t] if data has been
-committed, and @racket[#f] otherwise.
+若数据已被提交，@racket[port-commit-peeked] 的结果为 @racket[#t]，否则为 @racket[#f]。
 
-If no data has been peeked from @racket[in] and @racket[progress] is
-not ready, then @exnraise[exn:fail:contract].  If fewer than
-@racket[amt] items have been peeked at the current start of
-@racket[in]'s stream, then only the peeked items are committed as
-read.  If @racket[in]'s stream currently starts at an @racket[eof] or
-a non-byte special value, then only the @racket[eof] or special value
-is committed as read.
+若尚未从 @racket[in] @tech{peek} 任何数据且 @racket[progress] 未就绪，
+则 @exnraise[exn:fail:contract]。若在 @racket[in] 的流当前位置 @tech{peek} 的项目少于
+@racket[amt] 个，则仅将已 @tech{peek} 的项目提交为已读取。
+若 @racket[in] 的流当前从 @racket[eof] 或非字节特殊值开始，
+则仅将该 @racket[eof] 或特殊值提交为已读取。
  
-If @racket[progress] is not a result of @racket[port-progress-evt]
-applied to @racket[in], then @exnraise[exn:fail:contract].}
+若 @racket[progress] 不是将 @racket[port-progress-evt] 应用于 @racket[in] 的结果，
+则 @exnraise[exn:fail:contract]。}
 
 
 @defproc[(byte-ready? [in input-port? (current-input-port)])
@@ -522,39 +447,32 @@ Returns @racket[#t] if @racket[(read-byte in)] would not block (at the
 time that @racket[byte-ready?] was called, at least).  Equivalent to
 @racket[(and (sync/timeout 0 in) #t)].
 
-The @racket[byte-ready?] and @racket[char-ready?] functions are
-appropriate for relatively few applications, because ports are meant
-to support streaming data among concurrent producers and consumers;
-the fact that a byte or character is not ready in some instant does
-not necessarily mean that the producer is finished supplying data.
-(Also, if a port has multiple consumers, data might get consumed
-between the time that a given process uses @racket[byte-ready?] to
-poll the port and the time that it reads data from the port.) Using
-@racket[byte-ready?] makes sense if you are implementing your own
-scheduler or if you know that the port's implementation and use are
-particularly constrained.}
+对于相对较少的应用来说，@racket[byte-ready?] 和 @racket[char-ready?] 函数之所以合适，
+是因为端口本意是为了支持并发生产者和消费者之间的流数据传输；
+某一时刻某个字节或字符未就绪，并不一定意味着生产者已完成数据供应。
+（此外，如果一个端口有多个消费者，数据可能在给定进程使用 @racket[byte-ready?]
+轮询端口和它实际从端口读取数据之间的时间段内被消耗。）
+实现自己的调度器时，或当端口的实现和使用受到特别限制时，使用 @racket[byte-ready?] 才有意义。}
 
 
 @defproc[(char-ready? [in input-port? (current-input-port)])
          boolean?]{
 
-Returns @racket[#t] if @racket[(read-char in)] would not block (at the
-time that @racket[char-ready?] was called, at least). Depending on the
-initial bytes of the stream, multiple bytes may be needed to form a
-UTF-8 encoding.
+若 @racket[(read-char in)] 不会阻塞（至少在调用 @racket[char-ready?] 的时刻如此），
+则返回 @racket[#t]。根据流的初始字节，可能需要多个字节才能构成 UTF-8 编码。
 
-See @racket[byte-ready?] for a note on how @racket[byte-ready?] and
-@racket[char-ready?] are rarely the right choice.}
+关于 @racket[byte-ready?] 和 @racket[char-ready?] 很少是正确选择的说明，请参见
+@racket[byte-ready?]。}
 
 
 @defproc*[([(progress-evt? [v any/c]) boolean?]
            [(progress-evt? [evt progress-evt?] [in input-port?]) boolean?])]{
 
-With one argument, returns @racket[#t] is @racket[v] is a progress evt
-for some input port, @racket[#f] otherwise.
+单参数形式下，若 @racket[v] 是某个输入端口的 progress evt，则返回 @racket[#t]，
+否则返回 @racket[#f]。
 
-With two arguments, returns @racket[#t] if @racket[evt] is a progress
-event for @racket[in], @racket[#f] otherwise.}
+双参数形式下，若 @racket[evt] 是 @racket[in] 的 progress event，则返回 @racket[#t]，
+否则返回 @racket[#f]。}
 
 
 @close-eval[si-eval]
