@@ -5,16 +5,15 @@
 
 @(define piece-eval (make-base-eval))
 
-@title[#:tag "intro"]{Welcome to Racket}
+@title[#:tag "intro"]{欢迎来到 Racket}
 
-Depending on how you look at it, @bold{Racket} is
+从不同角度看，@bold{Racket} 是
 
 @itemize[
 
  @item{一种 @defterm{programming language}——Lisp 的一种方言和 Scheme 的后裔；
 
-       @margin-note{See @secref["dialects"] for more information on
-       other dialects of Lisp and how they relate to Racket.}}
+       @margin-note{关于 Lisp 的其他方言及其与 Racket 的关系，详见 @secref["dialects"]。}}
 
  @item{一组编程@vdefterm{family}——Racket 的变体，或更广泛家族；或}
 
@@ -22,9 +21,9 @@ Depending on how you look at it, @bold{Racket} is
 
 ]
 
-Where there is no room for confusion, we use simply @defterm{Racket}.
+在没有歧义的情况下，我们简称为 @defterm{Racket}。
 
-Racket's main tools are
+Racket 的主要工具有
 
 @itemize[
 
@@ -37,70 +36,61 @@ Racket's main tools are
 
 ]
 
-Most likely, you'll want to explore the Racket language using
-DrRacket, especially at the beginning. If you prefer, you can also
-work with the command-line @exec{racket} interpreter (see  
-@secref["racket"]) and your favorite text editor (see 
-@secref["other-editors"]). The rest of this guide presents the 
-language mostly independent of your choice of editor.
+最有可能的是，你会想用 DrRacket 来探索 Racket 语言，
+特别是在刚开始的时候。如果你愿意，也可以使用命令行
+@exec{racket} 解释器（见 @secref["racket"]）和你最喜欢的文本编辑器
+（见 @secref["other-editors"]）。本指南的其余部分在介绍语言时
+与你选择的编辑器基本无关。
 
-If you're using DrRacket, you'll need to choose the proper language,
-because DrRacket accommodates many different variants of Racket, as
-well as other languages. Assuming that you've never used DrRacket
-before, start it up, type the line
+如果你使用 DrRacket，你需要选择合适的语言，因为
+DrRacket 支持多种不同的 Racket 变体以及其他语言。假设你
+之前从未使用过 DrRacket，启动它，在 DrRacket 的顶部文本区域
+输入以下行
 
 @racketmod[racket]
 
-in DrRacket's top text area, and then click the @onscreen{Run} button
-that's above the text area. DrRacket then understands that you mean to
-work in the normal variant of Racket (as opposed to the smaller
-@racketmodname[racket/base] or many other possibilities).
+然后点击文本区域上方的 @onscreen{Run} 按钮。
+DrRacket 就会理解你打算使用标准 Racket 变体（而不是更小的
+@racketmodname[racket/base] 或许多其他可能性）。
 
-@margin-note{@secref["more-hash-lang"] describes some of the other
-             possibilities.}
+@margin-note{@secref["more-hash-lang"] 介绍了其他一些可能性。}
 
-If you've used DrRacket before with something other than a program
-that starts @hash-lang[], DrRacket will remember the last language
-that you used, instead of inferring the language from the @hash-lang[]
-line. In that case, use the @menuitem["Language" "Choose Language..."]
-menu item.  In the dialog that appears, select the first item, which
-tells DrRacket to use the language that is declared in a source
-program via @hash-lang[]. Put the @hash-lang[] line above in the top
-text area, still.
+如果你之前使用 DrRacket 时没有使用以 @hash-lang[] 开头的程序，
+DrRacket 会记住你上次使用的语言，而不是从 @hash-lang[] 行推断语言。
+在这种情况下，使用 @menuitem["Language" "Choose Language..."] 菜单项。
+在出现的对话框中，选择第一项，它告诉 DrRacket 使用通过
+@hash-lang[] 在源程序中声明的语言。仍然将 @hash-lang[] 行放在
+顶部文本区域中。
 
 @; ----------------------------------------------------------------------
-@section{Interacting with Racket}
+@section{与 Racket 交互}
 
-DrRacket's bottom text area and the @exec{racket} command-line program
-(when started with no options) both act as a kind of calculator. You
-type a Racket expression, hit the Return key, and the answer is
-printed. In the terminology of Racket, this kind of calculator is
-called a @idefterm{read-eval-print loop} or @deftech{REPL}.
+DrRacket 的底部文本区域和 @exec{racket} 命令行程序（不带选项启动时）
+都充当一种计算器。你输入一个 Racket 表达式，按 Return 键，答案就会
+被打印出来。用 Racket 的术语来说，这种计算器被称为
+@idefterm{读取-求值-打印循环}或 @deftech{REPL}。
 
-A number by itself is an expression, and the answer is just the
-number:
+一个数字本身就是一个表达式，答案就是该数字：
 
 @interaction[5]
 
-A string is also an expression that evaluates to itself. A string is
-written with double quotes at the start and end of the string:
+字符串也是一种求值为自身的表达式。字符串用双引号
+写在开头和结尾：
 
 @interaction["Hello, world!"]
 
-Racket uses parentheses to wrap larger expressions---almost any kind
-of expression, other than simple constants. For example, a function
-call is written: open parenthesis, function name, argument
-expression, and closing parenthesis. The following expression calls
-the built-in function @racket[substring] with the arguments
-@racket["the boy out of the country"], @racket[4], and @racket[7]:
+Racket 使用括号来包裹较大的表达式——除了简单常量之外的几乎任何
+类型的表达式。例如，函数调用写作：左括号、函数名、参数表达式
+和右括号。以下表达式调用内置函数 @racket[substring]，参数为
+@racket["the boy out of the country"]、@racket[4] 和 @racket[7]：
 
 @interaction[(substring "the boy out of the country" 4 7)]
 
 @; ----------------------------------------------------------------------
-@section{Definitions and Interactions}
+@section{定义与交互}
 
-You can define your own functions that work like @racket[substring] by
-using the @racket[define] form, like this:
+你可以通过 @racket[define] 形式定义自己的函数，使其像
+@racket[substring] 一样工作，如下所示：
 
 @def+int[
 #:eval piece-eval
@@ -110,11 +100,10 @@ using the @racket[define] form, like this:
 (extract "the country out of the boy")
 ]
 
-Although you can evaluate the @racket[define] form in the @tech{REPL},
-definitions are normally a part of a program that you want to keep and
-use later. So, in DrRacket, you'd normally put the definition in the
-top text area---called the @deftech{definitions area}---along with the
-@hash-lang[] prefix:
+尽管你可以在 @tech{REPL} 中对 @racket[define] 形式求值，但
+定义通常是你希望保留并稍后使用的程序的一部分。因此，在
+DrRacket 中，你通常会将定义放在顶部文本区域——称为
+@deftech{定义区}——以及 @hash-lang[] 前缀：
 
 @racketmod[
 racket
@@ -123,20 +112,19 @@ code:blank
   (substring str 4 7))
 ]
 
-If calling @racket[(extract "the boy")] is part of the main action of
-your program, that would go in the @tech{definitions area}, too. But
-if it was just an example expression that you were using to explore
-@racket[extract], then you'd more likely leave the @deftech{definitions
-area} as above, click @onscreen{Run}, and then evaluate
-@racket[(extract "the boy")] in the @tech{REPL}.
+如果调用 @racket[(extract "the boy")] 是程序主要操作的一部分，那么
+它也应该放在 @tech{定义区} 中。但如果它只是你用来探索
+@racket[extract] 的一个示例表达式，那么你更可能保留上述的
+@deftech{定义区}，点击 @onscreen{Run}，然后在 @tech{REPL} 中
+对 @racket[(extract "the boy")] 求值。
 
-When using command-line @exec{racket} instead of DrRacket, you'd save
-the above text in a file using your favorite editor. If you save it as
-@filepath{extract.rkt}, then after starting @exec{racket} in the same
-directory, you'd evaluate the following sequence:
+当使用命令行 @exec{racket} 而非 DrRacket 时，你会用你喜欢的编辑器将
+上述文本保存到文件中。如果你将其保存为
+@filepath{extract.rkt}，然后在同一目录中启动 @exec{racket}，
+你可以对以下序列求值：
 
-@margin-note{If you use @racketmodname[xrepl], you can use
-  @(link-element "plainlink" (litchar ",enter extract.rkt") `(xrepl "enter")).}
+@margin-note{如果你使用 @racketmodname[xrepl]，可以使用
+  @(link-element "plainlink" (litchar ",enter extract.rkt") `(xrepl "enter"))。}
 
 @interaction[
 #:eval piece-eval
@@ -144,14 +132,13 @@ directory, you'd evaluate the following sequence:
 (extract "the gal out of the city")
 ]
 
-The @racket[enter!] form both loads the code and switches the
-evaluation context to the inside of the module, just like DrRacket's
-@onscreen{Run} button.
+@racket[enter!] 形式既加载代码，又将求值上下文切换到模块内部，
+就像 DrRacket 的 @onscreen{Run} 按钮一样。
 
 @; ----------------------------------------------------------------------
-@section{Creating Executables}
+@section{创建可执行文件}
 
-If your file (or @tech{definitions area} in DrRacket) contains
+如果你的文件（或 DrRacket 中的 @tech{定义区}）包含
 
 @racketmod[
 racket
@@ -162,57 +149,53 @@ racket
 (extract "the cat out of the bag")
 ]
 
-then it is a complete program that prints ``cat'' when run. You can
-run the program within DrRacket or using @racket[enter!] in
-@exec{racket}, but if the program is saved in @nonterm{src-filename},
-you can also run it from a command line with
+那么它就是一个完整的程序，运行时打印 ``cat''。你可以在
+DrRacket 中运行该程序，也可以在 @exec{racket} 中使用
+@racket[enter!] 运行，但如果程序保存在 @nonterm{src-filename} 中，
+你还可以通过命令行运行它：
 
 @commandline{racket @nonterm{src-filename}}
 
-To package the program as an executable, you have a few options:
+要将程序打包为可执行文件，你有以下几个选项：
 
 @itemize[
 
- @item{In DrRacket, you can select the @menuitem["Racket" "Create
-       Executable..."] menu item.}
+ @item{在 DrRacket 中，你可以选择 @menuitem["Racket" "Create
+       Executable..."] 菜单项。}
 
- @item{From a command-line prompt, run @exec{raco exe
-       @nonterm{src-filename}}, where @nonterm{src-filename} contains
-       the program. See @secref[#:doc '(lib
-       "scribblings/raco/raco.scrbl") "exe"] for more information.}
+ @item{在命令行提示符下，运行 @exec{raco exe
+       @nonterm{src-filename}}，其中 @nonterm{src-filename} 包含
+       该程序。更多信息见 @secref[#:doc '(lib
+       "scribblings/raco/raco.scrbl") "exe"]。}
 
- @item{With Unix or Mac OS, you can turn the program file into an
-       executable script by inserting the line
+ @item{在 Unix 或 Mac OS 上，你可以通过在文件最开头插入以下行
+       将程序文件转换为可执行脚本：
 
-       @margin-note{See @secref["scripts"] for more information on
-                    script files.}
+       @margin-note{关于脚本文件的更多信息见 @secref["scripts"]。}
 
         @verbatim[#:indent 2]{#! /usr/bin/env racket}
 
-       at the very beginning of the file. Also, change the file
-       permissions to executable using @exec{chmod +x
-       @nonterm{filename}} on the command line.
+       同时，在命令行上使用 @exec{chmod +x
+       @nonterm{filename}} 将文件权限改为可执行。
 
-       The script works as long as @exec{racket} is in the user's
-       executable search path.  Alternately, use a full path to
-       @exec{racket} after @tt{#!}  (with a space between @tt{#!}
-       and the path), in which case the user's executable search path
-       does not matter.}
+       只要 @exec{racket} 在用户的可执行搜索路径中，脚本就能工作。
+       或者，可以在 @tt{#!} 之后使用 @exec{racket} 的完整路径
+       （在 @tt{#!} 和路径之间留一个空格），这样用户的
+       可执行搜索路径就不重要了。}
 
 ]
 
 @; ----------------------------------------------------------------------
-@section[#:tag "use-module"]{A Note to Readers with Lisp/Scheme Experience}
+@section[#:tag "use-module"]{给有 Lisp/Scheme 经验的读者}
 
-If you already know something about Scheme or Lisp, you might be
-tempted to put just
+如果你已经了解一些 Scheme 或 Lisp 的知识，你可能会想直接把
 
 @racketblock[
 (define (extract str)
   (substring str 4 7))
 ]
 
-into @filepath{extract.rktl} and run @exec{racket} with
+放入 @filepath{extract.rktl}，然后用以下方式运行 @exec{racket}：
 
 @interaction[
 #:eval piece-eval
@@ -220,18 +203,16 @@ into @filepath{extract.rktl} and run @exec{racket} with
 (extract "the dog out")
 ]
 
-That will work, because @exec{racket} is willing to imitate a
-traditional Lisp environment, but we strongly recommend against using
-@racket[load] or writing programs outside of a module.
+这确实可以工作，因为 @exec{racket} 愿意模拟传统的
+Lisp 环境，但我们强烈反对使用
+@racket[load] 或在模块之外编写程序。
 
-Writing definitions outside of a module leads to bad error messages,
-bad performance, and awkward scripting to combine and run
-programs. The problems are not specific to @exec{racket}; they're
-fundamental limitations of the traditional top-level environment,
-which Scheme and Lisp implementations have historically fought with ad
-hoc command-line flags, compiler directives, and build tools. The
-module system is designed to avoid these problems, so start with
-@hash-lang[], and you'll be happier with Racket in the long run.
+在模块之外编写定义会导致糟糕的错误消息、
+糟糕的性能以及笨拙的脚本来组合和运行程序。这些问题
+并非 @exec{racket} 特有；它们是传统顶层环境的根本限制，
+Scheme 和 Lisp 实现历史上一直通过临时的命令行标志、编译器指令和
+构建工具来应对。模块系统旨在避免这些问题，所以从
+@hash-lang[] 开始，长期来看你会对 Racket 更加满意。
 
 @; ----------------------------------------------------------------------
 
