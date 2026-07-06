@@ -4,7 +4,7 @@
           "rx.rkt"
           (for-syntax racket/base))
 
-@title[#:tag "regexp"]{Regular Expressions}
+@title[#:tag "regexp"]{正则表达式}
 
 @section-index{regexps}
 @section-index{pattern matching}
@@ -62,7 +62,7 @@
 于包含 32,000 个文字字符或 5,000 个运算符的源字符串。
 
 @;------------------------------------------------------------------------
-@section[#:tag "regexp-syntax"]{Regexp Syntax}
+@section[#:tag "regexp-syntax"]{正则表达式语法}
 
 以下语法规范描述了表示正则表达式的字符串的内容。
 相应字符串的语法可能涉及额外的转义字符。例如，正则表达式
@@ -149,7 +149,7 @@ Unicode 类别如下。
 @history[#:changed "8.15.0.8" @elem{Added @litchar{\X} grapheme cluster pattern.}]
 
 @;------------------------------------------------------------------------
-@section{Additional Syntactic Constraints}
+@section{附加语法约束}
 
 除了匹配语法之外，正则表达式还必须满足两个语法限制：
 
@@ -180,7 +180,7 @@ Unicode 类别如下。
 @type-table
 
 @;------------------------------------------------------------------------
-@section{Regexp Constructors}
+@section{正则表达式构造函数}
 
 @defproc[(regexp? [v any/c]) boolean?]{
 
@@ -353,7 +353,7 @@ byte-@tech{regexp 值}。
 
 
 @;------------------------------------------------------------------------
-@section{Regexp Matching}
+@section{正则表达式匹配}
 
 @defproc[(regexp-match [pattern (or/c regexp? byte-regexp? string? bytes?)]
                        [input (or/c string? bytes? path? input-port?)]
@@ -838,7 +838,7 @@ lookbehind 模式，则第一个之后的范围结果可能包含负数。
 @racket[regexp-match/end] 一样的第二个结果。}
 
 @;------------------------------------------------------------------------
-@section{Regexp Splitting}
+@section{正则表达式分割}
 
 @defproc[(regexp-split [pattern (or/c regexp? byte-regexp? string? bytes?)]
                        [input (or/c string? bytes? input-port?)]
@@ -878,7 +878,7 @@ lookbehind 模式，则第一个之后的范围结果可能包含负数。
 ]}
 
 @;------------------------------------------------------------------------
-@section{Regexp Substitution}
+@section{正则表达式替换}
 
 @defproc[(regexp-replace [pattern (or/c regexp? byte-regexp? string? bytes?)]
                          [input (or/c string? bytes?)]
@@ -902,13 +902,7 @@ lookbehind 模式，则第一个之后的范围结果可能包含负数。
 完整匹配，然后每个带括号的子表达式一个参数）以获取替换的
 （字节）字符串。
 
-If @racket[pattern] is a string or character regexp and @racket[input]
-is a string, then @racket[insert] must be a string or a procedure that
-accept strings, and the result is a string. If @racket[pattern] is a
-byte string or byte regexp, or if @racket[input] is a byte string,
-then @racket[insert] as a string is converted to a byte string,
-@racket[insert] as a procedure is called with a byte string, and the
-result is a byte string.
+如果 @racket[pattern] 是字符串或字符 regexp 且 @racket[input] 是字符串，则 @racket[insert] 必须是字符串或接受字符串的过程，且结果为字符串。如果 @racket[pattern] 是字节字符串或字节 regexp，或者 @racket[input] 是字节字符串，则 @racket[insert] 作为字符串时被转换为字节字符串，@racket[insert] 作为过程时以字节字符串为参数调用，且结果为字节字符串。
 
 如果 @racket[insert] 包含 @litchar{&}，则在代入匹配位置
 之前，@litchar{&} 被替换为 @racket[input] 的匹配部分。
