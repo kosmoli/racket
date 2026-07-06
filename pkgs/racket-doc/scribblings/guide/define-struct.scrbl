@@ -4,22 +4,18 @@
 
 @(define posn-eval (make-base-eval))
 
-@title[#:tag "define-struct"]{Programmer-Defined Datatypes}
+@title[#:tag "define-struct"]{程序员定义的数据类型}
 
 @refalso["structures"]{structure types}
 
-New datatypes are normally created with the @racket[struct]
-form, which is the topic of this chapter. The class-based object
-system, which we defer to @secref["classes"], offers an alternate
-mechanism for creating new datatypes, but even classes and objects are
-implemented in terms of structure types.
+新的数据类型通常使用 @racket[struct] 形式创建，这是本章的主题。基于 class 的对象系统将在 @secref["classes"] 中介绍，它提供了另一种创建数据类型的机制，但即使是 classes 和 objects 也是基于 structure types 实现的。
 
 @; ------------------------------------------------------------
 @section{Simple Structure Types: @racket[struct]}
 
 @refalso["define-struct"]{@racket[struct]}
 
-To a first approximation, the syntax of @racket[struct] is
+粗略来说，@racket[struct] 的语法是
 
 @specform[
 (struct struct-id (field-id ...))
@@ -30,69 +26,50 @@ To a first approximation, the syntax of @racket[struct] is
 (struct posn (x y))
 ]]
 
-The @racket[struct] form binds @racket[_struct-id] and a number of
-identifiers that are built from @racket[_struct-id] and the
-@racket[_field-id]s:
+@racket[struct] 形式绑定 @racket[_struct-id] 以及由 @racket[_struct-id] 和 @racket[_field-id] 构建出的一些标识符：
 
 @itemize[
 
- @item{@racket[_struct-id] : a @deftech{constructor} function that
-       takes as many arguments as the number of @racket[_field-id]s,
-       and returns an instance of the structure type.
+ @item{@racket[_struct-id] : 一个 @deftech{constructor} 函数，
+       接受与 @racket[_field-id] 数量相同的参数，
+       并返回该 structure type 的一个实例。
 
        @examples[#:eval posn-eval (posn 1 2)]}
 
- @item{@racket[_struct-id]@racketidfont{?} : a @deftech{predicate}
-       function that takes a single argument and returns @racket[#t]
-       if it is an instance of the structure type, @racket[#f]
-       otherwise.
+ @item{@racket[_struct-id]@racketidfont{?} : 一个 @deftech{predicate}
+       函数，接受单个参数，如果是该 structure type 的实例则返回 @racket[#t]，
+       否则返回 @racket[#f]。
 
        @examples[#:eval posn-eval (posn? 3) (posn? (posn 1 2))]}
 
- @item{@racket[_struct-id]@racketidfont{-}@racket[_field-id] : for
-       each @racket[_field-id], an @deftech{accessor} that extracts
-       the value of the corresponding field from an instance of the
-       structure type.
+ @item{对每个 @racket[_field-id]，@racket[_struct-id]@racketidfont{-}@racket[_field-id] :
+       一个从结构类型实例中提取对应字段值的 @deftech{accessor}。
 
        @examples[#:eval posn-eval 
                  (posn-x (posn 1 2)) (posn-y (posn 1 2))]}
 
- @item{@racketidfont{struct:}@racket[_struct-id] : a
-       @deftech{structure type descriptor}, which is a value that
-       represents the structure type as a first-class value (with
-       @racket[#:super], as discussed later in
-       @secref["struct-options"]).}
+ @item{@racketidfont{struct:}@racket[_struct-id] :
+       一个 @deftech{structure type descriptor}，即代表该 structure type 的一等值
+       （配合 @racket[#:super] 使用，详见 @secref["struct-options"]）。}
 
 ]
 
-A @racket[struct] form places no constraints on the kinds of
-values that can appear for fields in an instance of the structure
-type. For example, @racket[(posn "apple" #f)] produces an
-instance of @racket[posn], even though @racket["apple"] and
-@racket[#f] are not valid coordinates for the obvious uses of
-@racket[posn] instances. Enforcing constraints on field values, such
-as requiring them to be numbers, is normally the job of a contract, as
-discussed later in @secref["contracts"].
+@racket[struct] 形式对实例中字段可取的值种类没有任何限制。例如，@racket[(posn "apple" #f)] 会生成 @racket[posn] 的一个实例，即使 @racket["apple"] 和 @racket[#f] 对 @racket[posn] 的常见用法来说并非有效的坐标值。强制执行字段值限制（例如要求字段值必须是数值）通常是 contract 的工作，详见 @secref["contracts"]。
 
 @; ------------------------------------------------------------
-@section[#:tag "struct-copy"]{Copying and Update}
+@section[#:tag "struct-copy"]{复制与更新}
 
-The @racket[struct-copy] form clones a structure and optionally
-updates specified fields in the clone. This process is sometimes
-called a @deftech{functional update}, because the result is a
-structure with updated field values. but the original structure is not
-modified.
+@racket[struct-copy] 形式会为结构创建一个副本，并可以选择性地更新其中的
+指定字段。该过程有时被称为 @deftech{functional update}，因为结果是字段值被更新后的新结构，
+但原始结构不会被修改。
 
 @specform[
 (struct-copy struct-id struct-expr [field-id expr] ...)
 ]
 
-The @racket[_struct-id] that appears after @racket[struct-copy] must
-be a structure type name bound by @racket[struct]. The
-@racket[_struct-expr] must produce an instance of the structure type.
-The result is a new instance of the structure type that is like the old
-one, except that the field indicated by each @racket[_field-id] gets
-the value of the corresponding @racket[_expr].
+@racket[struct-copy] 后的 @racket[_struct-id] 必须是由 @racket[struct] 绑定的 structure type 名称。
+@racket[_struct-expr] 必须生成一个该 structure type 的实例。结果是一个新的 structure type 实例，
+与原始实例相同，但每个 @racket[_field-id] 指示的字段会被更新为对应 @racket[_expr] 的值。
 
 @examples[
 #:eval posn-eval 
@@ -104,19 +81,15 @@ the value of the corresponding @racket[_expr].
 
 
 @; ------------------------------------------------------------
-@section[#:tag "struct-subtypes"]{Structure Subtypes}
+@section[#:tag "struct-subtypes"]{结构子类型}
 
-An extended form of @racket[struct] can be used to define a
-@defterm{structure subtype}, which is a structure type that extends an
-existing structure type:
+@racket[struct] 的扩展形式可用于定义 @defterm{structure subtype}，即扩展已有 structure type 的 structure type：
 
 @specform[
 (struct struct-id super-id (field-id ...))
 ]
 
-The @racket[_super-id] must be a structure type name bound by
-@racket[struct] (i.e., the name that cannot be used directly as
-an expression).
+@racket[_super-id] 必须是由 @racket[struct] 绑定的 structure type 名称（即不能直接作为表达式使用的名称）。
 
 @as-examples[@racketblock+eval[
 #:eval posn-eval 
@@ -124,11 +97,8 @@ an expression).
 (struct 3d-posn posn (z))
 ]]
 
-A structure subtype inherits the fields of its supertype, and the
-subtype constructor accepts the values for the subtype fields after
-values for the supertype fields. An instance of a structure subtype
-can be used with the predicate and accessors of the
-supertype.
+structure subtype 会继承其 supertype 的字段，子类型构造函数在接收 supertype 字段值之后接收子类型字段值。
+structure subtype 的实例可以使用 supertype 的 predicate 和 accessors。
 
 @examples[
 #:eval posn-eval 
@@ -143,22 +113,19 @@ p
 ]
 
 @; ------------------------------------------------------------
-@section[#:tag "trans-struct"]{Opaque versus Transparent Structure Types}
+@section[#:tag "trans-struct"]{Opaque 与 Transparent Structure Types}
 
-With a structure type definition like
+有这样的结构类型定义：
 
 @racketblock[
 (struct posn (x y))
 ]
 
-an instance of the structure type prints in a way that does not show
-any information about the fields' values. That is, structure types by
-default are @deftech{opaque}. If the accessors and mutators of a
-structure type are kept private to a module, then no other module can
-rely on the representation of the type's instances.
+structure type 的实例在打印时不会显示任何关于字段值的信息。
+也就是说，structure types 默认是 @deftech{opaque}。如果 structure type 的 accessors 和 mutators
+被保持在模块私有，其他模块就无法依赖该类型实例的内部表示。
 
-To make a structure type @deftech{transparent}, use the
-@racket[#:transparent] keyword after the field-name sequence:
+要使 structure type 变为 @deftech{transparent}，请在字段名序列后使用 @racket[#:transparent] 关键字：
 
 @def+int[
 #:eval posn-eval
@@ -167,24 +134,18 @@ To make a structure type @deftech{transparent}, use the
 (posn 1 2)
 ]
 
-An instance of a transparent structure type prints like a call to the
-constructor, so that it shows the structures field values. A
-transparent structure type also allows reflective operations, such as
-@racket[struct?] and @racket[struct-info], to be used on its instances
-(see @secref["reflection"]).
+transparent structure type 的实例打印形式就像对构造函数的调用一样，以便显示结构的字段值。
+transparent structure type 还允许对其实例使用反射操作，例如 @racket[struct?] 和 @racket[struct-info]
+（参见 @secref["reflection"]）。
 
-Structure types are opaque by default, because opaque structure
-instances provide more encapsulation guarantees. That is, a library
-can use an opaque structure to encapsulate data, and clients of the
-library cannot manipulate the data in the structure except as allowed
-by the library.
+structure types 默认是 opaque 的，因为 opaque 的 structure 实例提供了更强的封装保证。
+也就是说，一个库可以使用 opaque structure 来封装数据，库的客户端除了允许的方式之外无法操作结构中的数据。
 
 @; ------------------------------------------------------------
-@section[#:tag "struct-equal"]{Structure Comparisons}
+@section[#:tag "struct-equal"]{结构类型比较}
 
-A generic @racket[equal?] comparison automatically recurs on the
-fields of a transparent structure type, but @racket[equal?] defaults
-to mere instance identity for opaque structure types:
+泛型的 @racket[equal?] 比较会自动递归地比较 transparent structure type 的字段，
+但对于 opaque structure types，@racket[equal?] 默认仅比较实例的同一性：
 
 @def+int[
 #:eval posn-eval
@@ -199,9 +160,8 @@ to mere instance identity for opaque structure types:
 (equal? slab (lead 1 2))
 ]
 
-To support instances comparisons via @racket[equal?] without making
-the structure type transparent, you can use the @racket[#:methods]
-keyword, @racket[gen:equal+hash], and implement three methods:
+要在不将 structure type 变为 transparent 的情况下支持通过 @racket[equal?] 进行实例比较，
+可以使用 @racket[#:methods] 关键字、@racket[gen:equal+hash]，并实现三个方法：
 
 @def+int[
 #:eval posn-eval
@@ -223,11 +183,9 @@ keyword, @racket[gen:equal+hash], and implement three methods:
 (equal? (lead 1 2) (lead 1 2))
 ]
 
-The first function in the list implements the @racket[equal?] test on
-two @racket[lead]s; the third argument to the function is used instead
-of @racket[equal?] for recursive equality testing, so that data cycles
-can be handled correctly. The other two functions compute primary and
-secondary hash codes for use with @tech{hash tables}:
+列表中的第一个函数实现对两个 @racket[lead] 的 @racket[equal?] 测试；
+该函数的第三个参数替代 @racket[equal?] 进行递归相等性测试，以便正确处理数据循环。
+另外两个函数分别计算用于 @tech{hash tables} 的主哈希值和次哈希值：
 
 @interaction[
 #:eval posn-eval
@@ -237,26 +195,19 @@ secondary hash codes for use with @tech{hash tables}:
 (hash-ref h (lead 2 1))
 ]
 
-The first function provided with @racket[gen:equal+hash] is not
-required to recursively compare the fields of the structure. For
-example, a structure type representing a set might implement equality
-by checking that the members of the set are the same, independent of
-the order of elements in the internal representation. Just take care
-that the hash functions produce the same value for any two structure
-types that are supposed to be equivalent.
+@racket[gen:equal+hash] 中的第一个函数并不要求递归比较结构的字段。
+例如，表示集合的 structure type 可以通过检查集合成员是否相同来实现相等性，
+而不依赖于内部表示中元素的顺序。只需注意，对任何两个被视为等价的 structure types，
+哈希函数都必须产生相同的值。
 
 @; ------------------------------------------------------------
-@section{Structure Type Generativity}
+@section{Structure Type 的生成性}
 
-Each time that a @racket[struct] form is evaluated, it
-generates a structure type that is distinct from all existing
-structure types, even if some other structure type has the same name
-and fields.
+每次对 @racket[struct] 形式求值时，它都会生成一个与所有现有 structure types
+不同的新 structure types，即使其他 structure type 具有相同的名称和字段也是如此。
 
-This generativity is useful for enforcing abstractions and
-implementing programs such as interpreters, but beware of placing a
-@racket[struct] form in positions that are evaluated multiple
-times.
+这种生成性对于强制抽象和实现 interpreter 等程序很有用，
+但需注意不要将 @racket[struct] 形式放在会被多次求值的位置。
 
 @defexamples[
 (define (add-bigger-fish lst)
@@ -282,39 +233,30 @@ times.
 @; ------------------------------------------------------------
 @section[#:tag "prefab-struct"]{Prefab Structure Types}
 
-Although a @tech{transparent} structure type prints in a way that
-shows its content, the printed form of the structure cannot be used in
-an expression to get the structure back, unlike the printed form of a
-number, string, symbol, or list.
+虽然 @tech{transparent} structure type 打印时会显示其内容，但无法在表达式中
+使用其打印形式来重建该结构，这与数值、string、symbol 或 list 的打印形式不同。
 
-A @deftech{prefab} (``previously fabricated'') structure type is a
-built-in type that is known to the Racket printer and expression
-reader. Infinitely many such types exist, and they are indexed by
-name, field count, supertype, and other such details. The printed form
-of a prefab structure is similar to a vector, but it starts
-@litchar{#s} instead of just @litchar{#}, and the first element in the
-printed form is the prefab structure type's name.
+@deftech{prefab}（"预先 fabricated"）structure type 是一种内建类型，被 Racket 的
+printer 和表达式 reader 所知晓。存在无限多种此类类型，它们按名称、字段数量、超
+类型及其他细节索引。prefab 结构的打印形式类似于 vector，但以 @litchar{#s} 开头
+而非仅仅是 @litchar{#}，且打印形式的第一个元素是 prefab structure type 的名称。
 
-The following examples show instances of the @racketidfont{sprout}
-prefab structure type that has one field. The first instance has a
-field value @racket['bean], and the second has field value
-@racket['alfalfa]:
+下面的示例展示了一个字段的 @racketidfont{sprout} prefab structure type 的实例。
+第一个实例的字段值为 @racket['bean]，第二个的字段值为 @racket['alfalfa]：
 
 @interaction[
 '#s(sprout bean)
 '#s(sprout alfalfa)
 ]
 
-Like numbers and strings, prefab structures are ``self-quoting,'' so
-the quotes above are optional:
+与数值和 strings 一样，prefab 结构是 "self-quoting" 的，因此上面的引号是可选的：
 
 @interaction[
 #s(sprout bean)
 ]
 
-When you use the @racket[#:prefab] keyword with
-@racket[struct], instead of generating a new structure type,
-you obtain bindings that work with the existing prefab structure type:
+将 @racket[#:prefab] 关键字与 @racket[struct] 一起使用时，
+你不是在生成新的 structure type，而是获得与现有 prefab structure type 配合工作的 bindings：
 
 @interaction[
 #:eval posn-eval
@@ -325,11 +267,9 @@ you obtain bindings that work with the existing prefab structure type:
 (sprout 'garlic)
 ]
 
-The field name @racketidfont{kind} above does not matter for finding
-the prefab structure type; only the name @racketidfont{sprout} and the
-number of fields matter. At the same time, the prefab structure type
-@racketidfont{sprout} with three fields is a different structure type
-than the one with a single field:
+上面的字段名 @racketidfont{kind} 并不影响查找 prefab structure type；
+只有名称 @racketidfont{sprout} 和字段数量才重要。同时，具有三个字段的
+@racketidfont{sprout} prefab structure type 与仅有一个字段的 @racketidfont{sprout} 是不同的 structure types：
 
 @interaction[
 #:eval posn-eval
@@ -339,11 +279,9 @@ than the one with a single field:
 (sprout? lunch)
 ]
 
-A prefab structure type can have another prefab structure type as its
-supertype, it can have mutable fields, and it can have auto
-fields. Variations in any of these dimensions correspond to different
-prefab structure types, and the printed form of the structure type's
-name encodes all of the relevant details.
+一个 prefab structure type 可以将另一个 prefab structure type 作为其 supertype，
+它可以有 mutable 字段，也可以有 auto 字段。这些维度上的任何变化都对应着不同的
+prefab structure types，structure type 名称的打印形式编码了所有相关细节。
 
 @interaction[
 (struct building (rooms [location #:mutable]) #:prefab)
@@ -352,53 +290,36 @@ name encodes all of the relevant details.
 (house 5 'factory)
 ]
 
-Every @tech{prefab} structure type is @tech{transparent}---but even
-less abstract than a @tech{transparent} type, because instances can be
-created without any access to a particular structure-type declaration
-or existing examples. Overall, the different options for structure
-types offer a spectrum of possibilities from more abstract to more
-convenient:
+每个 @tech{prefab} structure type 都是 @tech{transparent} 的 — 但甚至比 @tech{transparent}
+类型更不抽象，因为实例可以在无需访问特定 structure-type 声明或现有示例的情况下创建。
+总体而言，structure types 的不同选项提供了一个从更抽象到更便捷的可能性光谱：
 
 @itemize[
 
- @item{@tech{Opaque} (the default) : Instances cannot be inspected or
-       forged without access to the structure-type declaration. As
-       discussed in the next section, @tech{constructor guards} and
-       @tech{properties} can be attached to the structure type to
-       further protect or to specialize the behavior of its
-       instances.}
+ @item{@tech{Opaque}（默认）: 无法在无法访问结构类型声明的情况下检查或伪造实例。
+       正如下一节所讨论的，可以将 @tech{constructor guards} 和
+       @tech{properties} 附加到 structure type 上，以进一步保护或特化实例的行为。}
 
- @item{@tech{Transparent} : Anyone can inspect or create an instance
-       without access to the structure-type declaration, which means
-       that the value printer can show the content of an instance. All
-       instance creation passes through a @tech{constructor guard},
-       however, so that the content of an instance can be controlled,
-       and the behavior of instances can be specialized through
-       @tech{properties}. Since the structure type is generated by its
-       definition, instances cannot be manufactured simply through the
-       name of the structure type, and therefore cannot be generated
-       automatically by the expression reader. }
+ @item{@tech{Transparent} : 任何人都可以在无需访问 structure-type 声明的情况下检查或创建实例，
+       这意味着值 printer 可以显示实例的内容。不过，所有实例创建都经过 @tech{constructor guard}，
+       因此可以控制实例的内容，并通过 @tech{properties} 特化实例的行为。
+       由于 structure type 由其定义生成，不能仅通过 structure type 的名称来制造实例，
+       因此表达式 reader 无法自动生成实例。}
 
- @item{@tech{Prefab} : Anyone can inspect or create an instance at any
-       time, without prior access to a structure-type declaration or
-       an example instance. Consequently, the expression reader can
-       manufacture instances directly. The instance cannot have a
-       @tech{constructor guard} or @tech{properties}.}
+ @item{@tech{Prefab} : 任何人都可以在任意时刻检查或创建实例，
+       无需预先访问 structure-type 声明或示例实例。因此，表达式 reader 可以直接制造实例。
+       实例不能具有 @tech{constructor guard} 或 @tech{properties}。}
 
 ]
 
-Since the expression reader can generate @tech{prefab} instances, they
-are useful when convenient @tech{serialization} is more important than
-abstraction. @tech{Opaque} and @tech{transparent} structures also can
-be serialized, however, if they are defined with
-@racket[serializable-struct] as described in
-@secref["serialization"].
+由于表达式 reader 可以生成 @tech{prefab} 实例，当便捷的 @tech{serialization}
+比抽象更重要时，它们十分有用。不过，如果如 @secref["serialization"] 中所述，
+用 @racket[serializable-struct] 定义，@tech{Opaque} 和 @tech{transparent} 结构也可以被序列化。
 
 @; ------------------------------------------------------------
-@section[#:tag "struct-options"]{More Structure Type Options}
+@section[#:tag "struct-options"]{更多 Structure Type Options}
 
-The full syntax of @racket[struct] supports many options, both
-at the structure-type level and at the level of individual fields:
+@racket[struct] 的完整语法支持多个选项，既可以在 structure-type 级别，也可以在单个字段级别设置：
 
 @specform/subs[(struct struct-id maybe-super (field ...)
                        struct-option ...)
@@ -407,15 +328,13 @@ at the structure-type level and at the level of individual fields:
                 [field field-id
                        [field-id field-option ...]])]
 
-A @racket[_struct-option] always starts with a keyword:
+@racket[_struct-option] 总是以关键字开头：
 
  @specspecsubform[#:mutable]{
 
-    Causes all fields of the structure to be mutable, and introduces
-    for each @racket[_field-id] a @deftech{mutator}
-     @racketidfont{set-}@racket[_struct-id]@racketidfont{-}@racket[_field-id]@racketidfont{!}
-    that sets the value of the corresponding field in an instance of
-    the structure type.
+    使结构的所有字段变为 mutable，并为每个 @racket[_field-id] 引入一个
+    @deftech{mutator} @racketidfont{set-}@racket[_struct-id]@racketidfont{-}@racket[_field-id]@racketidfont{!}，
+    用于设置 structure type 实例中对应字段的值。
 
      @defexamples[(struct dot (x y) #:mutable)
                   (define d (dot 1 2))
@@ -423,9 +342,8 @@ A @racket[_struct-option] always starts with a keyword:
                   (set-dot-x! d 10)
                   (dot-x d)]
 
-   The @racket[#:mutable] option can also be used as a
-   @racket[_field-option], in which case it makes an individual field
-   mutable.
+   @racket[#:mutable] 选项也可以作为 @racket[_field-option] 使用，
+此时它使单个字段变为 mutable。
        
    @defexamples[
    (struct person (name [age #:mutable]))
@@ -509,12 +427,9 @@ A @racket[_struct-option] always starts with a keyword:
   (person 10 10)]}
 
  @specspecsubform[(code:line #:methods interface-expr [body ...])]{
-  Associates method definitions for the structure type that correspond
-  to a @defterm{generic interface}.  For example, implementing the
-  methods for @racket[gen:dict] allows instances of a structure
-  type to be used as dictionaries. Implementing
-  the methods for @racket[gen:custom-write] allows the customization
-  of how an instance of a structure type is @racket[display]ed.
+  关联与 structure type 对应的、针对 @defterm{generic interface} 的方法定义。
+  例如，实现 @racket[gen:dict] 的方法允许 structure type 的实例被当作字典使用。
+  实现 @racket[gen:custom-write] 的方法允许自定义 structure type 实例的 @racket[display] 方式。
 
   @defexamples[
     (struct cake (candles)
@@ -530,11 +445,9 @@ A @racket[_struct-option] always starts with a keyword:
     (display (cake 5))]}
 
  @specspecsubform[(code:line #:property prop-expr val-expr)]{
-   Associates a @deftech{property} and value with the structure type.
-   For example, the @racket[prop:procedure] property allows a
-   structure instance to be used as a function; the property value
-   determines how a call is implemented when using the structure as a
-   function.
+   关联一个 @deftech{property} 及其值到 structure type 上。
+  例如，@racket[prop:procedure] property 允许 structure 实例被当作函数使用；
+  property 值决定了当 structure 作为函数时调用的实现方式。
 
  @defexamples[
    (struct greeter (name)
@@ -550,12 +463,10 @@ A @racket[_struct-option] always starts with a keyword:
 
  @specspecsubform[(code:line #:super super-expr)]{
 
-  An alternative to supplying a @racket[super-id] next to
-  @racket[struct-id]. Instead of the name of a structure type (which is
-  not an expression), @racket[super-expr] should produce a
-  @tech{structure type descriptor} value. An advantage of
-  @racket[#:super] is that structure type descriptors are values, so
-  they can be passed to procedures.
+  替代在 @racket[_struct-id] 旁边提供 @racket[_super-id] 的方式。
+  由于 structure type 的名称不是表达式，@racket[_super-expr] 应该生成一个
+  @tech{structure type descriptor} 值。@racket[#:super] 的一个优势是
+  structure type descriptors 是值，因此可以传递给 procedures。
 
   @defexamples[
     #:eval posn-eval
