@@ -17,58 +17,34 @@
                      compiler/module-suffix
                      setup/getinfo))
 
-@title{API for Raw Compilation}
+@title{原始编译 API}
 
 @defmodule[compiler/compiler]{
 
-The @racketmodname[compiler/compiler] library provides the
-functionality of @exec{raco make} for compilation to bytecode, but
-through a Racket API.}
+@racketmodname[compiler/compiler] 库通过 Racket API 提供 @exec{raco make} 用于编译到字节码的功能。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "api:zo"]{Bytecode Compilation}
+@section[#:tag "api:zo"]{字节码编译}
 
 @defproc[((compile-zos [expr any/c] [#:module? module? any/c #f] [#:verbose? verbose? any/c #f]) 
           [racket-files (listof path-string?)]
           [dest-dir (or/c path-string? #f 'auto)])
          void?]{
 
-Supplying just @racket[expr] returns a compiler that is initialized
-with the expression @racket[expr], as described below.
+仅提供 @racket[expr] 时，返回一个用表达式 @racket[expr] 初始化的编译器，如下所述。
 
-The compiler takes a list of Racket files and compiles each of them to
-bytecode, placing the resulting bytecode in a @filepath{.zo} file
-within the directory specified by @racket[dest-dir].  If
-@racket[dest-dir] is @racket[#f], each bytecode result is placed in
-the same directory as its source file.  If @racket[dest-dir] is
-@racket['auto], each bytecode file is placed in a @filepath{compiled}
-subdirectory relative to the source; the directory is created if
-necessary.
+编译器接受一个 Racket 文件列表并将每个文件编译为字节码，将生成的字节码放置在 @racket[dest-dir] 指定的目录内的 @filepath{.zo} 文件中。如果 @racket[dest-dir] 为 @racket[#f]，则每个字节码结果放置在其源文件所在的同一目录中。如果 @racket[dest-dir] 为 @racket['auto]，则每个字节码文件放置在相对于源的 @filepath{compiled} 子目录中；必要时创建该目录。
 
-If @racket[expr] is anything other than @racket[#f], then a namespace
-is created for compiling the files that are supplied later, and
-@racket[expr] is evaluated to initialize the created namespace. For
-example, @racket[expr] might load a set of macros. In addition, the
-expansion-time part of each expression later compiled is evaluated in
-the namespace before being compiled, so that the effects are visible
-when compiling later expressions.
+如果 @racket[expr] 不是 @racket[#f]，则为编译后续提供的文件创建一个命名空间，并评估 @racket[expr] 以初始化创建的命名空间。例如，@racket[expr] 可能加载一组宏。此外，后续编译的每个表达式的展开时部分在编译前在命名空间中评估，以便在编译后续表达式时效果可见。
 
-If @racket[expr] is @racket[#f], then no compilation namespace is
-created (the current namespace is used), and expressions in the files
-are assumed to compile independently (so there's no need to evaluate
-the expansion-time part of an expression to compile).
+如果 @racket[expr] 为 @racket[#f]，则不创建编译命名空间（使用当前命名空间），并假设文件中的表达式独立编译（因此无需评估表达式的展开时部分来编译）。
 
-Typically, @racket[expr] is @racket[#f] for compiling @racket[module]
-files, and it is @racket[(void)] for compiling files with top-level
-definitions and expressions.
+通常，对于编译 @racket[module] 文件，@racket[expr] 为 @racket[#f]；对于编译包含顶层定义和表达式的文件，@racket[expr] 为 @racket[(void)]。
 
-If @racket[module?] is @racket[#t], then the given files are read and
-compiled as modules (so there is no dependency on the current
-namespace's top-level environment).
+如果 @racket[module?] 为 @racket[#t]，则给定文件作为模块读取和编译（因此不依赖于当前命名空间的顶层环境）。
 
-If @racket[verbose?] is @racket[#t], the output file for each given
-file is reported through the current output port.}
+如果 @racket[verbose?] 为 @racket[#t]，则通过当前输出端口报告每个给定文件的输出文件。}
 
 
 @defproc[(compile-collection-zos [collection string?] ...+
@@ -80,80 +56,33 @@ file is reported through the current output port.}
                                                        (make-caching-managed-compile-zo)])
          void?]{
 
-Compiles the specified collection's files to @filepath{.zo} files
-by using @racket[managed-compile-zo] on each source file.
-The @filepath{.zo} files are placed into the collection's
-@filepath{compiled} directory.
+通过使用 @racket[managed-compile-zo] 将指定集合的文件编译为 @filepath{.zo} 文件。@filepath{.zo} 文件放置在集合的 @filepath{compiled} 目录中。
 
-By default, all files with the
-extension @filepath{.rkt}, @filepath{.ss}, or @filepath{.scm} in a collection are
-compiled, as are all such files within subdirectories; the set of such suffixes
-is extensible globally as described in @racket[get-module-suffixes], and
-@racket[compile-collection-zos] recognizes suffixes from the @racket['libs] group. However,
-any file or directory whose path starts with @racket[skip-path] or an element of @racket[skip-paths] is
-skipped. (``Starts with'' means that the simplified complete path @racket[_p]'s
-byte-string form after @racket[(simplify-path _p #f)] starts with the
-byte-string form of @racket[(simplify-path skip-path #f)]; not that each
-@racket[skip-path] should normally be a complete path.)
+默认情况下，集合中所有扩展名为 @filepath{.rkt}、@filepath{.ss} 或 @filepath{.scm} 的文件都会被编译，子目录中所有此类文件也是如此；此类后缀的集合可全局扩展，如 @racket[get-module-suffixes] 中所述，@racket[compile-collection-zos] 识别 @racket['libs] 组中的后缀。但是，路径以 @racket[skip-path] 或 @racket[skip-paths] 中任一元素开头的任何文件或目录都会被跳过。("开头" 意味着简化后的完整路径 @racket[_p] 在 @racket[(simplify-path _p #f)] 之后的字节串形式以 @racket[(simplify-path skip-path #f)] 的字节串形式开头；并非每个 @racket[skip-path] 通常都应是完整路径。）
 
-The collection compiler reads the collection's @filepath{info.rkt} file
-(see @secref["info.rkt"]) to obtain further instructions for compiling the
-collection.  The following fields are used:
+集合编译器读取集合的 @filepath{info.rkt} 文件（参见 @secref["info.rkt"]）以获取编译集合的进一步指令。使用以下字段：
 
 @itemize[
 
- @item{@indexed-racket[name] : The name of the collection as a string, used
-       only for status and error reporting.}
+ @item{@indexed-racket[name] : 集合作为字符串的名称，仅用于状态和错误报告。}
 
- @item{@indexed-racket[compile-omit-paths] : Either a list of paths
-       and @tech[#:doc reference-doc]{regexp values} or @racket['all].
-       In a list, a path is treated as a file that should not be
-       compiled or a directory whose files should not be compiled and
-       whose @filepath{info.rkt} files should be ignored by @exec{raco
-       setup}; the paths are relative to the collection (i.e.,
-       directory containing the @filepath{info.rkt} file) and can
-       refer to files and directories in subcollections that are that
-       are represented by subdirectories. A regexp in the list is
-       matched against file and directory paths relative to the
-       collection (so, for example, start a regexp with @litchar{^} to
-       match only paths in the immediate collection and not in
-       subcollections) to exclude those files and directories from
-       compilation and @exec{raco setup}. The value @racket['all] is
-       equivalent to specifying all files and directories in the
-       collection (to effectively ignore the collection for
-       compilation). Automatically omitted files and directories are
-       @filepath{compiled}, @filepath{doc}, and those whose names
-       start with @litchar{.}.
+ @item{@indexed-racket[compile-omit-paths] : 路径和 @tech[#:doc reference-doc]{regexp values} 的列表，或 @racket['all]。在列表中，路径被视为不应编译的文件或不应编译其文件的目录，且其 @filepath{info.rkt} 文件应被 @exec{raco setup} 忽略；路径相对于集合（即包含 @filepath{info.rkt} 文件的目录）并且可以指代为子集合表示的子目录中的文件和目录。列表中的 regexp 相对于集合的文件和目录路径进行匹配（因此，例如，以 @litchar{^} 开头 regexp 以仅匹配直接集合中的路径，而非子集合中的路径）以将这些文件和目录排除在编译和 @exec{raco setup} 之外。值 @racket['all] 等效于指定集合中的所有文件和目录（以有效地忽略集合进行编译）。自动省略的文件和目录是 @filepath{compiled}、@filepath{doc} 以及名称以 @litchar{.} 开头的文件和目录。
 
-       Files that are required by other files are always compiled in
-       the process of compiling the requiring file---even when the
-       required file is listed with this field or when the field's
-       value is @racket['all].}
+       被其他文件所需的文件在编译需求文件的过程中始终被编译——即使所需文件列出在此字段中或字段的值为 @racket['all]。}
 
- @item{@indexed-racket[compile-omit-files] : A list of filenames (without
-       directory paths) that are not compiled, in addition to the
-       contents of @racket[compile-omit-paths].  Do not use this
-       field; it is for backward compatibility.}
+ @item{@indexed-racket[compile-omit-files] : 不编译的文件名（不含目录路径）列表，除了 @racket[compile-omit-paths] 的内容。不要使用此字段；它用于向后兼容。}
 
- @item{@indexed-racket[scribblings] : A list of lists, each of which
-       starts with a path for documentation source.  See @secref["setup-info"]
-       for more information.  The sources (and
-       the files that they require) are compiled in the same way as
-       other module files, unless @racket[skip-docs?] is a true value.}
+ @item{@indexed-racket[scribblings] : 列表的列表，每个列表以文档源的路径开头。参见 @secref["setup-info"] 了解更多信息。源（及其所需的文件）以与其他模块文件相同的方式编译，除非 @racket[skip-docs?] 为真值。}
 
- @item{@indexed-racket[compile-include-files] : A list of filenames (without
-       directory paths) to be compiled, in addition to files that
-       are compiled based on the file's extension, being in @racket[scribblings],
-       or being @racket[require]d by other compiled files.}
+ @item{@indexed-racket[compile-include-files] : 要编译的文件名（不含目录路径）列表，除了基于文件扩展名、在 @racket[scribblings] 中或被其他已编译文件 @racket[require] 而编译的文件。}
 
- @item{@racket[module-suffixes] and @racket[doc-module-suffixes] :
-       Used indirectly via @racket[get-module-suffixes].}
+ @item{@racket[module-suffixes] 和 @racket[doc-module-suffixes] : 通过 @racket[get-module-suffixes] 间接使用。}
 
 ]
 
-@history[#:changed "6.3" @elem{Added support for @racket[compile-include-files].}
-         #:changed "7.8.0.8" @elem{Changed ``starts with'' for @racket[skip-path] to include an exact match.}
-         #:changed "8.1.0.5" @elem{Added support for regexps in @racket[compile-omit-paths].}]}
+@history[#:changed "6.3" @elem{添加了对 @racket[compile-include-files] 的支持。}
+         #:changed "7.8.0.8" @elem{将 @racket[skip-path] 的"开头"更改为包含精确匹配。}
+         #:changed "8.1.0.5" @elem{添加了对 @racket[compile-omit-paths] 中正则表达式的支持。}]}
 
 
 @defproc[(compile-directory-zos [path path-string?]
@@ -167,28 +96,16 @@ collection.  The following fields are used:
                                                       (make-caching-managed-compile-zo)])
          void?]{
 
-Like @racket[compile-collection-zos], but compiles the given directory
-rather than a collection. The @racket[info] function behaves like the
-result of @racket[get-info] to supply @filepath{info.rkt} fields,
-instead of using an @filepath{info.rkt} file (if any) in the directory.
+类似于 @racket[compile-collection-zos]，但编译给定目录而非集合。@racket[info] 函数的行为类似于 @racket[get-info] 的结果以提供 @filepath{info.rkt} 字段，而不是使用目录中的 @filepath{info.rkt} 文件（如果有）。
 
-@history[#:changed "7.8.0.8" @elem{Changed @racket[info] handling to use @racket[info]
-                                   for @racket['compile-omit-paths], ignoring
-                                   any @filepath{info.rkt} files in parent and
-                                   child directories.}]}
+@history[#:changed "7.8.0.8" @elem{将 @racket[info] 处理更改为对 @racket['compile-omit-paths] 使用 @racket[info]，忽略父目录和子目录中的任何 @filepath{info.rkt} 文件。}]}
 
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "module-suffix"]{Recognizing Module Suffixes}
+@section[#:tag "module-suffix"]{识别模块后缀}
 
-@defmodule[compiler/module-suffix]{The
-@racketmodname[compiler/module-suffix] library provides functions for
-recognizing file suffixes that correspond to Racket modules for the
-purposes of compiling files in a directory, running tests for files in
-a directory, and so on. The set of suffixes always includes
-@filepath{.rkt}, @filepath{.ss}, and @filepath{.scm}, but it can be
-extended globally by @filepath{info.rkt} configurations in collections.}
+@defmodule[compiler/module-suffix]{@racketmodname[compiler/module-suffix] 库提供用于识别对应于 Racket 模块的文件后缀的函数，用于编译目录中的文件、运行目录中文件的测试等。后缀集合始终包括 @filepath{.rkt}、@filepath{.ss} 和 @filepath{.scm}，但它可以通过集合中的 @filepath{info.rkt} 配置全局扩展。}
 
 @history[#:added "6.3"]
 
@@ -197,37 +114,19 @@ extended globally by @filepath{info.rkt} configurations in collections.}
                               [#:namespace namespace (or/c #f namespace?) #f])
          (listof bytes?)]{
 
-Inspects @filepath{info.rkt} files (see @secref["info.rkt"]) of
-installed collections to produce a list of file suffixes that should
-be recognized as Racket modules. Each suffix is reported as a byte
-string that does not include the @litchar{.} that precedes a suffix.
+检查已安装集合的 @filepath{info.rkt} 文件（参见 @secref["info.rkt"]）以产生应识别为 Racket 模块的文件后缀列表。每个后缀报告为不包含后缀前 @litchar{.} 的字节串。
 
-The @racket[mode] and @racket[namespace] arguments are propagated to
-@racket[find-relevant-directories] to determine which collection
-directories might configure the set of suffixes. Consequently, suffix
-registrations are found reliably only if @exec{raco setup} (or package
-installations or updates that trigger @exec{raco setup}) is run.
+@racket[mode] 和 @racket[namespace] 参数传播到 @racket[find-relevant-directories] 以确定哪些集合目录可能配置后缀集合。因此，仅当运行 @exec{raco setup}（或触发 @exec{raco setup} 的软件包安装或更新）时才能可靠地找到后缀注册。
 
-The @racket[group] argument determines whether the result includes all
-registered suffixes, only those that are registered as general library
-suffixes, or only those that are registered as documentation suffixes.
-The set of general-library suffixes always includes @filepath{.rkt},
-@filepath{.ss}, and @filepath{.scm}. The set of documentation suffixes
-always includes @filepath{.scrbl}.
+@racket[group] 参数确定结果是否包括所有注册的后缀、仅注册为通用库后缀的后缀或仅注册为文档后缀的后缀。通用库后缀集合始终包括 @filepath{.rkt}、@filepath{.ss} 和 @filepath{.scm}。文档后缀集合始终包括 @filepath{.scrbl}。
 
-The following fields in an @filepath{info.rkt} file extend the set of
-suffixes:
+@filepath{info.rkt} 文件中的以下字段扩展后缀集合：
 
 @itemize[
 
- @item{@indexed-racket[module-suffixes] : A list of byte strings that
-       correspond to general-library module suffixes (without the
-       @litchar{.} that must appear before the suffix). Non-lists or
-       non-byte-string elements of the list are ignored.}
+ @item{@indexed-racket[module-suffixes] : 对应于通用库模块后缀的字节串列表（不含必须出现在后缀前的 @litchar{.}）。列表中的非列表或非字节串元素被忽略。}
 
- @item{@indexed-racket[doc-module-suffixes] : A list of byte strings
-       as for @racket[module-suffixes], but for documentation
-       modules.}
+ @item{@indexed-racket[doc-module-suffixes] : 字节串列表，类似于 @racket[module-suffixes]，但用于文档模块。}
 
 ]}
 
@@ -236,105 +135,81 @@ suffixes:
                                    [#:namespace namespace (or/c #f namespace?) #f])
          byte-regexp?]{
 
-Returns a @tech[#:doc reference-doc]{regexp value} that matches paths ending
-with a suffix as reported by @racket[get-module-suffixes]. The pattern
-includes a subpatterns for the suffix without its leading @litchar{.}}
+返回一个 @tech[#:doc reference-doc]{regexp value}，匹配以 @racket[get-module-suffixes] 报告的后缀结尾的路径。该模式包含一个用于后缀的子模式（不含前导 @litchar{.}）。}
 
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "api:loading"]{Loading Compiler Support}
+@section[#:tag "api:loading"]{加载编译器支持}
 
-The compiler unit loads certain tools on demand via @racket[dynamic-require]
-and @racket[get-info]. If the namespace used during compilation is different
-from the namespace used to load the compiler, or if other load-related
-parameters are set, then the following parameter can be used to
-restore settings for @racket[dynamic-require].
+编译器单元通过 @racket[dynamic-require] 和 @racket[get-info] 按需加载某些工具。如果编译期间使用的命名空间与用于加载编译器的命名空间不同，或者设置了其他加载相关参数，则可以使用以下参数来恢复 @racket[dynamic-require] 的设置。
 
 @defparam[current-compiler-dynamic-require-wrapper
           proc 
           ((-> any) . -> . any)]{
 
-A parameter whose value is a procedure that takes a thunk to
-apply. The default wrapper sets the current namespace (via
-@racket[parameterize]) before calling the thunk, using the namespace
-in which the @racket[compiler/compiler] library was originally
-instantiated.}
+一个参数，其值是一个接受 thunk 以应用的过程。默认包装器在调用 thunk 之前设置当前命名空间（通过 @racket[parameterize]），使用最初实例化 @racket[compiler/compiler] 库的命名空间。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "api:options"]{Options for the Compiler}
+@section[#:tag "api:options"]{编译器选项}
 
 @defmodule[compiler/option]{
 
-The @racketmodname[compiler/option] module provides options (in the
-form of parameters) that control the compiler's behaviors.}
+@racketmodname[compiler/option] 模块提供控制编译器行为的选项（参数形式）。
 
-More options are defined by the @racketmodname[dynext/compile] and
-@racketmodname[dynext/link] libraries, which control the actual C
-compiler and linker that are used for compilation via C.
+更多选项由 @racketmodname[dynext/compile] 和 @racketmodname[dynext/link] 库定义，它们控制用于通过 C 编译的实际 C 编译器和链接器。
 
 @defboolparam[somewhat-verbose on?]{
 
-A @racket[#t] value for the parameter causes the compiler to print
-the files that it compiles and produces. The default is @racket[#f].}
+参数的 @racket[#t] 值导致编译器打印其编译和生成的文件。默认值为 @racket[#f]。}
 
 @defboolparam[verbose on?]{
 
-A @racket[#t] value for the parameter causes the compiler to print
-verbose messages about its operations. The default is @racket[#f].}
+参数的 @racket[#t] 值导致编译器打印有关其操作的详细消息。默认值为 @racket[#f]。}
 
 @defboolparam[compile-subcollections on?]{
 
-A parameter that specifies whether sub-collections are compiled by
-@racket[compile-collection-zos].  The default is @racket[#t].}
+指定子集合是否由 @racket[compile-collection-zos] 编译的参数。默认值为 @racket[#t]。}
 
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "api:unit"]{The Compiler as a Unit}
+@section[#:tag "api:unit"]{编译器作为单元}
 
 @; ----------------------------------------
 
-@subsection{Signatures}
+@subsection{签名}
 
 @defmodule[compiler/sig]
 
 @defsignature/splice[compiler^ ()]{
 
-Includes all of the names exported by
-@racketmodname[compiler/compiler].}
+包括 @racketmodname[compiler/compiler] 导出的所有名称。}
 
 @defsignature/splice[compiler:option^ ()]{
 
-Includes all of the names exported by
-@racketmodname[compiler/option].}
+包括 @racketmodname[compiler/option] 导出的所有名称。}
 
 
 @; ----------------------------------------
 
-@subsection{Main Compiler Unit}
+@subsection{主编译器单元}
 
 @defmodule[compiler/compiler-unit]
 
 @defthing[compiler@ unit?]{
 
-Provides the exports of @racketmodname[compiler/compiler] in unit
-form, where C-compiler operations are imports to the unit, although 
-they are not used.
+以单元形式提供 @racketmodname[compiler/compiler] 的导出，其中 C 编译器操作是单元的导入，尽管它们未被使用。
 
-The unit imports @racket[compiler:option^], @racket[dynext:compile^],
-@racket[dynext:link^], and @racket[dynext:file^]. It exports
-@racket[compiler^].}
+该单元导入 @racket[compiler:option^]、@racket[dynext:compile^]、@racket[dynext:link^] 和 @racket[dynext:file^]。它导出 @racket[compiler^]。}
 
 @; ----------------------------------------
 
-@subsection{Options Unit}
+@subsection{选项单元}
 
 @defmodule[compiler/option-unit]
 
 @defthing[compiler:option@ unit?]{
 
-Provides the exports of @racketmodname[compiler/option] in unit
-form. It imports no signatures, and exports
-@racket[compiler:option^].}
+以单元形式提供 @racketmodname[compiler/option] 的导出。它不导入任何签名，导出 @racket[compiler:option^]。}
