@@ -1,16 +1,12 @@
 #lang scribble/manual
 @(require (for-label racket/base racket/generic racket/contract/base))
 
-@title[#:tag "struct-generics"]{Generic Interfaces}
+@title[#:tag "struct-generics"]{泛型接口}
 
 @defmodule[racket/generic]
 
 
-A @deftech{generic interface} allows per-type methods to be
-associated with generic functions. Generic functions are defined
-using a @racket[define-generics] form. Method implementations for
-a structure type are defined using the @racket[#:methods] keyword
-(see @secref["define-struct"]).
+@deftech{泛型接口}允许将每个类型的方法与泛型函数关联。泛型函数使用 @racket[define-generics] 形式定义。结构类型的方法实现使用 @racket[#:methods] 关键字定义（参见 @secref["define-struct"]）。
 
 @defform/subs[(define-generics id
                 generics-opt ...
@@ -32,113 +28,62 @@ a structure type are defined using the @racket[#:methods] keyword
                      (code:line keyword arg-id)
                      (code:line keyword [arg-id])])]{
 
-Defines the following names, plus any specified by keyword options.
+定义以下名称，以及由关键字选项指定的任何名称。
 
 @itemlist[
 
- @item{@racketidfont{gen:}@racket[id] as a transformer binding for
-       the static information about a new generic interface;}
+ @item{@racketidfont{gen:}@racket[id] 作为 transformer binding，用于新泛型接口的静态信息；}
 
- @item{@racket[id]@racketidfont{?} as a predicate identifying
-       instances of structure types that implement this generic group; and}
+ @item{@racket[id]@racketidfont{?} 作为谓词，用于识别实现此泛型组的结构类型的实例；以及}
 
- @item{each @racket[method-id] as a @deftech{generic method} that calls the
-       corresponding method on values where
-       @racket[id]@racketidfont{?} is true.
-       Each @racket[method-id]'s @racket[kw-formals*] must include a required
-       by-position argument that is @racket[free-identifier=?] to
-       @racket[id]. That argument is used in the generic definition to
-       locate the specialization.}
+ @item{每个 @racket[method-id] 作为 @deftech{泛型方法}，在 @racket[id]@racketidfont{?} 为真的值上调用对应的方法。
+       每个 @racket[method-id] 的 @racket[kw-formals*] 必须包含一个必需的按位置参数，该参数与 @racket[id] @racket[free-identifier=?]。该参数用于在泛型定义中定位特化实现。}
 
- @item{@racket[id]@racketidfont{/c} as a contract combinator that
-       recognizes instances of structure types which implement the
-       @racketidfont{gen:}@racket[id] generic interface. The combinator
-       takes pairs of @racket[method-id]s and contracts. The contracts
-       will be applied to each of the corresponding method implementations.
-       The @racket[id]@racketidfont{/c} combinator is intended to be used to
-       contract the range of a constructor procedure for a struct type that
-       implements the generic interface.}
+ @item{@racket[id]@racketidfont{/c} 作为 contract 组合子，用于识别实现 @racketidfont{gen:}@racket[id] 泛型接口的结构类型的实例。该组合子接受 @racket[method-id] 和 contract 的对。contract 将应用于每个对应的方法实现。
+       @racket[id]@racketidfont{/c} 组合子旨在用于对实现泛型接口的 struct 类型的构造过程的结果域进行 contract 约束。}
 
 ]
 
-The @racket[#:defaults] option may be provided at most once.
-When it is provided, each generic function
-uses @racket[default-pred?]s to dispatch to the given
-@deftech{default method} implementations,
-@racket[default-impl]s, if dispatching to the generic method table fails.
-The syntax of the @racket[default-impl]s is the same as the methods
-provided for the @racket[#:methods] keyword for @racket[struct].
+@racket[#:defaults] 选项最多可提供一次。
+提供时，每个泛型函数在分派到泛型方法表失败时使用 @racket[default-pred?]s 分派到给定的 @deftech{默认方法}实现 @racket[default-impl]s。
+@racket[default-impl]s 的语法与为 @racket[struct] 的 @racket[#:methods] 关键字提供的方法相同。
 
-The @racket[#:fast-defaults] option may be provided at most once.
-It works the same as @racket[#:defaults], except the @racket[fast-pred?]s are
-checked before dispatching to the generic method table.  This option is
-intended to provide a fast path for dispatching to built-in datatypes, such as
-lists and vectors, that do not overlap with structures implementing
-@racketidfont{gen:}@racket[id].
+@racket[#:fast-defaults] 选项最多可提供一次。
+其工作方式与 @racket[#:defaults] 相同，但 @racket[fast-pred?]s 在分派到泛型方法表之前检查。此选项旨在为分派到内置数据类型（如 list 和 vector）提供快速路径，这些数据类型与实现 @racketidfont{gen:}@racket[id] 的结构不重叠。
 
-The @racket[#:fallbacks] option may be provided at most once.
-When it is provided, the @racket[fallback-impl]s define
-@deftech{fallback method} implementations
-that are used for any instance of the generic interface that does not supply a
-specific implementation.  The syntax of the @racket[fallback-impl]s is the same
-as the methods provided for the @racket[#:methods] keyword for @racket[struct].
+@racket[#:fallbacks] 选项最多可提供一次。
+提供时，@racket[fallback-impl]s 定义 @deftech{回退方法}实现，用于泛型接口的任何不提供特定实现的实例。@racket[fallback-impl]s 的语法与为 @racket[struct] 的 @racket[#:methods] 关键字提供的方法相同。
 
-The @racket[#:defined-predicate] option may be provided at most once.
-When it is provided, @racket[defined-pred-id] is defined as a
-procedure that reports whether a specific instance of the generic interface
-implements a given set of methods.
-Specifically, @racket[(defined-pred-id v 'name ...)] produces @racket[#t] if
-@racket[v] has implementations for each method @racket[name], not counting
-@racket[#:fallbacks] implementations, and produces @racket[#f] otherwise.
-This procedure is intended for use by
-higher-level APIs to adapt their behavior depending on method
-availability.
+@racket[#:defined-predicate] 选项最多可提供一次。
+提供时，@racket[defined-pred-id] 被定义为一个过程，用于报告泛型接口的特定实例是否实现了一组给定的方法。
+具体来说，如果 @racket[v] 对每个方法 @racket[name] 都有实现（不包括 @racket[#:fallbacks] 实现），则 @racket[(defined-pred-id v 'name ...)] 产生 @racket[#t]，否则产生 @racket[#f]。
+此过程旨在供更高级别的 API 使用，以根据方法可用性调整其行为。
 
-The @racket[#:defined-table] option may be provided at most once.
-When it is provided, @racket[defined-table-id] is defined as a
-procedure that takes an instance of the generic interface and returns an
-immutable @tech{hash table} that maps symbols corresponding to method
-names to booleans representing whether or not that method is
-implemented by the instance.  This option is deprecated; use
-@racket[#:defined-predicate] instead.
+@racket[#:defined-table] 选项最多可提供一次。
+提供时，@racket[defined-table-id] 被定义为一个过程，用于获取泛型接口的实例并返回一个不可变的 @tech{hash table}，该表将对应方法名的符号映射到表示该方法是否由实例实现的布尔值。此选项已弃用；请改用 @racket[#:defined-predicate]。
 
-The @racket[#:derive-property] option may be provided any number of times.
-Each time it is provided, it specifies a @tech{structure type property} via
-@racket[prop-expr] and a value for the property via @racket[prop-value-expr].
-All structures implementing the generic interface via @racket[#:methods]
-automatically implement this structure type property using the provided values.
-When @racket[prop-value-expr] is executed, each @racket[method-id] is bound to
-its specific implementation for the @tech{structure type}.
+@racket[#:derive-property] 选项可提供任意次。
+每次提供时，它通过 @racket[prop-expr] 和属性值 @racket[prop-value-expr] 指定一个 @tech{结构类型属性}。所有通过 @racket[#:methods] 实现泛型接口的结构自动使用此提供的值实现此结构类型属性。当执行 @racket[prop-value-expr] 时，每个 @racket[method-id] 都绑定到其针对该 @tech{结构类型}的特定实现。
 
-The @racket[#:requires] option may be provided at most once.
-When it is provided, any instance of the generic interface
-@emph{must} supply an implementation of the specified @racket[required-method-id]s.
-Otherwise, a compile-time error is raised.
+@racket[#:requires] 选项最多可提供一次。
+提供时，泛型接口的任何实例 @emph{必须}提供指定的 @racket[required-method-id]s 的实现。否则会引发 compile-time 错误。
 
-If a value @racket[v] satisfies @racket[id]@racketidfont{?}, then @racket[v] is
-a @deftech{generic instance} of @racketidfont{gen:}@racket[id].
+如果值 @racket[v] 满足 @racket[id]@racketidfont{?}，则 @racket[v] 是 @racketidfont{gen:}@racket[id] 的 @deftech{泛型实例}。
 
-If a generic instance @racket[v] has a corresponding implementation for some
-@racket[method-id] provided via @racket[#:methods] in @racket[struct] or via
-@racket[#:defaults] or @racket[#:fast-defaults] in @racket[define-generics],
-then @racket[method-id] is an @deftech{implemented generic method} of
-@racket[v].
+如果泛型实例 @racket[v] 对在 @racket[struct] 中通过 @racket[#:methods] 提供的某个 @racket[method-id] 有对应实现，或在 @racket[define-generics] 中通过 @racket[#:defaults] 或 @racket[#:fast-defaults] 提供，
+则 @racket[method-id] 是 @racket[v] 的 @deftech{已实现的泛型方法}。
 
-If @racket[method-id] is not an implemented generic method of a generic
-instance @racket[v], and @racket[method-id] has a fallback implementation that
-does not raise an @racket[exn:fail:support] exception when given @racket[v],
-then @racket[method-id] is a @deftech{supported generic method} of @racket[v].
+如果 @racket[method-id] 不是泛型实例 @racket[v] 的已实现的泛型方法，且 @racket[method-id] 有一个回退实现，当应用于 @racket[v] 时不会引发 @racket[exn:fail:support] 异常，
+则 @racket[method-id] 是 @racket[v] 的 @deftech{受支持的泛型方法}。
 
 @history[#:changed "8.7.0.5"
-         @elem{Added the @racket[#:requires] option.}]
+         @elem{添加了 @racket[#:requires] 选项。}]
 
 }
 
 @defproc[(raise-support-error [name symbol?] [v any/c]) none/c]{
 
-Raises an @racket[exn:fail:support] exception for a @techlink{generic
-method} called @racket[name] that does not support the @techlink{generic
-instance} @racket[v].
+引发 @techlink{泛型方法}的 @racket[exn:fail:support] 异常，该方法不支持给定的 @techlink{泛型实例} @racket[v]，方法名为 @racket[name]。
 
 @examples[#:eval evaluator
 (eval:error (raise-support-error 'some-method-name '("arbitrary" "instance" "value")))
@@ -148,28 +93,22 @@ instance} @racket[v].
 
 @defstruct*[(exn:fail:support exn:fail) () #:transparent]{
 
-Raised for @techlink{generic methods} that do not support the given
-@techlink{generic instance}.
+为不支持给定 @techlink{泛型实例}的 @techlink{泛型方法}引发。
 
 }
 
 @defform[(define/generic local-id method-id)]{
 
-When used inside the method definitions associated with the @racket[#:methods],
-@racket[#:fallbacks], @racket[#:defaults] or @racket[#:fast-defaults] keywords,
-binds @racket[local-id] to the generic for @racket[method-id]. This form is
-useful for method specializations to use generic methods (as opposed to the
-local specialization) on other values.
+在与 @racket[#:methods]、@racket[#:fallbacks]、@racket[#:defaults] 或 @racket[#:fast-defaults] 关键字关联的方法定义内部使用时，将 @racket[local-id] 绑定到 @racket[method-id] 的泛型形式。此形式允许方法特化对其他值使用泛型方法（而不是局部特化）。
 
-The @racket[define/generic] form is only allowed inside:
+@racket[define/generic] 形式仅允许在以下位置使用：
 @itemlist[
- @item{a @racket[#:methods] specification in @racket[struct] (or @racket[define-struct])}
+ @item{@racket[struct]（或 @racket[define-struct]）中的 @racket[#:methods] 规范}
 
- @item{the specification of @racket[#:fallbacks], @racket[#:defaults] or
-       @racket[#:fast-defaults] in @racket[define-generics]}
+ @item{@racket[define-generics] 中 @racket[#:fallbacks]、@racket[#:defaults] 或 @racket[#:fast-defaults] 的规范}
 ]
 
-Using @racket[define/generic] elsewhere is a syntax error.
+在其他位置使用 @racket[define/generic] 是语法错误。
 }
 
 
@@ -256,9 +195,7 @@ Using @racket[define/generic] elsewhere is a syntax error.
 @defform[(generic-instance/c gen-id [method-id method-ctc] ...)
          #:contracts ([method-ctc contract?])]{
 
-Creates a contract that recognizes structures that implement the @tech{generic
-interface} @racket[gen-id], and constrains their implementations of the
-specified @racket[method-id]s with the corresponding @racket[method-ctc]s.
+创建一个 contract，用于识别实现 @tech{泛型接口} @racket[gen-id] 的结构，并通过对应的 @racket[method-ctc]s 约束其指定的 @racket[method-id]s 的实现。
 
 }
 
@@ -270,30 +207,18 @@ specified @racket[method-id]s with the corresponding @racket[method-ctc]s.
          #:contracts ([method-proc-expr (any/c . -> . any/c)]
                       [props-expr (list/c impersonator-property? any/c ... ...)])]{
 
-Creates an @tech{impersonator} of @racket[val-expr], which must be a structure
-that implements the @tech{generic interface} @racket[gen-id].  The impersonator
-applies the results of the @racket[method-proc-expr]s to the structure's implementation
-of the corresponding @racket[method-id]s, and replaces the method
-implementation with the result.
+创建 @racket[val-expr] 的 @tech{impersonator}，其必须是实现 @tech{泛型接口} @racket[gen-id] 的结构。impersonator 将 @racket[method-proc-expr]s 的结果应用于结构对相应 @racket[method-id]s 的实现，并用结果替换方法实现。
 
-A @racket[props-expr] can provide properties to attach to the
-impersonator. The result of @racket[props-expr] must be a list with
-an even number of elements, where the first element of the list is an
-impersonator property, the second element is its value, and so on.
+@racket[props-expr] 可提供要附加到 impersonator 的属性。@racket[props-expr] 的结果必须是一个元素个数为偶数的列表，其中第一个元素是 impersonator 属性，第二个元素是其值，依此类推。
 
-@history[#:changed "6.1.1.8" @elem{Added @racket[#:properties].}]}
+@history[#:changed "6.1.1.8" @elem{添加了 @racket[#:properties]。}]}
 
 
 @defform[(chaperone-generics gen-id val-expr
            [method-id method-proc-expr] ...
            maybe-properties)]{
 
-Like @racket[impersonate-generics], but
-creates a @tech{chaperone} of @racket[val-expr], which must be a structure
-that implements the @tech{generic interface} @racket[gen-id].  The chaperone
-applies the specified @racket[method-proc]s to the structure's implementation
-of the corresponding @racket[method-id]s, and replaces the method
-implementation with the result, which must be a chaperone of the original.
+类似于 @racket[impersonate-generics]，但创建 @racket[val-expr] 的 @tech{chaperone}，其必须是实现 @tech{泛型接口} @racket[gen-id] 的结构。chaperone 将指定的 @racket[method-proc]s 应用于结构对相应 @racket[method-id]s 的实现，并用结果（必须是原实现的 chaperone）替换方法实现。
 
 }
 
@@ -301,10 +226,7 @@ implementation with the result, which must be a chaperone of the original.
             [method-id method-proc-expr] ...
             maybe-properties)]{
 
-Like @racket[impersonate-generics], but
-creates an @tech{impersonator} of @racket[val-expr]
-if @racket[mode] evaluates to @racket[#f], or creates
-a @tech{chaperone} of @racket[val-expr] otherwise.
+类似于 @racket[impersonate-generics]，但如果 @racket[mode] 求值为 @racket[#f]，则创建 @racket[val-expr] 的 @tech{impersonator}，否则创建 @racket[val-expr] 的 @tech{chaperone}。
 
 }
 
@@ -329,35 +251,24 @@ a @tech{chaperone} of @racket[val-expr] otherwise.
    [can-impersonate?-expr any/c]
    [prop-expr struct-type-property?]
    [val-expr any/c])]{
-Creates a new structure type property and returns three
-values, just like @racket[make-struct-type-property] would:
+创建一个新的结构类型属性并返回三个值，就像 @racket[make-struct-type-property] 一样：
 
 @itemize[
- @item{a @tech{structure type property descriptor}}
- @item{a @tech{property predicate} procedure}
- @item{a @tech{property accessor} procedure}
+ @item{一个 @tech{结构类型属性描述符}}
+ @item{一个 @tech{属性谓词}过程}
+ @item{一个 @tech{属性访问器}过程}
 ]
 
-Any struct that implements this property will also implement
-the properties and @tech{generic interfaces} given in the
-@racket[#:property] and @racket[#:methods] declarations.
-The property @racket[val-expr]s and @racket[method-def]s are
-evaluated eagerly when the property is created, not when
-it is attached to a structure type.
+任何实现此属性的 struct 也将实现 @racket[#:property] 和 @racket[#:methods] 声明中给定的属性和 @tech{泛型接口}。属性 @racket[val-expr]s 和 @racket[method-def]s 在属性创建时立即求值，而不是在附加到结构类型时。
 }
 
 @defform[(make-generic-struct-type-property
             gen:name-id
             method-def
             ...)]{
-Creates a new structure type property and returns the
-@tech{structure type property descriptor}.
+创建一个新的结构类型属性并返回 @tech{结构类型属性描述符}。
 
-Any struct that implements this property will also implement
-the @tech{generic interface} given by @racket[gen:name-id]
-with the given @racket[method-def]s. The @racket[method-def]s
-are evaluated eagerly when the property is created, not when
-it is attached to a structure type.
+任何实现此属性的 struct 也将通过给定的 @racket[method-def]s 实现 @racket[gen:name-id] 给定的 @tech{泛型接口}。@racket[method-def]s 在属性创建时立即求值，而不是在附加到结构类型时。
 }
 
 @close-eval[evaluator]
