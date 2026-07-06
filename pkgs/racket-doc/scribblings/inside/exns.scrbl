@@ -257,41 +257,35 @@ for @cpp{printf}, but with the following format directives:
 
  @item{@FormatD{S} : a Racket symbol (a @cpp{Scheme_Object*})}
 
- @item{@FormatD{t} : a @cpp{char} string with a @cpp{intptr_t} size (two
- arguments), possibly containing a non-terminating nul byte, and
- possibly without a nul-terminator}
+ @item{@FormatD{t} : 带 @cpp{intptr_t} 大小的 @cpp{char} 字符串（两个参数），
+可能包含非结尾的 nul 字节，也可能没有 nul 结尾符}
 
- @item{@FormatD{u} : a @cpp{mzchar} string with a @cpp{intptr_t} size (two
- arguments), possibly containing a non-terminating nul character, and
- possibly without a nul-terminator}
+ @item{@FormatD{u} : 带 @cpp{intptr_t} 大小的 @cpp{mzchar} 字符串（两个参数），
+可能包含非结尾的 nul 字符，也可能没有 nul 结尾符}
 
  @item{@FormatD{T} : a Racket string (a @cpp{Scheme_Object*})}
 
- @item{@FormatD{q} : a string, truncated to 253 characters, with ellipses
- printed if the string is truncated}
+ @item{@FormatD{q} : 一个字符串，截断至 253 个字符，截断时打印省略号}
 
- @item{@FormatD{Q} : a Racket string (a @cpp{Scheme_Object*}),
- truncated to 253 characters, with ellipses printed if the string is
- truncated}
+ @item{@FormatD{Q} : 一个 Racket 字符串（即 @cpp{Scheme_Object*}），
+截断至 253 个字符，截断时打印省略号}
 
- @item{@FormatD{V} : a Racket value  (a @cpp{Scheme_Object*}),
- truncated according to the current error print width.}
+ @item{@FormatD{V} : 一个 Racket 值（即 @cpp{Scheme_Object*}），
+根据当前错误打印宽度截断。}
 
- @item{@FormatD{D} : a Racket value  (a @cpp{Scheme_Object*}),
- to @racket[display].}
+ @item{@FormatD{D} : 一个 Racket 值（即 @cpp{Scheme_Object*}），
+传递给 @racket[display]。}
 
- @item{@FormatD["@"] : a Racket value (a @cpp{Scheme_Object*}),
- that is a list whose printed elements are spliced into the result.}
+ @item{@FormatD["@"] : 一个 Racket 值（即 @cpp{Scheme_Object*}），
+其打印的元素将被拼接到结果中。}
 
  @item{@FormatD{e} : an @cpp{errno} value, to be printed as a text
  message.}
 
- @item{@FormatD{E} : a platform-specific error value, to be printed as a
- text message.}
+ @item{@FormatD{E} : 一个平台相关的错误值，将作为文本消息打印。}
 
- @item{@FormatD{Z} : a potential platform-specific error value and a
- @cpp{char} string; if the string is non-@cpp{NULL}, then the error
- value is ignored, otherwise the error value is used as for @FormatD{E}.}
+ @item{@FormatD{Z} : 一个潜在的平台相关错误值和一个 @cpp{char} 字符串；
+若字符串非 @cpp{NULL}，则忽略该错误值，否则按 @FormatD{E} 的方式使用该错误值。}
 
  @item{@FormatD{%} : a percent sign}
 
