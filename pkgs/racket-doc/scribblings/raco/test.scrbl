@@ -10,210 +10,173 @@
                      compiler/module-suffix
                      compiler/cm))
 
-@title[#:tag "test"]{@exec{raco test}: Run tests}
+@title[#:tag "test"]{@exec{raco test}: 运行测试}
 
 @; For `history` to connect to the "compiler-lib" package:
 @declare-exporting[compiler/commands/test]
 
-The @exec{raco test} command requires and runs the (by default)
-@racket[test] submodule associated with each path given on the command
-line. Command-line flags can control which submodule is run, whether to
-run the main module if no submodule is found, and whether to run tests
-directly, in separate processes (the default), or in separate places.
-The current directory is set to a test file's directory before running
-the file.
+@exec{raco test} 命令要求并运行与命令行上给定的每个路径关联的（默认情况下）
+@racket[test] 子模块。命令行标志可以控制运行哪个子模块、当未找到子模块时
+是否运行主模块，以及是直接运行测试、在单独进程中运行（默认）还是在单独的地方运行。
+当前目录在运行文件之前设置为测试文件的目录。
 
-When an argument path refers to a directory, @exec{raco test}
-recursively discovers and runs all files within the directory that end
-in a module suffix (see @racket[get-module-suffixes], but the suffixes
-always include @filepath{.rkt}, @filepath{.scrbl}, @filepath{.ss}, and
-@filepath{.scm}) or have a (possibly empty) list of command-line arguments provided by
-@racket[test-command-line-arguments] in an @filepath{info.rkt} file,
-or as directed by @racket[test-include-paths] in an
-@filepath{info.rkt} file.  At the same time, @exec{raco test} omits
-files and directories within a directory as directed by
-@racket[test-omit-paths] in an @filepath{info.rkt} file.
+当参数路径指向目录时，@exec{raco test} 会递归发现并运行目录内所有
+以模块后缀结尾的文件（参见 @racket[get-module-suffixes]，但后缀始终包括
+@filepath{.rkt}、@filepath{.scrbl}、@filepath{.ss} 和 @filepath{.scm}），
+或者具有由 @filepath{info.rkt} 文件中的 @racket[test-command-line-arguments]
+提供的（可能为空的）命令行参数列表，或者由 @filepath{info.rkt} 文件中的
+@racket[test-include-paths] 指定的文件。同时，@exec{raco test} 会按照
+@filepath{info.rkt} 文件中的 @racket[test-omit-paths] 的指示省略目录中的文件和子目录。
 
-A test is counted as failing if it logs a failing test code via
-@racket[test-log!], causes Racket to exit with a non-zero exit code, or
-(when @Flag{e} or @DFlag{check-stderr} is specified) if it produces
-output on the error port.
+如果测试通过 @racket[test-log!] 记录了失败的测试代码、导致 Racket 以非零退出码退出，
+或者（当指定了 @Flag{e} 或 @DFlag{check-stderr} 时）在错误端口上产生输出，
+则该测试被视为失败。
 
-The @exec{raco test} command accepts several flags:
+@exec{raco test} 命令接受多个标志：
 
 @itemize[
 
- @item{@Flag{c} or @DFlag{collection}
-       --- Interprets the arguments as collections whose content
-       should be tested (in the same way as directory content),
-       and makes @DFlag{process} the default testing mode.}
+ @item{@Flag{c} 或 @DFlag{collection}
+       --- 将参数解释为要测试其内容的集合（与目录内容的方式相同），
+       并将 @DFlag{process} 设为默认测试模式。}
 
- @item{@Flag{p} or @DFlag{package}
-       --- Interprets the arguments as packages whose contents should
-       be tested (in the same way as directory content). All package
-       scopes are searched for the first, most specific @tech[#:doc
-       '(lib "pkg/scribblings/pkg.scrbl")]{package scope}. This flag also
-       makes @DFlag{process} the default testing mode.}
+ @item{@Flag{p} 或 @DFlag{package}
+       --- 将参数解释为要测试其内容的包（与目录内容的方式相同）。
+       搜索所有包作用域以找到第一个最具体的 @tech[#:doc
+       '(lib "pkg/scribblings/pkg.scrbl")]{package scope}。此标志也将
+       @DFlag{process} 设为默认测试模式。}
  
- @item{@Flag{l} or @DFlag{lib}
-       --- Interprets the arguments as libraries that should be tested.
-       Each argument @nonterm{arg} is treated as a module path
-       @racket[(lib "@nonterm{arg}")].
-       The default testing mode is @DFlag{direct} if a single module is specified,
-       @DFlag{process} if multiple modules are specified.}
+ @item{@Flag{l} 或 @DFlag{lib}
+       --- 将参数解释为要测试的库。每个参数 @nonterm{arg}
+       被视为模块路径 @racket[(lib "@nonterm{arg}")]。
+       如果指定了单个模块，默认测试模式为 @DFlag{direct}，
+       如果指定了多个模块，则为 @DFlag{process}。}
 
- @item{@Flag{m} or @DFlag{modules}
-       --- Not only interprets the arguments as paths (which is the
-       default mode), but treats them the same as paths found in a
-       directory, which means ignoring a file argument that does not
-       have a module extension or is not enabled explicitly via
-       @racket[test-command-line-arguments] or @racket[test-include-paths]
-       in an @filepath{info.rkt} file; meanwhile, paths that are otherwise
-       enabled can be disabled via @racket[test-omit-paths] in an
-       @filepath{info.rkt} file.
-       The default testing mode is @DFlag{direct} if a single path is specified,
-       @DFlag{process} if multiple paths are specified.}
+ @item{@Flag{m} 或 @DFlag{modules}
+       --- 不仅将参数解释为路径（这是默认模式），而且将它们视为与目录中
+       发现的路径相同，这意味着忽略没有模块扩展名或未通过
+       @racket[test-command-line-arguments] 或 @racket[test-include-paths]
+       在 @filepath{info.rkt} 文件中显式启用的文件参数；同时，
+       可以通过 @filepath{info.rkt} 文件中的 @racket[test-omit-paths]
+       禁用原本启用的路径。如果指定了单个路径，默认测试模式为 @DFlag{direct}，
+       如果指定了多个路径，则为 @DFlag{process}。}
 
  @item{@DFlag{drdr}
-       --- Configures defaults to imitate the DrDr continuous testing
-       system: ignore non-modules, run tests in separate processes
-       (unless @DFlag{thread} or @DFlag{direct} is specified) use as
-       many jobs as available processors (unless @DFlag{jobs} is
-       specified), set the default timeout to 90 seconds (unless
-       @DFlag{timeout} is specified), create a fresh
-       @envvar{PLTUSERHOME} and @envvar{TMPDIR} for each test, count
-       stderr output as a test failure, quiet program output, provide
-       empty program input, and print a table of results.}
+       --- 配置默认值以模仿 DrDr 持续测试系统：忽略非模块，
+       在单独进程中运行测试（除非指定了 @DFlag{thread} 或 @DFlag{direct}），
+       使用与可用处理器一样多的作业（除非指定了 @DFlag{jobs}），
+       将默认超时设置为 90 秒（除非指定了 @DFlag{timeout}），
+       为每个测试创建新的 @envvar{PLTUSERHOME} 和 @envvar{TMPDIR}，
+       将 stderr 输出计为测试失败，静默程序输出，提供空的程序输入，
+       并打印结果表格。}
 
- @item{@Flag{s} @nonterm{name} or @DFlag{submodule} @nonterm{name}
-       --- Requires the submodule @nonterm{name} rather than @racket[test].
-       Supply @Flag{s} or @DFlag{submodule} to run multiple submodules,
-       or combine multiple submodules with @DFlag{first-avail} to
-       run the first available of the listed modules.
-       Beware that if you use @Flag{s} multiple times but supply a
-       single module file as an argument, the default mode is still
-       @DFlag{direct} (which likely means fewer fresh module
-       instantiations than @DFlag{process} or @DFlag{place} mode).}
+ @item{@Flag{s} @nonterm{name} 或 @DFlag{submodule} @nonterm{name}
+       --- 要求使用子模块 @nonterm{name} 而不是 @racket[test]。
+       提供 @Flag{s} 或 @DFlag{submodule} 以运行多个子模块，
+       或将多个子模块与 @DFlag{first-avail} 结合使用以运行列表中第一个可用的模块。
+       请注意，如果多次使用 @Flag{s} 但提供单个模块文件作为参数，
+       默认模式仍然是 @DFlag{direct}（这可能意味着比 @DFlag{process}
+       或 @DFlag{place} 模式更少的新模块实例化）。}
 
- @item{@Flag{r} or @DFlag{run-if-absent}
-       --- Requires the top-level module of a file if a relevant submodule is not 
-       present. This is the default mode.}
+ @item{@Flag{r} 或 @DFlag{run-if-absent}
+       --- 如果相关子模块不存在，则要求运行文件的顶层模块。这是默认模式。}
 
- @item{@Flag{x} or @DFlag{no-run-if-absent}
-       --- Ignores a file if the relevant submodule is not present.}
+ @item{@Flag{x} 或 @DFlag{no-run-if-absent}
+       --- 如果相关子模块不存在，则忽略该文件。}
 
  @item{@DFlag{first-avail}
-       --- When multiple submodule names are provided with @Flag{s} or
-       @DFlag{submodule}, runs only the first available submodule.}
+       --- 当通过 @Flag{s} 或 @DFlag{submodule} 提供多个子模块名称时，
+       仅运行第一个可用的子模块。}
 
 @item{@DFlag{configure-runtime}
-       --- Run a @racketidfont{configure-runtime} submodule (if any) of
-       each specified module before the module or a
-       submodule is run. This mode is the default when only a single
-       module is provided or when @DFlag{process} or @DFlag{place}
-       mode is specified, unless a submodule name is provided
-       via @Flag{s} or @DFlag{submodule}.}
+       --- 在运行模块或子模块之前，运行每个指定模块的
+       @racketidfont{configure-runtime} 子模块（如果有的话）。
+       当仅提供单个模块或指定了 @DFlag{process} 或 @DFlag{place} 模式时，
+       此模式是默认的，除非通过 @Flag{s} 或 @DFlag{submodule} 提供了子模块名称。}
 
  @item{@DFlag{direct}
-      --- Runs each test in a thread, using a single namespace's module
-      registry to load all tests. This mode is the default if
-      a single file is specified. Multiple tests can interfere with
-      each other and the overall test run by exiting, using unsafe operations
-      that block (and thus prevent timeout), and so on.}
+      --- 在单个线程中运行每个测试，使用单个命名空间的模块注册表加载所有测试。
+      如果指定了单个文件，此模式是默认的。多个测试可能通过退出、使用会阻塞的
+      unsafe 操作（从而阻止超时）等方式相互干扰并影响整体测试运行。}
 
  @item{@DFlag{process}
-      --- Runs each test in a separate operating-system process. This
-          mode is the default if multiple files are specified or if a
-          directory, collection, or package is specified.}
+      --- 在单独的操作系统进程中运行每个测试。如果指定了多个文件、
+      目录、集合或包，此模式是默认的。}
 
  @item{@DFlag{place}
-      --- Runs each test in a @tech[#:doc '(lib
-      "scribblings/reference/reference.scrbl")]{place}, instead of in an
-      operating-system process.}
+      --- 在 @tech[#:doc '(lib
+      "scribblings/reference/reference.scrbl")]{place} 中运行每个测试，
+      而不是在操作系统进程中。}
 
- @item{@Flag{j} @nonterm{n} or @DFlag{jobs} @nonterm{n}
-      --- Runs up to @nonterm{n} test files in parallel.}
+ @item{@Flag{j} @nonterm{n} 或 @DFlag{jobs} @nonterm{n}
+      --- 并行运行最多 @nonterm{n} 个测试文件。}
 
  @item{@DFlag{timeout} @nonterm{seconds}
-      --- Sets the default timeout (after which a test counts as failed)
-      to @nonterm{seconds}. Use @exec{+inf.0} to allow tests to run without
-      limit but allow @racket[timeout] sub-submodule configuration.
-      If any test fails due to a timeout, the exit status of @exec{raco test}
-      is 2 (as opposed to 1 for only non-timeout failures or 0 for success).
-      The default timeout corresponds to @exec{+inf.0} if not specified
-      via @DFlag{timeout} or @DFlag{drdr}.}
+      --- 将默认超时（之后测试被视为失败）设置为 @nonterm{seconds}。
+      使用 @exec{+inf.0} 允许测试无限运行，但允许 @racket[timeout] 子子模块配置。
+      如果任何测试因超时失败，@exec{raco test} 的退出状态为 2
+      （而非仅非超时失败的 1 或成功的 0）。如果未通过 @DFlag{timeout}
+      或 @DFlag{drdr} 指定，默认超时对应于 @exec{+inf.0}。}
 
  @item{@DFlag{fresh-user}
-      --- When running tests in a separate process, creates a fresh
-      directory and sets @envvar{PLTUSERHOME} and @envvar{TMPDIR}. The
-      @envvar{PLTADDONDIR} environment variable is also set so that
-      the add-on directory (which is where packages are installed, for
-      example) does @emph{not} change for each test process.}
+      --- 在单独进程中运行测试时，创建一个新目录并设置
+      @envvar{PLTUSERHOME} 和 @envvar{TMPDIR}。还设置了
+      @envvar{PLTADDONDIR} 环境变量，以便附加目录（即安装包的地方，
+      例如）在每个测试进程中@emph{不}改变。}
 
  @item{@DFlag{empty-stdin}
-       --- Provide an empty stdin to each test program.}
+       --- 为每个测试程序提供空的 stdin。}
 
- @item{@Flag{Q} or @DFlag{quiet-program}
-       --- Suppresses output from each test program.}
+ @item{@Flag{Q} 或 @DFlag{quiet-program}
+       --- 抑制每个测试程序的输出。}
 
- @item{@Flag{e} or @DFlag{check-stderr}
-       --- Count any stderr output as a test failure.}
+ @item{@Flag{e} 或 @DFlag{check-stderr}
+       --- 将任何 stderr 输出计为测试失败。}
 
  @item{@DFlag{deps}
-       --- If considering arguments as packages, also check package
-       dependencies.}
+       --- 如果将参数视为包，还会检查包依赖关系。}
 
  @item{@DPFlag{ignore-stderr} @nonterm{pattern}
-       --- Don't count stderr output as a test failure if it matches
-       @nonterm{pattern}.  This flag can be used multiple times, and
-       stderr output is treated as success as long as it matches any
-       one @nonterm{pattern}.}
+       --- 如果 stderr 输出与 @nonterm{pattern} 匹配，则不将其计为测试失败。
+       此标志可以多次使用，只要 stderr 输出匹配任何一个 @nonterm{pattern}，
+       就会被视为成功。}
 
  @item{@DFlag{errortrace}
-       --- Dynamically loads @racketmodname[errortrace #:indirect]
-       before running the tests. Note that already-compiled files will not
-       include the tracing information.}
- @item{@Flag{y} or @DFlag{make}
-       --- Enable automatic
-        generation and update of compiled @filepath{.zo} files.
-        Specifically, the
-        result of
+       --- 在运行测试之前动态加载 @racketmodname[errortrace #:indirect]。
+       注意，已编译的文件将不包含跟踪信息。}
+ @item{@Flag{y} 或 @DFlag{make}
+       --- 启用自动
+        生成和更新编译后的 @filepath{.zo} 文件。
+        具体来说，
         @racket[(make-compilation-manager-load/use-compiled-handler)]
-        is installed as the value of @racket[current-load/use-compiled]
-        before module-loading actions.}
+        的结果被安装为 @racket[current-load/use-compiled] 的值
+        在模块加载操作之前。}
 
- @item{@Flag{q} or @DFlag{quiet}
-       --- Suppresses output of progress information, responsible
-       parties, and varying output (see @secref["test-responsible"]).}
+ @item{@Flag{q} 或 @DFlag{quiet}
+       --- 抑制进度信息、责任方和变化输出的输出（参见 @secref["test-responsible"]）。}
 
  @item{@DFlag{heartbeat}
-       --- Periodically report that a test is still running after
-       the test has been running at least 5 seconds.}
+       --- 定期报告测试在运行至少 5 秒后仍在运行。}
 
- @item{@DFlag{table} or @Flag{t}
-       --- Print a summary table after all tests. If a test uses
-       @racketmodname[rackunit], or if a test at least uses
-       @racket[test-log!] from @racketmodname[raco/testing] to log
-       successes and failures, the table reports test and failure
-       counts based on the log.}
+ @item{@DFlag{table} 或 @Flag{t}
+       --- 在所有测试之后打印摘要表格。如果测试使用 @racketmodname[rackunit]，
+       或者测试至少使用 @racket[test-log!] 从 @racketmodname[raco/testing]
+       记录成功和失败，表格会根据日志报告测试和失败计数。}
 
  @item{@DPFlag{arg} @nonterm{argument}
-       --- Adds @nonterm{argument} to the list of arguments to the invoked test module,
-       so that the invoked module sees @nonterm{argument} in its
-       @racket[current-command-line-arguments]. These arguments are
-       combined with any arguments specified in @filepath{info.rkt}
-       by @racket[test-command-line-arguments].}
+       --- 将 @nonterm{argument} 添加到被调用测试模块的参数列表中，
+       以便被调用模块在其 @racket[current-command-line-arguments] 中看到
+       @nonterm{argument}。这些参数与 @filepath{info.rkt} 中由
+       @racket[test-command-line-arguments] 指定的任何参数合并。}
 
  @item{@DPFlag{args} @nonterm{arguments}
-        --- The same as @DPFlag{arg}, but @nonterm{arguments} is treated
-        as a whitespace-delimited list of arguments to add. To specify
-        multiple arguments using this flag within a typical shell,
-        @nonterm{arguments} must be
-        enclosed in quotation marks.}
+        --- 与 @DPFlag{arg} 相同，但 @nonterm{arguments} 被视为要添加的
+        以空白分隔的参数列表。要在典型 shell 中使用此标志指定多个参数，
+        @nonterm{arguments} 必须用引号括起来。}
 
- @item{@DFlag{output} or @Flag{o} @nonterm{file}
-       --- Save all stdout and stderr output into @nonterm{file}.
-       The target @nonterm{file} will be overwritten if it exists already.
+ @item{@DFlag{output} 或 @Flag{o} @nonterm{file}
+       --- 将所有 stdout 和 stderr 输出保存到 @nonterm{file}。
+       如果目标 @nonterm{file} 已存在，则会被覆盖。
  }
 ]
 
@@ -228,45 +191,35 @@ The @exec{raco test} command accepts several flags:
 
 @section[#:tag "test-config"]{Test Configuration by Submodule}
 
-When @exec{raco test} runs a test in a submodule, a @racket[config]
-sub-submodule can provide additional configuration for running the
-test. The @racket[config] sub-submodule should use the
-@racketmodname[info] module language to define the following
-identifiers:
+当 @exec{raco test} 在子模块中运行测试时，@racket[config] 子子模块可以为
+运行测试提供额外配置。@racket[config] 子子模块应使用 @racketmodname[info]
+模块语言来定义以下标识符：
 
 @itemlist[
 
- @item{@indexed-racket[timeout] --- a real number in seconds to override the default
-       timeout for the test, which applies only when timeouts are
-       enabled.}
+ @item{@indexed-racket[timeout] --- 以秒为单位的实数，用于覆盖测试的默认超时，
+       仅在启用超时时适用。}
 
- @item{@indexed-racket[responsible] --- a string, symbol, or list of symbols
-       and strings identifying a responsible party that should be
-       notified when the test fails. See @secref["test-responsible"].}
+ @item{@indexed-racket[responsible] --- 字符串、符号或符号和字符串的列表，
+       标识测试失败时应通知的责任方。参见 @secref["test-responsible"]。}
 
- @item{@indexed-racket[lock-name] --- a string that names a lock file that is
-       used to serialize tests (i.e., tests that have the same lock
-       name do not run concurrently). The lock file's location is
-       determined by the @envvar{PLTLOCKDIR} environment variable or
-       defaults to @racket[(find-system-path 'temp-dir)]. The maximum
-       time to wait on the lock file is determined by the
-       @envvar{PLTLOCKTIME} environment variable or defaults to 4
-       hours.}
+ @item{@indexed-racket[lock-name] --- 命名用于序列化测试的锁文件的字符串
+       （即具有相同锁名称的测试不会并发运行）。锁文件的位置由
+       @envvar{PLTLOCKDIR} 环境变量确定，或默认为
+       @racket[(find-system-path 'temp-dir)]。等待锁文件的最长时间由
+       @envvar{PLTLOCKTIME} 环境变量确定，或默认为 4 小时。}
 
- @item{@indexed-racket[ignore-stderr] --- a string, byte string, or
-       @tech[#:doc reference-doc]{regexp value}, as a pattern that
-       causes error output to not be treated as a failure if the
-       output matches the pattern.}
+ @item{@indexed-racket[ignore-stderr] --- 字符串、字节字符串或
+       @tech[#:doc reference-doc]{regexp value}，作为导致错误输出在匹配
+       模式时不被视为失败的模式。}
 
- @item{@indexed-racket[random?] --- if true, indicates that the test's output
-       is expected to vary. See @secref["test-responsible"].}
+ @item{@indexed-racket[random?] --- 如果为真，表示测试的输出预期会变化。
+       参见 @secref["test-responsible"]。}
 
 ]
 
-In order to prevent evaluation of a file for testing purposes, it
-suffices to create a submodule that does not perform any tests and
-does not trigger the evaluation of the enclosing module. So, for
-instance, a file might look like this:
+为了防止文件被求值用于测试，创建一个不执行任何测试且不触发封闭模块求值的
+子模块就足够了。因此，例如，文件可能如下所示：
 
 @#reader scribble/comment-reader
  (racketmod
@@ -274,7 +227,7 @@ instance, a file might look like this:
 
   (/ 1 0)
 
-  ;; don't run this file for testing:
+  ;; 不要运行此文件进行测试：
   (module test racket/base)
  )
 
@@ -282,77 +235,62 @@ instance, a file might look like this:
 
 @section[#:tag "test-config-info"]{Test Configuration by @filepath{info.rkt}}
 
-Submodule-based test configuration is preferred (see
-@secref["test-config"]). In particular, to prevent @exec{raco test}
-from running a particular file, normally the file should contain a
-submodule that takes no action.
+基于子模块的测试配置是首选（参见 @secref["test-config"]）。特别是，
+为了防止 @exec{raco test} 运行特定文件，通常文件应包含一个不执行任何操作的子模块。
 
-In some cases, however, adding a submodule is inconvenient or
-impossible (e.g., because the file will not always compile). Thus,
-@exec{raco test} also consults any @filepath{info.rkt} file in the
-candidate test file's directory. In the case of a file within a
-collection, @filepath{info.rkt} files from any enclosing collection
-directories are also consulted for @racket[test-omit-paths] and
-@racket[test-include-paths]. Finally, for a file within a package, the
-package's @filepath{info.rkt} is consulted for @racket[pkg-authors] to
-set the default responsible parties (see @secref["test-responsible"])
-for all files in the package.
+然而，在某些情况下，添加子模块不方便或不可能（例如，因为文件不会总是编译）。
+因此，@exec{raco test} 还会查阅候选测试文件目录中的任何 @filepath{info.rkt} 文件。
+对于集合内的文件，还会查阅任何封闭集合目录中的 @filepath{info.rkt} 文件以获取
+@racket[test-omit-paths] 和 @racket[test-include-paths]。最后，对于包内的文件，
+会查阅包的 @filepath{info.rkt} 以获取 @racket[pkg-authors] 来设置包中所有文件的
+默认责任方（参见 @secref["test-responsible"]）。
 
-The following @filepath{info.rkt} fields are recognized:
+以下 @filepath{info.rkt} 字段被识别：
 
 @itemlist[
 
- @item{@indexed-racket[test-omit-paths] --- a list of path strings (relative
-       to the enclosing directory) and regexp values (to omit all
-       files within the enclosing directory matching the expression),
-       or @racket['all] to omit all files within the enclosing directory.
-       When a path string refers to a directory, all files within the
-       directory are omitted.}
+ @item{@indexed-racket[test-omit-paths] --- 路径字符串列表（相对于封闭目录）
+       和 regexp 值（以省略封闭目录内匹配表达式的所有文件），
+       或 @racket['all] 以省略封闭目录内的所有文件。当路径字符串指向目录时，
+       目录内的所有文件都会被省略。}
 
- @item{@indexed-racket[test-include-paths] --- a list of path strings (relative
-       to the enclosing directory) and regexp values (to include all
-       files within the enclosing directory matching the expression),
-       or @racket['all] to include all files within the enclosing directory.
-       When a path string refers to a directory, all files within the
-       directory are included.}
+ @item{@indexed-racket[test-include-paths] --- 路径字符串列表（相对于封闭目录）
+       和 regexp 值（以包含封闭目录内匹配表达式的所有文件），
+       或 @racket['all] 以包含封闭目录内的所有文件。当路径字符串指向目录时，
+       目录内的所有文件都会被包含。}
       
- @item{@indexed-racket[test-command-line-arguments] --- a list of
+ @item{@indexed-racket[test-command-line-arguments] ---
        @racket[(list _module-path-string (list _argument-path-string
-       ...))], where @racket[current-command-line-arguments] is set to
-       a vector that contains the @racket[_argument-path-string] when
-       running @racket[_module-path-string].}
+       ...))] 的列表，其中 @racket[current-command-line-arguments] 被设置为
+       包含 @racket[_argument-path-string] 的向量当运行 @racket[_module-path-string] 时。}
 
- @item{@indexed-racket[test-timeouts] --- a list of @racket[(list
-       _module-path-string _real-number)] to override the default
-       timeout in seconds for @racket[_module-path-string].}
+ @item{@indexed-racket[test-timeouts] --- @racket[(list
+       _module-path-string _real-number)] 的列表，用于覆盖
+       @racket[_module-path-string] 的默认超时（秒）。}
 
- @item{@indexed-racket[test-responsibles] --- a list of @racket[(list
-       _module-path-string _party)] or @racket[(list 'all _party)] to
-       override the default responsible party for
-       @racket[_module-path-string] or all files within the directory
-       (except as overridden), respectively. Each @racket[_party] is a
-       string, symbol, or list of symbols and strings. See
-       @secref["test-responsible"].}
+ @item{@indexed-racket[test-responsibles] --- @racket[(list
+       _module-path-string _party)] 或 @racket[(list 'all _party)] 的列表，
+       用于覆盖 @racket[_module-path-string] 或目录内所有文件的默认责任方
+       （除非被覆盖）。每个 @racket[_party] 是字符串、符号或符号和字符串的列表。
+       参见 @secref["test-responsible"]。}
 
- @item{@indexed-racket[test-lock-names] --- a list of @racket[(list
-       _module-path-string _lock-string)] to declare a lock file name
-       for @racket[_module-path-string]. See @racket[lock-name] in
-       @secref["test-config"].}
+ @item{@indexed-racket[test-lock-names] --- @racket[(list
+       _module-path-string _lock-string)] 的列表，用于为
+       @racket[_module-path-string] 声明锁文件名。参见 @secref["test-config"]
+       中的 @racket[lock-name]。}
 
- @item{@indexed-racket[test-ignore-stderrs] --- a list of @racket[(list
-       _module-path-string _pattern)] or @racket[(list 'all _pattern)]
-       to declare patterns of standard error output that are allowed a
-       non-failures for @racket[_module-path-string] or all files
-       within the directory. Each @racket[_pattern] must be a string,
-       byte string, or @tech[#:doc reference-doc]{regexp value}. See
-       @racket[ignore-stderr] in @secref["test-config"].}
+ @item{@indexed-racket[test-ignore-stderrs] --- @racket[(list
+       _module-path-string _pattern)] 或 @racket[(list 'all _pattern)] 的列表，
+       用于声明允许 @racket[_module-path-string] 或目录内所有文件的
+       标准错误输出模式为非失败。每个 @racket[_pattern] 必须是字符串、
+       字节字符串或 @tech[#:doc reference-doc]{regexp value}。参见
+       @secref["test-config"] 中的 @racket[ignore-stderr]。}
 
- @item{@indexed-racket[test-randoms] --- a list of path strings (relative to
-       the enclosing directory) for modules whose output varies.
-       See @secref["test-responsible"].}
+ @item{@indexed-racket[test-randoms] --- 路径字符串列表（相对于封闭目录），
+       用于输出变化的模块。参见 @secref["test-responsible"]。}
 
- @item{@racket[module-suffixes] and @racket[doc-module-suffixes] ---
-       Used indirectly via @racket[get-module-suffixes].}
+ @item{@racket[module-suffixes] 和 @racket[doc-module-suffixes] ---
+       通过 @racket[get-module-suffixes] 间接使用。}
 
 ]
 
@@ -360,20 +298,16 @@ The following @filepath{info.rkt} fields are recognized:
 
 @section[#:tag "test-responsible"]{Responsible-Party and Varying-Output Logging}
 
-When a test has a declared responsible party, then the test's output
-is prefixed with a
+当测试有声明责任方时，测试的输出会加上前缀：
 
 @verbatim[#:indent 2]{raco test:@nonterm{which} @"@"(test-responsible '@nonterm{responsible})}
 
-line, where @nonterm{which} is a space followed by an exact
-non-negative number indicating a parallel task when parallelism is
-enabled (or empty otherwise), and @nonterm{responsible} is a string,
-symbol, or list datum.
+行，其中 @nonterm{which} 是一个空格后跟一个精确的非负数，
+表示启用并行时的并行任务（否则为空），@nonterm{responsible} 是字符串、
+符号或列表数据。
 
-When a test's output (as written to stdout) is expected to vary across
-runs---aside from varying output that has the same form as produced by
-@racket[time]---then it should be declared as varying. In that case,
-the test's output is prefixed with a
+当测试的输出（写入 stdout 的）预期在不同运行之间变化时——除了与 @racket[time]
+产生的形式相同的输出外——应将其声明为变化。在这种情况下，测试的输出会加上前缀：
 
 @verbatim[#:indent 2]{raco test:@nonterm{which} @"@"(test-random #t)}
 
@@ -382,10 +316,9 @@ line.
 @section{Logging Test Results}
 @defmodule[raco/testing]
 
-This module provides a general purpose library for tracking test results
-and displaying a summary message. The command @exec{raco test} uses this library
-to display test results. Therefore, any testing framework that wants to integrate
-with @exec{raco test} should also use this library to log test results.
+此模块提供了一个用于跟踪测试结果和显示摘要消息的通用库。
+@exec{raco test} 命令使用此库来显示测试结果。因此，任何想要与
+@exec{raco test} 集成的测试框架也应使用此库来记录测试结果。
 
 @history[#:added "1.13"]
 
@@ -414,12 +347,11 @@ with @exec{raco test} should also use this library to log test results.
             (or/c #f path-string?)
             (or/c #f path?)
             #:value #f]{
-Contains the directory from which tests were invoked by, @emph{e.g.}, @exec{raco
-test}. This may differ from @racket[current-directory] when the test runner
-changes directory before invoking a specific test file and should be set by test
-runners to reflect the directory from which they were originally invoked.
+包含测试被调用的目录，@emph{例如}，@exec{raco test}。当测试运行器
+在调用特定测试文件之前更改目录时，这可能与 @racket[current-directory] 不同，
+应由测试运行器设置以反映它们最初被调用的目录。
 
-This should be used by test reports to display appropriate path names.
+测试报告应使用此来显示适当的路径名。
 
 @history[#:added "1.14"]
 }
