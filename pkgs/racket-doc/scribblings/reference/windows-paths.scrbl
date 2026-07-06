@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/bnf "mz.rkt")
 
-@(define MzAdd (italic "Racket-specific:"))
+@(define MzAdd (italic "Racket 特定："))
 
 @(define (litchar~ s) (litchar (regexp-replace* "~" s " ")))
 
@@ -15,42 +15,19 @@ Racket 无法以一种方式实现通常的 Windows 路径语法。在 Racket �
 
 @itemize[
 
- @item{@|MzAdd| Whenever a path starts with a drive specifier
-       @nonterm{letter}@litchar{:} that is not followed by a
-       @litchar{/} or @litchar{\}, a @litchar{\} is inserted as
-       the path is @tech{cleanse}d.}
+ @item{@|MzAdd| 每当路径以驱动器说明符 @nonterm{letter}@litchar{:} 开头且后不跟 @litchar{/} 或 @litchar{\\} 时，在路径被 @tech{cleanse} 时会插入一个 @litchar{\\}。}
 
 ]
 
-Otherwise, Racket follows standard Windows path conventions, but also
- adds @litchar{\\?\REL} and @litchar{\\?\RED} conventions to
- deal with paths inexpressible in the standard convention, plus
- conventions to deal with excessive @litchar{\}s in @litchar{\\?\}
- paths.
+否则，Racket 遵循标准 Windows 路径约定，但还添加了 @litchar{\\\\?\\REL} 和 @litchar{\\\\?\\RED} 约定来处理在标准约定中无法表达的路径，以及处理 @litchar{\\\\?\\} 路径中过多 @litchar{\\} 的约定。
 
-In the following, @nonterm{letter} stands for a Latin letter (case
-does not matter), @nonterm{machine} stands for any sequence of
-characters that does not include @litchar{\} or @litchar{/} and is
-not @litchar{?}, @nonterm{volume} stands for any sequence of
-characters that does not include @litchar{\} or @litchar{/} , and
-@nonterm{element} stands for any sequence of characters that does not
-include @litchar{\}.
+@nonterm{element} 代表任何不包含 @litchar{\\} 的字符序列。
 
- @itemize[
+@itemize[
 
-  @item{@|MzAdd| 每当路径以驱动器说明符 @nonterm{letter}@litchar{:} 开头且后跟 @litchar{/} 或 @litchar{\\} 时，在路径被 @tech{cleanse} 时会插入一个 @litchar{\\}。}
+  @item{路径元素中的尾随空格和 @litchar{.} 在该元素是路径中最后一个元素时被忽略，除非路径以 @litchar{\\} 开头或元素仅由空格和 @litchar{.} 组成。}
 
- ]
-
- 否则，Racket 遵循标准 Windows 路径约定，但还添加了 @litchar{\\\\?\\REL} 和 @litchar{\\\\?\\RED} 约定来处理在标准约定中无法表达的路径，以及处理 @litchar{\\\\?\\} 路径中过多 @litchar{\\} 的约定。
-
- 在以下描述中，@nonterm{letter} 代表拉丁字母（大小写不限），@nonterm{machine} 代表任何不包含 @litchar{\\} 或 @litchar{/} 且不是 @litchar{?} 的字符序列，@nonterm{volume} 代表任何不包含 @litchar{\\} 或 @litchar{/} 的字符序列，@nonterm{element} 代表任何不包含 @litchar{\\} 的字符序列。
-
-  @itemize[
-
-  @item{路径元素中的尾随空格和 @litchar{.} 在该元素是路径中最后一个元素时被忽略，除非路径以 @litchar{\\\\?\\} 开头或元素仅由空格和 @litchar{.} 组成。}
-
-  @item{以下特殊"文件"（访问设备）在所有目录中以不区分大小写的方式存在，并且句号或冒号后可能有各种结尾，但以 @litchar{\\\\?\\} 开头的路径名除外：@indexed-file{NUL}、@indexed-file{CON}、@indexed-file{PRN}、@indexed-file{AUX}、@indexed-file{COM1}、@indexed-file{COM2}、@indexed-file{COM3}、@indexed-file{COM4}、@indexed-file{COM5}、@indexed-file{COM6}、@indexed-file{COM7}、@indexed-file{COM8}、@indexed-file{COM9}、@indexed-file{LPT1}、@indexed-file{LPT2}、@indexed-file{LPT3}、@indexed-file{LPT4}、@indexed-file{LPT5}、@indexed-file{LPT6}、@indexed-file{LPT7}、@indexed-file{LPT8}、@indexed-file{LPT9}。}
+  @item{以下特殊"文件"（访问设备）在所有目录中以不区分大小写的方式存在，并且句号或冒号后可能有各种结尾，但以 @litchar{\\} 开头的路径名除外：@indexed-file{NUL}、@indexed-file{CON}、@indexed-file{PRN}、@indexed-file{AUX}、@indexed-file{COM1}、@indexed-file{COM2}、@indexed-file{COM3}、@indexed-file{COM4}、@indexed-file{COM5}、@indexed-file{COM6}、@indexed-file{COM7}、@indexed-file{COM8}、@indexed-file{COM9}、@indexed-file{LPT1}、@indexed-file{LPT2}、@indexed-file{LPT3}、@indexed-file{LPT4}、@indexed-file{LPT5}、@indexed-file{LPT6}、@indexed-file{LPT7}、@indexed-file{LPT8}、@indexed-file{LPT9}。}
 
   @item{除了 @litchar{\\\\?\\} 路径外，@litchar{/} 等同于 @litchar{\\}。除了 @litchar{\\\\?\\} 路径和 UNC 路径的开头外，多个相邻的 @litchar{/} 和 @litchar{\\} 计为单个 @litchar{\\}。在以 @litchar{\\\\?\\} 开头的路径中，元素可以由单个或双个 @litchar{\\} 分隔。}
 
