@@ -9,21 +9,17 @@
                      racket/gui/base
                      setup/dirs))
 
-@title[#:tag "launcher"]{Installation-Specific Launchers}
+@title[#:tag "launcher"]{特定于安装的启动器}
 
-A @deftech{launcher} is similar to a stand-alone executable, but a
-launcher is usually smaller and can be created more quickly, because
-it depends permanently on the local Racket installation and the
-program's sources. In the case of Unix, a launcher is simply a shell
-script that runs @exec{racket} or @exec{gracket}. Launchers
-@emph{cannot} be packaged into a distribution using @exec{raco
-distribute}. The @exec{raco exe} command creates a launcher when the
-@Flag{l} or @DFlag{launcher} flag is specified.
+一个 @deftech{launcher} 类似于独立可执行文件，但 launcher 通常较小且创建更快，因为
+它永远依赖于本地 Racket 安装以及程序的源文件。对于 Unix，launcher 就是一个运行
+@exec{racket} 或 @exec{gracket} 的 shell 脚本。Launcher @emph{不能}通过
+@exec{raco distribute} 打包到分发中。@exec{raco exe} 命令会在指定 @Flag{l}
+或 @DFlag{launcher} 标志时创建一个 launcher。
 
 @defmodule[launcher/launcher]
 
-The @racketmodname[launcher/launcher] library provides functions for
-creating @tech{launchers}.
+@racketmodname[launcher/launcher] 库提供了用于创建 @tech{launcher} 的函数。
 
 @section{Creating Launchers}
 
@@ -33,63 +29,54 @@ creating @tech{launchers}.
                                 [#:tether-mode tether-mode (or/c 'addon 'config #f) 'addon])
          void?]{
 
-Creates the launcher @racket[dest], which starts GRacket with the
-command-line arguments specified as strings in @racket[args]. Extra
-arguments passed to the launcher at run-time are appended (modulo
-special Unix/X flag handling, as described below) to this list and
-passed on to GRacket. If @racket[dest] exists already, as either a file
-or directory, it is replaced.
+创建 launcher @racket[dest]，它使用 @racket[args] 中作为字符串指定的命令行
+参数启动 GRacket。在运行时传递给 launcher 的额外参数（减去特殊的 Unix/X 标志处理，
+见下文描述）会被附加到此 list 中并传递给 GRacket。如果 @racket[dest] 已存在
+（作为文件或目录），则会被替换。
 
-The optional @racket[aux] argument is an association list for
-platform-specific options (i.e., it is a list of pairs where the first
-element of the pair is a key symbol and the second element is the
-value for that key). See also @racket[build-aux-from-path]. See
-@racket[create-embedding-executable] for a list that applies to both
-stand-alone executables and launchers on Windows and Mac OS GRacket;
-the following additional associations apply to launchers:
+可选的 @racket[aux] 参数是一个用于平台特定选项的 association list（即，
+一个 pair 的 list，其中第一个元素是 key symbol，第二个元素是相应的值）。
+另请参见 @racket[build-aux-from-path]。关于同时适用于 Windows 和 Mac OS
+GRacket 上的独立可执行文件和 launcher 的 list，参见
+@racket[create-embedding-executable]；以下内容是适用于 launcher 的
+附加 association：
 
 @itemize[
 
- @item{@racket['independent?] (Windows) --- a boolean; @racket[#t]
-       creates an old-style launcher that works with any
-       Racket or GRacket binary, like @exec{raco.exe}. No other
-       @racket[aux] associations are used for an old-style launcher.}
+ @item{@racket['independent?] (Windows) --- boolean；@racket[#t]
+       创建一个旧式 launcher，可与任何 Racket 或 GRacket 二进制文件
+       一起使用，如 @exec{raco.exe}。对于旧式 launcher，不会使用
+       其他 @racket[aux] association。}
 
- @item{@racket['exe-name] (Mac OS, @racket['script-3m],
-       @racket['script-cgc] or @racket['script-cs] variant) --- provides the base name for a
-       @racket['3m]-/@racket['cgc]-/@racket['cs]-variant launcher, which the script
-       will call ignoring @racket[args]. If this name is not provided,
-       the script will go through the GRacket executable as usual.}
+ @item{@racket['exe-name] (Mac OS，@racket['script-3m]、
+       @racket['script-cgc] 或 @racket['script-cs] 变体) --- 为
+       @racket['3m]-/@racket['cgc]-/@racket['cs]-变体 launcher 提供基本名称，
+       script 将忽略 @racket[args] 调用它。如果未提供此名称，
+       script 将像往常一样通过 GRacket 可执行文件运行。}
 
- @item{@racket['exe-is-gracket] (when @racket['exe-name] is used) ---
-       indicates that @racket['exe-name] refers to the GRacket
-       executable, which is potentially in a @filepath{lib}
-       subdirectory instead of with other GUI applications.}
+ @item{@racket['exe-is-gracket]（当使用 @racket['exe-name] 时）---
+       表明 @racket['exe-name] 指的是 GRacket 可执行文件，它可能在
+       @filepath{lib} 子目录中，而不是在其他 GUI 应用程序中。}
 
- @item{@racket['relative?] (all platforms) --- a boolean, where
-        @racket[#t] means that the generated launcher should find the
-        base GRacket executable through a relative path.}
+ @item{@racket['relative?]（所有平台）--- boolean，其中
+        @racket[#t] 表示生成的 launcher 应通过相对路径找到
+        基础 GRacket 可执行文件。}
 
- @item{@racket['install-mode] (Windows, Unix) --- either
-       @racket['main], @racket['user], @racket['config-tethered], or
-       @racket['addon-tethered], indicates that the launcher
-       is being installed to an
-       installation-wide place, a user-specific place, an installation-wide
-       place that embeds the configuration path, or a specific place that
-       embeds an addon-directory path;
-       the install mode, in turn, determines whether and where to
-       record @racket['start-menu], @racket['extension-registry],
-       and/or @racket['desktop] information.}
+ @item{@racket['install-mode]（Windows、Unix）---
+       @racket['main]、@racket['user]、@racket['config-tethered] 或
+       @racket['addon-tethered]，表明 launcher 被安装到
+       安装范围内、用户特定位置、嵌入配置路径的安装范围位置或
+       嵌入 addon 目录路径的特定位置；安装模式又决定是否在何处
+       记录 @racket['start-menu]、@racket['extension-registry]
+       和/或 @racket['desktop] 信息。}
 
- @item{@racket['start-menu] (Windows) --- a boolean or real number;
-       @racket[#t] indicates that the launcher should be in the
-       @onscreen{Start} menu by an installer that includes the
-       launcher. A number value is treated like @racket[#t], but also
-       requests that the installer automatically start the
-       application, where the number determines a precedence relative
-       to other launchers that may request starting.  A
-       @racket['start-menu] value is used only when
-       @racket['install-mode] is also specified.}
+ @item{@racket['start-menu]（Windows）--- boolean 或实数；
+       @racket[#t] 表示 launcher 应包含在安装程序的
+       @onscreen{Start} 菜单中。数值被当作 @racket[#t] 处理，
+       但还请求installer自动启动应用程序，其中数字确定相对于其他
+       可能请求启动的 launcher 的优先级。
+       @racket['start-menu] 值仅在同时指定了
+       @racket['install-mode] 时使用。}
 
  @item{@racket['extension-register] (Windows) --- a list of document
        types for file-extension registrations to be performed by an
@@ -121,48 +108,38 @@ the following additional associations apply to launchers:
        An @racket['extension-registry] value is used only when
        @racket['install-mode] is also specified.}
 
- @item{@racket['desktop] (Unix) --- a string containing the content of
-       a @filepath{.desktop} file for the launcher, where @tt{Exec}
-       and @tt{Icon} entries are added automatically. If an @tt{Exec}
-       entry exists in the string, and if its value starts with a
-       non-empty sequence of alpha-numeric ASCII characters followed
-       by a space, then the space and remainder of the value is
-       appended to the automatically generated value.
-       The @filepath{.desktop} file is written to the directory produced by
-       @racket[(find-apps-dir)] or @racket[(find-user-apps-dir)]. A
-       @racket['desktop] value is used only when
-       @racket['install-mode] is also specified.}
+ @item{@racket['desktop]（Unix）--- 一个字符串，包含 launcher 的
+       @filepath{.desktop} 文件的内容，其中 @tt{Exec} 和 @tt{Icon}
+       条目会被自动添加。如果字符串中存在 @tt{Exec} 条目，并且其值以
+       一个非空的字母数字 ASCII 字符序列后跟一个空格开头，则该空格和
+       值的剩余部分会被附加到自动生成的值上。
+       @filepath{.desktop} 文件会写入由 @racket[(find-apps-dir)]
+       或 @racket[(find-user-apps-dir)] 产生的目录中。
+       @racket['desktop] 值仅在同时指定了 @racket['install-mode] 时使用。}
 
-  @item{@racket['png] (Unix) : An icon file path (suffix
-        @filepath{.png}) to be referenced by a @filepath{.desktop}
-        file (if any); a @racket['png] value takes precedence over a
-        @racket['ico] value, but neither is used unless a
-        @racket['desktop] value is also present.}
+  @item{@racket['png]（Unix）：图标文件路径（后缀
+        @filepath{.png}），供 @filepath{.desktop} 文件（如果有）
+        引用；@racket['png] 值优先于 @racket['ico] 值，
+        但除非同时存在 @racket['desktop] 值，否则两者都不会被使用。}
 
-  @item{@racket['ico] (Unix, in addition to more general Windows use)
-        : An icon file path (suffix @filepath{.ico}) that is used in
-        the same way as @racket['png] if no @racket['png] value is
-        available.}
+  @item{@racket['ico]（Unix，此外也供更通用的 Windows 使用）
+        ：图标文件路径（后缀 @filepath{.ico}），在没有
+        @racket['png] 值时以与 @racket['png] 相同的方式使用。}
 
 ]
 
-For Unix/X, the script created by @racket[make-mred-launcher] detects
-and handles X Windows flags specially when they appear as the initial
-arguments to the script. Instead of appending these arguments to the
-end of @racket[args], they are spliced in after any X Windows flags
-already listed in @racket[args]. The remaining arguments (i.e.,
-all script flags and arguments after the last X Windows flag or
-argument) are then appended after the spliced @racket[args].
+对于 Unix/X，@racket[make-mred-launcher] 创建的 script 会检测并特别处理
+X Windows 标志，前提是它们作为 script 的初始参数出现。这些参数不会被附加到
+@racket[args] 的末尾，而是拼接在 @racket[args] 中已列出的任何 X Windows
+标志之后。剩余的参数（即最后一个 X Windows 标志或参数之后的所有
+script 标志和参数）然后再被附加到拼接后的 @racket[args] 之后。
 
-The @racket[tether-mode] argument indicates how much to preserve the
-current installation's tethering to a configuration directory and/or
-addon directory based on @racket[(find-addon-tether-console-bin-dir)]
-and @racket[(find-config-tether-console-bin-dir)]. The @racket['addon]
-mode allows full tethering, the @racket['config] mode allows only
-configuration-directory tethering, and the @racket[#f] mode disables
-tethering.
+@racket[tether-mode] 参数指示了基于 @racket[(find-addon-tether-console-bin-dir)]
+和 @racket[(find-config-tether-console-bin-dir)] 保留当前安装对一个配置目录和/或
+addon 目录的绑定程度。@racket['addon] 模式允许完全绑定，
+@racket['config] 模式仅允许配置目录绑定，@racket[#f] 模式则禁用绑定。
 
-@history[#:changed "6.5.0.2" @elem{Added the @racket[#:tether-mode] argument.}]}
+@history[#:changed "6.5.0.2" @elem{添加了 @racket[#:tether-mode] 参数。}]}
 
 
 @defproc[(make-racket-launcher [args (listof string?)]
@@ -170,8 +147,8 @@ tethering.
                                [aux (listof (cons/c symbol? any/c)) null])
          void?]{
 
-Like @racket[make-gracket-launcher], but for starting Racket. On Mac
-OS, the @racket['exe-name] @racket[aux] association is ignored.}
+类似于 @racket[make-gracket-launcher]，但用于启动 Racket。
+在 Mac OS 上，@racket['exe-name] @racket[aux] association 会被忽略。}
 
 
 @defproc[(make-gracket-program-launcher [file string?]
@@ -179,13 +156,12 @@ OS, the @racket['exe-name] @racket[aux] association is ignored.}
                                         [dest path-string?])
          void?]{
 
-Calls @racket[make-gracket-launcher] with arguments that start the
-GRacket program implemented by @racket[file] in @racket[collection]:
-@racket[(list "-l-" (string-append collection "/" file))]. The
-@racket[_aux] argument to @racket[make-gracket-launcher] is generated
-by stripping the suffix (if any) from @racket[file], adding it to the
-path of @racket[collection], and passing the result to
-@racket[build-aux-from-path].}
+调用 @racket[make-gracket-launcher]，使用在 @racket[collection]
+中启动 @racket[file] 实现的 GRacket 程序的参数：
+@racket[(list "-l-" (string-append collection "/" file))]。
+传递给 @racket[make-gracket-launcher] 的 @racket[_aux] 参数是
+通过从 @racket[file] 中剥离后缀（如果有），添加到 @racket[collection]
+的路径，然后将结果传递给 @racket[build-aux-from-path] 生成的。}
 
 
 @defproc[(make-racket-program-launcher [file string?]
@@ -193,8 +169,8 @@ path of @racket[collection], and passing the result to
                                        [dest path-string?])
         void?]{
 
-Like @racket[make-gracket-program-launcher], but for
-@racket[make-racket-launcher].}
+类似于 @racket[make-gracket-program-launcher]，但用于
+@racket[make-racket-launcher]。}
 
 
 @defproc[(install-gracket-program-launcher [file string?]
@@ -202,7 +178,7 @@ Like @racket[make-gracket-program-launcher], but for
                                           [name string?])
          void?]{
 
-Same as 
+等同于
 
 @racketblock[
 (make-gracket-program-launcher 
@@ -215,7 +191,7 @@ Same as
                                           [name string?])
          void?]{
 
-Same as 
+等同于
 
 @racketblock[
 (make-racket-program-launcher 
@@ -239,9 +215,8 @@ Same as
          void?]
 )]{
 
-Backward-compatible version of @racket[make-gracket-launcher], etc.,
-that adds @racket["-I" "scheme/gui/init"] to the start of the
-command-line arguments.}
+@racket[make-gracket-launcher] 等的向后兼容版本，会在命令行参数开头
+添加 @racket["-I" "scheme/gui/init"]。}
 
 @deftogether[(
 @defproc[(make-mzscheme-launcher [args (listof string?)]
@@ -258,9 +233,8 @@ command-line arguments.}
          void?]
 )]{
 
-Backward-compatible version of @racket[make-racket-launcher], etc.,
-that adds @racket["-I" "scheme/init"] to the start of the command-line
-arguments.}
+@racket[make-racket-launcher] 等的向后兼容版本，会在命令行参数开头
+添加 @racket["-I" "scheme/init"]。}
 
 @; ----------------------------------------------------------------------
 
@@ -272,39 +246,35 @@ arguments.}
                                         [#:console? console? any/c #f])
          path?]{
 
-Returns a pathname for an executable called something like @racket[name]
-in
+返回一个可执行文件的路径名，其名称类似于 @racket[name]，
+位于
 
 @itemlist[
 
- @item{the Racket installation --- when @racket[user?] is @racket[#f]
-       and @racket[tethered?] is @racket[#f];}
+ @item{Racket 安装中 --- 当 @racket[user?] 是 @racket[#f]
+       且 @racket[tethered?] 是 @racket[#f]；}
 
- @item{the user's Racket executable directory --- when @racket[user?]
-       is @racket[#t] and @racket[tethered?] is @racket[#f];}
+ @item{用户的 Racket 可执行文件目录 --- 当 @racket[user?]
+       是 @racket[#t] 且 @racket[tethered?] 是 @racket[#f]；}
 
- @item{an additional executable directory for executables tethered to a
-       particular configuration directory --- when @racket[user?] is
-       @racket[#f] and @racket[tethered?] is @racket[#t]; or}
+ @item{绑定到特定配置目录的可执行文件的附加可执行文件目录
+       --- 当 @racket[user?] 是 @racket[#f]
+       且 @racket[tethered?] 是 @racket[#t]；或者}
 
- @item{an additional executable directory for executables tethered to
-       a particular addon and configuration directory --- when
-       @racket[user?] is @racket[#t] and @racket[tethered?] is
-       @racket[#t].}
+ @item{绑定到特定 addon 和配置目录的可执行文件的附加可执行文件目录
+       --- 当 @racket[user?] 是 @racket[#t]
+       且 @racket[tethered?] 是 @racket[#t]。}
 
 ]
 
-For Windows, the @filepath{.exe}
-suffix is automatically appended to @racket[name]. For Unix,
-@racket[name] is changed to lowercase, whitespace is changed to
-@litchar{-}, and the path includes the @filepath{bin} subdirectory of
-the Racket installation. For Mac OS, the @filepath{.app} suffix
-is appended to @racket[name].
+对于 Windows，@filepath{.exe} 后缀会自动附加到 @racket[name]。
+对于 Unix，@racket[name] 会改为小写，空白会更改为
+@litchar{-}，路径包含 Racket 安装的 @filepath{bin} 子目录。
+对于 Mac OS，@filepath{.app} 后缀会被附加到 @racket[name]。
 
-If @racket[console?] is true, then the path is in the console
-executable directory, such as the one reported by
-@racket[(find-console-bin-dir)], instead of the GUI executable
-directory, such as the one reported by @racket[(find-gui-bin-dir)].
+如果 @racket[console?] 为 true，则路径在 console 可执行文件目录
+中，如 @racket[(find-console-bin-dir)] 所报告的那样，而不是 GUI
+可执行文件目录，如 @racket[(find-gui-bin-dir)] 所报告的那样。
 
 @history[#:changed "6.5.0.2" @elem{Added the @racket[#:tethered?] argument.}
          #:changed "6.8.0.2"  @elem{Added the @racket[#:console?] argument.}]}
@@ -316,7 +286,7 @@ directory, such as the one reported by @racket[(find-gui-bin-dir)].
                                         [#:console? console? any/c #f])
          path?]{
 
-Returns the same path as @racket[(gracket-program-launcher-path name #:user? user? #:tethered tethered? #:console? console?)].
+返回与 @racket[(gracket-program-launcher-path name #:user? user? #:tethered tethered? #:console? console?)] 相同的路径。
 
 @history[#:changed "6.5.0.2" @elem{Added the @racket[#:tethered?] argument.}
          #:changed "6.8.0.2"  @elem{Added the @racket[#:console?] argument.}]}
@@ -324,39 +294,36 @@ Returns the same path as @racket[(gracket-program-launcher-path name #:user? use
 
 @defproc[(gracket-launcher-is-directory?) boolean?]{
 
-Returns @racket[#t] if GRacket launchers for the current platform are
-directories from the user's perspective. For all currently supported
-platforms, the result is @racket[#f].}
+如果从用户的角度来看当前平台的 GRacket launcher 是目录，
+则返回 @racket[#t]。对于所有当前支持的平台，结果都是 @racket[#f]。}
 
 
 @defproc[(racket-launcher-is-directory?) boolean?]{
 
-Like @racket[gracket-launcher-is-directory?], but for Racket
-launchers.}
+类似于 @racket[gracket-launcher-is-directory?]，但用于 Racket
+launcher。}
 
 
 @defproc[(gracket-launcher-is-actually-directory?) boolean?]{
 
-Returns @racket[#t] if GRacket launchers for the current platform are
-implemented as directories from the filesystem's perspective. The
-result is @racket[#t] for Mac OS, @racket[#f] for all other
-platforms.}
+如果从文件系统角度来看当前平台的 GRacket launcher
+实现为目录，则返回 @racket[#t]。结果为 @racket[#t]
+表示是 Mac OS，@racket[#f] 表示是其他平台。}
 
 
 @defproc[(racket-launcher-is-actually-directory?) boolean?]{
 
-Like @racket[gracket-launcher-is-actually-directory?], but for Racket
-launchers. The result is @racket[#f] for all platforms.}
+类似于 @racket[gracket-launcher-is-actually-directory?]，但用于 Racket
+launcher。结果对所有平台都是 @racket[#f]。}
 
 
 @defproc[(gracket-launcher-add-suffix [path-string? path]) path?]{
 
-Returns a path with a suitable executable suffix added, if it's not
-present already.}
+返回添加了合适可执行文件后缀的路径（如果尚未存在）。}
 
 @defproc[(racket-launcher-add-suffix [path-string? path]) path?]{
 
-Like @racket[gracket-launcher-add-suffix], but for Racket launchers.}
+类似于 @racket[gracket-launcher-add-suffix]，但用于 Racket launcher。}
 
 
 @defproc[(gracket-launcher-put-file-extension+style+filters)
@@ -364,14 +331,13 @@ Like @racket[gracket-launcher-add-suffix], but for Racket launchers.}
                  (listof (or/c 'packages 'enter-packages))
                  (listof (list/c string? string?)))]{
 
-Returns three values suitable for use as the @racket[extension],
-@racket[style], and @racket[filters] arguments to @racket[put-file],
-respectively.
+返回三个值，分别适合用作 @racket[put-file] 的 @racket[extension]、
+@racket[style] 和 @racket[filters] 参数。
 
-If GRacket launchers for the current platform were directories from the
-user's perspective, the @racket[style] result is suitable for use with
-@racket[get-directory], and the @racket[extension] result may be a
-string indicating a required extension for the directory name. }
+如果当前平台的 GRacket launcher 从用户的角度来看是目录，那么
+@racket[style] 结果适合与 @racket[get-directory] 一起使用，
+而 @racket[extension] 结果可能是一个字符串，指示目录名所需
+的扩展名。}
 
 
 @defproc[(racket-launcher-put-file-extension+style+filters)
@@ -379,8 +345,8 @@ string indicating a required extension for the directory name. }
                  (listof (or/c 'packages 'enter-packages))
                  (listof (list/c string? string?)))]{
 
-Like @racket[gracket-launcher-get-file-extension+style+filters], but for
-Racket launchers.}
+类似于 @racket[gracket-launcher-put-file-extension+style+filters]，但用于
+Racket launcher。}
 
 @deftogether[(
 @defproc[(mred-program-launcher-path [name string?] [#:user? user? any/c #f] [#:tethered? tethered? any/c #f]) path?]
@@ -393,8 +359,7 @@ Racket launchers.}
                  (listof (list/c string? string?)))]
 )]{
 
-Backward-compatible aliases for
-@racket[gracket-program-launcher-path], etc.
+@racket[gracket-program-launcher-path] 等的向后兼容别名。
 
 @history[#:changed "6.5.0.2" @elem{Added the @racket[#:tethered?] argument.}]}
 
@@ -409,8 +374,7 @@ Backward-compatible aliases for
                  (listof (list/c string? string?)))]
 )]{
 
-Backward-compatible aliases for
-@racket[racket-program-launcher-path], etc.
+@racket[racket-program-launcher-path] 等的向后兼容别名。
 
 @history[#:changed "6.5.0.2" @elem{Added the @racket[#:tethered?] argument.}]}
 
@@ -418,16 +382,14 @@ Backward-compatible aliases for
 @defproc[(installed-executable-path->desktop-path [exec-path path-string?] [user? any/c] [tethered? any/c])
          (or/c (and/c path? complete-path?) #f)]{
 
-Returns a path for a @filepath{.desktop} file to describe the
-installed executable at @racket[exec-path]. Only the filename part of
-@racket[exec-path] is used. The @racket[user?] argument should be true
-if @racket[exec-path] is installed in a user-specific location (in
-which case the result path will also be user-specific). The
-@racket[tethered?] argument should be true for a @tech{tethered}
-install. The result can be @racket[#f] only when @racket[tethered?] is
-true and @racket[find-addon-tethered-apps-dir] (when @racket[user?] is
-true) or @racket[find-config-tethered-apps-dir] (when @racket[user?] is
-@racket[#f]) returns @racket[#f].
+返回一个 @filepath{.desktop} 文件的路径，用于描述安装在 @racket[exec-path]
+的可执行文件。只使用 @racket[exec-path] 的文件名部分。如果 @racket[exec-path]
+安装在用户特定位置，@racket[user?] 参数应为 true（在这种情况下，
+返回的路径也将是用户特定的）。对于 @tech{tethered} 安装，
+@racket[tethered?] 参数应为 true。只有当 @racket[tethered?] 为 true
+且 @racket[find-addon-tethered-apps-dir]（当 @racket[user?] 为 true 时）
+或 @racket[find-config-tethered-apps-dir]（当 @racket[user?] 为 @racket[#f] 时）
+返回 @racket[#f] 时，结果才可能为 @racket[#f]。
 
 @history[#:changed "8.3.0.11" @elem{Added the @racket[tethered?] argument.}]}
 
@@ -437,13 +399,11 @@ true) or @racket[find-config-tethered-apps-dir] (when @racket[user?] is
                                             [suffix bytes?])
          (and/c path? complete-path?)]{
 
-Returns a path for an icon file to be referenced by the
-@filepath{desktop} file at @racket[desktop-path]. Only the filename
-part of @racket[desktop-path] is used. The @racket[user?] argument
-should be true if @racket[desktop-path] is installed in a
-user-specific location (in which case the result path will also be
-user-specific).  The @racket[suffix] argument provides the icon-file
-suffix, normally either @racket[#"png"] or @racket[#"ico"].}
+返回一个图标文件的路径，供 @racket[desktop-path] 处的 @filepath{desktop}
+文件引用。只使用 @racket[desktop-path] 的文件名部分。如果 @racket[desktop-path]
+安装在用户特定位置，@racket[user?] 参数应为 true（在这种情况下，
+返回的路径也将是用户特定的）。@racket[suffix] 参数提供图标文件后缀，
+通常为 @racket[#"png"] 或 @racket[#"ico"]。}
 
 @; ----------------------------------------------------------------------
 
@@ -453,37 +413,33 @@ suffix, normally either @racket[#"png"] or @racket[#"ico"].}
                                     [aux (listof (cons/c symbol? any/c))])
          boolean?]{
 
-Returns @racket[#t] if the GRacket launcher @racket[dest] does not need
-to be updated, assuming that @racket[dest] is a launcher and its
-arguments have not changed.}
+假设 @racket[dest] 是一个 launcher 且其参数未更改，
+如果 @racket[dest] 处的 GRacket launcher 不需要更新，
+则返回 @racket[#t]。}
 
 @defproc[(racket-launcher-up-to-date? [dest path-string?]
                                         [aux (listof (cons/c symbol? any/c))])
          boolean?]{
 
-Analogous to @racket[gracket-launcher-up-to-date?], but for a Racket
-launcher.}
+类似于 @racket[gracket-launcher-up-to-date?]，但用于 Racket launcher。}
 
 @defproc[(build-aux-from-path [path path-string?])
          (listof (cons/c symbol? any/c))]{
 
-Creates an association list suitable for use with
-@racket[make-gracket-launcher] or
-@racket[create-embedding-executable].  It builds associations by
-adding to @racket[path] suffixes, such as @filepath{.icns}, checking
-whether such a file exists, and calling @racket[extract-aux-from-path]
-if so. The results from all recognized suffixes are appended
-together.}
+创建一个适合与 @racket[make-gracket-launcher] 或
+@racket[create-embedding-executable] 一起使用的 association list。
+它通过向 @racket[path] 添加后缀（如 @filepath{.icns}），
+检查此类文件是否存在，如果存在则调用 @racket[extract-aux-from-path]
+来构建 association。所有已识别后缀的结果会被附加在一起。}
 
 
 @defproc[(extract-aux-from-path [path path-string?])
          (listof (cons/c symbol? any/c))]{
 
-Creates an association list suitable for use with
-@racket[make-gracket-launcher] or
-@racket[create-embedding-executable].  It builds associations by
-recognizing the suffix of @racket[path], where the recognized suffixes
-are as follows:
+创建一个适合与 @racket[make-gracket-launcher] 或
+@racket[create-embedding-executable] 一起使用的 association list。
+它通过识别 @racket[path] 的后缀来构建 association，
+已识别的后缀如下：
 
 @itemize[
 
@@ -531,27 +487,25 @@ are as follows:
 
 @defparam[current-launcher-variant variant symbol?]{
 
-A parameter that indicates a variant of Racket or GRacket to use for
-launcher creation and for generating launcher names. The default is
-the result of @racket[(system-type 'gc)]. On Unix and Windows, the
-possibilities are @racket['cgc], @racket['3m], and @racket['cs]. On Mac OS, the
-@racket['script-cgc], @racket['script-3m], and @racket['script-cs] variants are also
-available for GRacket launchers.}
+一个参数，指示用于 launcher 创建和生成 launcher 名称的 Racket 或 GRacket
+的变体。默认值是 @racket[(system-type 'gc)] 的结果。在 Unix 和 Windows
+上，可以使用的值有 @racket['cgc]、@racket['3m] 和 @racket['cs]。
+在 Mac OS 上，@racket['script-cgc]、@racket['script-3m] 和
+@racket['script-cs] 变体也可用于 GRacket launcher。}
 
 @defproc[(available-gracket-variants) (listof symbol?)]{
 
-Returns a list of symbols corresponding to available variants of GRacket
-in the current Racket installation. The list normally includes at
-least one of @racket['3m], @racket['cgc], or @racket['cs]--- whichever is the result
-of @racket[(system-type 'gc)]---and may include the others, as well as
-@racket['script-3m], @racket['script-cgc], and/or @racket['script-cs] on Mac OS.}
+返回一个 symbol 的 list，对应于当前 Racket 安装中可用的 GRacket 变体。
+该 list 通常至少包含 @racket['3m]、@racket['cgc] 或 @racket['cs] 中的一个
+（即 @racket[(system-type 'gc)] 的结果），也可能包含其他项，
+在 Mac OS 上还有 @racket['script-3m]、@racket['script-cgc]
+和/或 @racket['script-cs]。}
 
 @defproc[(available-racket-variants) (listof symbol?)]{
 
-Returns a list of symbols corresponding to available variants of
-Racket in the current Racket installation. The list normally
-includes at least one of @racket['3m], @racket['cgc], or @racket['cs]---whichever is
-the result of @racket[(system-type 'gc)]---and may include the others.}
+返回一个 symbol 的 list，对应于当前 Racket 安装中可用的 Racket 变体。
+该 list 通常至少包含 @racket['3m]、@racket['cgc] 或 @racket['cs] 中的一个
+（即 @racket[(system-type 'gc)] 的结果），也可能包含其他项。}
 
 @deftogether[(
 @defproc[(mred-launcher-up-to-date? [dest path-string?]
@@ -563,8 +517,7 @@ the result of @racket[(system-type 'gc)]---and may include the others.}
 @defproc[(available-mred-variants) (listof symbol?)]
 @defproc[(available-mzscheme-variants) (listof symbol?)]
 )]{
-Backward-compatible aliases for
-@racket[gracket-launcher-up-to-date?], etc.}
+@racket[gracket-launcher-up-to-date?] 等的向后兼容别名。}
 
 
 @; ----------------------------------------
@@ -575,7 +528,7 @@ Backward-compatible aliases for
 
 @defsignature/splice[launcher^ ()]{
 
-Includes the identifiers provided by @racketmodname[launcher/launcher].}
+包含 @racketmodname[launcher/launcher] 提供的 identifier。}
 
 @; ----------------------------------------
 
@@ -585,4 +538,4 @@ Includes the identifiers provided by @racketmodname[launcher/launcher].}
 
 @defthing[launcher@ unit?]{
 
-A unit that imports nothing and exports @racket[launcher^].}
+不导入任何内容，只导出 @racket[launcher^] 的 unit。}
