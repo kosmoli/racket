@@ -4,25 +4,16 @@
           (for-label racket/hash-code))
 
 
-@title{Equality}
+@title{相等性}
 
 
-Equality is the concept of whether two values are ``the same.'' Racket supports
-a few different kinds of equality by default, although @racket[equal?] is
-preferred for most uses.
+相等性是关于两个值是否"相同"的概念。Racket 默认支持几种不同的相等性，尽管 @racket[equal?] 在大多数情况下是首选。
 
 @defproc[(equal? [v1 any/c] [v2 any/c]) boolean?]{
 
- Two values are @racket[equal?] if and only if they are @racket[eqv?],
- unless otherwise specified for a particular datatype.
+ 两个值 @racket[equal?] 当且仅当它们是 @racket[eqv?]，除非特定数据类型另有规定。
 
- Datatypes with further specification of @racket[equal?] include
- strings, byte strings, pairs, mutable pairs, vectors, boxes, hash
- tables, and inspectable structures. In the last six cases, equality
- is recursively defined; if both @racket[v1] and @racket[v2] contain
- reference cycles, they are equal when the infinite unfoldings of the
- values would be equal. See also @racket[gen:equal+hash] and
- @racket[prop:impersonator-of].
+ 对 @racket[equal?] 有进一步规范的数据类型包括字符串、字节串、对、可变对、向量、box、hash table 和可检查的结构。在后六种情况下，相等性是递归定义的；如果 @racket[v1] 和 @racket[v2] 都包含引用循环，则当值的无限展开相等时它们相等。另见 @racket[gen:equal+hash] 和 @racket[prop:impersonator-of]。
 
  @(examples
    (equal? 'yes 'yes)
@@ -37,32 +28,17 @@ preferred for most uses.
    (equal? #t #t))}
 
 
-For equality on user-defined structure types, see
-@secref["trans-struct" #:doc '(lib "scribblings/guide/guide.scrbl")].
+对于用户定义结构类型的相等性，参见 @secref["trans-struct" #:doc '(lib "scribblings/guide/guide.scrbl")]。
 
 
 @defproc[(equal-always? [v1 any/c] [v2 any/c]) boolean?]{
 
- Indicates whether @racket[v1] and @racket[v2] are equal and will always stay
- equal independent of @emph{mutations}. Generally, for two values to be equal-always, corresponding
- immutable values within @racket[v1] and @racket[v2] must be @racket[equal?],
- while corresponding mutable values within them must be @racket[eq?].
- @margin-note*{Precedents for this operator in other languages include
- @tt{egal} @cite["Baker93"].}
+ 指示 @racket[v1] 和 @racket[v2] 是否相等并且将始终独立于@emph{修改}而保持相等。通常，要使两个值 equal-always，@racket[v1] 和 @racket[v2] 中对应的不可变值必须是 @racket[equal?]，而其中对应的可变值必须是 @racket[eq?]。
+ @margin-note*{此运算符在其他语言中的先例包括 @tt{egal} @cite["Baker93"]。}
 
- Two values @racket[v1] and @racket[v2] are @racket[equal-always?] if and only
- if there exists a third value @racket[_v3] such that @racket[v1] and
- @racket[v2] are both chaperones of @racket[_v3], meaning
- @racket[(chaperone-of? v1 _v3)] and @racket[(chaperone-of? v2 _v3)] are both
- true.
+ 两个值 @racket[v1] 和 @racket[v2] @racket[equal-always?] 当且仅当存在第三个值 @racket[_v3] 使得 @racket[v1] 和 @racket[v2] 都是 @racket[_v3] 的 chaperone，即 @racket[(chaperone-of? v1 _v3)] 和 @racket[(chaperone-of? v2 _v3)] 都为真。
 
- For values that include no chaperones or other impersonators,
- @racket[v1] and @racket[v2] can be considered equal-always
- if they are @racket[equal?], except that corresponding mutable
- vectors, boxes, hash tables, strings, byte strings, @tech{mutable pairs}, and
- mutable structures within
- @racket[v1] and @racket[v2] must be @racket[eq?], and equality on structures
- can be specialized for @racket[equal-always?] through @racket[gen:equal-mode+hash].
+ 对于不包含 chaperone 或其他 impersonator 的值，@racket[v1] 和 @racket[v2] 如果 @racket[equal?] 则可被视为 equal-always，除了 @racket[v1] 和 @racket[v2] 中对应的可变向量、box、hash table、字符串、字节串、@tech{mutable pairs} 和可变结构必须是 @racket[eq?]，并且结构上的相等性可以通过 @racket[gen:equal-mode+hash] 为 @racket[equal-always?] 进行特化。
 
  @(examples
    (equal-always? 'yes 'yes)
@@ -84,21 +60,11 @@ For equality on user-defined structure types, see
 
 @defproc[(eqv? [v1 any/c] [v2 any/c]) boolean?]{
 
- Two values are @racket[eqv?] if and only if they are @racket[eq?],
- unless otherwise specified for a particular datatype.
+ 两个值 @racket[eqv?] 当且仅当它们是 @racket[eq?]，除非特定数据类型另有规定。
 
- The @tech{number} datatypes are the only ones for which
- @racket[eqv?] differs from @racket[eq?]. Two numbers are @racket[eqv?] when
- they have the same exactness, precision, and are both equal and non-zero, both
- @racketvalfont{+0.0}, both @racketvalfont{+0.0f0}, both @racketvalfont{-0.0},
- both @racketvalfont{-0.0f0}, both @racketvalfont{+nan.0}, or both
- @racketvalfont{+nan.f}---considering real and imaginary components separately
- in the case of @tech{complex numbers}.
+ @tech{number} 数据类型是唯一 @racket[eqv?] 与 @racket[eq?] 不同的类型。两个数字 @racket[eqv?] 当它们具有相同的精确度、精度，并且都相等且非零，都是 @racketvalfont{+0.0}，都是 @racketvalfont{+0.0f0}，都是 @racketvalfont{-0.0}，都是 @racketvalfont{-0.0f0}，都是 @racketvalfont{+nan.0}，或都是 @racketvalfont{+nan.f}——在 @tech{complex numbers} 的情况下分别考虑实部和虚部。
 
- Generally, @racket[eqv?] is identical to @racket[equal?] except that the former
- cannot recursively compare the contents of compound data types (such as lists
- and structs) and cannot be customized by user-defined data types. The use of
- @racket[eqv?] is lightly discouraged in favor of @racket[equal?].
+ 通常，@racket[eqv?] 与 @racket[equal?] 相同，除了前者不能递归地比较复合数据类型（如列表和 struct）的内容，也不能由用户定义的数据类型自定义。不太推荐使用 @racket[eqv?]，建议使用 @racket[equal?]。
 
  @(examples
    (eqv? 'yes 'yes)
@@ -119,10 +85,7 @@ For equality on user-defined structure types, see
 
 @defproc[(eq? [v1 any/c] [v2 any/c]) boolean?]{
 
- Return @racket[#t] if @racket[v1] and @racket[v2] refer to the same
- object, @racket[#f] otherwise. As a special case among @tech{numbers},
- two @tech{fixnums} that are @racket[=] are also the same according
- to @racket[eq?]. See also @secref["model-eq"].
+ 如果 @racket[v1] 和 @racket[v2] 引用相同的对象则返回 @racket[#t]，否则返回 @racket[#f]。作为 @tech{numbers} 中的特殊情况，两个 @racket[=] 的 @tech{fixnums} 根据 @racket[eq?] 也是相同的。另见 @secref["model-eq"]。
 
  @(examples
    (eq? 'yes 'yes)
@@ -141,11 +104,7 @@ For equality on user-defined structure types, see
  (equal?/recur [v1 any/c] [v2 any/c] [recur-proc (any/c any/c . -> . any/c)])
  boolean?]{
 
- Like @racket[equal?], but using @racket[recur-proc] for recursive
- comparisons (which means that reference cycles are not handled
- automatically). Non-@racket[#f] results from @racket[recur-proc] are
- converted to @racket[#t] before being returned by
- @racket[equal?/recur].
+ 类似于 @racket[equal?]，但使用 @racket[recur-proc] 进行递归比较（这意味着引用循环不会自动处理）。来自 @racket[recur-proc] 的非 @racket[#f] 结果在由 @racket[equal?/recur] 返回之前被转换为 @racket[#t]。
 
  @(examples
    (equal?/recur 1 1 (lambda (a b) #f))
@@ -158,11 +117,7 @@ For equality on user-defined structure types, see
  (equal-always?/recur [v1 any/c] [v2 any/c] [recur-proc (any/c any/c . -> . any/c)])
  boolean?]{
 
- Like @racket[equal-always?], but using @racket[recur-proc] for recursive
- comparisons (which means that reference cycles are not handled
- automatically). Non-@racket[#f] results from @racket[recur-proc] are
- converted to @racket[#t] before being returned by
- @racket[equal-always?/recur].
+ 类似于 @racket[equal-always?]，但使用 @racket[recur-proc] 进行递归比较（这意味着引用循环不会自动处理）。来自 @racket[recur-proc] 的非 @racket[#f] 结果在由 @racket[equal-always?/recur] 返回之前被转换为 @racket[#t]。
 
  @(examples
    (equal-always?/recur 1 1 (lambda (a b) #f))
@@ -171,56 +126,27 @@ For equality on user-defined structure types, see
                         (lambda (a b) (<= (abs (- a b)) 0.25))))}
 
 
-@section[#:tag "model-eq"]{Object Identity and Comparisons}
+@section[#:tag "model-eq"]{对象标识与比较}
 
 
-The @racket[eq?] operator compares two @tech{values}, returning
-@racket[#t] when the values refer to the same @tech{object}. This form
-of equality is suitable for comparing objects that support imperative
-update (e.g., to determine that the effect of modifying an object
-through one reference is visible through another reference). Also, an
-@racket[eq?] test evaluates quickly, and @racket[eq?]-based hashing
-is more lightweight than @racket[equal?]-based hashing in hash tables.
+@racket[eq?] 运算符比较两个 @tech{values}，当值引用相同的 @tech{object} 时返回 @racket[#t]。这种相等性形式适用于比较支持命令式更新的对象（例如，确定通过一个引用修改对象的效果通过另一个引用可见）。此外，@racket[eq?] 测试求值很快，在 hash table 中基于 @racket[eq?] 的哈希比基于 @racket[equal?] 的哈希更轻量。
 
-In some cases, however, @racket[eq?] is unsuitable as a comparison
-operator, because the generation of @tech{objects} is not clearly
-defined. In particular, two applications of @racket[+] to the same two
-exact integers may or may not produce results that are @racket[eq?],
-although the results are always @racket[equal?]. Similarly, evaluation
-of a @racket[lambda] form typically generates a new procedure
-@tech{object}, but it may re-use a procedure @tech{object} previously
-generated by the same source @racket[lambda] form.
+然而，在某些情况下，@racket[eq?] 不适合作为比较运算符，因为 @tech{objects} 的生成没有明确定义。特别是，对相同的两个精确整数应用两次 @racket[+] 可能产生也可能不产生 @racket[eq?] 的结果，尽管结果始终是 @racket[equal?]。类似地，对 @racket[lambda] 形式的求值通常生成新的过程 @tech{object}，但它可能重用先前由相同源码 @racket[lambda] 形式生成的过程 @tech{object}。
 
-The behavior of a datatype with respect to @racket[eq?] is generally
-specified with the datatype and its associated procedures.
+数据类型关于 @racket[eq?] 的行为通常随该数据类型及其关联过程一起指定。
 
 
-@section{Equality and Hashing}
+@section{相等性与哈希}
 
 
-All comparable values have at least one @deftech{hash code} --- an arbitrary
-integer (more specifically a @tech{fixnum}) computed by applying a hash function
-to the value. The defining property of these hash codes is that @bold{equal
- values have equal hash codes}. Note that the reverse is not true: two unequal
-values can still have equal hash codes. Hash codes are useful for various
-indexing and comparison operations, especially in the implementation of
-@tech{hash tables}. See @secref["hashtables"] for more information.
+所有可比较的值至少有一个 @deftech{hash code}——一个通过对值应用哈希函数计算出的任意整数（更具体地说是 @tech{fixnum}）。这些哈希码的定义属性是@bold{相等的值具有相等的哈希码}。注意反过来并不成立：两个不相等的值仍然可以有相等的哈希码。哈希码对各种索引和比较操作很有用，特别是在 @tech{hash tables} 的实现中。更多信息参见 @secref["hashtables"]。
 
 
 @defproc[(equal-hash-code [v any/c]) fixnum?]{
 
- Returns a @tech{hash code} consistent with @racket[equal?]. For any two calls
- with @racket[equal?] values, the returned number is the same. A hash code is
- computed even when @racket[v] contains a cycle through pairs, vectors, boxes,
- and/or inspectable structure fields. Additionally, user-defined data types can
- customize how this hash code is computed by implementing
- @racket[gen:equal+hash] or @racket[gen:equal-mode+hash].
+ 返回与 @racket[equal?] 一致的 @tech{hash code}。对于任意两次使用 @racket[equal?] 值的调用，返回的数字相同。即使 @racket[v] 包含通过对、向量、box 和/或可检查结构字段的循环，也能计算哈希码。此外，用户定义的数据类型可以通过实现 @racket[gen:equal+hash] 或 @racket[gen:equal-mode+hash] 来自定义如何计算此哈希码。
 
- For any @racket[v] that could be produced by @racket[read], if @racket[v2] is
- produced by @racket[read] for the same input characters, the
- @racket[(equal-hash-code v)] is the same as @racket[(equal-hash-code v2)] ---
- even if @racket[v] and @racket[v2] do not exist at the same time (and therefore
- could not be compared by calling @racket[equal?]).
+ 对于任何可能由 @racket[read] 产生的 @racket[v]，如果 @racket[v2] 是由 @racket[read] 对相同输入字符产生的，则 @racket[(equal-hash-code v)] 与 @racket[(equal-hash-code v2)] 相同——即使 @racket[v] 和 @racket[v2] 不同时存在（因此无法通过调用 @racket[equal?] 进行比较）。
 
  @history[
  #:changed "6.4.0.12"
@@ -228,8 +154,7 @@ indexing and comparison operations, especially in the implementation of
 
 @defproc[(equal-hash-code/recur [v any/c] [recur-proc (-> any/c exact-integer?)])
          fixnum?]{
- Like @racket[equal-hash-code], but using @racket[recur-proc] for recursive
- hashing within @racket[v].
+ 类似于 @racket[equal-hash-code]，但使用 @racket[recur-proc] 对 @racket[v] 内部进行递归哈希。
 
  @examples[
    (define (rational-hash x)
@@ -246,148 +171,74 @@ indexing and comparison operations, especially in the implementation of
 
 @defproc[(equal-secondary-hash-code [v any/c]) fixnum?]{
 
- Like @racket[equal-hash-code], but computes a secondary @tech{hash code}
- suitable for use in double hashing.}
+ 类似于 @racket[equal-hash-code]，但计算适用于双重哈希的辅助 @tech{hash code}。}
 
 
 @defproc[(equal-always-hash-code [v any/c]) fixnum?]{
 
- Returns a @tech{hash code} consistent with @racket[equal-always?]. For any two
- calls with @racket[equal-always?] values, the returned number is the same.
+ 返回与 @racket[equal-always?] 一致的 @tech{hash code}。对于任意两次使用 @racket[equal-always?] 值的调用，返回的数字相同。
 
- As @racket[equal-always-hash-code] traverses @racket[v], immutable
- values within @racket[v] are hashed with @racket[equal-hash-code],
- while mutable values within @racket[v] are hashed with @racket[eq-hash-code].}
+ 当 @racket[equal-always-hash-code] 遍历 @racket[v] 时，@racket[v] 中的不可变值使用 @racket[equal-hash-code] 哈希，而 @racket[v] 中的可变值使用 @racket[eq-hash-code] 哈希。}
 
 
 @defproc[(equal-always-hash-code/recur [v any/c]
                                        [recur-proc (-> any/c exact-integer?)])
          fixnum?]{
- Like @racket[equal-always-hash-code], but using @racket[recur-proc] for
- recursive hashing within @racket[v].
+ 类似于 @racket[equal-always-hash-code]，但使用 @racket[recur-proc] 对 @racket[v] 内部进行递归哈希。
 
  @history[#:added "8.8.0.9"]}
 
 @defproc[(equal-always-secondary-hash-code [v any/c]) fixnum?]{
 
- Like @racket[equal-always-hash-code], but computes a secondary @tech{hash code}
- suitable for use in double hashing.}
+ 类似于 @racket[equal-always-hash-code]，但计算适用于双重哈希的辅助 @tech{hash code}。}
 
 
 @defproc[(eq-hash-code [v any/c]) fixnum?]{
 
- Returns a @tech{hash code} consistent with @racket[eq?]. For any two calls with
- @racket[eq?] values, the returned number is the same.
+ 返回与 @racket[eq?] 一致的 @tech{hash code}。对于任意两次使用 @racket[eq?] 值的调用，返回的数字相同。
 
- @margin-note{Equal @tech{fixnums} are always @racket[eq?].}}
+ @margin-note{相等的 @tech{fixnums} 始终是 @racket[eq?]。}}
 
 
 @defproc[(eqv-hash-code [v any/c]) fixnum?]{
 
- Returns a @tech{hash code} consistent with @racket[eqv?]. For any two calls
- with @racket[eqv?] values, the returned number is the same.}
+ 返回与 @racket[eqv?] 一致的 @tech{hash code}。对于任意两次使用 @racket[eqv?] 值的调用，返回的数字相同。}
 
 
-@section{Implementing Equality for Custom Types}
+@section{为自定义类型实现相等性}
 
 
 @defthing[gen:equal+hash any/c]{
- A @tech{generic interface} (see @secref["struct-generics"]) for types that can
- be compared for equality using @racket[equal?]. The following methods must be
- implemented:
+ 一个 @tech{generic interface}（参见 @secref["struct-generics"]），用于可以使用 @racket[equal?] 进行相等性比较的类型。必须实现以下方法：
 
  @itemize[
 
  @item{@racket[_equal-proc :
-               (any/c any/c (any/c any/c . -> . boolean?)  . -> . any/c)] ---
-   tests whether the first two arguments are equal, where both values are
-   instances of the structure type to which the generic interface is associated
-   (or a subtype of the structure type).
+               (any/c any/c (any/c any/c . -> . boolean?)  . -> . any/c)] ——
+   测试前两个参数是否相等，其中两个值都是与此 generic interface 关联的结构类型（或该结构类型的子类型）的实例。
 
-   The third argument is an @racket[equal?]  predicate to use for
-   recursive equality checks; use the given predicate instead of
-   @racket[equal?] to ensure that data cycles are handled
-   properly and to work with @racket[equal?/recur] (but beware
-   that an arbitrary function can be provided to
-   @racket[equal?/recur] for recursive checks, which means that
-   arguments provided to the predicate might be exposed to
-   arbitrary code).
+   第三个参数是用于递归相等性检查的 @racket[equal?] 谓词；使用给定的谓词而不是 @racket[equal?] 以确保正确处理数据循环并与 @racket[equal?/recur] 配合工作（但要注意，可以向 @racket[equal?/recur] 提供任意函数进行递归检查，这意味着提供给谓词的参数可能暴露给任意代码）。
 
-   The @racket[_equal-proc] is called for a pair of structures
-   only when they are not @racket[eq?], and only when they both
-   have a @racket[gen:equal+hash] value inherited from the same
-   structure type. With this strategy, the order in which
-   @racket[equal?] receives two structures does not matter. It
-   also means that, by default, a structure sub-type inherits the
-   equality predicate of its parent, if any.}
+   @racket[_equal-proc] 仅在一对结构不是 @racket[eq?] 时，并且仅当它们都具有从相同结构类型继承的 @racket[gen:equal+hash] 值时才会被调用。通过此策略，@racket[equal?] 接收两个结构的顺序无关紧要。这也意味着，默认情况下，结构子类型继承其父类型的相等性谓词（如果有的话）。}
 
  @item{@racket[_hash-proc :
-               (any/c (any/c . -> . exact-integer?) . -> . exact-integer?)] ---
-   computes a hash code for the given structure, like @racket[equal-hash-code].
-   The first argument is an instance of the structure type (or one of its
-   subtypes) to which the generic interface is associated.
+               (any/c (any/c . -> . exact-integer?) . -> . exact-integer?)] ——
+   为给定结构计算哈希码，类似于 @racket[equal-hash-code]。
+   第一个参数是与 generic interface 关联的结构类型（或其子类型之一）的实例。
 
-   The second argument is an @racket[equal-hash-code]-like procedure to use for
-   recursive hash-code computation; use the given procedure instead of
-   @racket[equal-hash-code] to ensure that data cycles are handled properly.
+   第二个参数是一个类似 @racket[equal-hash-code] 的过程，用于递归哈希码计算；使用给定的过程而不是 @racket[equal-hash-code] 以确保正确处理数据循环。
 
-   Although the result of @racket[_hash-proc] can be any exact
-   integer, it will be truncated for most purposes to a @tech{fixnum}
-   (e.g., for the result of @racket[equal-hash-code]). Roughly,
-   truncation uses @racket[bitwise-and] to take the lower bits of the
-   number. Thus, variation in the hash-code computation should be
-   reflected in the fixnum-compatible bits of @racket[_hash-proc]'s
-   result. Consumers of a hash code are expected to use variation
-   within the fixnum range appropriately, and producers are @emph{not}
-   responsible to reflect variation in hash codes across the full
-   range of bits that fit within a fixnum.}
+   虽然 @racket[_hash-proc] 的结果可以是任何精确整数，但在大多数情况下它会被截断为 @tech{fixnum}（例如，对于 @racket[equal-hash-code] 的结果）。大致上，截断使用 @racket[bitwise-and] 取数字的低位。因此，哈希码计算中的变化应反映在 @racket[_hash-proc] 结果的 fixnum 兼容位中。哈希码的消费者应在 fixnum 范围内适当地使用变化，而生产者@emph{不}负责在适合 fixnum 的完整位范围内反映哈希码的变化。}
 
  @item{@racket[_hash2-proc :
-               (any/c (any/c . -> . exact-integer?) . -> . exact-integer?)] ---
-   computes a secondary hash code for the given structure. This procedure is
-   like @racket[_hash-proc], but analogous to
-   @racket[equal-secondary-hash-code].}]
+               (any/c (any/c . -> . exact-integer?) . -> . exact-integer?)] ——
+   为给定结构计算辅助哈希码。此过程类似于 @racket[_hash-proc]，但类比于 @racket[equal-secondary-hash-code]。}]
 
- Take care to ensure that @racket[_hash-proc] and @racket[_hash2-proc]
- are consistent with @racket[_equal-proc]. Specifically,
- @racket[_hash-proc] and @racket[_hash2-proc] should produce the same
- value for any two structures for which @racket[_equal-proc] produces a
- true value.
+ 注意确保 @racket[_hash-proc] 和 @racket[_hash2-proc] 与 @racket[_equal-proc] 一致。具体来说，对于 @racket[_equal-proc] 产生真值的任意两个结构，@racket[_hash-proc] 和 @racket[_hash2-proc] 应该产生相同的值。
 
- The @racket[_equal-proc] is not only used for
- @racket[equal?], it is also used for @racket[equal?/recur],
- and @racket[impersonator-of?]. Furthermore, if the structure type
- has no mutable fields, @racket[_equal-proc] is used for @racket[equal-always?], and
- @racket[chaperone-of?]. Likewise @racket[_hash-proc] and
- @racket[_hash2-proc] are used for
- @racket[equal-always-hash-code] and
- @racket[equal-always-secondary-hash-code], respectively, when
- the structure type has no mutable fields.
- Instances of these methods should follow the guidelines in
- @secref["Honest_Custom_Equality"] to implement all of these
- operations reasonably. In particular, these methods should
- not access mutable data unless the struct is declared
- mutable.
+ @racket[_equal-proc] 不仅用于 @racket[equal?]，还用于 @racket[equal?/recur] 和 @racket[impersonator-of?]。此外，如果结构类型没有可变字段，@racket[_equal-proc] 也用于 @racket[equal-always?] 和 @racket[chaperone-of?]。同样，当结构类型没有可变字段时，@racket[_hash-proc] 和 @racket[_hash2-proc] 分别用于 @racket[equal-always-hash-code] 和 @racket[equal-always-secondary-hash-code]。这些方法的实例应遵循 @secref["Honest_Custom_Equality"] 中的指南，以合理地实现所有这些操作。特别是，除非 struct 被声明为可变的，否则这些方法不应访问可变数据。
 
- When a structure type has no @racket[gen:equal+hash] or
- @racket[gen:equal-mode+hash] implementation, then
- transparent structures (i.e., structures with an @tech{inspector} that
- is controlled by the current @tech{inspector}) are @racket[equal?]
- when they are instances of the same structure type (not counting
- sub-types), and when they have @racket[equal?] field values.  For
- transparent structures, @racket[equal-hash-code] and
- @racket[equal-secondary-hash-code] (in the case of no mutable fields)
- derive hash code using the field
- values. For a transparent structure type with at least one mutable field,
- @racket[equal-always?] is the same as @racket[eq?], and an
- @racket[equal-secondary-hash-code] result is based only on @racket[eq-hash-code].
- For opaque structure types, @racket[equal?] is the same as
- @racket[eq?], and @racket[equal-hash-code] and
- @racket[equal-secondary-hash-code] results are based only on
- @racket[eq-hash-code]. If a structure has a @racket[prop:impersonator-of]
- property, then the @racket[prop:impersonator-of] property takes precedence over
- @racket[gen:equal+hash] if the property value's procedure returns a
- non-@racket[#f] value when applied to the structure.
+ 当结构类型没有 @racket[gen:equal+hash] 或 @racket[gen:equal-mode+hash] 实现时，透明结构（即具有受当前 @tech{inspector} 控制的 @tech{inspector} 的结构）当它们是相同结构类型（不计入子类型）的实例且具有 @racket[equal?] 的字段值时是 @racket[equal?]。对于透明结构，@racket[equal-hash-code] 和 @racket[equal-secondary-hash-code]（在没有可变字段的情况下）使用字段值推导哈希码。对于至少有一个可变字段的透明结构类型，@racket[equal-always?] 与 @racket[eq?] 相同，@racket[equal-secondary-hash-code] 结果仅基于 @racket[eq-hash-code]。对于不透明结构类型，@racket[equal?] 与 @racket[eq?] 相同，@racket[equal-hash-code] 和 @racket[equal-secondary-hash-code] 结果仅基于 @racket[eq-hash-code]。如果结构具有 @racket[prop:impersonator-of] 属性，则当将该属性值的过程应用于结构时返回非 @racket[#f] 值，则 @racket[prop:impersonator-of] 属性优先于 @racket[gen:equal+hash]。
 
  @(examples
    (eval:no-prompt
@@ -431,38 +282,23 @@ indexing and comparison operations, especially in the implementation of
 
 
 @defthing[gen:equal-mode+hash any/c]{
- A @tech{generic interface} (see @secref["struct-generics"]) for types that
- may specify differences between @racket[equal?] and @racket[equal-always?].
- The following methods must be implemented:
+ 一个 @tech{generic interface}（参见 @secref["struct-generics"]），用于可能指定 @racket[equal?] 和 @racket[equal-always?] 之间差异的类型。必须实现以下方法：
 
  @itemlist[
 
  @item{@racket[_equal-mode-proc :
-               (any/c any/c (any/c any/c . -> . boolean?) boolean? . -> . any/c)] ---
-   the first two arguments are the values to compare, the third argument is an
-   equality function to use for recursive comparisons, and the last argument is
-   the mode: @racket[#t] for an @racket[equal?] or @racket[impersonator-of?]
-   comparison or @racket[#f] for an @racket[equal-always?] or
-   @racket[chaperone-of?] comparison.}
+               (any/c any/c (any/c any/c . -> . boolean?) boolean? . -> . any/c)] ——
+   前两个参数是要比较的值，第三个参数是用于递归比较的相等性函数，最后一个参数是模式：@racket[#t] 表示 @racket[equal?] 或 @racket[impersonator-of?] 比较，@racket[#f] 表示 @racket[equal-always?] 或 @racket[chaperone-of?] 比较。}
 
  @item{@racket[_hash-mode-proc :
-               (any/c (any/c . -> . exact-integer?) boolean? . -> . exact-integer?)] ---
-   the first argument is the value to compute a hash code for, the second
-   argument is a hashing function to use for recursive hashing, and the last
-   argument is the mode: @racket[#t] for @racket[equal?] hashing or @racket[#f]
-   for @racket[equal-always?] hashing.}]
+               (any/c (any/c . -> . exact-integer?) boolean? . -> . exact-integer?)] ——
+   第一个参数是要计算哈希码的值，第二个参数是用于递归哈希的哈希函数，最后一个参数是模式：@racket[#t] 表示 @racket[equal?] 哈希，@racket[#f] 表示 @racket[equal-always?] 哈希。}]
 
- The @racket[_hash-mode-proc] implementation is used both for a
- primary hash code and secondary hash code.
+ @racket[_hash-mode-proc] 实现同时用于主哈希码和辅助哈希码。
 
- When implementing these methods, follow the guidelines in
- @secref["Honest_Custom_Equality"]. In particular, these
- methods should only access mutable data if the ``mode'' argument
- is true to indicate @racket[equal?] or @racket[impersonator-of?].
+ 实现这些方法时，请遵循 @secref["Honest_Custom_Equality"] 中的指南。特别是，仅当 "mode" 参数为真以指示 @racket[equal?] 或 @racket[impersonator-of?] 时，这些方法才应访问可变数据。
 
- Implementing @racket[gen:equal-mode+hash] is most useful for types that
- specify differences between @racket[equal?] and @racket[equal-always?], such
- as a structure type that wraps mutable data with getter and setter procedures:
+ 实现 @racket[gen:equal-mode+hash] 对于指定 @racket[equal?] 和 @racket[equal-always?] 之间差异的类型最有用，例如使用 getter 和 setter 过程包装可变数据的结构类型：
  @(examples
    (define (get gs) ((getset-getter gs)))
    (define (set gs new) ((getset-setter gs) new))
@@ -494,20 +330,13 @@ indexing and comparison operations, especially in the implementation of
 
 @defthing[prop:equal+hash struct-type-property?]{
 
- A @tech{structure type property} (see @secref["structprops"])
- that supplies an equality predicate and hashing functions for a structure
- type. Using the @racket[prop:equal+hash] property is an alternative to
- using the @racket[gen:equal+hash] or @racket[gen:equal-mode+hash]
- @tech{generic interface}.
+ 一个 @tech{structure type property}（参见 @secref["structprops"]），为结构类型提供相等性谓词和哈希函数。使用 @racket[prop:equal+hash] 属性是使用 @racket[gen:equal+hash] 或 @racket[gen:equal-mode+hash] @tech{generic interface} 的替代方案。
 
- A @racket[prop:equal+hash] property value is a list of either three
- procedures @racket[(list _equal-proc _hash-proc _hash2-proc)] or two
- procedures @racket[(list _equal-mode-proc _hash-mode-proc)]:
+ @racket[prop:equal+hash] 属性值是一个列表，包含三个过程 @racket[(list _equal-proc _hash-proc _hash2-proc)] 或两个过程 @racket[(list _equal-mode-proc _hash-mode-proc)]：
 
  @itemlist[
 
-  @item{The three-procedure case corresponds to the procedures of
-        @racket[gen:equal+hash]:
+  @item{三过程情况对应于 @racket[gen:equal+hash] 的过程：
 
          @itemlist[
            @item{@racket[_equal-proc : (any/c any/c (any/c any/c . -> . boolean?)  . -> . any/c)]}
@@ -517,8 +346,7 @@ indexing and comparison operations, especially in the implementation of
            @item{@racket[_hash2-proc : (any/c (any/c . -> . exact-integer?) . -> . exact-integer?)]}
         ]}
 
-  @item{The two-procedure case corresponds to the procedures of
-  @racket[gen:equal-mode+hash]:
+  @item{两过程情况对应于 @racket[gen:equal-mode+hash] 的过程：
 
        @itemlist[
          @item{@racket[_equal-mode-proc : (any/c any/c (any/c any/c . -> . boolean?) boolean? . -> . any/c)]}
@@ -529,27 +357,15 @@ indexing and comparison operations, especially in the implementation of
 
 ]
 
-When implementing these methods, follow the guidelines in
-@secref["Honest_Custom_Equality"]. In particular, these
-methods should only access mutable data if the struct is
-declared mutable or the mode is true.
+实现这些方法时，请遵循 @secref["Honest_Custom_Equality"] 中的指南。特别是，仅当 struct 被声明为可变或 mode 为真时，这些方法才应访问可变数据。
 
 @history[#:changed "8.5.0.3" @elem{Added support for two-procedure values to customize @racket[equal-always?].}]}
 
-@section[#:tag "Honest_Custom_Equality"]{Honest Custom Equality}
+@section[#:tag "Honest_Custom_Equality"]{诚实的自定义相等性}
 
-Since the @racket[_equal-proc] or @racket[_equal-mode-proc]
-is used for more than just @racket[equal?], instances of
-them should follow certain guidelines to make sure that they work
-correctly for @racket[equal-always?], @racket[chaperone-of?],
-and @racket[impersonator-of?].
+由于 @racket[_equal-proc] 或 @racket[_equal-mode-proc] 不仅仅用于 @racket[equal?]，它们的实例应遵循某些指南以确保它们对 @racket[equal-always?]、@racket[chaperone-of?] 和 @racket[impersonator-of?] 正确工作。
 
-Due to the differences between these operations, avoid
-calling @racket[equal?] within them. Instead, use the third
-argument to ``recur'' on the pieces, which allows
-@racket[equal?/recur] to work properly, lets the other
-operations behave in their own distinct ways on the pieces,
-and enables some cycle detection.
+由于这些操作之间的差异，应避免在其中调用 @racket[equal?]。而是使用第三个参数对各个部分进行"递归"，这允许 @racket[equal?/recur] 正常工作，让其他操作以各自独特的方式处理各个部分，并启用某些循环检测。
 
 @compare0[
 @racketblock0[
@@ -563,13 +379,7 @@ and enables some cycle detection.
 ]
 ]
 
-Don't use the third argument to ``recur'' on counts of
-elements.
-When a data structure cares about discrete numbers, it can
-use @racket[=] on those, not @racket[equal?] or ``recur''.
-Using ``recur'' on counts is bad when a ``recur'' argument
-from @racket[equal?/recur] is too tolerant on numbers within
-some range of each other.
+不要使用第三个参数对元素计数进行"递归"。当数据结构关心离散数字时，可以使用 @racket[=] 处理这些数字，而不是 @racket[equal?] 或"递归"。当来自 @racket[equal?/recur] 的"recur"参数对在彼此某个范围内的数字过于宽容时，在计数上使用"recur"是不好的。
 
 @compare0[
 @racketblock0[
@@ -589,9 +399,7 @@ some range of each other.
 ]
 ]
 
-The operations @racket[equal?] and @racket[equal-always?]
-should be symmetric, so @racket[_equal-proc] instances
-should not change their answer when the arguments swap:
+@racket[equal?] 和 @racket[equal-always?] 操作应该是对称的，因此 @racket[_equal-proc] 实例在参数交换时不应改变其答案：
 
 @compare0[
 @racketblock0[
@@ -605,10 +413,7 @@ should not change their answer when the arguments swap:
 ]
 ]
 
-However, the operations @racket[chaperone-of?] and
-@racket[impersonator-of?] are @emph{not} symmetric, so when
-calling the third argument to ``recur'' on pieces, pass the
-pieces in the same order they came in:
+然而，@racket[chaperone-of?] 和 @racket[impersonator-of?] 操作@emph{不}是对称的，因此在对各个部分调用第三个参数进行"递归"时，应按它们传入的顺序传递各个部分：
 
 @compare0[
 @racketblock0[
@@ -622,14 +427,7 @@ pieces in the same order they came in:
 ]
 ]
 
-The operations @racket[equal-always?] and
-@racket[chaperone-of?] shouldn't change on mutation, so
-@racket[_equal-proc] instances should not access
-potentially-mutable data.
-This includes avoiding @racket[string=?], since strings can
-be mutable.
-Type-specific equality functions for immutable types, such
-as @racket[symbol=?], are fine.
+@racket[equal-always?] 和 @racket[chaperone-of?] 操作不应因修改而改变，因此 @racket[_equal-proc] 实例不应访问可能可变的数据。这包括避免使用 @racket[string=?]，因为字符串可以是可变的。不可变类型的类型特定相等性函数，如 @racket[symbol=?]，是可以的。
 
 @compare0[#:left "fine" #:right "bad"
 @racketblock0[
@@ -645,10 +443,7 @@ as @racket[symbol=?], are fine.
 ]
 ]
 
-Declaring a struct as mutable makes @racket[equal-always?]
-and @racket[chaperone-of?] avoid using @racket[_equal-proc],
-so @racket[_equal-proc] instances are free to access mutable
-data if the struct is declared mutable:
+将 struct 声明为可变会使 @racket[equal-always?] 和 @racket[chaperone-of?] 避免使用 @racket[_equal-proc]，因此如果 struct 被声明为可变，@racket[_equal-proc] 实例可以自由访问可变数据：
 
 @compare0[
 @racketblock0[
@@ -682,12 +477,7 @@ data if the struct is declared mutable:
 ]
 ]
 
-Another way for a struct to control access to mutable data
-is by implementing @racket[gen:equal-mode+hash] instead of
-@racket[gen:equal+hash].
-When the mode is true, @racket[_equal-mode-proc] instances
-are free to access mutable data, and when the mode is false,
-they shouldn't:
+struct 控制可变数据访问的另一种方式是实现 @racket[gen:equal-mode+hash] 而不是 @racket[gen:equal+hash]。当 mode 为真时，@racket[_equal-mode-proc] 实例可以自由访问可变数据，当 mode 为假时，它们不应这样做：
 
 @compare0[#:left "also good" #:right "still bad"
 @racketblock0[
@@ -718,17 +508,15 @@ they shouldn't:
 ]
 ]
 
-@section{Combining Hash Codes}
+@section{组合哈希码}
 
 @note-lib-only[racket/hash-code]
 
 @history[#:added "8.8.0.5"]
 
 @defproc[(hash-code-combine [hc exact-integer?] ...) fixnum?]{
-  Combines the @racket[hc]s into a @tech{hash code} that
-  depends on the order of the inputs.
-  Useful for combining the hash codes of different fields in
-  a structure.
+  将 @racket[hc] 组合成一个依赖于输入顺序的 @tech{hash code}。
+  适用于组合结构中不同字段的哈希码。
 
   @examples[
     (require racket/hash-code)
@@ -759,8 +547,7 @@ they shouldn't:
        (equal-hash-code (ordered-triple 'C 'A 'B)))
   ]
 
-  With one argument, @racket[(hash-code-combine hc)] mixes
-  the hash code so that it isn't just @racket[hc].
+  使用一个参数时，@racket[(hash-code-combine hc)] 会混合哈希码，使其不仅仅是 @racket[hc]。
 
   @examples[
     (require racket/hash-code)
@@ -784,10 +571,8 @@ they shouldn't:
 }
 
 @defproc[(hash-code-combine-unordered [hc exact-integer?] ...) fixnum?]{
-  Combines the @racket[hc]s into a @tech{hash code} that
-  @emph{does not} depend on the order of the inputs.
-  Useful for combining the hash codes of elements of an
-  unordered set.
+  将 @racket[hc] 组合成一个@emph{不}依赖于输入顺序的 @tech{hash code}。
+  适用于组合无序集合元素的哈希码。
 
   @examples[
     (require racket/hash-code)
@@ -871,14 +656,9 @@ they shouldn't:
          fixnum?]{
   @; Note: this is exactly the same description as append* and string-append*
 
-  Like @racket[hash-code-combine], but the last argument is
-  used as a list of arguments for @racket[hash-code-combine],
-  so @racket[(hash-code-combine* hc ... hcs)] is the same as
-  @racket[(apply hash-code-combine hc ... hcs)].
-  In other words, the relationship between
-  @racket[hash-code-combine] and @racket[hash-code-combine*]
-  is similar to the one between @racket[list] and
-  @racket[list*].
+  类似于 @racket[hash-code-combine]，但最后一个参数用作 @racket[hash-code-combine] 的参数列表，
+  因此 @racket[(hash-code-combine* hc ... hcs)] 等同于 @racket[(apply hash-code-combine hc ... hcs)]。
+  换句话说，@racket[hash-code-combine] 和 @racket[hash-code-combine*] 之间的关系类似于 @racket[list] 和 @racket[list*] 之间的关系。
 }
 
 @defproc[(hash-code-combine-unordered* [hc exact-integer?] ...
@@ -886,13 +666,7 @@ they shouldn't:
          fixnum?]{
   @; Note: this is exactly the same description as append* and string-append*
 
-  Like @racket[hash-code-combine-unordered], but the last
-  argument is used as a list of arguments for
-  @racket[hash-code-combine-unordered], so
-  @racket[(hash-code-combine-unordered* hc ... hcs)] is the same
-  as @racket[(apply hash-code-combine-unordered hc ... hcs)].
-  In other words, the relationship between
-  @racket[hash-code-combine-unordered] and
-  @racket[hash-code-combine-unordered*] is similar to the
-  one between @racket[list] and @racket[list*].
+  类似于 @racket[hash-code-combine-unordered]，但最后一个参数用作 @racket[hash-code-combine-unordered] 的参数列表，
+  因此 @racket[(hash-code-combine-unordered* hc ... hcs)] 等同于 @racket[(apply hash-code-combine-unordered hc ... hcs)]。
+  换句话说，@racket[hash-code-combine-unordered] 和 @racket[hash-code-combine-unordered*] 之间的关系类似于 @racket[list] 和 @racket[list*] 之间的关系。
 }
