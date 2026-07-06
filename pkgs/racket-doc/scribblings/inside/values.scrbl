@@ -1,271 +1,133 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "im:values+types"]{Values and Types}
+@bc-title[#:tag "im:values+types"]{值(Values)与类型(Types)}
 
-A Racket value is represented by a pointer-sized value. The low bit is
-a mark bit: a 1 in the low bit indicates an immediate integer, a 0
-indicates a (word-aligned) pointer.
+Racket 值由一个指针大小的值表示。低 bit 是一个标记 bit：低 bit 为 1 表示一个立即数（immediate integer），为 0 表示一个（字对齐的）指针。
 
-A pointer Racket value references a structure that begins with a
-@cppi{Scheme_Object} sub-structure, which in turn starts with a tag
-that has the C type @cppi{Scheme_Type}. The rest of the structure,
-following the @cppi{Scheme_Object} header, is type-dependent.
-Racket's C interface gives Racket values the type
-@cpp{Scheme_Object*}. (The ``object'' here does not refer to objects
-in the sense of the @racketmodname[racket/class] library.)
+一个指针类型的 Racket 值引用一个以 @cppi{Scheme_Object} 子结构开头的结构体，该子结构又以一个 C 类型为 @cppi{Scheme_Type} 的 tag 开头。结构体的其余部分（紧随 @cppi{Scheme_Object} 头部之后）依赖于具体类型。Racket 的 C 接口将 Racket 值的类型定为 @cpp{Scheme_Object*}。（这里的 ``object'' 不是指 @racketmodname[racket/class] 库意义上的对象。）
 
-Examples of @cpp{Scheme_Type} values include @cpp{scheme_pair_type}
-and @cpp{scheme_symbol_type}. Some of these are implemented as
-instances of @cppi{Scheme_Simple_Object}, which is defined in
-@filepath{scheme.h}, but extension or embedding code should never access
-this structure directly. Instead, the code should use macros, such as
-@cpp{SCHEME_CAR}, that provide access to the data of common Racket
-types.
+@cpp{Scheme_Type} 值的示例包括 @cpp{scheme_pair_type} 和 @cpp{scheme_symbol_type}。其中一些类型被实现为 @cppi{Scheme_Simple_Object} 的实例（该类型定义在 @filepath{scheme.h} 中），但扩展或嵌入代码绝不应直接访问此结构体。相反，代码应使用宏——如 @cpp{SCHEME_CAR}——来访问常见 Racket 类型的数据。
 
-For most Racket types, a constructor is provided for creating values
-of the type. For example, @cpp{scheme_make_pair} takes two
-@cpp{Scheme_Object*} values and returns the @racket[cons] of the
-values.
+对于大多数 Racket 类型，都提供了用于创建该类型值的构造函数。例如，@cpp{scheme_make_pair} 接受两个 @cpp{Scheme_Object*} 值并返回这些值的 @racket[cons]。
 
-The macro @cppdef{SCHEME_TYPE} takes a @cpp{Scheme_Object *} and returns
-the type of the object. This macro performs the tag-bit check, and
-returns @cppi{scheme_integer_type} when the value is an immediate
-integer; otherwise, @cpp{SCHEME_TYPE} follows the pointer to get the
-type tag. Macros are provided to test for common Racket types; for
-example, @cpp{SCHEME_PAIRP} returns @cpp{1} if the value is a cons
-cell, @cpp{0} otherwise.
+宏 @cppdef{SCHEME_TYPE} 接受一个 @cpp{Scheme_Object *} 并返回该对象的类型。此宏执行标记 bit 检查，当值为立即数整数时返回 @cppi{scheme_integer_type}；否则，@cpp{SCHEME_TYPE} 跟随指针获取类型 tag。系统提供了用于测试常见 Racket 类型的宏；例如，@cpp{SCHEME_PAIRP} 在值为 cons 单元时返回 @cpp{1}，否则返回 @cpp{0}。
 
-In addition to providing constructors, Racket defines six global
-constant Racket values: @cppi{scheme_true}, @cppi{scheme_false},
-@cppi{scheme_null}, @cppi{scheme_eof}, @cppi{scheme_void}, and
-@cppi{scheme_undefined}. Each of these has a type tag, but each is
-normally recognized via its constant address.
+除了提供构造函数之外，Racket 还定义了六个全局常量 Racket 值：@cppi{scheme_true}、@cppi{scheme_false}、@cppi{scheme_null}、@cppi{scheme_eof}、@cppi{scheme_void} 和 @cppi{scheme_undefined}。每个值都有一个类型 tag，但通常通过其常量地址来识别。
 
-@index['("types" "creating")]{An} extension or embedding application
-can create new a primitive data type by calling
-@cppi{scheme_make_type}, which returns a fresh @cpp{Scheme_Type}
-value. To create a collectable instance of this type, allocate memory
-for the instance with @cpp{scheme_malloc_atomic}. From Racket's
-perspective, the main constraint on the data format of such an
-instance is that the first @cpp{sizeof(Scheme_Object)} bytes must
-correspond to a @cpp{Scheme_Object} record; furthermore, the first
-@cpp{sizeof(Scheme_Type)} bytes must contain the value returned by
-@cpp{scheme_make_type}. Extensions with modest needs can use
-@cppi{scheme_make_cptr}, instead of creating an entirely new type.
+@index['("types" "creating")]{扩展}或嵌入应用程序可以通过调用 @cppi{scheme_make_type} 来创建新的原始数据类型，该函数返回一个新的 @cpp{Scheme_Type} 值。要创建此类型的可回收实例，请使用 @cpp{scheme_malloc_atomic} 为该实例分配内存。从 Racket 的角度看，此类实例的数据格式的主要约束是：前 @cpp{sizeof(Scheme_Object)} 个字节必须对应一个 @cpp{Scheme_Object} 记录；此外，前 @cpp{sizeof(Scheme_Type)} 个字节必须包含 @cpp{scheme_make_type} 返回的值。需求较简单的扩展可以使用 @cppi{scheme_make_cptr}，而不必创建全新的类型。
 
-Racket values should never be allocated on the stack, and they should
-never contain pointers to values on the stack. Besides the problem of
-restricting the value's lifetime to that of the stack frame,
-allocating values on the stack creates problems for continuations and
-threads, both of which copy into and out of the stack.
+Racket 值绝不应在栈上分配，也绝不应包含指向栈上值的指针。除了将值的生命周期限制在栈帧内的问题外，在栈上分配值还会给 continuation 和线程带来问题，因为两者都会在栈中复制数据。
 
 @; ----------------------------------------------------------------------
 
 @section[#:tag "im:stdtypes"]{Standard Types}
 
-The following are the @cpp{Scheme_Type} values for the standard
-types:
+以下是标准类型的 @cpp{Scheme_Type} 值：
 
 @itemize[
 
- @item{@cppdef{scheme_bool_type} --- the constants
- @cpp{scheme_true} and @cpp{scheme_false} are the only values of this
- type; use @cpp{SCHEME_FALSEP} to recognize @cpp{scheme_false} and use
- @cpp{SCHEME_TRUEP} to recognize anything except @cpp{scheme_false};
- test for this type with @cppdef{SCHEME_BOOLP}}
+ @item{@cppdef{scheme_bool_type} —— 常量 @cpp{scheme_true} 和 @cpp{scheme_false} 是此类型的唯二值；使用 @cpp{SCHEME_FALSEP} 识别 @cpp{scheme_false}，使用 @cpp{SCHEME_TRUEP} 识别除 @cpp{scheme_false} 之外的任何值；使用 @cppdef{SCHEME_BOOLP} 测试此类型}
 
- @item{@cppdef{scheme_char_type} --- @cppdef{SCHEME_CHAR_VAL}
- extracts the character (of type @cppi{mzchar}); test for this type
- with @cppdef{SCHEME_CHARP}}
+ @item{@cppdef{scheme_char_type} —— @cppdef{SCHEME_CHAR_VAL} 提取字符（类型为 @cppi{mzchar}）；使用 @cppdef{SCHEME_CHARP} 测试此类型}
 
- @item{@cppdef{scheme_integer_type} --- fixnum integers, which are
- identified via the tag bit rather than following a pointer to this
- @cpp{Scheme_Type} value; @cppdef{SCHEME_INT_VAL} extracts the integer 
- to an @cpp{intptr_t}; test for this type with @cppdef{SCHEME_INTP}}
+ @item{@cppdef{scheme_integer_type} —— fixnum 整数，通过标记 bit 识别而非跟随指针到此 @cpp{Scheme_Type} 值；@cppdef{SCHEME_INT_VAL} 将整数提取到 @cpp{intptr_t}；使用 @cppdef{SCHEME_INTP} 测试此类型}
 
- @item{@cppdef{scheme_double_type} --- flonum inexact numbers;
- @cppdef{SCHEME_FLOAT_VAL} or @cppdef{SCHEME_DBL_VAL} extracts the
- floating-point value; test for this type with @cppdef{SCHEME_DBLP}}
+ @item{@cppdef{scheme_double_type} —— flonum 非精确数；@cppdef{SCHEME_FLOAT_VAL} 或 @cppdef{SCHEME_DBL_VAL} 提取浮点值；使用 @cppdef{SCHEME_DBLP} 测试此类型}
 
- @item{@cppdef{scheme_float_type} --- single-precision flonum
- inexact numbers, when specifically enabled when compiling Racket;
- @cppi{SCHEME_FLOAT_VAL} or @cppdef{SCHEME_FLT_VAL} extracts the
- floating-point value; test for this type with @cppdef{SCHEME_FLTP}}
+ @item{@cppdef{scheme_float_type} —— 单精度 flonum 非精确数（仅在编译 Racket 时显式启用）；@cppi{SCHEME_FLOAT_VAL} 或 @cppdef{SCHEME_FLT_VAL} 提取浮点值；使用 @cppdef{SCHEME_FLTP} 测试此类型}
 
- @item{@cppdef{scheme_bignum_type} --- test for this type with
- @cppdef{SCHEME_BIGNUMP}}
+ @item{@cppdef{scheme_bignum_type} —— 使用 @cppdef{SCHEME_BIGNUMP} 测试此类型}
  
- @item{@cppdef{scheme_rational_type} --- test for this type with
- @cppdef{SCHEME_RATIONALP}}
+ @item{@cppdef{scheme_rational_type} —— 使用 @cppdef{SCHEME_RATIONALP} 测试此类型}
 
- @item{@cppdef{scheme_complex_type} --- test for this type
- with @cppdef{SCHEME_COMPLEXP}}
+ @item{@cppdef{scheme_complex_type} —— 使用 @cppdef{SCHEME_COMPLEXP} 测试此类型}
 
- @item{@cppdef{scheme_char_string_type} --- @index['("strings"
- "conversion to C")]{@cppdef{SCHEME_CHAR_STR_VAL}} extracts the string
- as a @cpp{mzchar*}; the string is always nul-terminated, but may also
- contain embedded nul characters, and the Racket string is modified if
- this string is modified; @cppdef{SCHEME_CHAR_STRLEN_VAL} extracts the
- string length (in characters, not counting the nul terminator); test
- for this type with @cppdef{SCHEME_CHAR_STRINGP}}
+ @item{@cppdef{scheme_char_string_type} —— @index['("strings" "conversion to C")]{@cppdef{SCHEME_CHAR_STR_VAL}} 将字符串提取为 @cpp{mzchar*}；字符串始终以 nul 结尾，但也可能包含嵌入的 nul 字符，且修改此字符串会修改 Racket 字符串；@cppdef{SCHEME_CHAR_STRLEN_VAL} 提取字符串长度（以字符为单位，不包括 nul 终止符）；使用 @cppdef{SCHEME_CHAR_STRINGP} 测试此类型}
 
- @item{@cppdef{scheme_byte_string_type} ---
- @cppdef{SCHEME_BYTE_STR_VAL} extracts the string as a @cpp{char*}; the
- string is always nul-terminated, but may also contain embedded nul
- characters, and the Racket string is modified if this string is
- modified; @cppdef{SCHEME_BYTE_STRLEN_VAL} extracts the string length
- (in bytes, not counting the nul terminator); test for this type with
- @cppdef{SCHEME_BYTE_STRINGP}}
+ @item{@cppdef{scheme_byte_string_type} —— @cppdef{SCHEME_BYTE_STR_VAL} 将字符串提取为 @cpp{char*}；字符串始终以 nul 结尾，但也可能包含嵌入的 nul 字符，且修改此字符串会修改 Racket 字符串；@cppdef{SCHEME_BYTE_STRLEN_VAL} 提取字符串长度（以字节为单位，不包括 nul 终止符）；使用 @cppdef{SCHEME_BYTE_STRINGP} 测试此类型}
 
- @item{@cppdef{scheme_path_type} --- 
- @index['("strings" "conversion to C")] @cppdef{SCHEME_PATH_VAL}
- extracts the path as a @cpp{char*}; the string is always
- nul-terminated; @cppdef{SCHEME_PATH_LEN} extracts the path length (in
- bytes, not counting the nul terminator); test for this type with
- @cppdef{SCHEME_PATHP}}
+ @item{@cppdef{scheme_path_type} —— @index['("strings" "conversion to C")] @cppdef{SCHEME_PATH_VAL} 将路径提取为 @cpp{char*}；字符串始终以 nul 结尾；@cppdef{SCHEME_PATH_LEN} 提取路径长度（以字节为单位，不包括 nul 终止符）；使用 @cppdef{SCHEME_PATHP} 测试此类型}
 
- @item{@cppdef{scheme_symbol_type} --- @cppdef{SCHEME_SYM_VAL}
- extracts the symbol's string as a @cpp{char*} UTF-8 encoding (do not
- modify this string); @cppdef{SCHEME_SYM_LEN} extracts the number of
- bytes in the symbol name (not counting the nul terminator); test for
- this type with @cppdef{SCHEME_SYMBOLP}; 3m: see @secref["im:3m"] for
- a caution about @cppi{SCHEME_SYM_VAL}}
+ @item{@cppdef{scheme_symbol_type} —— @cppdef{SCHEME_SYM_VAL} 将符号的字符串提取为 @cpp{char*} UTF-8 编码（请勿修改此字符串）；@cppdef{SCHEME_SYM_LEN} 提取符号名中的字节数（不包括 nul 终止符）；使用 @cppdef{SCHEME_SYMBOLP} 测试此类型；3m：有关 @cppi{SCHEME_SYM_VAL} 的注意事项，请参见 @secref["im:3m"]}
 
- @item{@cppdef{scheme_keyword_type} --- @cppdef{SCHEME_KEYWORD_VAL}
- extracts the keyword's string (without the leading hash colon) as a
- @cpp{char*} UTF-8 encoding (do not modify this string);
- @cppdef{SCHEME_KEYWORD_LEN} extracts the number of bytes in the keyword
- name (not counting the nul terminator); test for this type with
- @cppdef{SCHEME_KEYWORDP}; 3m: see @secref["im:3m"] for a caution
- about @cppi{SCHEME_KEYWORD_VAL}}
+ @item{@cppdef{scheme_keyword_type} —— @cppdef{SCHEME_KEYWORD_VAL} 将关键字字符串（不含前导井号冒号）提取为 @cpp{char*} UTF-8 编码（请勿修改此字符串）；@cppdef{SCHEME_KEYWORD_LEN} 提取关键字名中的字节数（不包括 nul 终止符）；使用 @cppdef{SCHEME_KEYWORDP} 测试此类型；3m：有关 @cppi{SCHEME_KEYWORD_VAL} 的注意事项，请参见 @secref["im:3m"]}
 
- @item{@cppdef{scheme_box_type} --- @cppdef{SCHEME_BOX_VAL}
- extracts/sets the boxed value; test for this type with
- @cppdef{SCHEME_BOXP}}
+ @item{@cppdef{scheme_box_type} —— @cppdef{SCHEME_BOX_VAL} 提取/设置装箱值；使用 @cppdef{SCHEME_BOXP} 测试此类型}
 
- @item{@cppdef{scheme_pair_type} --- @cppdef{SCHEME_CAR} extracts/sets
- the @racket[car] and @cppdef{SCHEME_CDR} extracts/sets the
- @racket[cdr]; test for this type with @cppdef{SCHEME_PAIRP}}
+ @item{@cppdef{scheme_pair_type} —— @cppdef{SCHEME_CAR} 提取/设置 @racket[car]，@cppdef{SCHEME_CDR} 提取/设置 @racket[cdr]；使用 @cppdef{SCHEME_PAIRP} 测试此类型}
 
- @item{@cppdef{scheme_mutable_pair_type} --- @cppdef{SCHEME_MCAR} extracts/sets
- the @racket[mcar] and @cppdef{SCHEME_MCDR} extracts/sets the
- @racket[mcdr]; test for this type with @cppdef{SCHEME_MPAIRP}}
+ @item{@cppdef{scheme_mutable_pair_type} —— @cppdef{SCHEME_MCAR} 提取/设置 @racket[mcar]，@cppdef{SCHEME_MCDR} 提取/设置 @racket[mcdr]；使用 @cppdef{SCHEME_MPAIRP} 测试此类型}
 
- @item{@cppdef{scheme_vector_type} --- @cppdef{SCHEME_VEC_SIZE}
- extracts the length and @cppdef{SCHEME_VEC_ELS} extracts the array of
- Racket values (the Racket vector is modified when this array is
- modified); test for this type with @cppdef{SCHEME_VECTORP}; 3m: see
- @secref["im:3m"] for a caution about @cppi{SCHEME_VEC_ELS}}
+ @item{@cppdef{scheme_vector_type} —— @cppdef{SCHEME_VEC_SIZE} 提取长度，@cppdef{SCHEME_VEC_ELS} 提取 Racket 值数组（修改此数组会修改 Racket vector）；使用 @cppdef{SCHEME_VECTORP} 测试此类型；3m：有关 @cppi{SCHEME_VEC_ELS} 的注意事项，请参见 @secref["im:3m"]}
 
- @item{@cppdef{scheme_flvector_type} --- @cppdef{SCHEME_FLVEC_SIZE}
- extracts the length and @cppdef{SCHEME_FLVEC_ELS} extracts the array of
- @cpp{double}s; test for this type with @cppdef{SCHEME_FLVECTORP}; 3m: see
- @secref["im:3m"] for a caution about @cppi{SCHEME_FLVEC_ELS}}
+ @item{@cppdef{scheme_flvector_type} —— @cppdef{SCHEME_FLVEC_SIZE} 提取长度，@cppdef{SCHEME_FLVEC_ELS} 提取 @cpp{double} 数组；使用 @cppdef{SCHEME_FLVECTORP} 测试此类型；3m：有关 @cppi{SCHEME_FLVEC_ELS} 的注意事项，请参见 @secref["im:3m"]}
 
- @item{@cppdef{scheme_fxvector_type} --- uses the same representation
- as @cpp{scheme_vector_type}, so use @cpp{SCHEME_VEC_SIZE}
- for the length and @cpp{SCHEME_VEC_ELS} for the array of
- Racket fixnum values; test for this type with @cppdef{SCHEME_FXVECTORP}; 3m: see
- @secref["im:3m"] for a caution about @cppi{SCHEME_VEC_ELS}}
+ @item{@cppdef{scheme_fxvector_type} —— 使用与 @cpp{scheme_vector_type} 相同的表示形式，因此用 @cpp{SCHEME_VEC_SIZE} 获取长度，用 @cpp{SCHEME_VEC_ELS} 获取 Racket fixnum 值数组；使用 @cppdef{SCHEME_FXVECTORP} 测试此类型；3m：有关 @cppi{SCHEME_VEC_ELS} 的注意事项，请参见 @secref["im:3m"]}
 
- @item{@cppdef{scheme_structure_type} --- structure instances; test
- for this type with @cppdef{SCHEME_STRUCTP}}
+ @item{@cppdef{scheme_structure_type} —— struct 实例；使用 @cppdef{SCHEME_STRUCTP} 测试此类型}
 
- @item{@cppdef{scheme_struct_type_type} --- structure types; test for
- this type with @cppdef{SCHEME_STRUCT_TYPEP}}
+ @item{@cppdef{scheme_struct_type_type} —— struct 类型；使用 @cppdef{SCHEME_STRUCT_TYPEP} 测试此类型}
 
- @item{@cppdef{scheme_struct_property_type} --- structure type
- properties}
+ @item{@cppdef{scheme_struct_property_type} —— struct 类型属性}
 
- @item{@cppdef{scheme_input_port_type} --- @cppdef{SCHEME_INPORT_VAL}
- extracts/sets the user data pointer; test for just this type with
- @cppdef{SCHEME_INPORTP}, but use @cppdef{SCHEME_INPUT_PORTP} to recognize
- all input ports (including structures with the
- @racket[prop:input-port] property), and use @cppi{scheme_input_port_record}
- to extract a @cppi{scheme_input_port_type} value from a general input port}
+ @item{@cppdef{scheme_input_port_type} —— @cppdef{SCHEME_INPORT_VAL} 提取/设置用户数据指针；使用 @cppdef{SCHEME_INPORTP} 仅测试此类型，但使用 @cppdef{SCHEME_INPUT_PORTP} 识别所有输入端口（包括具有 @racket[prop:input-port] 属性的 struct），并使用 @cppi{scheme_input_port_record} 从通用输入端口中提取 @cppi{scheme_input_port_type} 值}
 
- @item{@cppdef{scheme_output_port_type} --- @cppdef{SCHEME_OUTPORT_VAL}
- extracts/sets the user data pointer; test for just this type with
- @cppdef{SCHEME_OUTPORTP}, but use @cppdef{SCHEME_OUTPUT_PORTP} to
- recognize all output ports (including structures with the
- @racket[prop:output-port] property), and use @cppi{scheme_output_port_record}
- to extract a @cppi{scheme_output_port_type} value from a general input port}
+ @item{@cppdef{scheme_output_port_type} —— @cppdef{SCHEME_OUTPORT_VAL} 提取/设置用户数据指针；使用 @cppdef{SCHEME_OUTPORTP} 仅测试此类型，但使用 @cppdef{SCHEME_OUTPUT_PORTP} 识别所有输出端口（包括具有 @racket[prop:output-port] 属性的 struct），并使用 @cppi{scheme_output_port_record} 从通用输入端口中提取 @cppi{scheme_output_port_type} 值}
 
- @item{@cppdef{scheme_thread_type} --- thread descriptors; test for
- this type with @cppdef{SCHEME_THREADP}}
+ @item{@cppdef{scheme_thread_type} —— 线程描述符；使用 @cppdef{SCHEME_THREADP} 测试此类型}
 
- @item{@cppdef{scheme_sema_type} --- semaphores; test for this type
- with @cppdef{SCHEME_SEMAP}}
+ @item{@cppdef{scheme_sema_type} —— 信号量；使用 @cppdef{SCHEME_SEMAP} 测试此类型}
 
- @item{@cppdef{scheme_hash_table_type} --- test for this type with
- @cppdef{SCHEME_HASHTP}}
+ @item{@cppdef{scheme_hash_table_type} —— 使用 @cppdef{SCHEME_HASHTP} 测试此类型}
 
- @item{@cppdef{scheme_hash_tree_type} --- test for this type
- with @cppdef{SCHEME_HASHTRP}}
+ @item{@cppdef{scheme_hash_tree_type} —— 使用 @cppdef{SCHEME_HASHTRP} 测试此类型}
 
- @item{@cppdef{scheme_bucket_table_type} --- test for this type with
- @cppdef{SCHEME_BUCKTP}}
+ @item{@cppdef{scheme_bucket_table_type} —— 使用 @cppdef{SCHEME_BUCKTP} 测试此类型}
 
- @item{@cppdef{scheme_weak_box_type} --- test for this type with
- @cppdef{SCHEME_WEAKP}; @cppdef{SCHEME_WEAK_PTR} extracts the contained
- object, or @cpp{NULL} after the content is collected; do not set the
- content of a weak box}
+ @item{@cppdef{scheme_weak_box_type} —— 使用 @cppdef{SCHEME_WEAKP} 测试此类型；@cppdef{SCHEME_WEAK_PTR} 提取包含的对象，或在内容被回收后返回 @cpp{NULL}；不要设置 weak box 的内容}
 
- @item{@cppdef{scheme_namespace_type} --- namespaces; test for this
- type with @cppdef{SCHEME_NAMESPACEP}}
+ @item{@cppdef{scheme_namespace_type} —— namespace；使用 @cppdef{SCHEME_NAMESPACEP} 测试此类型}
 
- @item{@cppdef{scheme_cpointer_type} --- @|void-const| pointer with a
- type-describing @cpp{Scheme_Object}; @cppdef{SCHEME_CPTR_VAL} extracts
- the pointer and @cppdef{SCHEME_CPTR_TYPE} extracts the type tag object;
- test for this type with @cppdef{SCHEME_CPTRP}.  The tag is used when
- printing such objects when it's a symbol, a byte string, a string, or
- a pair holding one of these in its car.}
+ @item{@cppdef{scheme_cpointer_type} —— 带有类型描述 @cpp{Scheme_Object} 的 @|void-const| 指针；@cppdef{SCHEME_CPTR_VAL} 提取指针，@cppdef{SCHEME_CPTR_TYPE} 提取类型 tag 对象；使用 @cppdef{SCHEME_CPTRP} 测试此类型。当 tag 为 symbol、byte string、string 或 car 中持有其中之一的 pair 时，打印此类对象会使用该 tag。}
 
 ]
 
-The following are the procedure types:
+以下是 procedure 类型：
 
 @itemize[
 
- @item{@cppdef{scheme_prim_type} --- a primitive procedure,
- possibly with data elements}
+ @item{@cppdef{scheme_prim_type} —— 原始 procedure，可能带有数据元素}
 
- @item{@cppdef{scheme_closed_prim_type} --- an old-style primitive
- procedure with a data pointer}
+ @item{@cppdef{scheme_closed_prim_type} —— 旧式原始 procedure，带有一个数据指针}
 
- @item{@cppdef{scheme_compiled_closure_type} --- a Racket
- procedure}
+ @item{@cppdef{scheme_compiled_closure_type} —— Racket procedure}
 
- @item{@cppdef{scheme_cont_type} --- a continuation}
+ @item{@cppdef{scheme_cont_type} —— continuation}
 
- @item{@cppdef{scheme_escaping_cont_type} --- an escape continuation}
+ @item{@cppdef{scheme_escaping_cont_type} —— escape continuation}
 
- @item{@cppdef{scheme_case_closure_type} --- a @racket[case-lambda]
- procedure}
+ @item{@cppdef{scheme_case_closure_type} —— @racket[case-lambda] procedure}
 
- @item{@cppdef{scheme_native_closure_type} --- a procedure with
- native code generated by the just-in-time compiler}
+ @item{@cppdef{scheme_native_closure_type} —— 带有 JIT 编译器生成的本地代码的 procedure}
 
 ]
 
-The predicate @cppdef{SCHEME_PROCP} returns 1 for all procedure types
- and 0 for anything else.
+谓词 @cppdef{SCHEME_PROCP} 对所有 procedure 类型返回 1，对其他任何类型返回 0。
 
-The following are additional number predicates:
+以下是额外的数字谓词：
 
 @itemize[
 
- @item{@cppdef{SCHEME_NUMBERP} --- all numerical types}
+ @item{@cppdef{SCHEME_NUMBERP} —— 所有数值类型}
 
- @item{@cppdef{SCHEME_REALP} --- all non-complex numerical types}
+ @item{@cppdef{SCHEME_REALP} —— 所有非复数数值类型}
 
- @item{@cppdef{SCHEME_EXACT_INTEGERP} --- fixnums and bignums}
+ @item{@cppdef{SCHEME_EXACT_INTEGERP} —— fixnum 和 bignum}
 
- @item{@cppdef{SCHEME_EXACT_REALP} --- fixnums, bignums, and rationals}
+ @item{@cppdef{SCHEME_EXACT_REALP} —— fixnum、bignum 和有理数}
 
- @item{@cppdef{SCHEME_FLOATP} --- both single-precision (when enabled)
- and double-precision flonums}
+ @item{@cppdef{SCHEME_FLOATP} —— 单精度（启用时）和双精度 flonum}
 
 ]
 
@@ -273,56 +135,35 @@ The following are additional number predicates:
 
 @section{Global Constants}
 
-There are six global constants:
+共有六个全局常量：
 
 @itemize[
 
- @item{@cppdef{scheme_null} --- test for this value with
- @cppdef{SCHEME_NULLP}}
+ @item{@cppdef{scheme_null} —— 使用 @cppdef{SCHEME_NULLP} 测试此值}
 
- @item{@cppdef{scheme_eof} --- test for this value with
- @cppdef{SCHEME_EOFP}}
+ @item{@cppdef{scheme_eof} —— 使用 @cppdef{SCHEME_EOFP} 测试此值}
 
  @item{@cppdef{scheme_true}}
 
- @item{@cppdef{scheme_false} --- test for this value with
- @cppdef{SCHEME_FALSEP}; test @italic{against} it with
- @cppdef{SCHEME_TRUEP}}
+ @item{@cppdef{scheme_false} —— 使用 @cppdef{SCHEME_FALSEP} 测试此值；使用 @cppdef{SCHEME_TRUEP} 测试 @italic{非}此值}
 
- @item{@cppdef{scheme_void} --- test for this value with
- @cppdef{SCHEME_VOIDP}}
+ @item{@cppdef{scheme_void} —— 使用 @cppdef{SCHEME_VOIDP} 测试此值}
 
  @item{@cppdef{scheme_undefined}}
 
 ]
 
-In some embedding contexts, the function forms
-@cppi{scheme_make_null}, etc., must be used, instead.
+在某些嵌入上下文中，必须改用函数形式 @cppi{scheme_make_null} 等。
 
 @; ----------------------------------------------------------------------
 
 @section[#:tag "im:strings"]{Strings}
 
-As noted in @secref["im:unicode"], a Racket character is a Unicode
- code point represented by a @cpp{mzchar} value, and character strings
- are @cpp{mzchar} arrays. Racket also supplies byte strings, which
- are @cpp{char} arrays.
+如 @secref["im:unicode"] 所述，Racket 字符是一个 Unicode 码点，由 @cpp{mzchar} 值表示，字符字符串是 @cpp{mzchar} 数组。Racket 还提供 byte string，它们是 @cpp{char} 数组。
 
-For a character string @var{s}, @cpp{@cpp{SCHEME_CHAR_STR_VAL}(@var{s})}
- produces a pointer to @cpp{mzchar}s, not @cpp{char}s. Convert a
- character string to its UTF-8 encoding as byte string with
- @cpp{scheme_char_string_to_byte_string}. For a byte string
- @var{bs}, @cpp{@cpp{SCHEME_BYTE_STR_VAL}(@var{bs})} produces a pointer
- to @cpp{char}s. The function
- @cpp{scheme_byte_string_to_char_string} decodes a byte string as
- UTF-8 and produces a character string. The functions
- @cpp{scheme_char_string_to_byte_string_locale} and
- @cpp{scheme_byte_string_to_char_string_locale} are similar, but
- they use the current locale's encoding instead of UTF-8.
+对于字符字符串 @var{s}，@cpp{@cpp{SCHEME_CHAR_STR_VAL}(@var{s})} 产生指向 @cpp{mzchar} 的指针，而非 @cpp{char}。使用 @cpp{scheme_char_string_to_byte_string} 将字符字符串转换为其 UTF-8 编码的 byte string。对于 byte string @var{bs}，@cpp{@cpp{SCHEME_BYTE_STR_VAL}(@var{bs})} 产生指向 @cpp{char} 的指针。函数 @cpp{scheme_byte_string_to_char_string} 将 byte string 解码为 UTF-8 并产生字符字符串。函数 @cpp{scheme_char_string_to_byte_string_locale} 和 @cpp{scheme_byte_string_to_char_string_locale} 类似，但使用当前 locale 的编码而非 UTF-8。
 
-For more fine-grained control over UTF-8 encoding, use the
- @cpp{scheme_utf8_decode} and @cpp{scheme_utf8_encode} functions, which 
- are described in @secref["im:encodings"].
+如需对 UTF-8 编码进行更细粒度的控制，请使用 @cpp{scheme_utf8_decode} 和 @cpp{scheme_utf8_encode} 函数，它们将在 @secref["im:encodings"] 中描述。
 
 @; ----------------------------------------------------------------------
 
@@ -330,175 +171,147 @@ For more fine-grained control over UTF-8 encoding, use the
 
 @function[(Scheme_Object* scheme_make_null)]{
 
-Returns @cppi{scheme_null}.
+返回 @cppi{scheme_null}。
 }
 
 @function[(Scheme_Object* scheme_make_eof)]{
 
-Returns @cppi{scheme_eof}.
+返回 @cppi{scheme_eof}。
 }
 
 @function[(Scheme_Object* scheme_make_true)]{
 
-Returns @cppi{scheme_true}.
+返回 @cppi{scheme_true}。
 }
 
 @function[(Scheme_Object* scheme_make_false)]{
 
-Returns @cppi{scheme_false}.
+返回 @cppi{scheme_false}。
 }
 
 @function[(Scheme_Object* scheme_make_void)]{
 
-Returns @cppi{scheme_void}.
+返回 @cppi{scheme_void}。
 }
 
 @function[(Scheme_Object* scheme_make_char
            [mzchar ch])]{
 
-Returns the character value. The @var{ch} value must be a legal
-Unicode code point (and not a surrogate, for example). The first 256
-characters are represented by constant Racket values, and others are
-allocated.}
+返回字符值。@var{ch} 值必须是合法的 Unicode 码点（例如，不能是代理对）。前 256 个字符由常量 Racket 值表示，其他字符则动态分配。}
 
 @function[(Scheme_Object* scheme_make_char_or_null
            [mzchar ch])]{
 
-Like @cpp{scheme_make_char}, but the result is @cpp{NULL} if @var{ch}
-is not a legal Unicode code point.}
+类似于 @cpp{scheme_make_char}，但如果 @var{ch} 不是合法的 Unicode 码点，则结果为 @cpp{NULL}。}
 
 @function[(Scheme_Object* scheme_make_character
            [mzchar ch])]{
 
-Returns the character value. This is a macro that directly accesses
- the array of constant characters when @var{ch} is less than 256.}
+返回字符值。这是一个宏，当 @var{ch} 小于 256 时直接访问常量字符数组。}
 
 @function[(Scheme_Object* scheme_make_ascii_character
            [mzchar ch])]{
 
-Returns the character value, assuming that @var{ch} is less than 256. (This is a macro.)}
+返回字符值，假设 @var{ch} 小于 256。（这是一个宏。）}
 
 @function[(Scheme_Object* scheme_make_integer
            [intptr_t i])]{
 
-Returns the integer value; @var{i} must fit in a fixnum. (This is a macro.)}
+返回整数值；@var{i} 必须能放入 fixnum。（这是一个宏。）}
 
 @function[(Scheme_Object* scheme_make_integer_value
            [intptr_t i])]{
 
-Returns the integer value. If @var{i} does not fit in a fixnum,
- a bignum is returned.}
+返回整数值。如果 @var{i} 不能放入 fixnum，则返回 bignum。}
 
 @function[(Scheme_Object* scheme_make_integer_value_from_unsigned
            [uintptr_t i])]{
 
-Like @cpp{scheme_make_integer_value}, but for unsigned integers.}
+类似于 @cpp{scheme_make_integer_value}，但用于无符号整数。}
 
 @function[(Scheme_Object* scheme_make_integer_value_from_long_long
            [mzlonglong i])]{
 
-Like @cpp{scheme_make_integer_value}, but for @cpp{mzlonglong}
- values (see @secref["im:intsize"]).}
+类似于 @cpp{scheme_make_integer_value}，但用于 @cpp{mzlonglong} 值（参见 @secref["im:intsize"]）。}
 
 @function[(Scheme_Object* scheme_make_integer_value_from_unsigned_long_long
            [umzlonglong i])]{
 
-Like @cpp{scheme_make_integer_value_from_long_long}, but for unsigned integers.}
+类似于 @cpp{scheme_make_integer_value_from_long_long}，但用于无符号整数。}
 
 @function[(Scheme_Object* scheme_make_integer_value_from_long_halves
            [uintptr_t hi]
            [uintptr_t lo])]{
 
-Creates an integer given the high and low @cpp{intptr_t}s of a signed
- integer. Note that on 64-bit platforms where @cpp{long long} is the
- same as @cpp{intptr_t}, the resulting integer has 128 bits. (See also
- @secref["im:intsize"].)}
+给定有符号整数的高位和低位 @cpp{intptr_t}，创建一个大整数。注意，在 64 位平台上，当 @cpp{long long} 与 @cpp{intptr_t} 相同时，结果整数为 128 bit。（另见 @secref["im:intsize"]。）}
 
 @function[(Scheme_Object* scheme_make_integer_value_from_unsigned_long_halves
            [uintptr_t hi]
            [uintptr_t lo])]{
 
-Creates an integer given the high and low @cpp{intptr_t}s of an unsigned
- integer. Note that on 64-bit platforms where @cpp{long long} is the
- same as @cpp{intptr_t}, the resulting integer has 128 bits.}
+给定无符号整数的高位和低位 @cpp{intptr_t}，创建一个大整数。注意，在 64 位平台上，当 @cpp{long long} 与 @cpp{intptr_t} 相同时，结果整数为 128 bit。}
 
 @function[(int scheme_get_int_val
            [Scheme_Object* o]
            [intptr_t* i])]{
 
-Extracts the integer value. Unlike the @cppi{SCHEME_INT_VAL} macro,
- this procedure will extract an integer that fits in a @cpp{intptr_t} from
- a Racket bignum. If @var{o} fits in a @cpp{intptr_t}, the extracted
- integer is placed in @var{*i} and 1 is returned; otherwise, 0 is
- returned and @var{*i} is unmodified.}
+提取整数值。与 @cppi{SCHEME_INT_VAL} 宏不同，此过程会从 Racket bignum 中提取能放入 @cpp{intptr_t} 的整数。如果 @var{o} 能放入 @cpp{intptr_t}，则提取的整数放入 @var{*i} 并返回 1；否则返回 0，且 @var{*i} 保持不变。}
 
 @function[(int scheme_get_unsigned_int_val
            [Scheme_Object* o]
            [uintptr_t* i])]{
 
-Like @cpp{scheme_get_int_val}, but for unsigned integers.}
+类似于 @cpp{scheme_get_int_val}，但用于无符号整数。}
 
 @function[(int scheme_get_long_long_val
            [Scheme_Object* o]
            [mzlonglong* i])]{
 
-Like @cpp{scheme_get_int_val}, but for @cpp{mzlonglong} values (see
- @secref["im:intsize"]).}
+类似于 @cpp{scheme_get_int_val}，但用于 @cpp{mzlonglong} 值（参见 @secref["im:intsize"]）。}
 
 @function[(int scheme_get_unsigned_long_long_val
            [Scheme_Object* o]
            [umzlonglong* i])]{
 
-Like @cpp{scheme_get_int_val}, but for unsigned @cpp{mzlonglong} values (see
- @secref["im:intsize"]).}
+类似于 @cpp{scheme_get_int_val}，但用于无符号 @cpp{mzlonglong} 值（参见 @secref["im:intsize"]）。}
 
 @function[(Scheme_Object* scheme_make_double
            [double d])]{
 
-Creates a new floating-point value.}
+创建一个新的浮点值。}
 
 @function[(Scheme_Object* scheme_make_float
            [float d])]{
 
-Creates a new single-precision floating-point value. The procedure is
-available only when Racket is compiled with single-precision
-numbers enabled.}
+创建一个新的单精度浮点值。此过程仅在 Racket 编译时启用单精度数字支持时才可用。}
 
 @function[(double scheme_real_to_double
            [Scheme_Object* o])]{
 
-Converts a Racket real number to a double-precision floating-point
-value.}
+将 Racket 实数转换为双精度浮点值。}
 
 @function[(Scheme_Object* scheme_make_pair
            [Scheme_Object* carv]
            [Scheme_Object* cdrv])]{
 
-Makes a @racket[cons] pair.}
+创建一个 @racket[cons] pair。}
 
 @function[(Scheme_Object* scheme_make_byte_string
            [char* bytes])]{
 
-Makes a Racket byte string from a nul-terminated C string. The
-@var{bytes} string is copied.}
+从以 nul 结尾的 C 字符串创建 Racket byte string。@var{bytes} 字符串会被复制。}
 
 @function[(Scheme_Object* scheme_make_byte_string_without_copying
            [char* bytes])]{
 
-Like @cpp{scheme_make_byte_string}, but the string is not copied.}
+类似于 @cpp{scheme_make_byte_string}，但字符串不会被复制。}
 
 @function[(Scheme_Object* scheme_make_sized_byte_string
            [char* bytes]
            [intptr_t len]
            [int copy])]{
 
-Makes a byte string value with size @var{len}. A copy of @var{bytes}
- is made if @var{copy} is not 0. The string @var{bytes} should
- contain @var{len} bytes; @var{bytes} can contain the nul byte at any
- position, and need not be nul-terminated if @var{copy} is
- non-zero. However, if @var{len} is negative, then the nul-terminated
- length of @var{bytes} is used for the length, and if @var{copy} is
- zero, then @var{bytes} must be nul-terminated.}
+创建大小为 @var{len} 的 byte string 值。如果 @var{copy} 不为 0，则会复制 @var{bytes}。字符串 @var{bytes} 应包含 @var{len} 个字节；@var{bytes} 可以在任意位置包含 nul 字节，且如果 @var{copy} 非零，则无需以 nul 结尾。但是，如果 @var{len} 为负数，则使用 @var{bytes} 的 nul 结尾长度作为长度；如果 @var{copy} 为零，则 @var{bytes} 必须以 nul 结尾。}
 
 @function[(Scheme_Object* scheme_make_sized_offset_byte_string
            [char* bytes]
@@ -506,82 +319,60 @@ Makes a byte string value with size @var{len}. A copy of @var{bytes}
            [intptr_t len]
            [int copy])]{
 
-Like @cpp{scheme_make_sized_byte_string}, except the @var{len}
- characters start from position @var{d} in @var{bytes}. If @var{d} is
- non-zero, then @var{copy} must be non-zero.}
+类似于 @cpp{scheme_make_sized_byte_string}，但 @var{len} 个字符从 @var{bytes} 中的位置 @var{d} 开始。如果 @var{d} 非零，则 @var{copy} 必须非零。}
 
 @function[(Scheme_Object* scheme_alloc_byte_string
            [intptr_t size]
            [char fill])]{
 
-Allocates a new Racket byte string.}
+分配一个新的 Racket byte string。}
 
 @function[(Scheme_Object* scheme_append_byte_string
            [Scheme_Object* a]
            [Scheme_Object* b])]{
 
-Creates a new byte string by appending the two given byte strings.}
+通过拼接两个给定的 byte string 来创建新的 byte string。}
 
 @function[(Scheme_Object* scheme_make_locale_string
            [char* bytes])]{
 
-Makes a Racket string from a nul-terminated byte string that is a
- locale-specific encoding of a character string; a new string is
- allocated during decoding.  The ``locale in the name of this function
- thus refers to @var{bytes}, and not the resulting string (which is
- internally stored as UCS-4).}
+从以 nul 结尾的 byte string（字符字符串的 locale 特定编码）创建 Racket 字符串；解码过程中会分配新字符串。此函数名称中的 ``locale'' 一词指的是 @var{bytes}，而非结果字符串（后者内部以 UCS-4 存储）。}
 
 @function[(Scheme_Object* scheme_make_utf8_string
            [char* bytes])]{
 
-Makes a Racket string from a nul-terminated byte string that is a
- UTF-8 encoding. A new string is allocated during decoding. The
- ``utf8'' in the name of this function thus refers to @var{bytes}, and
- not the resulting string (which is internally stored as UCS-4).}
+从以 nul 结尾的 UTF-8 编码的 byte string 创建 Racket 字符串。解码过程中会分配新字符串。此函数名称中的 ``utf8'' 一词指的是 @var{bytes}，而非结果字符串（后者内部以 UCS-4 存储）。}
 
 @function[(Scheme_Object* scheme_make_sized_utf8_string
            [char* bytes]
            [intptr_t len])]{
 
-Makes a string value, based on @var{len} UTF-8-encoding bytes (so the
- resulting string is @var{len} characters or less). The string
- @var{bytes} should contain at least @var{len} bytes; @var{bytes} can
- contain the nul byte at any position, and need not be
- null-terminated. However, if @var{len} is negative, then the
- nul-terminated length of @var{bytes} is used for the length.}
+基于 @var{len} 个 UTF-8 编码字节创建字符串值（因此结果字符串最多为 @var{len} 个字符）。字符串 @var{bytes} 应至少包含 @var{len} 个字节；@var{bytes} 可以在任意位置包含 nul 字节，且无需以 null 结尾。但是，如果 @var{len} 为负数，则使用 @var{bytes} 的 nul 结尾长度作为长度。}
 
 @function[(Scheme_Object* scheme_make_sized_offset_utf8_string
            [char* bytes]
            [intptr_t d]
            [intptr_t len])]{
 
-Like @cpp{scheme_make_sized_char_string}, except the @var{len} characters
- start from position @var{d} in @var{bytes}.}
+类似于 @cpp{scheme_make_sized_char_string}，但 @var{len} 个字符从 @var{bytes} 中的位置 @var{d} 开始。}
 
 
 @function[(Scheme_Object* scheme_make_char_string
            [mzchar* chars])]{
 
-Makes a Racket string from a nul-terminated UCS-4 string. The
- @var{chars} string is copied.}
+从以 nul 结尾的 UCS-4 字符串创建 Racket 字符串。@var{chars} 字符串会被复制。}
 
 @function[(Scheme_Object* scheme_make_char_string_without_copying
            [mzchar* chars])]{
 
-Like @cpp{scheme_make_char_string}, but the string is not copied.}
+类似于 @cpp{scheme_make_char_string}，但字符串不会被复制。}
 
 @function[(Scheme_Object* scheme_make_sized_char_string
            [mzchar* chars]
            [intptr_t len]
            [int copy])]{
 
-Makes a string value with size @var{len}. A copy of @var{chars} is
- made if @var{copy} is not 0. The string @var{chars} should
- contain @var{len} characters; @var{chars} can contain the nul
- character at any position, and need not be nul-terminated
- if @var{copy} is non-zero. However, if @var{len} is negative, then
- the nul-terminated length of @var{chars} is used for the length, and
- if @var{copy} is zero, then the @var{chars} must be nul-terminated.}
+创建大小为 @var{len} 的字符串值。如果 @var{copy} 不为 0，则会复制 @var{chars}。字符串 @var{chars} 应包含 @var{len} 个字符；@var{chars} 可以在任意位置包含 nul 字符，且如果 @var{copy} 非零，则无需以 nul 结尾。但是，如果 @var{len} 为负数，则使用 @var{chars} 的 nul 结尾长度作为长度；如果 @var{copy} 为零，则 @var{chars} 必须以 nul 结尾。}
 
 @function[(Scheme_Object* scheme_make_sized_offset_char_string
            [mzchar* chars]
@@ -589,196 +380,156 @@ Makes a string value with size @var{len}. A copy of @var{chars} is
            [intptr_t len]
            [int copy])]{
 
-Like @cpp{scheme_make_sized_char_string}, except the @var{len}
- characters start from position @var{d} in @var{chars}. If @var{d} is
- non-zero, then @var{copy} must be non-zero.}
+类似于 @cpp{scheme_make_sized_char_string}，但 @var{len} 个字符从 @var{chars} 中的位置 @var{d} 开始。如果 @var{d} 非零，则 @var{copy} 必须非零。}
 
 @function[(Scheme_Object* scheme_alloc_char_string
            [intptr_t size]
            [mzchar fill])]{
 
-Allocates a new Racket string.}
+分配一个新的 Racket 字符串。}
 
 @function[(Scheme_Object* scheme_append_char_string
            [Scheme_Object* a]
            [Scheme_Object* b])]{
 
-Creates a new string by appending the two given strings.}
+通过拼接两个给定的字符串来创建新字符串。}
 
 @function[(Scheme_Object* scheme_char_string_to_byte_string
            [Scheme_Object* s])]{
 
-Converts a Racket character string into a Racket byte string via UTF-8.}
+通过 UTF-8 将 Racket 字符字符串转换为 Racket byte string。}
 
 @function[(Scheme_Object* scheme_byte_string_to_char_string
            [Scheme_Object* s])]{
 
-Converts a Racket byte string into a Racket character string via UTF-8.}
+通过 UTF-8 将 Racket byte string 转换为 Racket 字符字符串。}
 
 @function[(Scheme_Object* scheme_char_string_to_byte_string_locale
            [Scheme_Object* s])]{
 
-Converts a Racket character string into a Racket byte string via the locale's encoding.}
+通过 locale 编码将 Racket 字符字符串转换为 Racket byte string。}
 
 @function[(Scheme_Object* scheme_byte_string_to_char_string_locale
            [Scheme_Object* s])]{
 
-Converts a Racket byte string into a Racket character string via the locale's encoding.}
+通过 locale 编码将 Racket byte string 转换为 Racket 字符字符串。}
 
 @function[(Scheme_Object* scheme_intern_symbol
            [char* name])]{
 
-Finds (or creates) the symbol matching the given nul-terminated, ASCII
- string (not UTF-8). The case of @var{name} is (non-destructively) normalized
- before interning if @cppi{scheme_case_sensitive} is 0.}
+查找（或创建）与给定的以 nul 结尾的 ASCII 字符串（非 UTF-8）匹配的 symbol。如果 @cppi{scheme_case_sensitive} 为 0，则在 intern 之前会（非破坏性地）规范化 @var{name} 的大小写。}
 
 @function[(Scheme_Object* scheme_intern_exact_symbol
            [char* name]
            [int len])]{
 
-Creates or finds a symbol given the symbol's length in UTF-8-encoding
- bytes. The case of @var{name} is not normalized.}
+给定以 UTF-8 编码字节表示的 symbol 长度，创建或查找一个 symbol。@var{name} 的大小写不会被规范化。}
 
 @function[(Scheme_Object* scheme_intern_exact_char_symbol
            [mzchar* name]
            [int len])]{
 
-Like @cpp{scheme_intern_exact_symbol}, but given a character array
- instead of a UTF-8-encoding byte array.}
+类似于 @cpp{scheme_intern_exact_symbol}，但接受字符数组而非 UTF-8 编码的字节数组。}
 
 @function[(Scheme_Object* scheme_make_symbol
            [char* name])]{
 
-Creates an uninterned symbol from a nul-terminated, UTF-8-encoding
- string. The case is not normalized.}
+从以 nul 结尾的 UTF-8 编码字符串创建未 intern 的 symbol。大小写不会被规范化。}
 
 @function[(Scheme_Object* scheme_make_exact_symbol
            [char* name]
            [int len])]{
 
-Creates an uninterned symbol given the symbol's length in
- UTF-8-encoded bytes.}
+给定以 UTF-8 编码字节表示的 symbol 长度，创建未 intern 的 symbol。}
 
 @function[(Scheme_Object* scheme_intern_exact_keyword
            [char* name]
            [int len])]{
 
-Creates or finds a keyword given the keywords length in UTF-8-encoding
- bytes. The case of @var{name} is not normalized, and it should
- not include the leading hash and colon of the keyword's printed form.}
+给定以 UTF-8 编码字节表示的 keyword 长度，创建或查找一个 keyword。@var{name} 的大小写不会被规范化，且不应包含 keyword 打印形式中的前导井号和冒号。}
 
 @function[(Scheme_Object* scheme_intern_exact_char_keyword
            [mzchar* name]
            [int len])]{
 
-Like @cpp{scheme_intern_exact_keyword}, but given a character array
- instead of a UTF-8-encoding byte array.}
+类似于 @cpp{scheme_intern_exact_keyword}，但接受字符数组而非 UTF-8 编码的字节数组。}
 
 @function[(Scheme_Object* scheme_make_vector
            [intptr_t size]
            [Scheme_Object* fill])]{
 
-Allocates a new vector.}
+分配一个新的 vector。}
 
 @function[(Scheme_Double_Vector* scheme_alloc_flvector
            [intptr_t size])]{
 
-Allocates an uninitialized flvector.
-The result type is effectively an alias for @cpp{Scheme_Object*}.}
+分配一个未初始化的 flvector。结果类型实际上是 @cpp{Scheme_Object*} 的别名。}
 
 @function[(Scheme_Vector* scheme_alloc_fxvector
            [intptr_t size])]{
 
-Allocates an uninitialized fxvector. 
-The result type is effectively an alias for @cpp{Scheme_Object*}.}
+分配一个未初始化的 fxvector。结果类型实际上是 @cpp{Scheme_Object*} 的别名。}
 
 @function[(Scheme_Object* scheme_box
            [Scheme_Object* v])]{
 
-Creates a new box containing the value @var{v}.}
+创建一个包含值 @var{v} 的新 box。}
 
 @function[(Scheme_Object* scheme_make_weak_box
            [Scheme_Object* v])]{
 
-Creates a new weak box containing the value @var{v}.}
+创建一个包含值 @var{v} 的新 weak box。}
 
 @function[(Scheme_Type scheme_make_type
            [char* name])]{
 
-Creates a new type (not a Racket value). The type tag is valid across
-all @|tech-place|s.}
+创建一个新类型（不是 Racket 值）。该类型 tag 在所有 @|tech-place| 中都是有效的。}
 
 @function[(Scheme_Object* scheme_make_cptr
            [void* ptr]
            [const-Scheme_Object* typetag])]{
 
-Creates a C-pointer object that encapsulates @var{ptr} and uses
- @var{typetag} to identify the type of the pointer. The
- @cppi{SCHEME_CPTRP} macro recognizes objects created by
- @cpp{scheme_make_cptr}. The @cppi{SCHEME_CPTR_VAL} macro extracts
- the original @var{ptr} from the Racket object, and
- @cppi{SCHEME_CPTR_TYPE} extracts the type tag.
- The @cppi{SCHEME_CPTR_OFFSETVAL} macro returns @cpp{0} 
- for the result Racket object.
+创建一个 C 指针对象，封装 @var{ptr} 并使用 @var{typetag} 标识指针的类型。@cppi{SCHEME_CPTRP} 宏能识别由 @cpp{scheme_make_cptr} 创建的对象。@cppi{SCHEME_CPTR_VAL} 宏从 Racket 对象中提取原始的 @var{ptr}，@cppi{SCHEME_CPTR_TYPE} 提取类型 tag。@cppi{SCHEME_CPTR_OFFSETVAL} 宏对结果 Racket 对象返回 @cpp{0}。
 
- The @var{ptr} can refer to either memory managed by the garbage
- collector or by some other memory manager. Beware, however, of
- retaining a @var{ptr} that refers to memory released by another
- memory manager, since the enclosing memory range might later become
- managed by the garbage collector (in which case @var{ptr} might
- become an invalid pointer that can crash the garbage collector).}
+@var{ptr} 可以指向由垃圾回收器管理的内存，也可以指向由其他内存管理器管理的内存。但要注意，不要保留一个指向已被另一个内存管理器释放的内存的 @var{ptr}，因为该内存范围稍后可能被垃圾回收器管理（此时 @var{ptr} 可能变成无效指针，导致垃圾回收器崩溃）。}
 
 @function[(Scheme_Object* scheme_make_external_cptr
            [void* ptr]
            [const-Scheme_Object* typetag])]{
 
-Like @cpp{scheme_make_cptr}, but @var{ptr} is never treated as
-referencing memory managed by the garbage collector.}
+类似于 @cpp{scheme_make_cptr}，但 @var{ptr} 永远不会被视为引用垃圾回收器管理的内存。}
 
 @function[(Scheme_Object* scheme_make_offset_cptr
            [void* ptr]
            [intptr_t offset]
            [const-Scheme_Object* typetag])]{
 
-Creates a C-pointer object that encapsulates both @var{ptr} and @var{offset}.
- The @cppi{SCHEME_CPTR_OFFSETVAL} macro returns @var{offset} 
- for the result Racket object (and the macro be used to change the offset,
- since it also works on objects with no offset).
+创建一个 C 指针对象，同时封装 @var{ptr} 和 @var{offset}。@cppi{SCHEME_CPTR_OFFSETVAL} 宏对结果 Racket 对象返回 @var{offset}（该宏也可用于更改 offset，因为它同样适用于没有 offset 的对象）。
 
- The @var{ptr} can refer to either memory managed by the garbage
- collector or by some other memory manager; see also 
- @cpp{scheme_make_cptr}.}
+@var{ptr} 可以指向由垃圾回收器管理的内存，也可以指向由其他内存管理器管理的内存；另见 @cpp{scheme_make_cptr}。}
 
 @function[(Scheme_Object* scheme_make_offset_external_cptr
            [void* ptr]
            [intptr_t offset]
            [const-Scheme_Object* typetag])]{
 
- Like @cpp{scheme_make_offset_cptr}, but @var{ptr} is never treated as
-referencing memory managed by the garbage collector.}
+类似于 @cpp{scheme_make_offset_cptr}，但 @var{ptr} 永远不会被视为引用垃圾回收器管理的内存。}
 
 
 @function[(void scheme_set_type_printer
            [Scheme_Type type]
            [Scheme_Type_Printer printer])]{
 
-Installs a printer to be used for printing (or writing or displaying)
- values that have the type tag @var{type}.
+安装一个 printer，用于打印（或 write 或 display）具有类型 tag @var{type} 的值。
 
-The type of @var{printer} is defined as follows:
+@var{printer} 的类型定义如下：
 
 @verbatim[#:indent 2]{
  typedef void (*Scheme_Type_Printer)(Scheme_Object *v, int dis,
                                      Scheme_Print_Params *pp);
 }
 
-Such a printer must print a representation of the value using
- @cppi{scheme_print_bytes} and @cppi{scheme_print_string}.  The
- first argument to the printer, @var{v}, is the value to be printed.
- The second argument indicates whether @var{v} is printed via
- @racket[write] or @racket[display]. The last argument is to be passed
- on to @cppi{scheme_print_bytes} or @cppi{scheme_print_string} to
- identify the printing context.}
+这样的 printer 必须使用 @cppi{scheme_print_bytes} 和 @cppi{scheme_print_string} 打印值的表示形式。printer 的第一个参数 @var{v} 是要打印的值。第二个参数指示 @var{v} 是通过 @racket[write] 还是 @racket[display] 打印。最后一个参数将被传递给 @cppi{scheme_print_bytes} 或 @cppi{scheme_print_string} 以标识打印上下文。}
 
 @function[(void scheme_print_bytes
            [Scheme_Print_Params* pp]
@@ -786,10 +537,7 @@ Such a printer must print a representation of the value using
            [int offset]
            [int len])]{
 
-Writes the content of @var{str} --- starting from @var{offset} and
- running @var{len} bytes --- into a printing context determined by
- @var{pp}. This function is for use by a printer that is installed
- with @cpp{scheme_set_type_printer}.}
+将 @var{str} 的内容——从 @var{offset} 开始，持续 @var{len} 个字节——写入由 @var{pp} 确定的打印上下文中。此函数供通过 @cpp{scheme_set_type_printer} 安装的 printer 使用。}
 
 @function[(void scheme_print_string
            [Scheme_Print_Params* pp]
@@ -797,10 +545,7 @@ Writes the content of @var{str} --- starting from @var{offset} and
            [int offset]
            [int len])]{
 
-Writes the content of @var{str} --- starting from @var{offset} and
- running @var{len} characters --- into a printing context determined
- by @var{pp}. This function is for use by a printer that is installed
- with @cpp{scheme_set_type_printer}.}
+将 @var{str} 的内容——从 @var{offset} 开始，持续 @var{len} 个字符——写入由 @var{pp} 确定的打印上下文中。此函数供通过 @cpp{scheme_set_type_printer} 安装的 printer 使用。}
 
 @function[(void scheme_set_type_equality
            [Scheme_Type type]
@@ -808,12 +553,9 @@ Writes the content of @var{str} --- starting from @var{offset} and
            [Scheme_Primary_Hash_Proc hash1]
            [Scheme_Secondary_Hash_Proc hash2])]{
 
-Installs an equality predicate and associated hash functions for
-values that have the type tag @var{type}. The @var{equalp} predicate
-is only applied to values that both have tag @var{type}.
+为具有类型 tag @var{type} 的值安装相等谓词及关联的哈希函数。@var{equalp} 谓词仅应用于两者都具有 tag @var{type} 的值。
 
-The type of @var{equalp}, @var{hash1}, and @var{hash2} are defined as
-follows:
+@var{equalp}、@var{hash1} 和 @var{hash2} 的类型定义如下：
 
 @verbatim[#:indent 2]{
  typedef int (*Scheme_Equal_Proc)(Scheme_Object* obj1,
@@ -826,18 +568,8 @@ follows:
                                            void* cycle_data);
 }
 
-The two hash functions are used to generate primary and secondary keys
-for double hashing in an @racket[equal?]-based hash table. The result
-of the primary-key function should depend on both @var{obj} and
-@var{base}.
+这两个哈希函数用于为基于 @racket[equal?] 的 hash table 生成 double hashing 的主键和次键。主键函数的结果应同时依赖于 @var{obj} 和 @var{base}。
 
-The @var{cycle_data} argument in each case allows checking and hashing
-on cyclic values. It is intended for use in recursive checking or
-hashing via @cpp{scheme_recur_equal},
-@cpp{scheme_recur_equal_hash_key}, and
-@cpp{scheme_recur_equal_hash_key}. That is, do not call plain
-@cpp{scheme_equal}, @cpp{scheme_equal_hash_key}, or
-@cpp{scheme_equal_hash_key} for recursive checking or hashing on
-sub-elements of the given value(s).}
+每种情况下的 @var{cycle_data} 参数允许对循环值进行检查和哈希。它旨在通过 @cpp{scheme_recur_equal}、@cpp{scheme_recur_equal_hash_key} 和 @cpp{scheme_recur_equal_hash_key} 进行递归检查或哈希。也就是说，不要对给定值的子元素调用普通的 @cpp{scheme_equal}、@cpp{scheme_equal_hash_key} 或 @cpp{scheme_equal_hash_key} 来进行递归检查或哈希。}
 
 
