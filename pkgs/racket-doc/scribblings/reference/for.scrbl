@@ -5,17 +5,16 @@
                      syntax/parse/define
                      racket/for-clause))
 
-@title[#:tag "for"]{Iterations and Comprehensions: @racket[for], @racket[for/list], ...}
+@title[#:tag "for"]{迭代与推导式：@racket[for]、@racket[for/list]……}
 
-@guideintro["for"]{iterations and comprehensions}
+@guideintro["for"]{迭代与推导式}
 
 @(define for-eval (make-base-eval))
 @(for-eval '(require (for-syntax racket/base)))
 
-The @racket[for] iteration forms are based on SRFI-42
-@cite["SRFI-42"].
+@racket[for] 迭代形式基于 SRFI-42 @cite["SRFI-42"]。
 
-@section{Iteration and Comprehension Forms}
+@section{迭代与推导形式}
 
 @defform/subs[(for (for-clause ...) body-or-break ... body)
               ([for-clause [id seq-expr]
@@ -32,51 +31,29 @@ The @racket[for] iteration forms are based on SRFI-42
                               break-clause])
               #:contracts ([seq-expr sequence?])]{
 
-Iteratively evaluates @racket[body]s. The @racket[for-clause]s
-introduce bindings whose scope includes @racket[body] and that
-determine the number of times that @racket[body] is evaluated.
-A @racket[break-clause] either among the @racket[for-clause]s
-or @racket[body]s stops further iteration.
+迭代地求值 @racket[body]。@racket[for-clause] 引入绑定，其作用域包括 @racket[body]，并确定 @racket[body] 被求值的次数。
+位于 @racket[for-clause] 或 @racket[body] 中的 @racket[break-clause] 会停止进一步迭代。
 
-In the simple case, each @racket[for-clause] has one of its first two
-forms, where @racket[[id seq-expr]] is a shorthand for @racket[[(id)
-seq-expr]].  In this simple case, the @racket[seq-expr]s are evaluated
-left-to-right, and each must produce a sequence value (see
-@secref["sequences"]).
+在简单情况下，每个 @racket[for-clause] 采用其前两种形式之一，其中 @racket[[id seq-expr]] 是 @racket[[(id)
+seq-expr]] 的简写。在这种简单情况下，@racket[seq-expr] 从左到右求值，每个都必须产生一个序列值（参见 @secref["sequences"]）。
 
-The @racket[for] form iterates by drawing an element from each
-sequence; if any sequence is empty, then the iteration stops
-(but see @racket[#:on-length-mismatch] below), and
-@|void-const| is the result of the @racket[for] expression. Otherwise,
-a location is created for each @racket[id] to hold the values of each
-element; the sequence produced by a @racket[seq-expr] must return as
-many values for each iteration as corresponding @racket[id]s.
+@racket[for] 形式通过从每个序列中取出一个元素来迭代；如果任何序列为空，则迭代停止
+（但参见下文的 @racket[#:on-length-mismatch]），并且
+@|void-const| 是 @racket[for] 表达式的结果。否则，为每个 @racket[id] 创建一个位置来保存每个元素的值；@racket[seq-expr] 产生的序列必须为每次迭代返回与对应 @racket[id] 数量相同的值。
 
-The @racket[id]s are then bound in the @racket[body], which is
-evaluated, and whose results are ignored. Iteration continues with the
-next element in each sequence and with fresh locations for each
-@racket[id].
+然后 @racket[id] 在 @racket[body] 中被绑定，@racket[body] 被求值，其结果被忽略。迭代继续使用每个序列中的下一个元素，并为每个 @racket[id] 分配新的位置。
 
-A @racket[for] form with zero @racket[for-clause]s is equivalent to a
-single @racket[for-clause] that binds an unreferenced @racket[id] to
-a sequence containing a single element. All of the @racket[id]s must
-be distinct according to @racket[bound-identifier=?].
+带有零个 @racket[for-clause] 的 @racket[for] 形式等价于单个 @racket[for-clause]，它将一个未被引用的 @racket[id] 绑定到包含单个元素的序列。所有 @racket[id] 必须根据 @racket[bound-identifier=?] 是互不相同的。
 
-If any @racket[for-clause] has the form @racket[#:when guard-expr],
-then only the preceding clauses (containing no @racket[#:when], @racket[#:unless], or @racket[#:do])
-determine iteration as above, and the @racket[body] is effectively
-wrapped as
+如果任何 @racket[for-clause] 具有 @racket[#:when guard-expr] 形式，则仅前面的子句（不包含 @racket[#:when]、@racket[#:unless] 或 @racket[#:do]）如上所述确定迭代，而 @racket[body] 有效地被包裹为
 
 @racketblock[
 (when guard-expr
   (for (for-clause ...) body ...+))
 ]
 
-using the remaining @racket[for-clause]s. A @racket[for-clause] of
-the form @racket[#:unless guard-expr] corresponds to the same transformation
-with @racket[unless] in place of @racket[when]. A @racket[for-clause] of
-the form @racket[#:do [do-body ...]] similarly creates nesting and
-corresponds to
+使用剩余的 @racket[for-clause]。@racket[#:unless guard-expr] 形式的 @racket[for-clause] 对应相同的转换，
+只是将 @racket[when] 替换为 @racket[unless]。@racket[#:do [do-body ...]] 形式的 @racket[for-clause] 同样创建嵌套并对应于
 
 @racketblock[
 (let ()
@@ -84,34 +61,11 @@ corresponds to
   (for (for-clause ...) body ...+))
 ]
 
-where the @racket[do-body] forms may introduce definitions that are
-visible in the remaining @racket[for-clause]s.
+其中 @racket[do-body] 形式可以引入在其余 @racket[for-clause] 中可见的定义。
 
-A @racket[#:break guard-expr] clause is similar to a
-@racket[#:unless guard-expr] clause, but when @racket[#:break]
-avoids evaluation of the @racket[body]s, it also effectively ends all
-sequences within the @racket[for] form.  A @racket[#:final
-guard-expr] clause is similar to @racket[#:break guard-expr], but
-instead of immediately ending sequences and skipping the
-@racket[body]s, it allows at most one more element from each later
-sequence and at most one more evaluation of the following
-@racket[body]s. Among the @racket[body]s, besides stopping the
-iteration and preventing later @racket[body] evaluations, a
-@racket[#:break guard-expr] or @racket[#:final guard-expr]
-clause starts a new internal-definition context.
+@racket[#:break guard-expr] 子句类似于 @racket[#:unless guard-expr] 子句，但当 @racket[#:break] 避免了 @racket[body] 的求值时，它也有效地结束 @racket[for] 形式中的所有序列。@racket[#:final guard-expr] 子句类似于 @racket[#:break guard-expr]，但不是立即结束序列并跳过 @racket[body]，而是允许每个后续序列最多再提供一个元素，并允许后续 @racket[body] 最多再求值一次。在 @racket[body] 中，除了停止迭代并阻止后续 @racket[body] 求值之外，@racket[#:break guard-expr] 或 @racket[#:final guard-expr] 子句还会启动一个新的内部定义上下文。
 
-A @racket[#:splice (splicing-id . form)] clause is replaced by the
-sequence of forms that are produced by expanding @racket[(splicing-id
-. form)], where @racket[splicing-id] is bound using
-@racket[define-splicing-for-clause-syntax]. The binding context of
-that expansion includes previous binding from any clause preceding
-both the @racket[#:splice] form and a @racket[#:when],
-@racket[#:unless], @racket[#:do], @racket[#:break], or
-@racket[#:final] form. The result of a @racket[#:splice] expansion can
-include more @racket[#:splice] forms to further interleave clause
-binding and expansion. Support for @racket[#:splice] clauses is
-intended less for direct use in source @racket[for] forms than for
-building new forms that expand to @racket[for].
+@racket[#:splice (splicing-id . form)] 子句被替换为展开 @racket[(splicing-id . form)] 所产生的形式序列，其中 @racket[splicing-id] 使用 @racket[define-splicing-for-clause-syntax] 绑定。该展开的绑定上下文包括来自 @racket[#:splice] 形式之前且同时在 @racket[#:when]、@racket[#:unless]、@racket[#:do]、@racket[#:break] 或 @racket[#:final] 形式之前的任何子句的先前绑定。@racket[#:splice] 展开的结果可以包含更多 @racket[#:splice] 形式，以进一步交错子句绑定和展开。对 @racket[#:splice] 子句的支持更多用于构建展开为 @racket[for] 的新形式，而非直接在源码 @racket[for] 形式中使用。
 
 An @racket[#:on-length-mismatch mismatch-expr] clause is similar to
 @racket[#:when #t], but if one of the sequences in the immediately
@@ -185,13 +139,8 @@ property; in most cases this improves performance.
          #:changed "8.4.0.3" @elem{Added @racket[#:splice].}
          #:changed "9.0.0.2" @elem{Added @racket[#:on-length-mismatch].}]}
 
-@defform[(for/list (for-clause ...) body-or-break ... body)]{ Iterates like
-@racket[for], but that the last expression in the @racket[body]s must
-produce a single value, and the result of the @racket[for/list]
-expression is a list of the results in order.
-When evaluation of a @racket[body] is skipped due to a @racket[#:when]
-or @racket[#:unless] clause, the result list includes no corresponding
-element.
+@defform[(for/list (for-clause ...) body-or-break ... body)]{ 像 @racket[for] 一样迭代，但 @racket[body] 中的最后一个表达式必须产生单个值，而 @racket[for/list] 表达式的结果是按顺序排列的结果列表。
+当由于 @racket[#:when] 或 @racket[#:unless] 子句而跳过 @racket[body] 的求值时，结果列表中不包含对应的元素。
 
 @examples[
 (for/list ([i '(1 2 3)]
@@ -215,18 +164,9 @@ element.
                              (code:line #:length length-expr #:fill fill-expr)])
               #:contracts ([length-expr exact-nonnegative-integer?])]{
 
-Iterates like @racket[for/list], but results are accumulated into
-a vector instead of a list. 
+像 @racket[for/list] 一样迭代，但结果累积到向量而非列表中。
 
-If the optional @racket[#:length] clause is specified, the result of
-@racket[length-expr] determines the length of the result vector.  In
-that case, the iteration can be performed more efficiently, and it
-terminates when the vector is full or the requested number of
-iterations have been performed, whichever comes first. If
-@racket[length-expr] specifies a length longer than the number of
-iterations, then the remaining slots of the vector are initialized to
-the value of @racket[fill-expr], which defaults to @racket[0] (i.e.,
-the default argument of @racket[make-vector]).
+如果指定了可选的 @racket[#:length] 子句，则 @racket[length-expr] 的结果确定结果向量的长度。在这种情况下，迭代可以更高效地执行，并且当向量填满或已执行所请求的迭代次数时终止（以先到者为准）。如果 @racket[length-expr] 指定的长度大于迭代次数，则向量的剩余位置被初始化为 @racket[fill-expr] 的值，默认为 @racket[0]（即 @racket[make-vector] 的默认参数）。
 
 @examples[
 (for/vector ([i '(1 2 3)]) (number->string i))
@@ -248,15 +188,8 @@ mutate a shared vector.}
 @defform[(for/hashalw (for-clause ...) body-or-break ... body)]
 )]{
 
-Like @racket[for/list], but the result is an immutable @tech{hash
-table}; @racket[for/hash] creates a table using @racket[equal?] to
-distinguish keys, @racket[for/hasheq] produces a table using
-@racket[eq?], @racket[for/hasheqv] produces a table using
-@racket[eqv?], and @racket[for/hashalw] produces a table using
-@racket[equal-always?].
-The last expression in the @racket[body]s must return
-two values: a key and a value to extend the hash table accumulated by
-the iteration.
+类似于 @racket[for/list]，但结果是一个不可变的 @tech{hash table}；@racket[for/hash] 使用 @racket[equal?] 来区分 key，@racket[for/hasheq] 使用 @racket[eq?] 产生表，@racket[for/hasheqv] 使用 @racket[eqv?] 产生表，@racket[for/hashalw] 使用 @racket[equal-always?] 产生表。
+@racket[body] 中的最后一个表达式必须返回两个值：一个 key 和一个值，用以扩展迭代累积的 hash table。
 
 @examples[
 (for/hash ([i '(1 2 3)])
@@ -266,13 +199,7 @@ the iteration.
 @history[#:changed "8.5.0.3" @elem{Added the @racket[for/hashalw] form.}]}
 
 
-@defform[(for/and (for-clause ...) body-or-break ... body)]{ Iterates like
-@racket[for], but when last expression of @racket[body] produces
-@racket[#f], then iteration terminates, and the result of the
-@racket[for/and] expression is @racket[#f]. If the @racket[body]
-is never evaluated, then the result of the @racket[for/and]
-expression is @racket[#t]. Otherwise, the result is the (single)
-result from the last evaluation of @racket[body].
+@defform[(for/and (for-clause ...) body-or-break ... body)]{ 像 @racket[for] 一样迭代，但当 @racket[body] 的最后一个表达式产生 @racket[#f] 时，迭代终止，@racket[for/and] 表达式的结果为 @racket[#f]。如果 @racket[body] 从未被求值，则 @racket[for/and] 表达式的结果为 @racket[#t]。否则，结果是 @racket[body] 最后一次求值的（单个）结果。
 
 @examples[
 (for/and ([i '(1 2 3 "x")])
@@ -286,13 +213,7 @@ result from the last evaluation of @racket[body].
   (error "doesn't get here"))
 ]}
 
-@defform[(for/or (for-clause ...) body-or-break ... body)]{ Iterates like
-@racket[for], but when last expression of @racket[body] produces
-a value other than @racket[#f], then iteration terminates, and
-the result of the @racket[for/or] expression is the same
-(single) value. If the @racket[body] is never evaluated, then the
-result of the @racket[for/or] expression is
-@racket[#f]. Otherwise, the result is @racket[#f].
+@defform[(for/or (for-clause ...) body-or-break ... body)]{ 像 @racket[for] 一样迭代，但当 @racket[body] 的最后一个表达式产生除 @racket[#f] 以外的值时，迭代终止，@racket[for/or] 表达式的结果是相同的（单个）值。如果 @racket[body] 从未被求值，则 @racket[for/or] 表达式的结果为 @racket[#f]。否则，结果为 @racket[#f]。
 
 @examples[
 (for/or ([i '(1 2 3 "x")])
@@ -307,8 +228,7 @@ result of the @racket[for/or] expression is
 @defform[(for/sum (for-clause ...) body-or-break ... body)]
 )]{
 
-Iterates like @racket[for], but each result of the last @racket[body]
-is accumulated into a result with @racket[+].
+像 @racket[for] 一样迭代，但 @racket[body] 最后一个表达式的每个结果通过 @racket[+] 累积到结果中。
 
 @examples[
 (for/sum ([i '(1 2 3 4)]) i)
@@ -319,8 +239,7 @@ is accumulated into a result with @racket[+].
 @defform[(for/product (for-clause ...) body-or-break ... body)]
 )]{
 
-Iterates like @racket[for], but each result of the last @racket[body]
-is accumulated into a result with @racket[*].
+像 @racket[for] 一样迭代，但 @racket[body] 最后一个表达式的每个结果通过 @racket[*] 累积到结果中。
 
 @examples[
 (for/product ([i '(1 2 3 4)]) i)
@@ -333,20 +252,13 @@ is accumulated into a result with @racket[*].
          #:grammar
          ([maybe-result (code:line) (code:line #:result result-expr)])]{
 
-Similar to @racket[for/list], but the last @racket[body] expression
-should produce as many values as given @racket[id]s.
-The @racket[id]s are bound to
-the reversed lists accumulated so far in the @racket[for-clause]s and
-@racket[body]s.
+类似于 @racket[for/list]，但最后一个 @racket[body] 表达式应该产生与给定 @racket[id] 数量相同的值。
+@racket[id] 被绑定到在 @racket[for-clause] 和 @racket[body] 中截至目前累积的反向列表。
 
-If a @racket[result-expr] is provided, it is used as with @racket[for/fold]
-when iteration terminates;
-otherwise, the result is as many lists as supplied @racket[id]s.
+如果提供了 @racket[result-expr]，当迭代终止时它会像 @racket[for/fold] 一样被使用；
+否则，结果是数量与提供的 @racket[id] 相同的列表。
 
-The scope of @racket[id] bindings is the same as for accumulator
-identifiers in @racket[for/fold]. Mutating a @racket[id] affects the
-accumulated lists, and mutating it in a way that produces a non-list
-can cause a final @racket[reverse] for each @racket[id] to fail.
+@racket[id] 绑定的作用域与 @racket[for/fold] 中累加器标识符的作用域相同。修改 @racket[id] 会影响累积的列表，以产生非列表的方式修改它可能导致每个 @racket[id] 的最终 @racket[reverse] 失败。
 
 @examples[
 (for/lists (l1 l2 l3)
@@ -369,12 +281,7 @@ can cause a final @racket[reverse] for each @racket[id] to fail.
  ]}
 
 
-@defform[(for/first (for-clause ...) body-or-break ... body)]{ Iterates like
-@racket[for], but after @racket[body] is evaluated the first
-time, then the iteration terminates, and the @racket[for/first]
-result is the (single) result of @racket[body]. If the
-@racket[body] is never evaluated, then the result of the
-@racket[for/first] expression is @racket[#f].
+@defform[(for/first (for-clause ...) body-or-break ... body)]{ 像 @racket[for] 一样迭代，但在 @racket[body] 第一次被求值后，迭代终止，@racket[for/first] 的结果是 @racket[body] 的（单个）结果。如果 @racket[body] 从未被求值，则 @racket[for/first] 表达式的结果为 @racket[#f]。
 
 @examples[
 (for/first ([i '(1 2 3 "x")]
@@ -384,11 +291,7 @@ result is the (single) result of @racket[body]. If the
   (error "doesn't get here"))
 ]}
 
-@defform[(for/last (for-clause ...) body-or-break ... body)]{ Iterates like
-@racket[for], but the @racket[for/last] result is the (single)
-result of the last evaluation of @racket[body]. If the
-@racket[body] is never evaluated, then the result of the
-@racket[for/last] expression is @racket[#f].
+@defform[(for/last (for-clause ...) body-or-break ... body)]{ 像 @racket[for] 一样迭代，但 @racket[for/last] 的结果是 @racket[body] 最后一次求值的（单个）结果。如果 @racket[body] 从未被求值，则 @racket[for/last] 表达式的结果为 @racket[#f]。
 
 @examples[
 (for/last ([i '(1 2 3 4 5)]
@@ -403,18 +306,7 @@ result of the last evaluation of @racket[body]. If the
               ([maybe-result (code:line)
                              (code:line #:result result-expr)])]{
 
-Iterates like @racket[for]. Before iteration starts, the
-@racket[init-expr]s are evaluated to produce initial accumulator
-values. At the start of each iteration, a location is generated
-for each @racket[accum-id], and the corresponding current accumulator
-value is placed into the location. The last expression in
-@racket[body] must produce as many values as @racket[accum-id]s, and
-those values become the current accumulator values. When iteration
-terminates, if a @racket[result-expr] is provided then the result of the
- @racket[for/fold] is the result of evaluating @racket[result-expr]
- (with @racket[accum-id]s in scope and bound to their final values),
- otherwise the results of the @racket[for/fold] expression are the
- accumulator values.
+像 @racket[for] 一样迭代。在迭代开始之前，@racket[init-expr] 被求值以产生初始累加器值。在每次迭代开始时，为每个 @racket[accum-id] 生成一个位置，并将对应的当前累加器值放入该位置。@racket[body] 中的最后一个表达式必须产生与 @racket[accum-id] 数量相同的值，这些值成为当前累加器值。当迭代终止时，如果提供了 @racket[result-expr]，则 @racket[for/fold] 的结果是求值 @racket[result-expr] 的结果（@racket[accum-id] 在作用域内并绑定到其最终值），否则 @racket[for/fold] 表达式的结果是累加器值。
 
 @examples[
 (for/fold ([sum 0]
@@ -457,13 +349,7 @@ same as the lexical nesting, however: the variable referenced by a
                                   (code:line #:delay-as delayed-id)
                                   (code:line #:delay-with delayer-id)])]{
 
-Like @racket[for/fold], but analogous to @racket[foldr] rather than
-@racket[foldl]: the given sequences are still iterated in the same order, but
-the loop body is evaluated in reverse order. Evaluation of a @racket[for/foldr]
-expression uses space proportional to the number of iterations it performs, and
-all elements produced by the given sequences are retained until backwards
-evaluation of the loop body begins (assuming the element is, in fact,
-referenced in the body).
+类似于 @racket[for/fold]，但类比于 @racket[foldr] 而非 @racket[foldl]：给定的序列仍然按相同顺序迭代，但循环体按反向顺序求值。@racket[for/foldr] 表达式的求值使用与其执行的迭代次数成正比的空间，并且给定序列产生的所有元素在循环体反向求值开始之前会被保留（假设该元素确实在 body 中被引用）。
 
 @(examples
   #:eval for/foldr-eval
@@ -475,27 +361,11 @@ referenced in the body).
                 (cons v acc))
               '(1 2 3)))
 
-Furthermore, unlike @racket[for/fold], the @racket[accum-id]s are not bound
-within @racket[_guard-expr]s or @racket[_body-or-break] forms that appear before
-a @racket[_break-clause].
+此外，与 @racket[for/fold] 不同，@racket[accum-id] 不会在 @racket[_break-clause] 之前出现的 @racket[_guard-expr] 或 @racket[_body-or-break] 形式中被绑定。
 
-While the aforementioned limitations make @racket[for/foldr] less generally
-useful than @racket[for/fold], @racket[for/foldr] provides the additional
-capability to iterate lazily via the @racket[#:delay], @racket[#:delay-as], and
-@racket[#:delay-with] options, which can mitigate many of @racket[for/foldr]'s
-disadvantages. If at least one such option is specified, the loop body is given
-explicit control over when iteration continues: by default, each
-@racket[accum-id] is bound to a @tech{promise} that, when forced, produces the
-@racket[accum-id]'s current value.
+虽然上述限制使 @racket[for/foldr] 的通用性不如 @racket[for/fold]，但 @racket[for/foldr] 通过 @racket[#:delay]、@racket[#:delay-as] 和 @racket[#:delay-with] 选项提供了额外的惰性迭代能力，这可以缓解 @racket[for/foldr] 的许多缺点。如果至少指定了一个这样的选项，循环体将获得对迭代何时继续的显式控制：默认情况下，每个 @racket[accum-id] 被绑定到一个 @tech{promise}，当被 force 时，它产生 @racket[accum-id] 的当前值。
 
-In this mode, iteration does not continue until one such promise is forced,
-which triggers any additional iteration necessary to produce a value. If the
-loop body is lazy in its @racket[accum-id]s---that is, it returns a value
-without forcing any of them---then the loop (or any of its iterations) will
-produce a value before iteration has completely finished. If a reference to at
-least one such promise is retained, then forcing it will resume iteration from
-the point at which it was suspended, even if control has left the dynamic extent
-of the loop body.
+在此模式下，迭代直到某个 promise 被 force 时才会继续，这会触发产生值所需的任何额外迭代。如果循环体对其 @racket[accum-id] 是惰性的——也就是说，它在不 force 任何 promise 的情况下返回一个值——那么循环（或其任何迭代）将在迭代完全完成之前产生一个值。如果保留了对至少一个此类 promise 的引用，那么 force 它将从挂起点恢复迭代，即使控制已经离开了循环体的动态范围。
 
 @(examples
   #:eval for/foldr-eval
@@ -518,9 +388,7 @@ of the loop body.
         (printf "<-- ~v\n" v))))
   (eval:check (force resume) '(3 4)))
 
-This extra control over iteration order allows @racket[for/foldr] to both
-consume and construct infinite sequences, so long as it is at least sometimes
-lazy in its accumulators.
+这种对迭代顺序的额外控制允许 @racket[for/foldr] 既能消费又能构造无限序列，只要它至少有时对其累加器是惰性的。
 
 @margin-note/ref{
   See also @racket[for/stream] for a more convenient (albeit less flexible) way
@@ -589,9 +457,7 @@ option must be specified to access the accumulator values via
 @(close-eval for/foldr-eval)
 
 @defform[(for* (for-clause ...) body-or-break ... body)]{
-Like @racket[for], but with an implicit @racket[#:when #t] between
-each pair of @racket[for-clauses], so that all sequence iterations are
-nested.
+类似于 @racket[for]，但在每对 @racket[for-clause] 之间隐含有 @racket[#:when #t]，以便所有序列迭代都是嵌套的。
 
 @examples[
 (for* ([i '(1 2)]
@@ -621,8 +487,7 @@ nested.
            body-or-break ... body)]
 )]{
 
-Like @racket[for/list], etc., but with the implicit nesting of
-@racket[for*].
+类似于 @racket[for/list] 等，但具有 @racket[for*] 的隐式嵌套。
 
 @examples[
 (for*/list ([i '(1 2)]
@@ -634,18 +499,15 @@ Like @racket[for/list], etc., but with the implicit nesting of
          #:changed "8.5.0.3" @elem{Added the @racket[for*/hashalw] form.}]}
 
 @;------------------------------------------------------------------------
-@section{Deriving New Iteration Forms}
+@section{派生新的迭代形式}
 
 @defform[(for/fold/derived orig-datum
            ([accum-id init-expr] ... maybe-result) (for-clause ...)
            body-or-break ... body)]{
 
-Like @racket[for/fold], but the extra @racket[orig-datum] is used as the
-source for all syntax errors.
+类似于 @racket[for/fold]，但额外的 @racket[orig-datum] 被用作所有语法错误的源信息。
 
-A macro that expands to @racket[for/fold/derived] should typically use
-@racket[split-for-body] to handle the possibility of macros and other
-definitions mixed with keywords like @racket[#:break].
+展开为 @racket[for/fold/derived] 的 macro 通常应使用 @racket[split-for-body] 来处理 macro 和其他定义与 @racket[#:break] 等关键字混合的可能性。
 
 @mz-examples[#:eval for-eval
 (require (for-syntax syntax/for-body)
@@ -696,7 +558,7 @@ definitions mixed with keywords like @racket[#:break].
 @defform[(for*/fold/derived orig-datum
            ([accum-id init-expr] ... maybe-result) (for-clause ...)
            body-or-break ... body)]{
-Like @racket[for*/fold], but the extra @racket[orig-datum] is used as the source for all syntax errors.
+类似于 @racket[for*/fold]，但额外的 @racket[orig-datum] 被用作所有语法错误的源信息。
 
 @mz-examples[#:eval for-eval
 (require (for-syntax syntax/for-body)
@@ -733,9 +595,7 @@ Like @racket[for*/fold], but the extra @racket[orig-datum] is used as the source
            body-or-break ... body)]
 )]{
 
-Like @racket[for/foldr] and @racket[for*/foldr], but the extra
-@racket[orig-datum] is used as the source for all syntax errors as in
-@racket[for/fold/derived] and @racket[for*/fold/derived].
+类似于 @racket[for/foldr] 和 @racket[for*/foldr]，但额外的 @racket[orig-datum] 被用作所有语法错误的源信息，与 @racket[for/fold/derived] 和 @racket[for*/fold/derived] 一样。
 
 @history[#:added "7.3.0.3"]}
 
@@ -747,31 +607,11 @@ Like @racket[for/foldr] and @racket[for*/foldr], but the extra
                                      (syntax? . -> . syntax?))]
           [clause-transform-expr (syntax? . -> . syntax?)])]{
 
-Defines @racket[id] as syntax. An @racket[(id . _rest)] form is
-treated specially when used to generate a sequence in a
-@racket[_for-clause] of @racket[for] (or one of its variants). In that
-case, the procedure result of @racket[clause-transform-expr] is called
-to transform the clause.
+将 @racket[id] 定义为语法。当 @racket[(id . _rest)] 形式在 @racket[for]（或其变体）的 @racket[_for-clause] 中用于生成序列时，它会被特殊处理。在这种情况下，@racket[clause-transform-expr] 的过程结果会被调用来转换该子句。
 
-When @racket[id] is used in any other expression position, the result
-of @racket[expr-transform-expr] is used. If it is a procedure of zero
-arguments, then the result must be an identifier @racket[_other-id],
-and any use of @racket[id] is converted to a use of
-@racket[_other-id]. Otherwise, @racket[expr-transform-expr] must
-produce a procedure (of one argument) that is used as a macro
-transformer.
+当 @racket[id] 在任何其他表达式位置使用时，则使用 @racket[expr-transform-expr] 的结果。如果它是一个零参数的过程，则结果必须是一个标识符 @racket[_other-id]，并且任何对 @racket[id] 的使用都被转换为对 @racket[_other-id] 的使用。否则，@racket[expr-transform-expr] 必须产生一个（单参数的）过程，用作 macro transformer。
 
-When the @racket[clause-transform-expr] transformer is used, it is
-given a @racket[_for-clause] as an argument, where the clause's form is
-normalized so that the left-hand side is a parenthesized sequence of
-identifiers. The right-hand side is of the form @racket[(id . _rest)].
-The result can be either @racket[#f], to indicate that the forms
-should not be treated specially (perhaps because the number of bound
-identifiers is inconsistent with the @racket[(id . _rest)] form), or a
-new @racket[_for-clause] to replace the given one. The new clause might
-use @racket[:do-in]. To protect identifiers in the result of 
-@racket[clause-transform-expr], use @racket[for-clause-syntax-protect]
-instead of @racket[syntax-protect].
+当使用 @racket[clause-transform-expr] transformer 时，它接收一个 @racket[_for-clause] 作为参数，其中该子句的形式被规范化为左侧是带括号的标识符序列。右侧的形式为 @racket[(id . _rest)]。结果可以是 @racket[#f]，表示这些形式不应被特殊处理（可能是因为绑定标识符的数量与 @racket[(id . _rest)] 形式不一致），或者是一个新的 @racket[_for-clause] 来替换给定的子句。新子句可能使用 @racket[:do-in]。要保护 @racket[clause-transform-expr] 结果中的标识符，请使用 @racket[for-clause-syntax-protect] 而非 @racket[syntax-protect]。
 
 @mz-examples[#:eval for-eval
 (define (check-nat n)
@@ -814,11 +654,9 @@ instead of @racket[syntax-protect].
          #:grammar
          ([maybe-inner-defn/expr (code:line) (code:line inner-defn-or-expr)])]{
 
-A form that can only be used as a @racket[_seq-expr] in a
-@racket[_for-clause] of @racket[for] (or one of its variants).
+一种只能在 @racket[for]（或其变体）的 @racket[_for-clause] 中作为 @racket[_seq-expr] 使用的形式。
 
-Within a @racket[for], the pieces of the @racket[:do-in] form are
-spliced into the iteration essentially as follows:
+在 @racket[for] 内部，@racket[:do-in] 形式的各个部分基本上如下拆分到迭代中：
 
 @racketblock[
 (let-values ([(outer-id ...) outer-expr] ...)
@@ -860,23 +698,16 @@ For an example of @racket[:do-in], see @racket[define-sequence-syntax].
 
 @defproc[(for-clause-syntax-protect [stx syntax?]) syntax?]{
 
-Provided @racket[for-syntax]: Like @racket[syntax-protect], just
-returns its argument.
+由 @racket[for-syntax] 提供：类似于 @racket[syntax-protect]，仅仅返回其参数。
 
 @history[#:changed "8.2.0.4" @elem{Changed to just return @racket[stx] instead
                                    of returning ``armed'' syntax.}]}
 
 @defform[(define-splicing-for-clause-syntax id proc-expr)]{
 
-Binds @racket[id] for reference via a @racket[#:splice] clause in a
-@racket[for] form. The @racket[proc-expr] expression is evaluated in
-@tech{phase level} 1, and it must produce a procedure that accepts a
-syntax object and returns a syntax object.
+绑定 @racket[id] 以供 @racket[for] 形式中的 @racket[#:splice] 子句引用。@racket[proc-expr] 表达式在 @tech{phase level} 1 中求值，它必须产生一个接受 syntax object 并返回 syntax object 的过程。
 
-The procedure's input is a syntax object that appears after
-@racket[#:splice]. The result syntax object must be a parenthesized
-sequence of forms, and the forms are spliced in place of the
-@racket[#:splice] clause in the enclosing @racket[for] form.
+该过程的输入是出现在 @racket[#:splice] 之后的 syntax object。结果 syntax object 必须是一个带括号的形式序列，这些形式会被插入到包含 @racket[for] 形式中 @racket[#:splice] 子句的位置。
 
 @mz-examples[#:eval for-eval
 (define-splicing-for-clause-syntax cross3
@@ -893,21 +724,20 @@ sequence of forms, and the forms are spliced in place of the
 @history[#:added "8.4.0.3"]}
 
 @;------------------------------------------------------------------------
-@section{Iteration Expansion}
+@section{迭代展开}
 
 @note-lib-only[racket/for-clause]
 
 @defproc[(syntax-local-splicing-for-clause-introduce [stx syntax?]) syntax?]{
 
-Equivalent to @racket[syntax-local-introduce], intended for use in an
-expander bound with @racket[define-splicing-for-clause-syntax].
+等价于 @racket[syntax-local-introduce]，用于在通过 @racket[define-splicing-for-clause-syntax] 绑定的 expander 中使用。
 
 @history[#:added "8.11.1.4"
          #:changed "9.0.0.2" @elem{Changed to be equivalent to
                                    @racket[syntax-local-introduce].}]}
 
 @;------------------------------------------------------------------------
-@section{Do Loops}
+@section{Do 循环}
 
 @defform/subs[(do ([id init-expr step-expr-maybe] ...)
                   (stop?-expr finish-expr ...)
@@ -915,27 +745,12 @@ expander bound with @racket[define-splicing-for-clause-syntax].
               ([step-expr-maybe code:blank
                                 step-expr])]{
 
-Iteratively evaluates the @racket[expr]s for as long as
-@racket[stop?-expr] returns @racket[#f].
+只要 @racket[stop?-expr] 返回 @racket[#f]，就迭代地求值 @racket[expr]。
 
-To initialize the loop, the @racket[init-expr]s are evaluated in order
-and bound to the corresponding @racket[id]s. The @racket[id]s are
-bound in all expressions within the form other than the
-@racket[init-expr]s.
+要初始化循环，@racket[init-expr] 按顺序求值并绑定到对应的 @racket[id]。@racket[id] 在表单中除 @racket[init-expr] 之外的所有表达式中被绑定。
 
-After the @racket[id]s have been bound, the @racket[stop?-expr] is
-evaluated. If it produces @racket[#f], each @racket[expr] is evaluated
-for its side-effect. The @racket[id]s are then effectively updated
-with the values of the @racket[step-expr]s, where the default
-@racket[step-expr] for @racket[id] is just @racket[id]; more
-precisely, iteration continues with fresh locations for the
-@racket[id]s that are initialized with the values of the corresponding
-@racket[step-expr]s.
+在 @racket[id] 被绑定之后，@racket[stop?-expr] 被求值。如果它产生 @racket[#f]，则每个 @racket[expr] 被求值以产生副作用。然后 @racket[id] 有效地被更新为 @racket[step-expr] 的值，其中 @racket[id] 的默认 @racket[step-expr] 就是 @racket[id]；更精确地说，迭代继续使用新的位置来保存 @racket[id]，这些位置被初始化为对应 @racket[step-expr] 的值。
 
-When @racket[stop?-expr] produces a true value, then the
-@racket[finish-expr]s are evaluated in order, and the last one is
-evaluated in tail position to produce the overall value for the
-@racket[do] form. If no @racket[finish-expr] is provided, the value of
-the @racket[do] form is @|void-const|.}
+当 @racket[stop?-expr] 产生一个真值时，@racket[finish-expr] 按顺序求值，最后一个在尾部位置求值以产生 @racket[do] 形式的总体值。如果没有提供 @racket[finish-expr]，@racket[do] 形式的值是 @|void-const|。}
 
 @close-eval[for-eval]
