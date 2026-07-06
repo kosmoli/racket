@@ -9,42 +9,23 @@
         (ev1 '(require racket/trace))
         (ev1 '(require (for-syntax racket/base))))
 
-@title{Tracing}
+@title{追踪}
 
 @note-lib-only[racket/trace]
 
-The @racketmodname[racket/trace] library mimics the tracing facility
-available in Chez Scheme.
+@racketmodname[racket/trace] 库模拟了 Chez Scheme 中可用的追踪工具。
 
 @defform[(trace id ...)]{
 
-Each @racket[id] must be bound to a procedure in the environment of
-the @racket[trace] expression, and must not be imported from another module.
-Each @racket[id] is @racket[set!]ed to
-a new procedure that traces procedure calls and returns by printing
-the arguments and results of the call via
-@racket[current-trace-notify].  If multiple values are returned, each
-value is displayed starting on a separate line.
+每个 @racket[id] 必须绑定到 @racket[trace] 表达式环境中的 procedure，且不能从其他 module 导入。每个 @racket[id] 被 @racket[set!] 为一个新 procedure，通过 @racket[current-trace-notify] 打印调用的参数和返回值来追踪 procedure 调用和返回。如果返回多个值，每个值从单独一行开始显示。
 
-When traced procedures invoke each other, nested invocations are shown
-by printing a nesting prefix. If the nesting depth grows to ten and
-beyond, a number is printed to show the actual nesting depth.
+当被追踪的 procedure 相互调用时，嵌套调用通过打印嵌套前缀来显示。如果嵌套深度增长到十层及以上，则打印数字显示实际嵌套深度。
 
-The @racket[trace] form can be used on an identifier that is already
-traced.  In this case, assuming that the variable's value has not been
-changed, @racket[trace] has no effect.  If the variable has been
-changed to a different procedure, then a new trace is installed.
+@racket[trace] 形式可用于已被追踪的标识符。在这种情况下，假设变量的值未改变，@racket[trace] 无效果。如果变量已更改为不同的 procedure，则安装新的追踪。
 
-Tracing respects tail calls to preserve loops, but its effect may be
-visible through continuation marks. When a call to a traced procedure
-occurs in tail position with respect to a previous traced call, then
-the tailness of the call is preserved (and the result of the call is
-not printed for the tail call, because the same result will be printed
-for an enclosing call). Otherwise, however, the body of a traced
-procedure is not evaluated in tail position with respect to a call to
-the procedure.
+追踪尊重 tail call 以保留循环，但其效果可能通过 continuation mark 可见。当被追踪 procedure 的调用相对于之前的被追踪调用处于 tail position 时，调用的 tailness 被保留（并且调用的结果不会为 tail call 打印，因为相同结果会为外层调用打印）。然而，除此之外，被追踪 procedure 的 body 不会相对于该 procedure 的调用在 tail position 求值。
 
-The result of a @racket[trace] expression is @|void-const|.
+@racket[trace] 表达式的结果为 @|void-const|。
 
 @examples[#:eval ev
 (define (f x) (if (zero? x) 0 (add1 (f (sub1 x)))))
@@ -52,9 +33,7 @@ The result of a @racket[trace] expression is @|void-const|.
 (f 10)
 ]
 
-@racket[trace] can also be used to debug @tech{syntax transformers}.
-This is verbose to do directly with @racket[trace]; refer to @racket[trace-define-syntax] for a
-simpler way to do this.
+@racket[trace] 也可用于调试 @tech{syntax transformer}。直接使用 @racket[trace] 这样做很繁琐；参见 @racket[trace-define-syntax] 了解更简单的方法。
 
 @examples[#:eval ev
 (require (for-syntax racket/trace))
@@ -68,17 +47,14 @@ simpler way to do this.
 (let ([x 120]) x)
 ]
 
-When tracing syntax transformers, it may be helpful to modify @racket[current-trace-print-args] and
-@racket[current-trace-print-results] to make the trace output more readable; see
-@racket[current-trace-print-args] for an extended example.
+追踪 syntax transformer 时，修改 @racket[current-trace-print-args] 和 @racket[current-trace-print-results] 可能有助于使追踪输出更易读；参见 @racket[current-trace-print-args] 了解扩展示例。
 
 }
 
 @defform*[((trace-define id expr)
            (trace-define (head args) body ...+))]{
 
-The @racket[trace-define] form is short-hand for first defining a
-function then tracing it. This form supports all @racket[define] forms.
+@racket[trace-define] 形式是先定义函数再追踪的简写。此形式支持所有 @racket[define] 形式。
 
 @examples[#:eval ev
 (trace-define (f x) (if (zero? x) 0 (add1 (f (sub1 x)))))
@@ -93,10 +69,9 @@ function then tracing it. This form supports all @racket[define] forms.
 @defform*[((trace-define-syntax id expr)
            (trace-define-syntax (head args) body ...+))]{
 
-The @racket[trace-define-syntax] form is short-hand for first defining a
-syntax transformer then tracing it. This form supports all @racket[define-syntax] forms.
+@racket[trace-define-syntax] 形式是先定义 syntax transformer 再追踪的简写。此形式支持所有 @racket[define-syntax] 形式。
 
-For example:
+例如：
 
 @examples[#:eval ev
 (trace-define-syntax fact
@@ -105,27 +80,18 @@ For example:
 (fact 5)
 ]
 
-By default, @racket[trace] prints out syntax objects when tracing a
-syntax transformer. This can result in too much output if you do not need to see,
-e.g., source information.
-To get more readable output by printing syntax objects as datums, we can modify the
-@racket[current-trace-print-args] and @racket[current-trace-print-results].
-See @racket[current-trace-print-args] for an example.
+默认情况下，@racket[trace] 追踪 syntax transformer 时会打印 syntax object。如果不需要查看 source information 等，这可能导致过多输出。通过修改 @racket[current-trace-print-args] 和 @racket[current-trace-print-results]，将 syntax object 打印为 datum 可以获得更易读的输出。参见 @racket[current-trace-print-args] 了解扩展示例。
 
 @defform[(trace-lambda [#:name id] args expr)]{
 
-The @racket[trace-lambda] form enables tracing an anonymous function. This
-form will attempt to infer a name using
-@racket[syntax-local-infer-name], or a name can be specified using the
-optional @racket[#:name] argument.  A syntax error is raised if a name
-is not given and a name cannot be inferred.
+@racket[trace-lambda] 形式启用对匿名函数的追踪。此形式将尝试使用 @racket[syntax-local-infer-name] 推断名称，或使用可选的 @racket[#:name] 参数指定名称。如果未给出名称且无法推断名称，则引发 syntax error。
 
 @examples[#:eval ev
   ((trace-lambda (x) 120) 5)]}
 
 @defform[(trace-let id ([arg expr] ...+) body ...+)]{
 
-The @racket[trace-let] form enables tracing a named let.
+@racket[trace-let] 形式启用对 named let 的追踪。
 
 @examples[#:eval ev
   (trace-let f ([x 5])
@@ -135,31 +101,19 @@ The @racket[trace-let] form enables tracing a named let.
 
 @defform[(untrace id ...)]{
 
-Undoes the effects of the @racket[trace] form for each @racket[id],
-@racket[set!]ing each @racket[id] back to the untraced procedure, but
-only if the current value of @racket[id] is a traced procedure.  If
-the current value of a @racket[id] is not a procedure installed by
-@racket[trace], then the variable is not changed.
+撤销 @racket[trace] 形式对每个 @racket[id] 的效果，将每个 @racket[id] @racket[set!] 回未追踪的 procedure，但仅当 @racket[id] 的当前值是被追踪的 procedure 时。如果 @racket[id] 的当前值不是由 @racket[trace] 安装的 procedure，则变量不变。
 
-The result of an @racket[untrace] expression is @|void-const|.}
+@racket[untrace] 表达式的结果为 @|void-const|。}
 
 
 @defparam[current-trace-notify proc (string? . -> . any)]{
 
-A @tech{parameter} that determines the way that trace output is
-displayed. The string given to @racket[proc] is a trace; it does not
-end with a newline, but it may contain internal newlines. Each call or
-result is converted into a string using @racket[pretty-print].  The
-parameter's default value prints the given string followed by a newline to
-@racket[(current-output-port)].}
+@tech{parameter}，决定追踪输出的显示方式。给 @racket[proc] 的字符串是一个追踪；它不以尾随换行结束，但可能包含内部换行。每个调用或结果使用 @racket[pretty-print] 转换为字符串。参数的默认值打印给定字符串后跟一个换行到 @racket[(current-output-port)]。}
 
 @defproc[(trace-call [id symbol?] [proc procedure?]
                      [#:<kw> kw-arg any/c] ...) any/c]{
 
-Calls @racket[proc] with the arguments supplied in
-@racket[args], and possibly using keyword arguments. Also prints out the
-trace information during the call, as described above in the docs for
-@racket[trace], using @racket[id] as the name of @racket[proc].
+使用 @racket[args] 中提供的参数（可能还包括 keyword argument）调用 @racket[proc]。还在调用期间打印追踪信息，如上文 @racket[trace] 文档中所述，使用 @racket[id] 作为 @racket[proc] 的名称。
 
 }
 
@@ -171,25 +125,11 @@ trace information during the call, as described above in the docs for
               number?
               void?)]{
 
-The value of this parameter is invoked to print out the arguments of a
-traced call. It receives the name of the function, the function's
-ordinary arguments, its keywords, the values of the keywords, and a
-number indicating the depth of the call.
+此参数的值被调用以打印被追踪调用的参数。它接收函数名称、函数的普通参数、keyword、keyword 的值以及指示调用深度的数字。
 
-Modifying this and @racket[current-trace-print-results] is useful to to get more
-readable or additional output when tracing syntax transformers.
-For example, we can use @racketmodname[debug-scopes #:indirect] to add scopes information
-to the trace, (see @racketmodname[debug-scopes #:indirect] for an example),
-or remove source location information to just display the shape of the syntax
-object
+修改此参数和 @racket[current-trace-print-results] 在追踪 syntax transformer 时有助于获得更易读或额外的输出。例如，我们可以使用 @racketmodname[debug-scopes #:indirect] 向追踪添加 scope 信息（参见 @racketmodname[debug-scopes #:indirect] 了解示例），或移除 source location 信息以仅显示 syntax object 的形状。
 
-In this example, we update the printers @racket[current-trace-print-args] and
-@racket[current-trace-print-results]
-by storing the current printers (@racket[ctpa] and
-@racket[ctpr]) to cast syntax objects to datum using @racket[syntax->datum] and then
-pass the transformed arguments and results to the previous printer.
-When tracing, syntax arguments will be displayed without source location
-information, shortening the output.
+在此示例中，我们通过存储当前 printer（@racket[ctpa] 和 @racket[ctpr]）来更新 @racket[current-trace-print-args] 和 @racket[current-trace-print-results]，以使用 @racket[syntax->datum] 将 syntax object 转换为 datum，然后将转换后的参数和结果传递给之前的 printer。追踪时，syntax 参数将不带 source location 信息显示，从而缩短输出。
 
 @examples[#:eval ev
   (require (for-syntax racket/trace))
@@ -209,16 +149,7 @@ information, shortening the output.
   (fact 5)]
 
 
-We must take care when modifying these parameters, especially when the
-transformation makes assumptions about or changes the type of the
-argument/result of the traced identifier.
-This modification of @racket[current-trace-print-args] and
-@racket[current-trace-print-results] is an imperative update, and will affect all traced identifiers.
-This example assumes all arguments and results to @emph{all traced functions} will be syntax objects,
-which is the case only if you are only tracing syntax transformers.
-If used as-is, the above code could result in type errors when tracing both functions and syntax transformers.
-It would be better to use @racket[syntax->datum] only when the argument or result is actually a syntax
-object, for example, by defining @racket[maybe-syntax->datum] as follows.
+修改这些参数时必须小心，特别是当转换对追踪标识符的参数/结果的类型做出假设或更改其类型时。此 @racket[current-trace-print-args] 和 @racket[current-trace-print-results] 的修改是命令式更新，将影响所有被追踪的标识符。此示例假设 @emph{所有被追踪函数} 的所有参数和结果都是 syntax object，这仅在您只追踪 syntax transformer 时才成立。如果按原样使用，上述代码在同时追踪函数和 syntax transformer 时可能导致类型错误。最好仅在参数或结果实际是 syntax object 时使用 @racket[syntax->datum]，例如通过如下定义 @racket[maybe-syntax->datum]。
 
 @examples[#:eval ev1
   (require (for-syntax racket/trace))
@@ -234,9 +165,9 @@ object, for example, by defining @racket[maybe-syntax->datum] as follows.
     (current-trace-print-results
       (let ([ctpr (current-trace-print-results)])
         (lambda (s l n)
-         (ctpr s (map maybe-syntax->datum l) n))))
+         (ctpr s (map maybe-syntax->datum l) n)))))
 
-  (trace-define (precompute-fact syn n) (datum->syntax syn (apply * (build-list n add1)))))
+  (trace-define (precompute-fact syn n) (datum->syntax syn (apply * (build-list n add1))))
   (trace-define (run-time-fact n) (apply * (build-list n add1)))
 
   (require (for-syntax syntax/parse))
@@ -245,9 +176,8 @@ object, for example, by defining @racket[maybe-syntax->datum] as follows.
       [(_ x:nat) (precompute-fact syn (syntax->datum #'x))]
       [(_ x) #'(run-time-fact x)]))
   (fact 5)
-  (fact (+ 2 3))]}
+  (fact (+ 2 3))]
 
-}
 
 @defparam[current-trace-print-results trace-print-results
           (-> symbol?
@@ -255,27 +185,21 @@ object, for example, by defining @racket[maybe-syntax->datum] as follows.
               number?
               any)]{
 
-The value of this parameter is invoked to print out the results of a
-traced call. It receives the name of the function, the function's
-results, and a number indicating the depth of the call.
+此参数的值被调用以打印被追踪调用的结果。它接收函数名称、函数的结果以及指示调用深度的数字。
 
 }
 
 @defparam[current-prefix-in prefix string?]{
-  This string is used by the default value of @racket[current-trace-print-args]
-  indicating that the current line is showing the a call to a
-  traced function.
+  此字符串由 @racket[current-trace-print-args] 的默认值使用，指示当前行显示对被追踪函数的调用。
 
-  It defaults to @racket[">"].
+  默认为 @racket[">"]。
 }
 
 
 @defparam[current-prefix-out prefix string?]{
-  This string is used by the default value of @racket[current-trace-print-results]
-  indicating that the current line is showing the result
-  of a traced call.
+  此字符串由 @racket[current-trace-print-results] 的默认值使用，指示当前行显示被追踪调用的结果。
 
-  It defaults to @racket["<"].
+  默认为 @racket["<"]。
 }
 
 

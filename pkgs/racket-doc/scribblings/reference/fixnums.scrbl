@@ -10,35 +10,32 @@
 @examples[#:hidden #:eval flfx-eval (require racket/fixnum)]
 
 
-@title[#:tag "fixnums"]{Fixnums}
+@title[#:tag "fixnums"]{Fixnum}
 
 @defmodule[racket/fixnum]
 
-The @racketmodname[racket/fixnum] library provides operations like
-@racket[fx+] that consume and produce only @tech{fixnums}. The operations in
-this library are meant to be safe versions of unsafe operations like
-@racket[unsafe-fx+]. These safe operations are generally no faster
-than using generic primitives like @racket[+].
+@racketmodname[racket/fixnum] 库提供了类似 @racket[fx+] 的操作，
+仅消耗和产生 @tech{fixnum}。本库中的操作旨在作为不安全操作
+（如 @racket[unsafe-fx+]）的安全版本。这些安全操作通常不会比
+使用 @racket[+] 等通用原语更快。
 
-The expected use of the @racketmodname[racket/fixnum] library is for
-code where the @racket[require] of @racketmodname[racket/fixnum] is
-replaced with
+@racketmodname[racket/fixnum] 库的预期用途是替换代码中对
+@racketmodname[racket/fixnum] 的 @racket[require]，替换为
 
-@margin-note{See the documentation of @racket[filtered-in] for use with @racket[@#,(hash-lang) @#,racketmodname[racket/base]].}
+@margin-note{参见 @racket[filtered-in] 的文档，了解如何与 @racket[@#,(hash-lang) @#,racketmodname[racket/base]] 配合使用。}
 
 @racketblock[(require (filtered-in
                        (λ (name)
                          (and (regexp-match #rx"^unsafe-fx" name)
                               (regexp-replace #rx"unsafe-" name "")))
-                       racket/unsafe/ops))]
+                       racket/unsafe/ops)]
 
-to drop in unsafe versions of the library. Alternately, when
-encountering crashes with code that uses unsafe fixnum operations, use
-the @racketmodname[racket/fixnum] library to help debug the problems.
+以替换为库的不安全版本。或者，当遇到使用不安全 fixnum 操作的
+代码崩溃时，可使用 @racketmodname[racket/fixnum] 库来帮助调试问题。
 
 @; ------------------------------------------------------------
 
-@section{Fixnum Arithmetic}
+@section{Fixnum 算术}
 
 @deftogether[(
 @defproc[(fx+ [a fixnum?] ...) fixnum?]
@@ -50,15 +47,14 @@ the @racketmodname[racket/fixnum] library to help debug the problems.
 @defproc[(fxabs       [a fixnum?]) fixnum?]
 )]{
 
-Safe versions of @racket[unsafe-fx+], @racket[unsafe-fx-],
-@racket[unsafe-fx*], @racket[unsafe-fxquotient],
-@racket[unsafe-fxremainder], @racket[unsafe-fxmodulo], and
-@racket[unsafe-fxabs]. The
-@exnraise[exn:fail:contract:non-fixnum-result] if the arithmetic
-result would not be a fixnum.
+@racket[unsafe-fx+]、@racket[unsafe-fx-]、
+@racket[unsafe-fx*]、@racket[unsafe-fxquotient]、
+@racket[unsafe-fxremainder]、@racket[unsafe-fxmodulo] 和
+@racket[unsafe-fxabs] 的安全版本。如果算术结果不是 fixnum，
+则 @exnraise[exn:fail:contract:non-fixnum-result]。
 
-@history[#:changed "7.0.0.13" @elem{Allow zero or more arguments for @racket[fx+] and @racket[fx*]
-                                    and one or more arguments for @racket[fx-].}]}
+@history[#:changed "7.0.0.13" @elem{允许 @racket[fx+] 和 @racket[fx*] 接受零个或更多参数，
+                                    以及 @racket[fx-] 接受一个或更多参数。}]}
 
 
 @deftogether[(
@@ -70,21 +66,18 @@ result would not be a fixnum.
 @defproc[(fxrshift [a fixnum?] [b fixnum?]) fixnum?]
 )]{
 
-Like @racket[bitwise-and], @racket[bitwise-ior],
-@racket[bitwise-xor], @racket[bitwise-not], and
-@racket[arithmetic-shift], but constrained to consume @tech{fixnums};
-the result is always a @tech{fixnum}. The @racket[unsafe-fxlshift] and
-@racket[unsafe-fxrshift] operations correspond to
-@racket[arithmetic-shift], but require non-negative arguments;
-@racket[unsafe-fxlshift] is a positive (i.e., left) shift, and
-@racket[unsafe-fxrshift] is a negative (i.e., right) shift, where the
-number of bits to shift must be no more than the number of bits used to
-represent a @tech{fixnum}. The
-@exnraise[exn:fail:contract:non-fixnum-result] if the arithmetic
-result would not be a fixnum.
+类似于 @racket[bitwise-and]、@racket[bitwise-ior]、
+@racket[bitwise-xor]、@racket[bitwise-not] 和
+@racket[arithmetic-shift]，但仅限于消耗 @tech{fixnum}；
+结果始终为 @tech{fixnum}。@racket[unsafe-fxlshift] 和
+@racket[unsafe-fxrshift] 操作对应于 @racket[arithmetic-shift]，
+但要求参数非负；@racket[unsafe-fxlshift] 是正（即左）移，
+@racket[unsafe-fxrshift] 是负（即右）移，其中移动的位数
+不得超过用于表示 @tech{fixnum} 的位数。如果算术结果不是
+fixnum，则 @exnraise[exn:fail:contract:non-fixnum-result]。
 
-@history[#:changed "7.0.0.13" @elem{Allow any number of arguments for @racket[fxand], @racket[fxior],
-                                    and @racket[fxxor].}]}
+@history[#:changed "7.0.0.13" @elem{允许 @racket[fxand]、@racket[fxior]
+                                    和 @racket[fxxor] 接受任意数量的参数。}]}
 
 
 @deftogether[(
@@ -93,10 +86,9 @@ result would not be a fixnum.
 @defproc[(fxpopcount16 [a (and/c fixnum? (integer-in 0 @#,racketvalfont{#xFFFF})) ]) fixnum?]
 )]{
 
-Counts the number of bits in the two's complement representation of
-@racket[a]. Depending on the platform, the @racket[fxpopcount32] and
-@racket[fxpopcount16] operations can be faster when the result is
-known to be no more than 32 or 16, respectively.
+计算 @racket[a] 的二进制补码表示中的位数。根据平台不同，
+当结果已知不超过 32 或 16 时，@racket[fxpopcount32] 和
+@racket[fxpopcount16] 操作可以更快。
 
 @history[#:added "8.5.0.7"]}
 
@@ -107,25 +99,21 @@ known to be no more than 32 or 16, respectively.
 @defproc[(fxlshift/wraparound [a fixnum?] [b fixnum?]) fixnum?]
 )]{
 
-Like @racket[fx+], @racket[fx-], @racket[fx*], and @racket[fxlshift],
-but a fixnum result is produced for any allowed arguments (i.e., for
-any fixnum argument, except that the second
-@racket[fxlshift/wraparound] argument must be between 0 and the number
-of bits in a fixnum, inclusive). The result is produced by simply discarding bits
-that do not fit in a fixnum representation. The result is negative if
-the highest of the retained bits is set---even, for example, if the
-value was produced by adding two positive fixnums.
+类似于 @racket[fx+]、@racket[fx-]、@racket[fx*] 和 @racket[fxlshift]，
+但对任何允许的参数（即任何 fixnum 参数，除了第二个
+@racket[fxlshift/wraparound] 参数必须在 0 到 fixnum 位数之间（含））
+都会产生一个 fixnum 结果。结果通过简单丢弃不适合 fixnum 表示的位来生成。
+如果保留的最高位被设置，则结果为负——例如，即使该值是通过两个正 fixnum 相加产生的。
 
 @history[#:added "7.9.0.6"
-         #:changed "8.15.0.12" @elem{Changed @racket[fx-/wraparound] to accept a single argument.}]}
+         #:changed "8.15.0.12" @elem{更改 @racket[fx-/wraparound] 以接受单个参数。}]}
 
 @defproc[(fxrshift/logical [a fixnum?] [b fixnum?]) fixnum?]{
 
-Shifts the bits in @racket[a] to the right by @racket[b], filling in with zeros.
-With the sign bit treated as just another bit, a logical right-shift of a
-negative-signed fixnum can produce a large positive fixnum.
-For example, @racket[(fxrshift/logical -1 1)] produces @racket[(most-positive-fixnum)],
-illustrating that logical right-shift results are platform-dependent.
+将 @racket[a] 中的位向右移动 @racket[b] 位，用零填充。
+将符号位视为普通位时，负数 fixnum 的逻辑右移可以产生
+一个大的正数 fixnum。例如，@racket[(fxrshift/logical -1 1)] 产生
+@racket[(most-positive-fixnum)]，说明逻辑右移结果是平台相关的。
 
 @mz-examples[
   #:eval flfx-eval
@@ -147,9 +135,9 @@ illustrating that logical right-shift results are platform-dependent.
 @defproc[(fxmax [a fixnum?] [b fixnum?] ...) fixnum?]
 )]{
 
-Like @racket[=], @racket[<], @racket[>],
-@racket[<=], @racket[>=], @racket[min], and @racket[max], but
-constrained to consume @tech{fixnums}.
+类似于 @racket[=]、@racket[<]、@racket[>]、
+@racket[<=]、@racket[>=]、@racket[min] 和 @racket[max]，
+但仅限于消耗 @tech{fixnum}。
 
 @history/arity[]}
 
@@ -158,16 +146,15 @@ constrained to consume @tech{fixnums}.
 @defproc[(fl->fx [fl flonum?]) fixnum?]
 )]{
 
-Conversion between @tech{fixnums} and @tech{flonums} with truncation
-in the case of converting a @tech{flonum} to a @tech{fixnum}.
+@tech{fixnum} 和 @tech{flonum} 之间的转换，在将 @tech{flonum}
+转换为 @tech{fixnum} 时进行截断。
 
-The @racket[fx->fl] function is the same as @racket[exact->inexact] or
-@racket[->fl] constrained to a fixnum argument.
+@racket[fx->fl] 函数与 @racket[exact->inexact] 或 @racket[->fl]
+相同，但限制为 fixnum 参数。
 
-The @racket[fl->fx] function is the same as @racket[truncate] followed
-by @racket[inexact->exact] or @racket[fl->exact-integer] constrained
-to returning a fixnum. If the truncated flonum does not fit into a
-fixnum, the @exnraise[exn:fail:contract].
+@racket[fl->fx] 函数与 @racket[truncate] 后跟 @racket[inexact->exact]
+或 @racket[fl->exact-integer] 相同，但限制为返回 fixnum。
+如果截断后的 flonum 无法放入 fixnum，则 @exnraise[exn:fail:contract]。
 
 @history[#:changed "7.7.0.8" @elem{Changed @racket[fl->fx] to truncate.}]}
 
