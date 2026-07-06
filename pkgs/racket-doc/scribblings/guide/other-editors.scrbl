@@ -1,14 +1,10 @@
 #lang scribble/manual
 @(require "guide-utils.rkt")
 
-@title[#:tag "other-editors" #:style 'toc]{Command-Line Tools and Your Editor of Choice}
+@title[#:tag "other-editors" #:style 'toc]{命令行工具及你选择的编辑器}
 @; author["Vincent St-Amour" "Asumu Takikawa" "Jon Rafkind"]
 
-Although DrRacket is the easiest way for most people to start with
-Racket, many Racketeers prefer command-line tools and other text
-editors.  The Racket distribution includes several command-line tools,
-and popular editors include or support packages to make them work well
-with Racket.
+尽管 DrRacket 是大多数人入门 Racket 的最简便方式，许多 Racketeers 更喜欢命令行工具和其他文本编辑器。Racket 发行版包含多个命令行工具，流行的编辑器也包含或支持使其与 Racket 良好配合的 package。
 
 @local-table-of-contents[]
 
@@ -18,129 +14,81 @@ with Racket.
 @; ------------------------------------------------------------
 @section{Emacs}
 
-Emacs has long been a favorite among Lispers and Schemers, and is
-popular among Racketeers as well.
+Emacs 长期以来一直是 Lispers 和 Schemers 的最爱，在 Racketeers 中也很受欢迎。
 
-@subsection{Major Modes}
+@subsection{主要模式}
 
 @itemlist[
 
  @item{@hyperlink["https://github.com/greghendershott/racket-mode"]{Racket mode}
-       provides thorough syntax highlighting and DrRacket-style REPL
-       and buffer execution support for Emacs.
+       为 Emacs 提供全面的语法高亮和 DrRacket 风格的 REPL 及 buffer 执行支持。
 
-       Racket mode can be installed via @hyperlink["https://melpa.org/"]{MELPA}
-       or manually from the Github repository.}
+       Racket mode 可通过 @hyperlink["https://melpa.org/"]{MELPA} 安装，也可从 Github 仓库手动安装。}
 
- @item{@hyperlink["http://www.neilvandyke.org/quack/"]{Quack} is an
-       extension of Emacs's @tt{scheme-mode} that provides enhanced
-       support for Racket, including highlighting and indentation of
-       Racket-specific forms, and documentation integration.
+ @item{@hyperlink["http://www.neilvandyke.org/quack/"]{Quack} 是 Emacs
+       @tt{scheme-mode} 的扩展，为 Racket 提供增强支持，包括 Racket 特有形式的语法高亮和缩进，以及文档集成。
 
-       Quack is included in the Debian and Ubuntu repositories as part
-       of the @tt{emacs-goodies-el} package. A Gentoo port is also
-       available (under the name @tt{app-emacs/quack}).}
+       Quack 作为 @tt{emacs-goodies-el} package 的一部分包含在 Debian 和 Ubuntu 仓库中。还提供有 Gentoo port（名称为 @tt{app-emacs/quack}）。}
 
- @item{@hyperlink["http://www.nongnu.org/geiser/"]{Geiser} provides a
-       programming environment where the editor is tightly integrated
-       with the Racket REPL. Programmers accustomed to environments
-       such as Slime or Squeak should feel at home using
-       Geiser. Geiser requires GNU Emacs 23.2 or better.
+ @item{@hyperlink["http://www.nongnu.org/geiser/"]{Geiser} 提供一个编程环境，其中编辑器与 Racket REPL 紧密集成。习惯于 Slime 或 Squeak 等环境的程序员使用 Geiser 会感到得心应手。Geiser 需要 GNU Emacs 23.2 或更高版本。
 
-       Quack and Geiser can be used together, and complement each
-       other nicely. More information is available in the
-       @hyperlink["http://www.nongnu.org/geiser/"]{Geiser manual}.
+       Quack 和 Geiser 可以一起使用，相互补充。更多信息请参见 @hyperlink["http://www.nongnu.org/geiser/"]{Geiser 手册}。
 
-       Debian and Ubuntu packages for Geiser are available under the
-       name @tt{geiser}. A Gentoo port is also available (under the
-       name @tt{app-emacs/geiser}).}
+       Debian 和 Ubuntu 的 Geiser package 名称为 @tt{geiser}。还提供有 Gentoo port（名称为 @tt{app-emacs/geiser}）。}
 
- @item{Emacs ships with a major mode for Scheme, @tt{scheme-mode},
-       that while not as featureful as the above options, works
-       reasonably well for editing Racket code. However, this mode
-       does not provide support for Racket-specific forms.}
+ @item{Emacs 附带了用于 Scheme 的主要模式 @tt{scheme-mode}，虽然功能不如上述选项丰富，但用于编辑 Racket 代码效果尚可。但是，此模式不支持 Racket 特有的形式。}
 
- @item{No Racket program is complete without documentation. Scribble
-       support for Emacs is available with Neil Van Dyke's
+ @item{没有文档的 Racket 程序是不完整的。Neil Van Dyke 的
        @hyperlink["http://www.neilvandyke.org/scribble-emacs/"]{Scribble
-       Mode}.
+       Mode} 为 Emacs 提供 Scribble 支持。
 
-       In addition, @tt{texinfo-mode} (included with GNU Emacs) and
-        plain text modes work well when editing Scribble
-        documents. The Racket major modes above are not really suited
-        to this task, given how different Scribble's syntax is from
-        Racket's.}
+       此外，@tt{texinfo-mode}（GNU Emacs 附带）和普通文本模式在编辑 Scribble 文档时效果很好。鉴于 Scribble 的语法与 Racket 的语法差异很大，上述 Racket 主要模式并不真正适合此任务。}
 
 ]
 
-@subsection{Minor Modes}
+@subsection{次要模式}
 
 @itemlist[
 
  @item{@hyperlink["http://mumble.net/~campbell/emacs/paredit.el"]{Paredit}
-       is a minor mode for pseudo-structurally editing programs in
-       Lisp-like languages. In addition to providing high-level
-       S-expression editing commands, it prevents you from
-       accidentally unbalancing parentheses.
+       是一种用于伪结构化编辑 Lisp 类语言程序的次要模式。除了提供高级 S-expression 编辑命令外，它还能防止你意外破坏括号平衡。
 
-       Debian and Ubuntu packages for Paredit are available under the
-       name @tt{paredit-el}.}
+       Debian 和 Ubuntu 的 Paredit package 名称为 @tt{paredit-el}。}
 
  @item{@hyperlink["https://github.com/Fuco1/smartparens"]{Smartparens}
-       is a minor mode for editing s-expressions, keeping parentheses
-       balanced, etc.  Similar to Paredit.}
+       是一种用于编辑 s-expression 的次要模式，保持括号平衡等。与 Paredit 类似。}
 
- @item{@hyperlink["https://github.com/drym-org/symex.el"]{Symex} is an
-       intuitive modal (Vim-like) way of editing code with minimum
-       keystrokes, built on top of a DSL providing advanced structural
-       editing features, and runtime integration with Racket Mode.}
+ @item{@hyperlink["https://github.com/drym-org/symex.el"]{Symex} 是一种
+       使用最少按键编辑代码的直观 modal（类 Vim）方式，构建在提供高级结构化编辑功能的 DSL 之上，并与 Racket Mode 运行时集成。}
 
- @item{Alex Shinn's
+ @item{Alex Shinn 的
        @hyperlink["http://synthcode.com/wiki/scheme-complete"]{scheme-complete}
-       provides intelligent, context-sensitive code completion. It
-       also integrates with Emacs's @tt{eldoc} mode to provide live
-       documentation in the minibuffer.
+       提供智能、上下文敏感的代码补全。它还与 Emacs 的 @tt{eldoc} 模式集成，在 minibuffer 中提供实时文档。
 
-       While this mode was designed for @seclink["r5rs"]{@|r5rs|}, it
-       can still be useful for Racket development. The tool is
-       unaware of large portions of the Racket standard library, and
-       there may be some discrepancies in the live documentation in
-       cases where Scheme and Racket have diverged.}
+       虽然此模式是为 @seclink["r5rs"]{@|r5rs|} 设计的，但它对 Racket 开发仍然有用。该工具不了解 Racket 标准库的大部分内容，在 Scheme 和 Racket 有差异的情况下，实时文档可能存在一些差异。}
 
- @item{The
-       @hyperlink["http://www.emacswiki.org/emacs/RainbowDelimiters"]{RainbowDelimiters}
-       mode colors parentheses and other delimiters according to their
-       nesting depth. Coloring by nesting depth makes it easier to
-       know, at a glance, which parentheses match.}
+ @item{@hyperlink["http://www.emacswiki.org/emacs/RainbowDelimiters"]{RainbowDelimiters}
+       模式根据嵌套深度为括号和其他定界符着色。按嵌套深度着色使你可以一目了然地看出哪些括号匹配。}
 
  @item{@hyperlink["http://www.emacswiki.org/emacs/ParenFace"]{ParenFace}
-       lets you choose in which face (font, color, etc.) parentheses
-       should be displayed. Choosing an alternate face makes it
-       possible to make ``tone down'' parentheses.}
+       允许你选择括号应以哪种 face（字体、颜色等）显示。选择替代 face 可以使括号"弱化"显示。}
 
  @item{@hyperlink["https://github.com/countvajhula/mindstream"]{Mindstream}
-       lets you enter an interactive programming session (similar
-       to DrRacket's Definitions and Interactions workflow) at any time,
-       starting from templates you provide. Sessions are implicitly
-       versioned, freeing you to experiment without fear of losing work,
-       growing organically from throwaway scratch buffers to full projects.}
-]
+       允许你随时进入交互式编程会话（类似于 DrRacket 的 Definitions 和 Interactions 工作流），从你提供的模板开始。会话隐式版本化，让你可以自由实验而不用担心丢失工作，从临时 scratch buffer 有机地成长为完整项目。}
 
-@subsection{Packages specific to Evil Mode}
+]
+@subsection{Evil Mode 专用 Package}
 
 @itemlist[
 
  @item{@hyperlink["https://github.com/willghatch/emacs-on-parens"]{on-parens}
-       is a wrapper for smartparens motions to work better with
-       evil-mode's normal state.}
+       是一个包装器，使 smartparens 动作更好地与 evil-mode 的 normal state 配合工作。}
 
  @item{@hyperlink["https://github.com/timcharper/evil-surround"]{evil-surround}
-       provides commands to add, remove, and change parentheses and
-       other delimiters.}
+       提供添加、删除和更改括号及其他定界符的命令。}
 
  @item{@hyperlink["https://github.com/noctuid/evil-textobj-anyblock"]{evil-textobj-anyblock}
-       adds a text-object that matches the closest of any
-       parenthesis or other delimiter pair.}
+       添加一个 text-object，匹配任意括号或其他定界符对中最近的一个。}
 
 ]
 
