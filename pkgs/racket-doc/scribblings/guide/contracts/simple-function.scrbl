@@ -5,28 +5,24 @@
           "../guide-utils.rkt" "utils.rkt"
           (for-label racket/contract))
 
-@title[#:tag "contract-func"]{Simple Contracts on Functions}
+@title[#:tag "contract-func"]{函数上的简单契约}
 
-A mathematical function has a @deftech{domain} and a
-@deftech{range}. The domain indicates the kind of values that the
-function can accept as arguments, and the range indicates the kind of
-values that it produces. The conventional notation for describing a
-function with its domain and range is
+数学函数有 @deftech{domain}（定义域）和 @deftech{range}（值域）。
+domain 表示函数接受什么类型的参数，range 表示函数产生什么类型的值。
+domain 和 range 的传统表示法为
 
 @racketblock[
 f : A -> B
 ]
 
-where @racket[A] is the domain of the function and @racket[B] is the
-range.
+其中 @racket[A] 是函数的 domain，@racket[B] 是 range。
 
-Functions in a programming language have domains and ranges, too, and
-a contract can ensure that a function receives only values in its
-domain and produces only values in its range. A @racket[->] creates
-such a contract for a function. The forms after a @racket[->] specify
-contracts for the domains and finally a contract for the range.
+编程语言中的函数也有 domain 和 range，contract 可以确保函数只接收
+其 domain 中的值并只产生其 range 中的值。@racket[->] 为函数创建这样的
+contract。@racket[->] 后面的 form 依次指定 domain 的 contract 和最终的
+range 的 contract。
 
-Here is a module that might represent a bank account:
+这里是一个可能代表银行账户的 module：
 
 @racketmod[
 racket
@@ -40,61 +36,48 @@ racket
 (define (balance) amount)
 ]
 
-The module exports two functions: 
+该 module 导出两个函数： 
 
 @itemize[
 
-@item{@racket[deposit], which accepts a number and returns some value
-      that is not specified in the contract, and}
+@item{@racket[deposit]，接受一个 number 并返回 contract 中未指定类型的值，以及}
 
-@item{@racket[balance], which returns a number indicating the current
-      balance of the account.}
+@item{@racket[balance]，返回一个 number 表示账户的当前余额。}
 
 ]
 
-When a module exports a function, it establishes two channels of
-communication between itself as a ``server'' and the ``client'' module
-that imports the function. If the client module calls the function, it
-sends a value into the server module. Conversely, if such a function
-call ends and the function returns a value, the server module sends a
-value back to the client module. This client--server distinction is
-important, because when something goes wrong, one or the other of the
-parties is to blame.
+当 module 导出一个函数时，它在自己（作为 "server"）和导入该函数的\n"client" module 之间建立了两条通信通道。如果 client module 调用该函数，\n它就向 server module 发送值。反之，如果函数调用结束并且函数\n返回值，server module 就向 client module 发送值。client--server 区分\n很重要，因为一旦出错，责任方只能是其中一方。
 
-If a client module were to apply @racket[deposit] to @racket['millions],
-it would violate the contract.  The contract-monitoring system would
-catch this violation and blame the client for breaking the contract with
-the above module. In contrast, if the @racket[balance] function were
-to return @racket['broke], the contract-monitoring system
-would blame the server module.
+如果 client module 将 @racket[deposit] 应用于 @racket['millions]，
+这违反了 contract。Contract-monitoring 系统会捕获这个违反并 blame client
+破坏了与上面模块的 contract。相反，如果 @racket[balance] 函数返回
+@racket['broke]，contract-monitoring 系统会 blame server module。
 
-A @racket[->] by itself is not a contract; it is a @deftech{contract
-combinator}, which combines other contracts to form a contract.
+@racket[->] 本身不是 contract；它是 @deftech{contract combinator}，
+将其他 contract 组合成一个新的 contract。
 
 @; ------------------------------------------------------------------------
 
-@section{Styles of @racket[->]}
+@section{@racket[->] 的风格}
 
-If you are used to mathematical functions, you may prefer a contract
-  arrow to appear between the domain and the range of a function, not
-  at the beginning. If you have read @|HtDP|, you have seen this many
-  times. Indeed, you may have seen contracts such as these in other
-  people's code:
+如果你习惯于数学函数，你可能更希望 contract 箭头出现在函数的
+domain 和 range 之间，而不是在前面。如果你读过 @|HtDP|，你已经
+多次见过这种形式。事实上，你可能在其他人的代码中见过这样的 contract：
 
 @racketblock[
 (provide (contract-out
           [deposit (number? . -> . any)]))
 ]
 
-If a Racket S-expression contains two dots with a symbol in the middle,
-the reader re-arranges the S-expression and place the symbol at the front, 
-as described in @secref["lists-and-syntax"].  Thus, 
+如果 Racket S-expression 包含两个 dot 且中间有一个 symbol，
+该 reader 会重新排列 S-expression，把 symbol 放到前面，
+如 @secref["lists-and-syntax"] 所述。因此， 
 
 @racketblock[
 (number? . -> . any)
 ]
 
-is just another way of writing
+只是另一种写法
 
 @racketblock[
 (-> number? any)
@@ -102,10 +85,10 @@ is just another way of writing
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "simple-nested"]{Using @racket[define/contract] and @racket[->]}
+@section[#:tag "simple-nested"]{使用 @racket[define/contract] 和 @racket[->]}
 
-The @racket[define/contract] form introduced in @ctc-link["intro-nested"] can
-also be used to define functions that come with a contract. For example,
+在 @ctc-link["intro-nested"] 中介绍的 @racket[define/contract] 形式
+也可以用于定义带有 contract 的函数。例如，
 
 @racketblock[
 (define/contract (deposit amount)
@@ -114,79 +97,66 @@ also be used to define functions that come with a contract. For example,
   ....)
 ]
 
-which defines the @racket[deposit] function with the contract from earlier.
-Note that this has two potentially important impacts on the use of
-@racket[deposit]:
+定义了 @racket[deposit] 函数并附带之前的 contract。
+注意这对于 @racket[deposit] 的使用有两个潜在的重要影响：
 
 @itemlist[#:style 'ordered
-  @item{The contract will be checked on any call to @racket[deposit]
-        that is outside of the definition of @racket[deposit] --
-        even those inside the module in which it is defined. Because
-        there may be many calls inside the module, this checking may cause
-        the contract to be checked too often, which could lead to
-        a performance degradation. This is especially true if the function
-        is called repeatedly from a loop.}
-  @item{In some situations, a function may be written to accept a more
-        lax set of inputs when called by other code in the same module.
-        For such use cases, the contract boundary established by
-        @racket[define/contract] is too strict.}
+  @item{contract 会在任何 @racket[deposit] 的调用处被检查，
+        包括在其定义 module 内部的调用——只要调用位于定义外部。
+        因为 module 内部可能有很多次调用，这种检查可能导致
+        contract 被检查过于频繁，从而造成性能下降。
+        如果函数在循环中被重复调用，这点尤其突出。}
+  @item{在某些情况下，函数可能被设计为在同 module 内其他代码
+        调用时接受更宽松的输入集合。对于这种使用场景，
+        @racket[define/contract] 建立的 contract 边界过于严格。}
 ]
 
 @; ----------------------------------------------------------------------
-@section{@racket[any] and @racket[any/c]}
+@section{@racket[any] 和 @racket[any/c]}
 
-The @racket[any] contract used for @racket[deposit] matches any kind
-of result, and it can only be used in the range position of a function
-contract.  Instead of @racket[any] above, we could use the more
-specific contract @racket[void?], which says that the function will
-always return the @racket[(void)] value. The @racket[void?] contract,
-however, would require the contract monitoring system to check the
-return value every time the function is called, even though the
-``client'' module can't do much with the value. In contrast,
-@racket[any] tells the monitoring system @italic{not} to check the
-return value, it tells a potential client that the ``server'' module
-@italic{makes no promises at all} about the function's return value,
-even whether it is a single value or multiple values.
+用于 @racket[deposit] 的 @racket[any] contract 匹配任何类型的结果，
+而且只能用于函数 contract 的 range 位置。我们可以用更具体的
+@racket[void?] contract 来代替上面的 @racket[any]，它说明函数
+始终返回 @racket[(void)] 值。但 @racket[void?] contract 会要求
+contract monitoring 系统在每次调用时都检查返回值，即使 "client"
+module 无法对该值做多少处理。相比之下，@racket[any] 告诉 monitoring
+系统 @italic{不要}检查返回值，它告诉潜在 client 该 "server" module
+对函数的返回值 @italic{不做任何承诺}，甚至不承诺是单个值还是多个值。
 
-The @racket[any/c] contract is similar to @racket[any], in that it
-makes no demands on a value. Unlike @racket[any], @racket[any/c]
-indicates a single value, and it is suitable for use as an argument
-contract. Using @racket[any/c] as a range contract imposes a check
-that the function produces a single value. That is,
+@racket[any/c] contract 与 @racket[any] 类似，因为都不对值提出
+任何要求。不同之处在于，@racket[any/c] 表示单个值，因此适合
+用作 argument contract。将 @racket[any/c] 用作 range contract 会
+强制检查函数产生单个值。也就是说，
 
 @racketblock[(-> integer? any)]
 
-describes a function that accepts an integer and returns any number of
-values, while
+描述了一个接受 integer 并返回任意数量值的函数，而
 
 @racketblock[(-> integer? any/c)]
 
-describes a function that accepts an integer and produces a single
-result (but does not say anything more about the result). The function
+描述了一个接受 integer 并产生单一结果的函数（但对结果不再做
+更多描述）。函数
 
 @racketblock[
 (define (f x) (values (+ x 1) (- x 1)))
 ]
 
-matches @racket[(-> integer? any)], but not @racket[(-> integer? any/c)].
+匹配 @racket[(-> integer? any)]，但不匹配 @racket[(-> integer? any/c)]。
 
-Use @racket[any/c] as a result contract when it is particularly
-important to promise a single result from a function. Use @racket[any]
-when you want to promise as little as possible (and incur as little
-checking as possible) for a function's result.
+当你需要特别保证函数返回单一结果时使用 @racket[any/c] 作为
+result contract。当你想对函数结果做出尽可能少的承诺（并产生尽可能
+少的检查）时使用 @racket[any]。
 
 @; ------------------------------------------------------------------------
 
-@ctc-section[#:tag "own"]{Rolling Your Own Contracts}
+@ctc-section[#:tag "own"]{自定义 Contract}
 
-The @racket[deposit] function adds the given number to the value of
-@racket[amount]. While the function's contract prevents clients from
-applying it to non-numbers, the contract still allows them to apply
-the function to complex numbers, negative numbers, or inexact numbers,
-none of which sensibly represent amounts of money.
+@racket[deposit] 函数将给定的数字加到 @racket[amount] 的值上。
+虽然函数的 contract 阻止 client 将其应用于非数字，但仍然允许
+将其应用于 complex number、negative number 或 inexact number，
+它们都不是合理的金额表示。
 
-The contract system allows programmers to define their own contracts
-as functions:
+Contract 系统允许程序员以函数形式定义自己的 contract：
 
 @racketmod[
 racket
@@ -206,23 +176,19 @@ racket
 (define (balance) amount)
 ]
 
-This module defines an @racket[amount?] function and uses it as a
-contract within @racket[->] contracts. When a client calls the
-@racket[deposit] function as exported with the contract @racket[(->
-amount? any)], it must supply an exact, nonnegative integer, otherwise
-the @racket[amount?] function applied to the argument will return
-@racket[#f], which will cause the contract-monitoring system to blame
-the client. Similarly, the server module must provide an exact,
-nonnegative integer as the result of @racket[balance] to remain
-blameless.
+该 module 定义了一个 @racket[amount?] 函数并将其作为 @racket[->] contract 内的 contract。当 client 调用以 @racket[(-> amount? any)]
+contract 导出的 @racket[deposit] 函数时，它必须提供一个 exact 的
+nonnegative integer，否则将 @racket[amount?] 函数应用于参数将返回
+@racket[#f]，这将导致 contract-monitoring 系统 blame client。
+类似地，server module 必须提供 exact 的 nonnegative integer 作为
+@racket[balance] 的结果以维持无责状态。
 
-Of course, it makes no sense to restrict a channel of communication to
-values that the client doesn't understand. Therefore the module also
-exports the @racket[amount?] predicate itself, with a contract saying
-that it accepts an arbitrary value and returns a boolean.
+当然，将通信通道限制为 client 不理解的值是没有意义的。因此
+该 module 也导出了 @racket[amount?] predicate 本身，附带一个说明它
+接受任意值并返回 boolean 的 contract。
 
-In this case, we could also have used @racket[natural-number/c] in
-place of @racket[amount?], since it implies exactly the same check:
+在这种情况下，我们也可以用 @racket[natural-number/c] 来代替
+@racket[amount?]，因为它表示完全相同的检查：
 
 @racketblock[
 (provide (contract-out
@@ -230,11 +196,10 @@ place of @racket[amount?], since it implies exactly the same check:
           [balance (-> natural-number/c)]))
 ]
 
-Every function that accepts one argument can be treated as a predicate
-and thus used as a contract. For combining existing checks into a new
-one, however, contract combinators such as @racket[and/c] and
-@racket[or/c] are often useful. For example, here is yet another way
-to write the contracts above:
+每个接受一个参数的函数都可以被当作 predicate，因此可以作为
+contract 使用。然而，要将现有检查组合成新的检查，@racket[and/c]
+和 @racket[or/c] 等 contract combinator 通常很有用。例如，
+这是编写上述 contract 的另一种方法：
 
 @racketblock[
 (define amount/c 
@@ -245,16 +210,16 @@ to write the contracts above:
           [balance (-> amount/c)]))
 ]
 
-Other values also serve double duty as contracts.  For example, if a
-function accepts a number or @racket[#f], @racket[(or/c number?  #f)]
-suffices. Similarly, the @racket[amount/c] contract could have been
-written with a @racket[0] in place of @racket[zero?]. If you use a
-regular expression as a contract, the contract accepts strings and
-byte strings that match the regular expression.
+其他值也可以兼作 contract。例如，如果函数接受 number 或
+@racket[#f]，@racket[(or/c number? #f)] 就足够了。类似地，
+@racket[amount/c] contract 也可以用 @racket[0] 来代替
+@racket[zero?]。如果你使用 regular expression 作为 contract，
+该 contract 接受与该 regular expression 匹配的 string 和 byte
+string。
 
-Naturally, you can mix your own contract-implementing functions with
-combinators like @racket[and/c]. Here is a module for creating strings
-from banking records:
+自然，你可以将自己实现的 contract-implementing 函数与
+@racket[and/c] 等 combinator 混合使用。这里是一个从
+bank 记录创建 string 的 module：
 
 @racketmod[
 racket
@@ -273,16 +238,13 @@ racket
           [format-nat (-> natural-number/c
                           (and/c string? has-decimal?))]))
 ]
-The contract of the exported function @racket[format-number] specifies
-that the function consumes a number and produces a string. The
-contract of the exported function @racket[format-nat] is more
-interesting than the one of @racket[format-number].  It consumes only
-natural numbers. Its range contract promises a string that has a
-@litchar{.} in the third position from the right.
+导出函数 @racket[format-number] 的 contract 规定该函数
+消费 number 并产生 string。导出函数 @racket[format-nat] 的 contract
+比 @racket[format-number] 的更有趣。它只消费 natural number。
+它的 range contract 承诺一个从右数第三位有 @litchar{.} 的 string。
 
-If we want to strengthen the promise of the range contract for
-@racket[format-nat] so that it admits only strings with digits and a single
-dot, we could write it like this:
+如果我们想加强 @racket[format-nat] 的 range contract 的承诺，
+使其只接受 digit 和单个 dot 组成的 string，可以这样写：
 
 @racketmod[
 racket
@@ -314,8 +276,8 @@ racket
                                  is-decimal-string?))]))
 ]
 
-Alternately, in this case, we could use a regular expression as a
-contract:
+另外，在这种情况下，我们可以用 regular expression
+作为 contract：
 
 @racketmod[
 racket
@@ -331,45 +293,39 @@ racket
 
 @; ------------------------------------------------------------------------
 
-@ctc-section{Contracts on Higher-order Functions}
+@ctc-section{高阶函数上的 Contract}
 
-Function contracts are not just restricted to having simple
-predicates on their domains or ranges. Any of the contract
-combinators discussed here, including function contracts
-themselves, can be used as contracts on the arguments and
-results of a function.
+函数 contract 不只限于在 domain 或 range 上使用简单的 predicate。
+这里讨论的任何 contract combinator，包括函数 contract 本身，
+都可以用作函数参数和结果的 contract。
 
-For example, 
+例如，
 
 @racketblock[(-> integer? (-> integer? integer?))]
 
-is a contract that describes a curried function. It matches functions
-that accept one argument and then return another function accepting a
-second argument before finally returning an integer. If a server
-exports a function @racket[make-adder] with this contract, and if
-@racket[make-adder] returns a value other than a function, then the
-server is to blame. If @racket[make-adder] does return a function, but
-the resulting function is applied to a value other than an integer,
-then the client is to blame.
+是描述 curried function 的 contract。它匹配接受一个参数、然后返回
+另一个接受第二个参数的函数、最后返回 integer 的函数。如果 server
+导出一个带此 contract 的函数 @racket[make-adder]，而 @racket[make-adder]
+返回的值不是函数，则 server 被 blame。如果 @racket[make-adder]
+确实返回函数，但结果函数的调用参数不是 integer，则 client
+被 blame。
 
-Similarly, the contract
+类似地，contract
 
 @racketblock[(-> (-> integer? integer?) integer?)]
 
-describes functions that accept other functions as its input. If a
-server exports a function @racket[twice] with this contract and the
-@racket[twice] is applied to a value other than a function of one
-argument, then the client is to blame. If @racket[twice] is applied to
-a function of one argument and @racket[twice] calls the given function
-on a value other than an integer, then the server is to blame.
+描述接受其他函数作为输入的函数。如果 server 导出一个带此 contract
+的函数 @racket[twice]，而 @racket[twice] 的调用参数不是单参数函数，
+则 client 被 blame。如果 @racket[twice] 应用于单参数函数且
+@racket[twice] 在 non-integer 值上调用给定函数，则 server 被
+blame。
 
 @; ----------------------------------------------------------------------
 
-@ctc-section[#:tag "flat-named-contracts"]{Contract Messages with ``???''}
+@ctc-section[#:tag "flat-named-contracts"]{包含 ``???'' 的 Contract 消息}
 
-You wrote your module. You added contracts. You put them into the interface
-so that client programmers have all the information from interfaces. It's a
-piece of art: 
+你编写了自己的 module。你添加了 contract。你将其放入接口，
+使得 client programmer 能从接口获得所有信息。这是一件艺术品： 
 @interaction[#:eval 
              contract-eval
              (module bank-server racket
@@ -382,26 +338,23 @@ piece of art:
                (define total 0)
                (define (deposit a) (set! total (+ a total))))]
 
-Several clients used your module. Others used their
-modules in turn. And all of a sudden one of them sees this error
-message:
+几个 client 使用了你的 module。其他人又使用了他们的 module。
+然后突然其中一个看到了这条错误消息：
 
 @interaction[#:eval 
              contract-eval
              (require 'bank-server)
              (deposit -10)]
 
-What is the @racketerror{???} doing there?  Wouldn't it be nice if
-we had a name for this class of data much like we have string, number,
-and so on?
+@racketerror{???} 在那里做什么？如果我们能为这类数据起一个名字，
+就像 string、number 等一样，是不是很好？
 
-For this situation, Racket provides @deftech{flat named
-contracts}. The use of ``contract'' in this term shows that contracts
-are first-class values. The ``flat'' means that the collection of data
-is a subset of the built-in atomic classes of data; they are described
-by a predicate that consumes all Racket values and produces a
-boolean. The ``named'' part says what we want to do, which is to name
-the contract so that error messages become intelligible:
+对于这种情况，Racket 提供 @deftech{flat named contract}。这里
+"contract" 一词表明 contract 是 first-class value。"flat" 意味着
+数据集合是内置 atomic 数据类的子集；它们通过消费所有
+Racket 值并产生 boolean 的 predicate 来描述。"named"
+部分表示我们想做的事情：为 contract 命名，使 error 消息变得
+可读：
 
 @interaction[#:eval 
              contract-eval
@@ -417,7 +370,7 @@ the contract so that error messages become intelligible:
                (define total 0)
                (define (deposit a) (set! total (+ a total))))]
 
-With this little change, the error message becomes quite readable:
+经过这个小改动，error 消息变得相当可读：
 
 @interaction[#:eval 
              contract-eval
@@ -435,7 +388,7 @@ With this little change, the error message becomes quite readable:
            (contract-eval '(deposit -10))))
    "")
 
-@ctc-section[#:tag "dissecting-contract-errors"]{Dissecting a contract error message}
+@ctc-section[#:tag "dissecting-contract-errors"]{剖析 contract 错误消息}
 
 @(define (lines a b)
    (define lines (regexp-split #rx"\n" str))
@@ -443,13 +396,15 @@ With this little change, the error message becomes quite readable:
           (map (λ (x) (list (paragraph error-color x)))
                (take (drop lines a) b))))
 
-In general, each contract error message consists of six sections:
-@itemize[@item{a name for the function or method associated with the contract
-               and either the phrase ``contract violation'' or ``broke its contract''
-               depending on whether the contract was violated by the client or the
-               server; e.g. in the previous example: @lines[0 1]}
-          @item{a description of the precise aspect of the contract that was violated, @lines[1 2]}
-          @item{the complete contract plus a path into it showing which aspect was violated, @lines[3 2]}
-          @item{the module where the contract was put (or, more generally, the boundary that the contract mediates), @lines[5 1]}
-          @item{who was blamed, @lines[6 2]}
-          @item{and the source location where the contract appears. @lines[8 1]}]
+通常，每个 contract 错误消息包含六个部分：
+@itemize[@item{与 contract 关联的函数或方法的名称，以及根据
+              contract 是被 client 还是 server 违反的，显示 "contract
+              violation" 或 "broke its contract" 短语；例如在上面的
+              例子中：@lines[0 1]}
+          @item{对 contract 被违反的精确方面的描述，@lines[1 2]}
+          @item{完整 contract 及其内部路径，显示违反的具体方面，
+               @lines[3 2]}
+          @item{contract 所在的 module（或更一般的说，contract 所
+               调解的 boundary），@lines[5 1]}
+          @item{被 blame 的一方，@lines[6 2]}
+          @item{以及 contract 所在源代码位置。@lines[8 1]}]
