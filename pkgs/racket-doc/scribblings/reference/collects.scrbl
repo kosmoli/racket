@@ -3,21 +3,11 @@
           (for-label setup/dirs
                      setup/collection-search))
 
-@title[#:tag "collects"]{Libraries and Collections}
+@title[#:tag "collects"]{库与集合}
 
-A @deftech{library} is a @racket[module] declaration for use by multiple
-programs. Racket further groups libraries into @deftech{collections}.
-Typically, collections are added via @deftech{packages} (see
-@other-doc['(lib "pkg/scribblings/pkg.scrbl")]); the package manager
-works outside of the Racket core, but it configures the core run-time
-system through @tech{collection links files}.
+@deftech{库}是为多个程序提供服务的 @racket[module] 声明。Racket 进一步将库组合成 @deftech{集合}。集合通常通过 @deftech{包}添加（参见 @other-doc['(lib "pkg/scribblings/pkg.scrbl")]）；包管理器在 Racket 核心之外运行，但通过 @tech{集合链接文件}配置核心运行时系统。
 
-Libraries in collections are referenced through @racket[lib] paths
-(see @racket[require]) or symbolic shorthands. For example, the
-following module uses the @filepath{getinfo.rkt} library module from
-the @filepath{setup} collection, and the @filepath{cards.rkt} library
-module from the @filepath{games} collection's @filepath{cards}
-subcollection:
+集合中的库通过 @racket[lib] 路径（参见 @racket[require]）或符号简写引用。例如，以下模块使用 @filepath{setup} 集合中的库模块 @filepath{getinfo.rkt}，以及 @filepath{games} 集合的 @filepath{cards} 子集合中的库模块 @filepath{cards.rkt}：
 
 @racketmod[
 racket
@@ -26,8 +16,7 @@ racket
 ....
 ]
 
-This example is more compactly and more commonly written using
-symbolic shorthands:
+此示例使用符号简写可以更简洁、更常见地书写：
 
 @racketmod[
 racket
@@ -36,152 +25,61 @@ racket
 ....
 ]
 
-When an identifier @racket[_id] is used in a @racket[require] form, it
-is converted to @racket[(lib _rel-string)] where @racket[_rel-string]
-is the string form of @racket[_id].
+当在 @racket[require] 形式中使用标识符 @racket[_id] 时，它会被转换为 @racket[(lib _rel-string)]，其中 @racket[_rel-string] 是 @racket[_id] 的字符串形式。
 
-A @racket[_rel-string] in @racket[(lib _rel-string)] consists of one
-or more path elements that name collections, and then a final path
-element that names a library file; the path elements are separated by
-@litchar{/}. If @racket[_rel-string] contains no @litchar{/}s, then
-@litchar{/main.rkt} is implicitly appended to the path. If
-@racket[_rel-string] contains @litchar{/} but does not end with a file
-suffix, then @litchar{.rkt} is implicitly appended to the path.
+@racket[(lib _rel-string)] 中的 @racket[_rel-string] 由一个或多个命名集合的路径元素组成，然后是命名库文件的最终路径元素；路径元素之间用 @litchar{/} 分隔。如果 @racket[_rel-string] 不包含任何 @litchar{/}，则隐式地在路径末尾添加 @litchar{/main.rkt}。如果 @racket[_rel-string] 包含 @litchar{/} 但没有以文件后缀结尾，则隐式地在路径末尾添加 @litchar{.rkt}。
 
-Libraries also can be distributed via @|PLaneT| packages. Such
-libraries are referenced through a @racket[planet] module path (see
-@racket[require]) and are downloaded by Racket on demand, instead of
-referenced through @tech{collections}.
+库也可以通过 @|PLaneT| 包分发。这类库通过 @racket[planet] 模块路径引用（参见 @racket[require]），由 Racket 按需下载，而不是通过 @tech{集合}引用。
 
-The translation of a @racket[planet] or @racket[lib] path to a
-@racket[module] declaration is determined by the @tech{module name
-resolver}, as specified by the @racket[current-module-name-resolver]
-parameter.
+@racket[planet] 或 @racket[lib] 路径到 @racket[module] 声明的转换由 @tech{模块名解析器}决定，正如 @racket[current-module-name-resolver] 参数所指定的。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "collects-search"]{Collection Search Configuration}
+@section[#:tag "collects-search"]{集合搜索配置}
 
-For the default @tech{module name resolver}, the search path for
-collections is determined by the
-@racket[current-library-collection-links] parameter and the
-@racket[current-library-collection-paths] parameter:
+对于默认的 @tech{模块名解析器}，集合的搜索路径由 @racket[current-library-collection-links] 参数和 @racket[current-library-collection-paths] 参数决定：
 
 @itemlist[
 
- @item{The most primitive @tech{collection}-based modules are located
-       in @filepath{collects} directory relative to the Racket
-       executable. Libraries for a collection are grouped within a
-       directory whose name matches the collection name. The path to
-       the @filepath{collects} directory is normally included in
-       @racket[current-library-collection-paths].}
+ @item{最原始的基于 @tech{集合}的模块位于相对于 Racket 可执行文件的 @filepath{collects} 目录中。集合的库分组在名称与集合名称匹配的目录内。@filepath{collects} 目录的路径通常包含在 @racket[current-library-collection-paths] 中。}
 
- @item{Collection-based libraries also can be installed other
-       directories, perhaps user-specific, that are structured like
-       the @filepath{collects} directory. Those additional directories
-       can be included in the
-       @racket[current-library-collection-paths] parameter either
-       dynamically, through command-line arguments to @exec{racket},
-       or by setting the @envvar{PLTCOLLECTS} environment variable;
-       see @racket[find-library-collection-paths].}
+ @item{基于集合的库也可以安装在其他目录中，可能是用户特定的目录，其结构与 @filepath{collects} 目录相同。这些额外目录可以通过命令行参数传递给 @exec{racket} 动态地包含在 @racket[current-library-collection-paths] 参数中，或通过设置 @envvar{PLTCOLLECTS} 环境变量；参见 @racket[find-library-collection-paths]。}
 
- @item{@tech{Collection links files} provide a mapping from top-level
-       collection names to directories, plus additional
-       @filepath{collects}-like directories (that have subdirectories
-       with names that match collection names). Each @tech{collection
-       links file} to be searched is referenced by the
-       @racket[current-library-collection-links] parameter; the parameter
-       references the file, and not the file's content, so
-       that changes to the file can be detected and affect later
-       module resolution. See also
-       @racket[find-library-collection-links].}
+ @item{@tech{集合链接文件}提供从顶级集合名称到目录的映射，加上额外的 @filepath{collects} 类目录（这些子目录名称与集合名称匹配）。要搜索的每个 @tech{集合链接文件}由 @racket[current-library-collection-links] 参数引用；该参数引用文件本身而非文件内容，以便文件的更改可以被检测并影响后续的模块解析。另请参见 @racket[find-library-collection-links]。}
 
- @item{The @racket[current-library-collection-links] parameter's value
-       can also include hash tables that provide the same content as
-       @tech{collection links files}: a mapping from collection names
-       in symbol form to a list of paths for the collection, or from
-       @racket[#f] to a list of @filepath{collects}-like paths.}
+ @item{@racket[current-library-collection-links] 参数的值还可以包含哈希表，这些哈希表提供与 @tech{集合链接文件}相同的内容：从符号形式的集合名称到集合路径列表的映射，或从 @racket[#f] 到 @filepath{collects} 类路径列表的映射。}
 
- @item{Finally, the @racket[current-library-collection-links]
-       parameter's value includes @racket[#f] to indicate the point in
-       the search process at which the @tech{module-name resolver} should
-       check @racket[current-library-collection-paths] relative to the
-       files and hash tables in @racket[current-library-collection-links].}
+ @item{最后，@racket[current-library-collection-links] 参数的值包含 @racket[#f] 来表示搜索过程中的一个检查点，在该点 @tech{模块名解析器} 应该检查 @racket[current-library-collection-paths] 相对于 @racket[current-library-collection-links] 中的文件和哈希表。}
 
 ]
 
-To resolve a module reference @racket[_rel-string], the default
-@tech{module name resolver} searches collection links in
-@racket[current-library-collection-links] from first to last to locate
-the first directory that contains @racket[_rel-string], splicing a
-search through in @racket[current-library-collection-paths] where in
-@racket[current-library-collection-links] contains @racket[#f].  The
-filesystem tree for each element in the link table and search path is
-effectively @deftech[#:key "collection splicing"]{spliced} together with the filesystem trees of other path
-elements that correspond to the same collection. Some Racket tools
-rely on unique resolution of module path names, so an installation and
-configuration should not allow multiple files to match the same
-collection and file combination.
+为了解析模块引用 @racket[_rel-string]，默认的 @tech{模块名解析器} 按从先到后的顺序搜索 @racket[current-library-collection-links] 中的集合链接，以定位包含 @racket[_rel-string] 的第一个目录，在 @racket[current-library-collection-links] 包含 @racket[#f] 的位置拼接对 @racket[current-library-collection-paths] 的搜索。链接表和搜索路径中每个元素的文件系统树实际上与对应同一集合的其他路径元素的文件系统树 @deftech[#:key "collection splicing"]{拼接}在一起。一些 Racket 工具依赖于模块路径名的唯一解析，因此安装和配置不应允许多个文件匹配同一集合和文件的组合。
 
-The value of the @racket[current-library-collection-links] parameter
-is initialized by the @exec{racket} executable to the result of
-@racket[(find-library-collection-links)], and the value of the
-@racket[current-library-collection-paths] parameter is initialized to
-the result of @racket[(find-library-collection-paths)].
+@racket[current-library-collection-links] 参数的值由 @exec{racket} 可执行文件初始化为 @racket[(find-library-collection-links)] 的结果，@racket[current-library-collection-paths] 参数的值初始化为 @racket[(find-library-collection-paths)] 的结果。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "links-file"]{Collection Links}
+@section[#:tag "links-file"]{集合链接}
 
-@deftech{Collection links files} are used by
-@racket[collection-file-path], @racket[collection-path], and the
-default @tech{module name resolver} to locate collections before
-trying the @racket[(current-library-collection-paths)] search
-path. The @tech{collection links files} to use are determined by the
-@racket[current-library-collection-links] parameter, which is
-initialized to the result of @racket[find-library-collection-links].
+@tech{集合链接文件}被 @racket[collection-file-path]、@racket[collection-path] 和默认的 @tech{模块名解析器} 用来在尝试 @racket[(current-library-collection-paths)] 搜索路径之前定位集合。要使用的 @tech{集合链接文件}由 @racket[current-library-collection-links] 参数决定，该参数被初始化为 @racket[find-library-collection-links] 的结果。
 
-A @tech{collection links file} is @racket[read] with default reader
-parameter settings to obtain a list. Every element of the list must be
-a link specification with one of the forms @racket[(list _string
-_encoded-path)], @racket[(list _string _encoded-path _regexp)], @racket[(list 'root
-_encoded-path)], @racket[(list 'root _encoded-path _regexp)], @racket[(list 'static-root
-_encoded-path)], @racket[(list 'static-root _encoded-path _regexp)].
-A @racket[_string] names a
-top-level @tech{collection}, in which case @racket[_encoded-path] describes a path
-that can be used as the collection's path (directly, as opposed to a
-subdirectory of @racket[_encoded-path] named by @racket[_string]). A
-@racket['root] entry, in contrast, acts like an path in
-@racket[(current-library-collection-paths)].  A
-@racket['static-root] entry is like a @racket['root] entry, but
-where the immediate content of the directory is assumed not to change unless the
-@tech{collection links file} changes.
-Each @racket[_encoded-path] is either a string, a
-byte string that is converted to a path with @racket[bytes->path],
-or a list of relative path-element byte strings, @racket['up], and @racket['same]
-indicators that are combined with @racket[build-path] with the byte
-strings converted with @racket[bytes->path-element].
-If @racket[_encoded-path] describes a
-relative path, it is relative to the directory containing the
-@tech{collection links file}. If @racket[_regexp] is specified in a
-link, then the link is used only if @racket[(regexp-match?  _regexp
-(version))] produces a true result.
+@tech{集合链接文件}使用默认的读取器参数设置被 @racket[read] 以获得一个列表。列表的每个元素必须是一个具有以下形式之一的链接规范：@racket[(list _string _encoded-path)]、@racket[(list _string _encoded-path _regexp)]、@racket[(list 'root _encoded-path)]、@racket[(list 'root _encoded-path _regexp)]、@racket[(list 'static-root _encoded-path)]、@racket[(list 'static-root _encoded-path _regexp)]。
 
-A single top-level collection can have multiple links in a
-@tech{collection links file}, and any number of @racket['root] entries
-can appear. The corresponding paths are effectively spliced together,
-since the paths are tried in order to locate a file or sub-collection.
+@racket[_string] 命名一个顶级 @tech{集合}，在此情况下 @racket[_encoded-path] 描述一个可以用作集合路径的路径（直接作为路径，而非由 @racket[_string] 命名的 @racket[_encoded-path] 的子目录）。相比之下，@racket['root] 条目就像 @racket[(current-library-collection-paths)] 中的路径一样运作。@racket['static-root] 条目类似于 @racket['root] 条目，但假设目录的即时内容不会改变，除非 @tech{集合链接文件}发生变化。
 
-The @exec{raco link} command-link tool can display, install, and
-remove links in a @tech{collection links file}. See @secref[#:doc
-raco-doc "link"] in @other-manual[raco-doc] for more information.
+每个 @racket[_encoded-path] 要么是一个字符串，要么是一个通过 @racket[bytes->path] 转换为路径的字节字符串，要么是一个由相对路径元素字节字符串、@racket['up] 和 @racket['same] 指示符组成的列表，这些与 @racket[build-path] 组合，其中字节字符串通过 @racket[bytes->path-element] 转换。
 
-@history[#:changed "8.1.0.6" @elem{Changed @racket[_encoded-path] to
-                                   allow bytes strings and lists.}]
+如果 @racket[_encoded-path] 描述的是相对路径，则它相对于包含 @tech{集合链接文件} 的目录。如果链接中指定了 @racket[_regexp]，则该链接仅在 @racket[(regexp-match? _regexp (version))] 产生真值结果时被使用。
+
+单个顶级集合在 @tech{集合链接文件} 中可以有多个链接，并且可以出现任意数量的 @racket['root] 条目。对应的路径有效地被拼接在一起，因为路径是按顺序尝试以定位文件或子集合的。
+
+@exec{raco link} 命令行工具可以显示、安装和删除 @tech{集合链接文件} 中的链接。更多信息参见 @other-manual[raco-doc] 中的 @secref[#:doc raco-doc "link"]。
+
+@history[#:changed "8.1.0.6" @elem{允许 @racket[_encoded-path] 使用字节字符串和列表。}]
 
 @; ----------------------------------------
 
-@section[#:tag "collects-api"]{Collection Paths and Parameters}
+@section[#:tag "collects-api"]{集合路径与参数}
 
 @defproc[(find-library-collection-paths [pre-extras (listof path-string?) null]
                                         [post-extras (listof path-string?) null]
@@ -189,94 +87,45 @@ raco-doc "link"] in @other-manual[raco-doc] for more information.
                                         [name (get-installation-name config)])
          (listof path?)]{
 
-Produces a list of paths, which is normally used to initialize
-@racket[current-library-collection-paths], as follows:
+生成一个路径列表，通常用于初始化 @racket[current-library-collection-paths]，如下所示：
 
 @itemize[
 
-@item{The path produced by @racket[(build-path (find-system-path
-    'addon-dir) name "collects")] is the first element of the
-  default collection path list, unless the value of the
-  @racket[use-user-specific-search-paths] parameter is @racket[#f].}
+@item{@racket[(build-path (find-system-path 'addon-dir) name "collects")] 生成的路径是默认集合路径列表的第一个元素，除非 @racket[use-user-specific-search-paths] 参数的值为 @racket[#f]。}
 
- @item{Extra directories provided in @racket[pre-extras] are included
-  next to the default collection path list, converted to complete
-  paths relative to the executable.}
+ @item{在 @racket[pre-extras] 中提供的额外目录接下来被包含在默认集合路径列表中，转换为相对于可执行文件的完整路径。}
 
- @item{If the directory specified by @racket[(find-system-path
-    'collects-dir)] is absolute, or if it is relative (to the
-  executable) and it exists, then it is added to the end of the
-  default collection path list.}
+ @item{如果 @racket[(find-system-path 'collects-dir)] 指定的目录是绝对路径，或者它是相对的（相对于可执行文件）且存在，则它被添加到默认集合路径列表的末尾。}
 
- @item{Extra directories provided in @racket[post-extras] are included
-  last in the default collection path list, converted to complete
-  paths relative to the executable.}
+ @item{在 @racket[post-extras] 中提供的额外目录最后被包含在默认集合路径列表中，转换为相对于可执行文件的完整路径。}
 
- @item{If @racket[config] has a value for
-  @racket['collects-search-dirs], then it is used in place of the
-  default collection path list (as constructed by the preceding three
-  bullets), and the default is spliced in place of any @racket[#f]
-  within the @racket['collects-search-dirs] list. If @racket[config]
-  does not have a @racket['collects-search-dirs] value, then the
-  default collection path list is used.}
+ @item{如果 @racket[config] 有 @racket['collects-search-dirs] 的值，则它用来代替默认集合路径列表（由前三个要点构建），并且默认值被拼接在 @racket['collects-search-dirs] 列表中的任何 @racket[#f] 位置。如果 @racket[config] 没有 @racket['collects-search-dirs] 值，则使用默认集合路径列表。}
 
- @item{If the @indexed-envvar{PLTCOLLECTS} environment variable is
-  defined, it is combined with the default list using
-  @racket[path-list-string->path-list], as long as the value of
-  @racket[use-user-specific-search-paths] is true. If it is not
-  defined or if the value @racket[use-user-specific-search-paths] is
-  @racket[#f], the collection path list as constructed by the
-  preceding four bullets is used directly.
+ @item{如果定义了 @indexed-envvar{PLTCOLLECTS} 环境变量，则使用 @racket[path-list-string->path-list] 将其与默认列表组合，只要 @racket[use-user-specific-search-paths] 的值为真。如果未定义或 @racket[use-user-specific-search-paths] 的值为 @racket[#f]，则直接使用由前四个要点构建的集合路径列表。
 
-  Note that on @|AllUnix|, paths are separated by @litchar{:}, and
-  on Windows by @litchar{;}.  Also,
-  @racket[path-list-string->path-list] splices the default paths at an
-  empty path, for example, with many Unix shells you can set
-  @envvar{PLTCOLLECTS} to @tt{":`pwd`"}, @tt{"`pwd`:"}, or
-  @tt{"`pwd`"} to specify search the current directory after, before,
-  or instead of the default paths, respectively.}
+ 注意在 @|AllUnix| 上，路径用 @litchar{:} 分隔，在 Windows 上用 @litchar{;} 分隔。此外，@racket[path-list-string->path-list] 在空路径处拼接默认路径，例如，在许多 Unix shell 中，可以将 @envvar{PLTCOLLECTS} 设置为 @tt{":`pwd`"}、@tt{"`pwd`":"} 或 @tt{"`pwd`"} 来分别指定在默认路径之后、之前或替代默认当前目录。}
 
 ]
 
-@history[#:changed "8.4.0.3" @elem{Added the @racket[config] and
-                                   @racket[name] arguments.}]}
+@history[#:changed "8.4.0.3" @elem{添加了 @racket[config] 和 @racket[name] 参数。}]}
 
 @defproc[(find-library-collection-links [config hash? (read-installation-configuration-table)]
                                         [name (get-installation-name config)])
          (listof (or/c #f (and/c path? complete-path?)))]{
 
-Produces a list of paths and @racket[#f], which is normally used to
-initialize @racket[current-library-collection-links], as follows:
+生成一个路径和 @racket[#f] 的列表，通常用于初始化 @racket[current-library-collection-links]，如下所示：
 
 @itemlist[
 
- @item{The list starts with @racket[#f], which causes the default
-       @tech{module name resolver}, @racket[collection-file-path],
-       and @racket[collection-path] to try paths in
-       @racket[current-library-collection-paths] before
-       @tech{collection links files}.}
+ @item{列表以 @racket[#f] 开头，使得默认的 @tech{模块名解析器}、@racket[collection-file-path] 和 @racket[collection-path] 在 @tech{集合链接文件}之前尝试 @racket[current-library-collection-paths] 中的路径。}
 
- @item{As long as the values of
-       @racket[use-user-specific-search-paths] and
-       @racket[use-collection-link-paths] are true, the second element
-       in the result list is the path of the user--specific
-       @tech{collection links file}, which is @racket[(build-path
-       (find-system-path 'addon-dir) name "links.rktd")] by default,
-       but it can be replaced by a @racket['links-file] value in
-       @racket[config].}
+ @item{只要 @racket[use-user-specific-search-paths] 和 @racket[use-collection-link-paths] 的值为真，结果列表中的第二个元素就是用户特定的 @tech{集合链接文件} 路径，默认为 @racket[(build-path (find-system-path 'addon-dir) name "links.rktd")]，但可以被 @racket[config] 中的 @racket['links-file] 值替换。}
 
- @item{As long as the value of @racket[use-collection-link-paths] is
-       true, the rest of the list contains a result like that of
-       @racket[get-links-search-files], but using @racket[config] if
-       supplied instead of reading the installation's
-       @filepath{config.rktd} file. Typically, that result is a list
-       with a single path, @racket[(build-path (find-config-dir)
-       "links.rktd")].}
+ @item{只要 @racket[use-collection-link-paths] 的值为真，列表的其余部分包含类似于 @racket[get-links-search-files] 的结果，但如果提供 @racket[config] 则使用它而不是读取安装的 @filepath{config.rktd} 文件。通常，该结果是包含单个路径 @racket[(build-path (find-config-dir) "links.rktd")] 的列表。}
 
 ]
 
-@history[#:changed "8.4.0.3" @elem{Added the @racket[config] and
-                                   @racket[name] arguments.}]}
+@history[#:changed "8.4.0.3" @elem{添加了 @racket[config] 和 @racket[name] 参数。}]}
 
 
 @defproc*[([(collection-file-path [file path-string?] [collection path-string?] ...+
@@ -289,45 +138,21 @@ initialize @racket[current-library-collection-links], as follows:
                                                      (regexp-match? #rx"[.]rkt$" file)])
             any])]{
 
-Returns the path to the file indicated by @racket[file] in the
-collection specified by the @racket[collection]s, where the second
-@racket[collection] (if any) names a sub-collection, and so on.  The
-search uses the values of @racket[current-library-collection-links]
-and @racket[current-library-collection-paths].
+返回由 @racket[collection]s 指定的集合中 @racket[file] 指示的文件的路径，其中第二个 @racket[collection]（如果有的话）命名一个子集合，依此类推。搜索使用 @racket[current-library-collection-links] 和 @racket[current-library-collection-paths] 的值。
 
-@margin-note{See also @racket[collection-search] in
-             @racketmodname[setup/collection-search].}
+@margin-note{另请参见 @racketmodname[setup/collection-search] 中的 @racket[collection-search]。}
 
-If @racket[file] is not found, but @racket[file] ends in
-@filepath{.rkt} and a file with the suffix @filepath{.ss} exists, then
-the directory of the @filepath{.ss} file is used. If @racket[file] is
-not found and the @filepath{.rkt}/@filepath{.ss} conversion does not
-apply, but a directory corresponding to the @racket[collection]s is
-found, then a path using the first such directory is
-returned.
+如果未找到 @racket[file]，但 @racket[file] 以 @filepath{.rkt} 结尾且存在后缀为 @filepath{.ss} 的文件，则使用 @filepath{.ss} 文件的目录。如果未找到 @racket[file] 且 @filepath{.rkt}/@filepath{.ss} 转换不适用，但找到了对应于 @racket[collection]s 的目录，则使用第一个这样的目录返回路径。
 
-If @racket[check-compiled?] is true, then the search also depends on
-@racket[use-compiled-file-paths] and
-@racket[current-compiled-file-roots]; if @racket[file] is not found,
-then a compiled form of @racket[file] with the suffix @filepath{.zo}
-is checked in the same way as the default @tech{compiled-load
-handler}.  If a compiled file is found, the result from
-@racket[collection-file-path] reports the location that @racket[file]
-itself would occupy (if it existed) for the found compiled file.
+如果 @racket[check-compiled?] 为真，则搜索还取决于 @racket[use-compiled-file-paths] 和 @racket[current-compiled-file-roots]；如果未找到 @racket[file]，则按默认 @tech{编译加载处理器} 的方式检查后缀为 @filepath{.zo} 的 @racket[file] 的编译形式。如果找到编译文件，@racket[collection-file-path] 的结果报告找到的编译文件对应的 @racket[file] 本身应占据的位置（如果存在的话）。
 
-Finally, if the collection is not found, and if @racket[fail-proc] is
-provided, then @racket[fail-proc] is applied to an error message (that
-does not start @scheme["collection-file-path:"] or otherwise claim a
-source), and its result is the result of
-@racket[collection-file-path].  If @racket[fail-proc] is not provided
-and the collection is not found, then the
-@exnraise[exn:fail:filesystem].
+最后，如果未找到集合，并且提供了 @racket[fail-proc]，则将 @racket[fail-proc] 应用于错误消息（不以 @scheme["collection-file-path:"] 开头或声称来源），并且其结果作为 @racket[collection-file-path] 的结果。如果未提供 @racket[fail-proc] 且未找到集合，则 @exnraise[exn:fail:filesystem]。
 
 @examples[(eval:alts (collection-file-path "main.rkt" "racket" "base")
                      (build-path "path" "to" "collects" "racket" "base" "main.rkt"))
           (eval:error (collection-file-path "sandwich.rkt" "bologna"))]
 
-@history[#:changed "6.0.1.12" @elem{Added the @racket[check-compiled?] argument.}]}
+@history[#:changed "6.0.1.12" @elem{添加了 @racket[check-compiled?] 参数。}]}
 
 
 @defproc*[([(collection-path [collection path-string?] ...+)
@@ -337,28 +162,18 @@ and the collection is not found, then the
             any])]{
 
   @deprecated[#:what "function" @racket[collection-file-path]]{
-  @tech{Collection splicing} implies that a given collection can have
-  multiple paths, such as when multiple @tech[#:doc
-  '(lib "scribblings/guide/guide.scrbl")]{packages} provide modules for a
-  collection.}
+  @tech{集合拼接}意味着给定的集合可以有多个路径，例如当多个 @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{包}为集合提供模块时。
 
-Like @racket[collection-file-path], but without a specified file name,
-so that a directory indicated by @racket[collection]s is returned.
+类似于 @racket[collection-file-path]，但没有指定文件名，因此返回由 @racket[collection]s 指示的目录。
 
-When multiple directories correspond to the collection, the first one
-found in the search sequence (see @secref["collects-search"]) is returned.}
+当多个目录对应于该集合时，返回搜索序列中找到的第一个（参见 @secref["collects-search"]）。}
 
 
 @defparam*[current-library-collection-paths paths
                                             (listof (and/c path-string? complete-path?))
                                             (listof (and/c path? complete-path?))]{
 
-Parameter that determines a list of complete directory paths for
-finding libraries (as referenced in @racket[require], for example)
-through the default @tech{module name resolver} and for finding paths
-through @racket[collection-path] and
-@racket[collection-file-path]. See @secref["collects-search"] for more
-information.}
+一个参数，用于确定一个完整目录路径列表，以通过默认的 @tech{模块名解析器}查找库（例如在 @racket[require] 中引用的库），以及通过 @racket[collection-path] 和 @racket[collection-file-path] 查找路径。更多信息参见 @secref["collects-search"]。}
 
 
 @defparam*[current-library-collection-links paths
@@ -372,47 +187,25 @@ information.}
                                                                   (listof (and/c path? complete-path?)))))]{
 
 
-Parameter that determines @tech{collection links files}, additional
-paths, and the relative search order of
-@racket[current-library-collection-paths] for finding libraries (as
-referenced in @racket[require], for example) through the default
-@tech{module name resolver} and for finding paths through
-@racket[collection-path] and @racket[collection-file-path]. See
-@secref["collects-search"] for more information.}
+一个参数，用于确定 @tech{集合链接文件}、额外路径以及 @racket[current-library-collection-paths] 的相对搜索顺序，以通过默认的 @tech{模块名解析器}查找库（例如在 @racket[require] 中引用的库），以及通过 @racket[collection-path] 和 @racket[collection-file-path] 查找路径。更多信息参见 @secref["collects-search"]。}
 
 
 @defboolparam[use-user-specific-search-paths on?]{
 
-Parameter that determines whether user-specific paths, which are in
-the directory produced by @racket[(find-system-path 'addon-dir)], are
-included in search paths for collections and other files. For example,
-the initial value of @racket[find-library-collection-paths] omits the
-user-specific collection directory when this parameter's value is
-@racket[#f].
+一个参数，用于确定是否将用户特定路径包含进搜索路径中，这些路径位于 @racket[(find-system-path 'addon-dir)] 生成的目录中，用于搜索集合和其他文件。例如，当此参数的值为 @racket[#f] 时，@racket[find-library-collection-paths] 的初始值会省略用户特定的集合目录。
 
-If @Flag{U} or @DFlag{no-user-path} argument to @exec{racket}, then
-@racket[use-user-specific-search-paths] is initialized to
-@racket[#f].}
+如果 @exec{racket} 有 @Flag{U} 或 @DFlag{no-user-path} 参数，则 @racket[use-user-specific-search-paths] 被初始化为 @racket[#f]。}
 
 
 @defboolparam[use-collection-link-paths on?]{
 
-Parameter that determines whether @tech{collection links files} are
-included in the result of @racket[find-library-collection-links].
+一个参数，用于确定 @tech{集合链接文件}是否包含在 @racket[find-library-collection-links] 的结果中。
 
-If this parameter's value is @racket[#f] on start-up, then
-@tech{collection links files} are effectively disabled permanently for
-the Racket process. In particular, if an empty string is provided as
-the @Flag{X} or @DFlag{collects} argument to @exec{racket}, then not
-only is @racket[current-library-collection-paths] initialized to the
-empty list, but @racket[use-collection-link-paths] is initialized to
-@racket[#f].}
+如果此参数在启动时的值为 @racket[#f]，则 @tech{集合链接文件}对该 Racket 进程永久禁用。特别是，如果将空字符串作为 @Flag{X} 或 @DFlag{collects} 参数提供给 @exec{racket}，则不仅 @racket[current-library-collection-paths] 被初始化为空列表，而且 @racket[use-collection-link-paths] 也被初始化为 @racket[#f]。}
 
 
 @defproc[(read-installation-configuration-table) (and/c hash? immutable?)]{
 
-Returns the content of the installation's @filepath{config.rktd} file
-(see @secref["config-file" #:doc raco-doc]) as long as that content is
-a @tech{hash table}, and otherwise returns an empty hash table.
+返回安装的 @filepath{config.rktd} 文件的内容（参见 @secref["config-file" #:doc raco-doc]），只要该内容是 @tech{哈希表}，否则返回空哈希表。
 
 @history[#:added "8.4.0.3"]}
