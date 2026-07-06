@@ -2,41 +2,40 @@
 
 @(require "shared.rkt" scribble/eval)
 
-@title{Choosing the Right Construct}
+@title{选择正确的构造}
 
-Racket provides a range of constructs for the same or similar purposes.
-Although the Racket designers don't think that there is one right way for
-everything, we prefer certain constructs in certain situations for consistency
-and readability.
+Racket 为相同或相似的目的提供了一系列构造。
+尽管 Racket 的设计者并不认为所有事情都只有一种正确的方式，
+但为了保持一致性，我们在某些情况下更倾向于使用某些构造，
+以提高可读性。
 
 @; -----------------------------------------------------------------------------
-@section{Comments}
+@section{注释}
 
-Following Lisp and Scheme tradition, we use a single semicolon for in-line
-comments (to the end of a line) and two semicolons for comments that start
-a line. Think of the second semicolon as making an emphatic point.
+遵循 Lisp 和 Scheme 的传统，我们使用单个分号进行行内注释
+（到行尾），使用两个分号开始一行注释。将第二个分号视为
+强调一个观点。
 
 @;{This request does not contradict the programs in this
 document. They use two semicolons for full-line comments in source but
 scribble renders only one.}
 
-Seasoned Schemers, not necessarily Racketeers, also use triple and
-quadruple semicolons. This is considered a courtesy to distinguish file
-headers from section headers.
+经验丰富的 Schemer（不一定是 Racketeer）也使用三个和
+四个分号。这被认为是一种礼貌，用于区分文件头
+和章节标题。
 
-In addition to @litchar{;}, we have two other mechanisms for commenting code:
- @litchar{#|}...@litchar{|#} for blocks and @litchar{#;} to comment out an expression.
- @defterm{Block comments} are for those rare cases when an entire block of
- definitions and/or expressions must be commented out at once.
- @defterm{Expression comments}---@litchar{#;}---apply to the following
- S-expression.  This makes them a useful tool for debugging.  They can even
- be composed in interesting ways with other comments, for example, @litchar{#;#;}
- will comment two expressions, and a line with just @litchar{;#;} gives you a
- single-character ``toggle'' for the expression that starts on the next
- line.
+除了 @litchar{;} 之外，我们还有两种其他注释代码的机制：
+ @litchar{#|}...@litchar{|#} 用于块注释，@litchar{#;} 用于注释掉一个表达式。
+ @defterm{块注释}适用于那些罕见的需要一次性注释掉整个
+ 定义和/或表达式块的情况。
+ @defterm{表达式注释}——@litchar{#;}——应用于紧随其后的
+ S-表达式。这使得它们成为调试的有用工具。它们甚至可以
+ 以有趣的方式与其他注释组合，例如 @litchar{#;#;}
+ 将注释掉两个表达式，而仅包含 @litchar{;#;} 的行则为您提供一个
+ 用于下一行开始的表达式的单字符"切换"。
 
 @;{But on the flip side, many tools don't process them
- properly---treating them instead as a @litchar{#} followed by a commented line.
+properly---treating them instead as a @litchar{#} followed by a commented line.
  For example, in DrRacket S-expression comments are ignored when it comes
  to syntax coloring, which makes it easy to miss them. In Emacs, the
  commented text is colored like a comment and treated as text, which makes
@@ -45,9 +44,8 @@ In addition to @litchar{;}, we have two other mechanisms for commenting code:
  committed code.  If you really want to use @litchar{#;}, clarify their use with
  a line comment (@litchar{;}).}
 
-
-The screenshots below illustrate the use of @litchar{#;} and how DrRacket and
-Emacs (Racket mode) color such comments by default. 
+下面的截图说明了 @litchar{#;} 的使用以及 DrRacket 和
+Emacs（Racket 模式）如何默认着色此类注释。
 
 @nested[#:style 'inset]{
 @tabular[ #:sep @hspace[5]
@@ -60,12 +58,12 @@ Emacs (Racket mode) color such comments by default.
 
 
 @; -----------------------------------------------------------------------------
-@section{Definitions}
+@section{定义}
 
-Racket comes with quite a few definitional constructs, including
-@scheme[let], @scheme[let*], @scheme[letrec], and @scheme[define]. Except
-for the last one, definitional constructs increase the indentation level.
-Therefore, favor @scheme[define] when feasible.
+Racket 提供了相当多的定义构造，包括
+@scheme[let]、@scheme[let*]、@scheme[letrec] 和 @scheme[define]。除了
+最后一个之外，定义构造都会增加缩进级别。
+因此，在可行的情况下优先使用 @scheme[define]。
 
 @compare0[
 @racketmod0[
@@ -87,9 +85,9 @@ racket
 ]
 ]
 
-@bold{Warning} A @racket[let*] binding block is not easily replaced with a
-series of @racket[define]s because the former has @emph{sequential} scope
-and the latter has @emph{mutually recursive} scope.
+@bold{警告} @racket[let*] 绑定块不容易替换为一系列
+@scheme[define]，因为前者具有 @emph{sequential} 作用域，
+而后者具有 @emph{mutually recursive} 作用域。
 @compare0[#:left "works" #:right (list "does " @bold{not})
 @racketmod0[
 racket
@@ -117,12 +115,12 @@ racket
 ]
 
 @; -----------------------------------------------------------------------------
-@section{Conditionals}
+@section{条件表达式}
 
-Like definitional constructs, conditionals come in many flavors,
-too. Because @scheme[cond] and its relatives (@scheme[case],
-@scheme[match], etc) now allow local uses of @scheme[define], you should
-prefer them over @scheme[if].
+与定义构造一样，条件表达式也有多种变体。
+因为 @scheme[cond] 及其相关形式（@scheme[case]、
+@scheme[match] 等）现在允许局部使用 @scheme[define]，所以你应该
+优先使用它们而不是 @scheme[if]。
 
 @compare0[
 @racketmod0[
@@ -150,26 +148,27 @@ racket
 ]
 ]
 
-Also, use @racket[cond] instead of @racket[if] to eliminate explicit
- @racket[begin].
+此外，使用 @racket[cond] 代替 @racket[if] 来消除显式的
+ @racket[begin]。
 
-The above ``good'' example would be even better with @racket[match]. In
- general, use @racket[match] to destructure complex pieces of data.
+上面"好"的例子使用 @racket[match] 会更好。一般来说，
+使用 @racket[match] 来解构复杂的数据。
 
-You should also favor @scheme[cond] (and its relatives) over @scheme[if] to
- match the shape of the data definition. In particular, the above examples
- could be formulated with @racket[and] and @racket[or] but doing so would
- not bring across the recursion as nicely.
+你还应该优先使用 @scheme[cond]（及其相关形式）而不是 @scheme[if] 来
+匹配数据定义的形状。特别是，上面的例子
+可以用 @racket[and] 和 @racket[or] 来表述，但这样做不会
+像递归那样清晰地表达递归。
 
 @; -----------------------------------------------------------------------------
-@section{Expressions}
+@section{表达式}
 
-Don't nest expressions too deeply. Instead name intermediate results. With
-well-chosen names your expression becomes easy to read.
+不要将表达式嵌套得太深。相反，为中间结果命名。
+通过精心选择的名称，你的表达式变得易于阅读。
 
 @compare0[
 @racketmod0[
 racket
+
 (define (next-month d)
   (define day (first d))
   (define month (second d))
@@ -180,6 +179,7 @@ racket
 @; -----------------------------------------------------------------------------
 @racketmod0[
 racket
+
 (define (next-month d)
   (if (= (second d) 12)
       `(,(+ (first d) 1)
@@ -188,26 +188,26 @@ racket
         ,(+ (second d) 1))))
 ]
 ]
- Clearly ``too deeply'' is subjective. On occasion it also isn't the
- nesting that makes the expression unreadable but the sheer number of
- subexpressions. Consider using local definitions for this case, too.
+ 显然，"太深"是主观的。有时，使表达式不可读的
+ 不是嵌套本身，而是子表达式的绝对数量。对于这种情况，
+ 也考虑使用局部定义。
 
 @; -----------------------------------------------------------------------------
-@section{Structs vs Lists}
+@section{结构体与列表}
 
-Use @racket[struct]s when you represent a combination of a small and fixed
-number of values.  For fixed length (long) lists, add a comment or even a
-contract that states the constraints.
+当你表示少量且固定数量的值的组合时，使用 @racket[struct]。
+对于固定长度的（长）列表，添加注释甚至合约来
+说明约束条件。
 
-If a function returns several results via @racket[values], consider using
-@racket[struct]s or lists when you are dealing with four or more values.
+如果一个函数通过 @racket[values] 返回多个结果，当你处理四个或更多值时，
+考虑使用 @racket[struct] 或列表。
 
 @; -----------------------------------------------------------------------------
-@section{Lambda vs Define}
+@section{Lambda 与 Define}
 
-While nobody denies that @racket[lambda] is cute, @racket[define]d
-functions have names that tell you what they compute and that help
-accelerate reading.
+虽然没有人否认 @racket[lambda] 很可爱，但 @racket[define]d
+函数有名称，可以告诉你它们计算什么，并有助于
+加速阅读。
 
 @compare0[
 @racketmod0[
@@ -230,7 +230,7 @@ racket
 ]
 ]
 
-Even a curried function does not need @racket[lambda].
+甚至柯里化函数也不需要 @racket[lambda]。
 @compare0[#:right "acceptable"
 @racketmod0[
 racket
@@ -247,18 +247,18 @@ racket
     ...))
 ]
 ]
- The left side signals currying in the very first line of the function,
- while the reader must read two lines for the version on the right side.
+ 左侧在函数的第一行就表示柯里化，
+而读者必须阅读右侧版本的两行才能理解。
 
-Of course, many constructs (e.g. @racket[call-with-values]) or higher-order functions
-(e.g. @racket[filter]) are made for short @racket[lambda]; don't hesitate to use
-@racket[lambda] for such cases.
+当然，许多构造（例如 @racket[call-with-values]）或高阶函数
+（例如 @racket[filter]）是为短 @racket[lambda] 设计的；不要犹豫，
+在这种情况下使用 @racket[lambda]。
 
 
 @; -----------------------------------------------------------------------------
-@section{Identity Functions}
+@section{恒等函数}
 
-The identity function is @racket[values]:
+恒等函数是 @racket[values]：
 
  @examples[
  (map values '(a b c))
@@ -266,17 +266,16 @@ The identity function is @racket[values]:
  ]
 
 @; -----------------------------------------------------------------------------
-@section{Traversals}
+@section{遍历}
 
-With the availability of @racket[for/fold], @racket[for/list],
- @racket[for/vector], and friends, programming with @racket[for] loops
- has become just as functional as programming with @racket[map] and
- @racket[foldr]. With @racket[for*] loops, filter, and termination clauses
- in the iteration specification, these loops are also far more concise than
- explicit traversal combinators. And with @racket[for] loops, you can
- decouple the traversal from lists.
+随着 @racket[for/fold]、@racket[for/list]、
+ @racket[for/vector] 及其相关形式的出现，使用 @racket[for] 循环编程
+ 已经与使用 @racket[map] 和 @racket[foldr] 编程一样具有函数式风格。
+ 通过 @racket[for*] 循环、过滤器和迭代规范中的终止子句，
+ 这些循环也比显式的遍历组合子简洁得多。而且通过 @racket[for] 循环，
+ 你可以将遍历与列表解耦。
 
-@margin-note*{See also @racket[for/sum] and @racket[for/product] in Racket.}
+@margin-note*{另请参见 Racket 中的 @racket[for/sum] 和 @racket[for/product]。}
 @compare0[
 @;%
 (racketmod0
@@ -308,22 +307,21 @@ racket
 (code:comment2 #, @elem{example:})
 (sum-up '(1 2 3)))
 ]
- In this example, the @racket[for] loop on the left comes with two
- advantages. First, a reader doesn't need to absorb an intermediate
- @racket[lambda]. Second, the @racket[for] loop naturally generalizes to
- other kinds of sequences. Naturally, the trade-off here is a loss of
- efficiency; using @racket[in-list] to restrict the @tt{good} example to
- the same range of data as the @tt{bad} one speeds up the former.
+ 在这个例子中，左侧的 @racket[for] 循环有两个
+ 优势。首先，读者不需要理解中间的
+ @racket[lambda]。其次，@racket[for] 循环自然地推广到
+ 其他类型的序列。当然，这里的权衡是效率的损失；
+ 使用 @racket[in-list] 将 @tt{good} 示例限制为与 @tt{bad} 相同的数据范围
+ 可以加快前者的速度。
 
- @bold{Note} @racket[for] traversals of user-defined sequences tend to be
- slow. If performance matters in these cases, you may wish to fall back on
- your own traversal functions.
+ @bold{注意} @racket[for] 遍历用户定义的序列往往
+ 很慢。如果这些情况下性能很重要，你可能希望回退到
+ 自己的遍历函数。
 
 @; -----------------------------------------------------------------------------
-@section{Functions vs Macros}
+@section{函数与宏}
 
-Define functions when possible, Or, do not introduce macros when functions
-will do.
+尽可能定义函数。或者，不要在函数可以完成时引入宏。
 
 @compare0[
 @racketmod0[
@@ -341,15 +339,14 @@ racket
 (define-syntax-rule (name msg)
   (first (second msg))))
 ]
- A function is immediately useful in a higher-order context. For a macro,
- achieving the same goal takes a lot more work.
+ 函数在上下文中立即可用。对于宏，
+ 实现相同目标需要更多工作。
 
 
 @; -----------------------------------------------------------------------------
-@section{Exceptions}
+@section{异常}
 
-When you handle exceptions, specify the exception as precisely as
-possible.
+处理异常时，尽可能精确地指定异常。
 
 @compare0[
 @racketmod0[
@@ -392,15 +389,14 @@ racket
   ... f ...)
 ]
 ]
- Using @racket[(lambda _ #t)] as an exception predicate suggests to the
- reader that you wish to catch every possible exception, including failure
- and break exceptions. Worse, the reader may think that you didn't remotely
- consider what exceptions you @emph{should} be catching.
+ 使用 @racket[(lambda _ #t)] 作为异常谓词向读者表明
+ 你希望捕获每个可能的异常，包括失败
+ 和 break 异常。更糟糕的是，读者可能认为你根本没有
+ 考虑过应该捕获哪些异常。
 
-It is equally bad to use @racket[exn?] as the exception predicate  even if
- you mean to catch all kinds of failures. Doing so catches break
- exceptions, too. To catch all failures, use @racket[exn:fail?] as shown on
- the left:
+同样糟糕的是使用 @racket[exn?] 作为异常谓词，即使
+ 你的意思是捕获所有类型的失败。这样做也会捕获 break
+ 异常。要捕获所有失败，请使用 @racket[exn:fail?]，如左侧所示：
 @compare0[
 @racketmod0[
 racket
@@ -442,9 +438,9 @@ racket
 ]
 ]
 
-Finally, a handler for a @racket[exn:fail?] clause should never
- succeed for all possible failures because it silences all kinds of
- exceptions that you probably want to see:
+最后，@racket[exn:fail?] 子句的处理程序永远不应该
+对所有可能的失败都成功，因为它会抑制所有类型的
+异常，而你很可能希望看到这些异常：
 @codebox0[#:label "bad"
 @racketmod0[
 racket
@@ -472,15 +468,15 @@ racket
   ... f ...)
 ]
 ]
- If you wish to deal with several different kind of failures, say
- @racket[exn:fail:read?] and @racket[exn:fail:network?], use distinct
- clauses in @racket[with-handlers] to do so and distribute the branches of
- your conditional over these clauses.
+ 如果你想处理几种不同类型的失败，比如
+ @racket[exn:fail:read?] 和 @racket[exn:fail:network?]，请使用 @racket[with-handlers] 中的不同
+ 子句来做到这一点，并将条件分支分布到这些
+ 子句上。
 
 @; -----------------------------------------------------------------------------
-@section{Parameters}
+@section{参数}
 
-If you need to set a parameter, use @racket[parameterize]:
+如果需要设置参数，请使用 @racket[parameterize]：
 
 @compare0[
 @racketmod0[
@@ -511,15 +507,15 @@ racket
   (record msg))
 ]
 ]
+ 正如比较所展示的，@racket[parameterize] 清楚地界定了
+ 更改的范围，这对读者来说是一个重要的概念。此外，
+ @racket[parameterize] 确保你的代码更可能
+ 与 continuation 和线程正常工作，这对 Racket
+ 程序员来说是一个重要的概念。
 
-As the comparison demonstrates, @racket[parameterize] clearly delimits the
-extent of the change, which is an important idea for the reader. In
-addition, @racket[parameterize] ensures that your code is more likely to
-work with continuations and threads, an important idea for Racket
-programmers.
 
+@; -----------------------------------------------------------------------------
+@section{复数形式}
 
-@section{Plural}
-
-Avoid plural when naming collections and libraries. Use @racketmodname[racket/contract]
-and @racketmodname[data/heap #:indirect], not @tt{racket/contracts} or @tt{data/heaps}.
+命名集合和库时避免使用复数形式。使用 @racketmodname[racket/contract]
+和 @racketmodname[data/heap #:indirect]，而不是 @tt{racket/contracts} 或 @tt{data/heaps}。

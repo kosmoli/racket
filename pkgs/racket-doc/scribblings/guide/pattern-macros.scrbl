@@ -4,58 +4,51 @@
 
 @(define swap-eval (make-base-eval))
 
-@title[#:tag "pattern-macros"]{Pattern-Based Macros}
+@title[#:tag "pattern-macros"]{基于模式的宏}
 
-A @deftech{pattern-based macro} replaces any code that matches a
-pattern to an expansion that uses parts of the original syntax that
-match parts of the pattern.
+@deftech{模式宏}将任何匹配模式的代码替换为使用原始语法中匹配模式部分的
+展开式。
 
 @; ----------------------------------------
 
 @section{@racket[define-syntax-rule]}
 
-The simplest way to create a macro is to use
-@racket[define-syntax-rule]:
+创建宏的最简单方法是使用
+@racket[define-syntax-rule]：
 
 @specform[(define-syntax-rule pattern template)]
 
-As a running example, consider the @racket[swap] macro, which swaps
-the values stored in two variables. It can be implemented using
-@racket[define-syntax-rule] as follows:
+作为运行示例，考虑 @racket[swap] 宏，它交换
+存储在两个变量中的值。它可以使用
+@racket[define-syntax-rule] 实现如下：
 
-@margin-note{The macro is ``un-Rackety'' in the sense that it
-involves side effects on variables---but the point of macros is to let
-you add syntactic forms that some other language designer might not
-approve.}
+@margin-note{该宏在某种意义上"不 Racket"，因为它涉及对
+变量的副作用——但宏的目的是让你能够添加其他语言设计者可能不批准的句法形式。}
 
 @racketblock[
 (define-syntax-rule (swap x y)
   (let ([tmp x])
     (set! x y)
-    (set! y tmp)))
+    (set! y tmp))
 ]
 
-The @racket[define-syntax-rule] form binds a macro that matches a
-single pattern. The pattern must always start with an open parenthesis
-followed by an identifier, which is @racket[swap] in this case. After
-the initial identifier, other identifiers are @deftech{macro pattern
-variables} that can match anything in a use of the macro. Thus, this
-macro matches the form @racket[(swap _form1 _form2)] for any
-@racket[_form1] and @racket[_form2].
+@racket[define-syntax-rule] 形式绑定一个匹配单个模式的模式。
+模式必须始终以左括号开头，后跟一个标识符，在本例中为 @racket[swap]。在
+初始标识符之后，其他标识符是 @deftech{宏模式变量}，可以匹配宏使用中的任何内容。因此，该
+宏匹配任何 @racket[_form1] 和 @racket[_form2] 的形式 @racket[(swap _form1 _form2)]。
 
-@margin-note{Macro pattern variables are similar to pattern variables for
- @racket[match]. See @secref["match"].}
+@margin-note{宏模式变量类似于 @racket[match] 的模式变量。
+ 参见 @secref["match"]。}
 
-After the pattern in @racket[define-syntax-rule] is the
-@deftech{template}. The template is used in place of a form that
-matches the pattern, except that each instance of a pattern variable
-in the template is replaced with the part of the macro use the pattern
-variable matched. For example, in
+@racket[define-syntax-rule] 中的模式之后是
+@deftech{模板}。模板用于替代匹配模式的形式，
+只是模板中模式变量的每个实例都被替换为
+模式变量匹配的宏使用的部分。例如，在
 
 @racketblock[(swap first last)]
 
-the pattern variable @racket[x] matches @racket[first] and @racket[y]
-matches @racket[last], so that the expansion is
+中，模式变量 @racket[x] 匹配 @racket[first]，@racket[y]
+匹配 @racket[last]，因此展开式为
 
 @racketblock[
   (let ([tmp first])
@@ -65,10 +58,10 @@ matches @racket[last], so that the expansion is
 
 @; ----------------------------------------
 
-@section{Lexical Scope}
+@section{词法作用域}
 
-Suppose that we use the @racket[swap] macro to swap variables named
-@racket[tmp] and @racket[other]:
+假设我们使用 @racket[swap] 宏来交换名为
+@racket[tmp] 和 @racket[other] 的变量：
 
 @racketblock[
 (let ([tmp 5]
@@ -77,8 +70,8 @@ Suppose that we use the @racket[swap] macro to swap variables named
   (list tmp other))
 ]
 
-The result of the above expression should be @racketresult[(6 5)]. The
-naive expansion of this use of @racket[swap], however, is
+上述表达式结果应为 @racketresult[(6 5)]。然而，此 @racket[swap] 的
+朴素展开式是
 
 @racketblock[
 (let ([tmp 5]
@@ -89,12 +82,11 @@ naive expansion of this use of @racket[swap], however, is
   (list tmp other))
 ]
 
-whose result is @racketresult[(5 6)]. The problem is that the naive
-expansion confuses the @racket[tmp] in the context where @racket[swap]
-is used with the @racket[tmp] that is in the macro template.
+其结果为 @racketresult[(5 6)]。问题在于朴素展开式
+混淆了使用 @racket[swap] 的上下文中的 @racket[tmp]
+与宏模板中的 @racket[tmp]。
 
-Racket doesn't produce the naive expansion for the above use of
-@racket[swap]. Instead, it produces
+Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，它产生
 
 @racketblock[
 (let ([tmp 5]
@@ -105,8 +97,7 @@ Racket doesn't produce the naive expansion for the above use of
   (list tmp other))
 ]
 
-with the correct result in @racketresult[(6 5)]. Similarly, in the
-example
+结果正确，为 @racketresult[(6 5)]。类似地，在示例中
 
 @racketblock[
 (let ([set! 5]
@@ -115,7 +106,7 @@ example
   (list set! other))
 ]
 
-the expansion is 
+展开式为
 
 @racketblock[
 (let ([set!_1 5]
@@ -126,24 +117,19 @@ the expansion is
   (list set!_1 other))
 ]
 
-so that the local @racket[set!] binding doesn't interfere with the
-assignments introduced by the macro template.
+因此，本地 @racket[set!] 绑定不会干扰由宏模板引入的赋值。
 
-In other words, Racket's pattern-based macros automatically maintain
-lexical scope, so macro implementors can reason about variable
-reference in macros and macro uses in the same way as for functions
-and function calls.
+换句话说，Racket 的模式宏自动维护词法作用域，
+因此宏实现者可以像处理函数和函数调用一样推理宏和宏使用中的变量引用。
 
 @; ----------------------------------------
 
-@section{@racket[define-syntax] and @racket[syntax-rules]}
+@section{@racket[define-syntax] 和 @racket[syntax-rules]}
 
-The @racket[define-syntax-rule] form binds a macro that matches a
-single pattern, but Racket's macro system supports transformers that
-match multiple patterns starting with the same identifier. To write
-such macros, the programmer must use the more general
-@racket[define-syntax] form along with the @racket[syntax-rules]
-transformer form:
+@racket[define-syntax-rule] 形式绑定一个匹配单个模式的模式，
+但 Racket 的宏系统支持匹配以相同标识符开头的多个模式的转换器。要编写
+这样的宏，程序员必须使用更通用的 @racket[define-syntax] 形式以及
+@racket[syntax-rules] 转换器形式：
 
 @specform[#:literals (syntax-rules)
           (define-syntax id
@@ -151,23 +137,20 @@ transformer form:
               [pattern template]
               ...))]
 
-@margin-note{The @racket[define-syntax-rule] form is itself a macro
- that expands into @racket[define-syntax] with a @racket[syntax-rules]
- form that contains only one pattern and template.}
+@margin-note{@racket[define-syntax-rule] 形式本身是一个宏，
+ 它展开为包含仅有一个模式和模板的 @racket[syntax-rules] 形式的 @racket[define-syntax]。}
 
-For example, suppose we would like a @racket[rotate] macro that
-generalizes @racket[swap] to work on either two or three identifiers,
-so that
+例如，假设我们想要一个 @racket[rotate] 宏，它推广了 @racket[swap] 以支持两个或三个标识符，
+因此
 
 @racketblock[
 (let ([red 1] [green 2] [blue 3])
-  (rotate red green)      (code:comment @#,t{swaps})
-  (rotate red green blue) (code:comment @#,t{rotates left})
+  (rotate red green)      (code:comment @#,t{交换})
+  (rotate red green blue) (code:comment @#,t{向左旋转})
   (list red green blue))
 ]
 
-produces @racketresult[(1 3 2)]. We can implement @racket[rotate]
-using @racket[syntax-rules]:
+会产生 @racketresult[(1 3 2)]。我们可以使用 @racket[syntax-rules] 实现 @racket[rotate]：
 
 @racketblock[
 (define-syntax rotate
@@ -175,28 +158,24 @@ using @racket[syntax-rules]:
     [(rotate a b) (swap a b)]
     [(rotate a b c) (begin
                      (swap a b)
-                     (swap b c))]))
-]
+                     (swap b c))])]
+)
 
-The expression @racket[(rotate red green)] matches the first pattern
-in the @racket[syntax-rules] form, so it expands to @racket[(swap red
-green)]. The expression @racket[(rotate red green blue)] matches the second
-pattern, so it expands to @racket[(begin (swap red green) (swap green
-blue))].
+表达式 @racket[(rotate red green)] 匹配 @racket[syntax-rules] 形式中的第一个模式，
+因此它展开为 @racket[(swap red green)]。表达式 @racket[(rotate red green blue)] 匹配第二个模式，
+因此它展开为 @racket[(begin (swap red green) (swap green blue))]。
 
 @; ----------------------------------------
 
-@section{Matching Sequences}
+@section{匹配序列}
 
-A better @racket[rotate] macro would allow any number of identifiers,
-instead of just two or three. To match a use of @racket[rotate] with
-any number of identifiers, we need a pattern form that has something
-like a Kleene star. In a Racket macro pattern, a star is written as
-@racket[...].
+更好的 @racket[rotate] 宏应允许任何数量的标识符，
+而不仅仅是两个或三个。要匹配具有任何数量标识符的 @racket[rotate] 使用，
+我们需要一种类似 Kleene 星号的模式形式。在 Racket 宏模式中，星号写作
+@racket[...]。
 
-To implement @racket[rotate] with @racket[...], we need a base case to
-handle a single identifier, and an inductive case to handle more than
-one identifier:
+要使用 @racket[...] 实现 @racket[rotate]，我们需要一个基本情况来
+处理单个标识符，以及一个归纳情况来处理多个标识符：
 
 @racketblock[
 (define-syntax rotate
@@ -204,20 +183,15 @@ one identifier:
     [(rotate a) (void)]
     [(rotate a b c ...) (begin
                           (swap a b)
-                          (rotate b c ...))]))
-]
+                          (rotate b c ...))])]
+)
 
-When a pattern variable like @racket[c] is followed by @racket[...] in
-a pattern, then it must be followed by @racket[...] in a template,
-too. The pattern variable effectively matches a sequence of zero or
-more forms, and it is replaced in the template by the same sequence.
+当模式变量（如 @racket[c]）在模式中后跟 @racket[...] 时，它
+在模板中也必须后跟 @racket[...]。模式变量有效地匹配零个或多个形式的序列，
+并且在模板中替换为相同的序列。
 
-Both versions of @racket[rotate] so far are a bit inefficient, since
-pairwise swapping keeps moving the value from the first variable into
-every variable in the sequence until it arrives at the last one. A
-more efficient @racket[rotate] would move the first value directly to
-the last variable. We can use @racket[...] patterns to implement the
-more efficient variant using a helper macro:
+目前两个版本的 @racket[rotate] 都略显低效，因为
+成对交换不断将值从第一个变量移动到序列中每个变量，直到到达最后一个。更高效的 @racket[rotate] 会将第一个值直接移动到最后一个变量。我们可以使用 @racket[...] 模式，通过一个辅助宏来实现更高效的变体：
 
 @racketblock[
 (define-syntax rotate
@@ -230,33 +204,27 @@ more efficient variant using a helper macro:
     [(shift-to (from0 from ...) (to0 to ...))
      (let ([tmp from0])
        (set! to from) ...
-       (set! to0 tmp))]))
-]
+       (set! to0 tmp))])]
+)
 
-In the @racket[shift-to] macro, @racket[...] in the template follows
-@racket[(set! to from)], which causes the @racket[(set! to from)]
-expression to be duplicated as many times as necessary to use each
-identifier matched in the @racket[to] and @racket[from]
-sequences. (The number of @racket[to] and @racket[from] matches must
-be the same, otherwise the macro expansion fails with an error.)
+在 @racket[shift-to] 宏中，模板中的 @racket[...] 跟随
+@racket[(set! to from)]，这导致 @racket[(set! to from)]
+表达式根据需要被复制多次，以使用 @racket[to] 和 @racket[from]
+序列中匹配的每个标识符。（@racket[to] 和 @racket[from] 匹配的数量必须
+相同，否则宏展开报错。）
 
 @; ----------------------------------------
 
-@section{Identifier Macros}
+@section{标识符宏}
 
-Given our macro definitions, the @racket[swap] or @racket[rotate]
-identifiers must be used after an open parenthesis, otherwise a syntax
-error is reported:
+根据我们上面的宏定义，@racket[swap] 或 @racket[rotate] 标识符必须在
+左括号后使用，否则会报语法错误：
 
 @interaction-eval[#:eval swap-eval (define-syntax swap (syntax-rules ()))]
 
 @interaction[#:eval swap-eval (+ swap 3)]
 
-An @deftech{identifier macro} is a pattern-matching macro that
-works when used by itself without parentheses. For example, we
-can define @racket[val] as an identifier macro that expands to
-@racket[(get-val)], so @racket[(+ val 3)] would expand to
-@racket[(+ (get-val) 3)].
+@deftech{标识符宏}是一种在不带括号独立使用时也能工作的模式匹配宏。例如，我们可以将 @racket[val] 定义为一个展开为 @racket[(get-val)] 的标识符宏，因此 @racket[(+ val 3)] 将展开为 @racket[(+ (get-val) 3)]。
 
 @interaction-eval[#:eval swap-eval (require (for-syntax racket/base))]
 @(define-syntax (with-syntax-as-syntax stx)
@@ -281,32 +249,27 @@ can define @racket[val] as an identifier macro that expands to
                val
                (+ val 3)])
 
-The @racket[val] macro uses @racket[syntax-case], which enables defining more
-powerful macros and will be explained in the @secref["syntax-case"] section.
-For now it is sufficient to know that to define a macro, @racket[syntax-case]
-is used in a @racket[lambda], and its templates must be wrapped with an explicit
-@racket[syntax] constructor. Finally, @racket[syntax-case] clauses
-may specify additional guard conditions after the pattern.
+@racket[val] 宏使用 @racket[syntax-case]，它允许定义更强大
+的宏，这将在 @secref["syntax-case"] 部分中解释。
+目前，了解以下内容就足够了：要定义宏，@racket[syntax-case] 在 @racket[lambda] 中使用，
+其模板必须用显式的 @racket[syntax] 构造器包装。
+最后，@racket[syntax-case] 子句可以在模式后指定额外的保护条件。
 
-Our @racket[val] macro uses an @racket[identifier?] condition to ensure that
-@racket[val] @emph{must not} be used with parentheses. Instead, the macro raises
-a syntax error:
+我们的 @racket[val] 宏使用 @racket[identifier?] 条件来确保
+@racket[val] @emph{必须不}带括号使用。否则，宏会报语法错误：
 
 @interaction[#:eval swap-eval
              (val)]
 
 @; ----------------------------------------
 
-@section{@racket[set!] Transformers}
+@section{@racket[set!] 转换器}
 
-With the above @racket[val] macro, we still must call @racket[put-val!] to
-change the stored value. It would be more convenient, however, to use 
-@racket[set!] directly on @racket[val]. To invoke the macro when @racket[val] is
-used with @racket[set!], we create an
-@tech[#:doc '(lib "scribblings/reference/reference.scrbl")]{assignment transformer}
-with @racket[make-set!-transformer].
-We must also declare @racket[set!] as a literal in the @racket[syntax-case]
-literal list.
+通过上面的 @racket[val] 宏，我们仍然必须调用 @racket[put-val!] 来
+存储的值。然而，直接在 @racket[val] 上使用 @racket[set!] 会更方便
+要在 @racket[val] 与 @racket[set!] 一起使用时调用宏，我们使用 @racket[make-set!-transformer] 创建一个
+@tech[#:doc '(lib "scribblings/reference/reference.scrbl")]{赋值转换器}。
+我们还必须在 @racket[syntax-case] 文字列表中声明 @racket[set!]。
 
 @(with-syntax-as-syntax
   @interaction[#:eval swap-eval
@@ -324,18 +287,17 @@ literal list.
 
 @; ----------------------------------------
 
-@section{Macro-Generating Macros}
+@section{生成宏的宏}
 
-Suppose that we have many identifiers like @racket[val] and @racket[val2]
-that we'd like to redirect to accessor and mutator functions like
-@racket[get-val] and @racket[put-val!]. We'd like to be able to
-just write:
+假设我们有许多像 @racket[val] 和 @racket[val2] 这样的标识符，我们希望将其重定向到
+访问器和可变函数如
+@racket[get-val] 和 @racket[put-val!]。我们希望能够只写：
 
 @racketblock[
 (define-get/put-id val get-val put-val!)
 ]
 
-Naturally, we can implement @racket[define-get/put-id] as a macro:
+当然，我们可以将 @racket[define-get/put-id] 实现为宏：
 
 @(with-syntax-as-syntax
   @interaction[#:eval swap-eval
@@ -350,21 +312,16 @@ Naturally, we can implement @racket[define-get/put-id] as a macro:
  (set! val3 11)
  val3])
 
-The @racket[define-get/put-id] macro is a @deftech{macro-generating
-macro}.
+@racket[define-get/put-id] 宏是一个 @deftech{生成宏的宏}。
 
 @; ----------------------------------------
 
-@section[#:tag "pattern-macro-example"]{Extended Example: Call-by-Reference Functions}
+@section[#:tag "pattern-macro-example"]{扩展示例：按引用传递函数}
 
-We can use pattern-matching macros to add a form to Racket
-for defining first-order @deftech{call-by-reference} functions. When a
-call-by-reference function body mutates its formal argument, the
-mutation applies to variables that are supplied as actual arguments in
-a call to the function.
+我们可以使用模式匹配宏来向 Racket 添加一种形式，用于定义一阶 @deftech{按引用传递} 函数。当按引用传递的函数体修改其形式参数时，该修改将应用到调用函数时作为实际参数提供的变量。
 
-For example, if @racket[define-cbr] is like @racket[define] except
-that it defines a call-by-reference function, then
+例如，如果 @racket[define-cbr] 类似于 @racket[define]，
+除了它定义一个按引用传递的函数，那么
 
 @racketblock[
 (define-cbr (f a b)
@@ -375,12 +332,9 @@ that it defines a call-by-reference function, then
   (list x y))
 ]
 
-produces @racketresult[(2 1)]. 
+会产生 @racketresult[(2 1)]。
 
-We will implement call-by-reference functions by having function calls
-supply accessor and mutators for the arguments, instead of supplying
-argument values directly. In particular, for the function @racket[f]
-above, we'll generate
+我们将通过让函数调用为参数提供访问器和可变函数，而不是直接提供参数值，来实现按引用传递的函数。特别是，对于上面的函数 @racket[f]，我们将生成
 
 @racketblock[
 (define (do-f get-a get-b put-a! put-b!)
@@ -389,7 +343,7 @@ above, we'll generate
   (swap a b))
 ]
 
-and redirect a function call @racket[(f x y)] to
+并将函数调用 @racket[(f x y)] 重定向为
 
 @racketblock[
 (do-f (lambda () x)
@@ -398,10 +352,9 @@ and redirect a function call @racket[(f x y)] to
       (lambda (v) (set! y v)))
 ]
 
-Clearly, then @racket[define-cbr] is a macro-generating macro, which
-binds @racket[f] to a macro that expands to a call of @racket[do-f].
-That is, @racket[(define-cbr (f a b) (swap a b))] needs to generate the
-definition
+那么，@racket[define-cbr] 显然是一个生成宏的宏，它
+将 @racket[f] 绑定到一个宏，该宏展开为对 @racket[do-f] 的调用。
+也就是说，@racket[(define-cbr (f a b) (swap a b))] 需要生成定义
 
 @racketblock[
 (define-syntax f
@@ -414,10 +367,9 @@ definition
            ...)]))
 ]
 
-At the same time, @racket[define-cbr] needs to define @racket[do-f]
-using the body of @racket[f], this second part is slightly more
-complex, so we defer most of it to a @racket[define-for-cbr] helper
-module, which lets us write @racket[define-cbr] easily enough:
+同时，@racket[define-cbr] 需要使用 @racket[f] 的函数体来定义 @racket[do-f]，
+第二部分略为复杂，因此我们将大部分工作推迟到一个 @racket[define-for-cbr] 辅助模块，
+这使我们能够相当容易地编写 @racket[define-cbr]：
 
 
 @racketblock[
@@ -432,36 +384,28 @@ module, which lets us write @racket[define-cbr] easily enough:
                  (set! actual v))
                (... ...))]))
     (define-for-cbr do-f (arg ...)
-      () (code:comment @#,t{explained below...})
+      () (code:comment @#,t{如下所述...})
       body)))
 ]
 
-Our remaining task is to define @racket[define-for-cbr] so that it
-converts
+我们剩下的任务是定义 @racket[define-for-cbr]，使其将
 
 @racketblock[
 (define-for-cbr do-f (a b) () (swap a b))
 ]
 
-to the function definition @racket[do-f] above. Most of the work is
-generating a @racket[define-get/put-id] declaration for each argument,
-@racket[a] and @racket[b], and putting them before the body. Normally,
-that's an easy task for @racket[...] in a pattern and template, but
-this time there's a catch: we need to generate the names
-@racket[get-a] and @racket[put-a!] as well as @racket[get-b] and
-@racket[put-b!], and the pattern language provides no way to
-synthesize identifiers based on existing identifiers.
+转换为上面的函数定义 @racket[do-f]。大部分工作是为每个参数
+（@racket[a] 和 @racket[b]）生成一个 @racket[define-get/put-id] 声明，并将它们放在函数体之前。通常，这是 @racket[...] 在模式中的简单任务，
+但这次有个难点：我们需要合成名称 @racket[get-a] 和 @racket[put-a!]，
+以及 @racket[get-b] 和 @racket[put-b!]，而模式语言无法基于现有标识符合成标识符。
 
-As it turns out, lexical scope gives us a way around this problem. The
-trick is to iterate expansions of @racket[define-for-cbr] once for
-each argument in the function, and that's why @racket[define-for-cbr]
-starts with an apparently useless @racket[()] after the argument
-list. We need to keep track of all the arguments seen so far and the
-@racket[get] and @racket[put] names generated for each, in addition to
-the arguments left to process. After we've processed all the
-identifiers, then we have all the names we need.
+事实证明，词法作用域为我们提供了绕过这个问题的方法。
+技巧是为函数的每个参数迭代展开 @racket[define-for-cbr]，
+这就是为什么 @racket[define-for-cbr] 在参数列表后以一个无用的 @racket[()] 开始。
+我们需要跟踪到目前为止看到的所有参数以及为每个参数生成的 @racket[get] 和 @racket[put] 名称，
+以及要处理的剩余参数。在我们处理了所有标识符之后，我们就有了一个所需的名称。
 
-Here is the definition of @racket[define-for-cbr]:
+以下是 @racket[define-for-cbr] 的定义：
 
 @racketblock[
 (define-syntax define-for-cbr
@@ -473,11 +417,11 @@ Here is the definition of @racket[define-for-cbr]:
     [(define-for-cbr do-f ()
        ((id get put) ...) body)
      (define (do-f get ... put ...)
-       (define-get/put-id id get put) ...
-       body)]))
+       (define-get/put-id id get put) ...)
+      body)]))
 ]
 
-Step-by-step, expansion proceeds as follows:
+逐步地，展开过程如下：
 
 @racketblock[
 (define-for-cbr do-f (a b)
@@ -492,17 +436,14 @@ Step-by-step, expansion proceeds as follows:
      (swap a b))
 ]
 
-The ``subscripts'' on @racket[get_1], @racket[get_2],
-@racket[put_1], and @racket[put_2] are inserted by the macro
-expander to preserve lexical scope, since the @racket[get]
-generated by each iteration of @racket[define-for-cbr] should not
-bind the @racket[get] generated by a different iteration. In
-other words, we are essentially tricking the macro expander into
-generating fresh names for us, but the technique illustrates some
-of the surprising power of pattern-based macros with automatic
-lexical scope.
+@racket[get_1]、@racket[get_2]、
+@racket[put_1] 和 @racket[put_2] 上的"下标"是由宏展开器插入的，
+以保持词法作用域，因为每次 @racket[define-for-cbr] 迭代生成的 @racket[get]
+不应绑定另一次迭代生成的 @racket[get]。换句话说，
+我们本质上是在欺骗宏展开器为我们生成新名称，
+但该技术展示了具有自动词法作用域的模式宏的惊人力量。
 
-The last expression eventually expands to just
+最后一个表达式最终展开为
 
 @racketblock[
 (define (do-f get_1 get_2 put_1 put_2)
@@ -511,12 +452,11 @@ The last expression eventually expands to just
     (put_2 tmp)))
 ]
 
-which implements the call-by-name function @racket[f].
+它实现了按名称调用函数 @racket[f]。
 
-To summarize, then, we can add call-by-reference functions to
-Racket with just three small pattern-based macros:
-@racket[define-cbr], @racket[define-for-cbr], and
-@racket[define-get/put-id].
+总结一下，我们可以用三个小型模式宏向 Racket 添加按引用传递函数：
+@racket[define-cbr]、@racket[define-for-cbr] 和
+@racket[define-get/put-id]。
 
 @; -----------------------------------------------------------------
 

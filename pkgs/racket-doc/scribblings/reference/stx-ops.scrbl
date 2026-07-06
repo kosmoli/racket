@@ -8,26 +8,20 @@
 
 @(define racket-srcloc @racket[srcloc])
 
-@title[#:tag "stxops"]{Syntax Object Content}
+@title[#:tag "stxops"]{语法对象内容}
 
 
 @defproc[(syntax? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{syntax object}, @racket[#f]
-otherwise. See also @secref["stxobj-model"].
+如果 @racket[v] 是 @tech{语法对象} 则返回 @racket[#t]，否则返回 @racket[#f]。
+另请参见 @secref["stxobj-model"]。
 
-@examples[#:eval stx-eval
-  (syntax? #'quinoa)
-  (syntax? #'(spelt triticale buckwheat))
-  (syntax? (datum->syntax #f 'millet))
-  (syntax? "barley")
-]}
+@history[#:added "6.0"]}
 
 
 @defproc[(identifier? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{syntax object} and
-@racket[(syntax-e stx)] produces a symbol.
+如果 @racket[v] 是 @tech{语法对象} 且 @racket[(syntax-e stx)] 产生一个符号，则返回 @racket[#t]。
 
 @examples[#:eval stx-eval
   (identifier? #'linguine)
@@ -39,124 +33,99 @@ Returns @racket[#t] if @racket[v] is a @tech{syntax object} and
 
 @defproc[(syntax-source [stx syntax?]) any/c]{
 
-Returns the source component of the @tech{source location}
-for the @tech{syntax object} @racket[stx], or @racket[#f]
-if none is known. The source is represented by an arbitrary value
-(e.g., one passed to @racket[read-syntax]), but it is typically a file
-path string.
+返回 @tech{语法对象} @racket[stx] 的 @tech{源位置}的
+源组件，如果未知则返回 @racket[#f]。源由任意值表示
+（例如，传递给 @racket[read-syntax] 的值），但它通常是文件
+路径字符串。
 
-See also @racket[syntax-srcloc] from @racketmodname[racket/syntax-srcloc]}.
+另请参见 @racketmodname[racket/syntax-srcloc] 中的 @racket[syntax-srcloc]。}
 
 
 @defproc[(syntax-line [stx syntax?]) 
          (or/c exact-positive-integer? #f)]{
 
-Returns the line number (positive exact integer)
-of the @tech{source location} for the start of the
-@tech{syntax object} in its source, or @racket[#f] if the line number or
-source is unknown. See also @secref["linecol"].
+返回 @tech{语法对象} 的起始位置在源代码中的
+行号（正精确整数），如果
+行号或源未知则返回 @racket[#f]。另请参见 @secref["linecol"]。
 
-@history[#:changed "7.0" @elem{Dropped a guarantee that @racket[syntax-line]
-                               and @racket[syntax-column] both produce
-                               @racket[#f] or both produce integers.}]}
+@history[#:changed "7.0" @elem{删除了 @racket[syntax-line]
+                               和 @racket[syntax-column] 同时产生
+                               @racket[#f] 或同时产生整数的保证。}]}
 
 
 @defproc[(syntax-column [stx syntax?])
          (or/c exact-nonnegative-integer? #f)]{
 
-Returns the column number (non-negative exact integer)
-of the @tech{source location} for the start
-of the @tech{syntax object} in its source, or @racket[#f] if the source
-column is unknown. See also @secref["linecol"].
+返回 @tech{语法对象} 的起始位置在源代码中的
+列号（非负精确整数），如果源
+列未知则返回 @racket[#f]。另请参见 @secref["linecol"]。
 
-@history[#:changed "7.0" @elem{Dropped a guarantee that @racket[syntax-line]
-                               and @racket[syntax-column] both produce
-                               @racket[#f] or both produce integers.}]}
+@history[#:changed "7.0" @elem{删除了 @racket[syntax-line]
+                               和 @racket[syntax-column] 同时产生
+                               @racket[#f] 或同时产生整数的保证。}]}
 
 
 @defproc[(syntax-position [stx syntax?])
          (or/c exact-positive-integer? #f)]{
 
-Returns the position (positive exact integer)
-of the @tech{source location} for the start
-of the @tech{syntax object} in its source, or @racket[#f] if the source
-position is unknown. The position is intended to be a character position,
-but reading from a port without line counting enabled will produce
-a position as a byte offset. See also @secref["linecol"].}
+返回 @tech{语法对象} 的起始位置在源代码中的
+位置（正精确整数），如果源
+位置未知则返回 @racket[#f]。位置旨在作为字符位置，
+但从启用行计数的端口读取时会产生
+字节偏移位置。另请参见 @secref["linecol"]。}
 
 
 @defproc[(syntax-span [stx syntax?])
          (or/c exact-nonnegative-integer? #f)]{
 
-Returns the span (non-negative exact integer)
-of the @tech{source location} for
-@tech{syntax object} in its source, or @racket[#f] if the span is
-unknown. The span is intended to count in characters,
-but reading from a port without line counting enabled will produce
-a span in bytes. See also @secref["linecol"]. }
+返回 @tech{语法对象} 在源代码中的跨度（非负精确整数），如果跨度未知则返回 @racket[#f]。跨度旨在按字符计数，
+但从禁用行计数的端口读取时会产生以字节为单位的跨度。另请参见 @secref["linecol"] 。 }
 
 
 @defproc[(syntax-original? [stx syntax?]) boolean?]{
 
-Returns @racket[#t] if @racket[stx] has the property that
-@racket[read-syntax] attaches to the
-@tech{syntax object}s that they generate (see @secref["stxprops"]), and if
-@racket[stx]'s @tech{lexical information} does not include any macro-introduction scopes (which indicate that the
-object was introduced by a syntax transformer; see
-@secref["stxobj-model"]). The result is @racket[#f] otherwise.
+如果 @racket[stx] 具有 @racket[read-syntax] 附加到其生成的 @tech{语法对象} 的属性（参见 @secref["stxprops"]），并且如果 @racket[stx] 的 @tech{词法信息}不包含任何宏引入范围（表示该对象由语法转换器引入；参见 @secref["stxobj-model"]）。否则返回 @racket[#f]。
 
-This predicate can be used to distinguish @tech{syntax object}s in an expanded
-expression that were directly present in the original expression, as
-opposed to @tech{syntax object}s inserted by macros.
+此谓词可用于区分展开表达式中直接存在于原始表达式中的 @tech{语法对象}，
+而不是由宏插入的 @tech{语法对象}。
 
-The (hidden) property to represent original syntax is dropped for a
-syntax object that is marshaled as part of compiled code; see also
-@racket[current-compile].}
+如果语法对象作为编译代码的一部分被编组，则表示原始语法的（隐藏）属性将被删除；
+另请参见 @racket[current-compile]。}
 
 
 @defproc[(syntax-source-module [stx syntax?] [source? any/c #f])
          (or/c module-path-index? symbol? path? resolved-module-path? #f)]{
 
-Returns an indication of the module whose source contains
-@racket[stx], or @racket[#f] if no source module for @racket[stx]
-can be inferred from its lexical context.  If
-@racket[source?] is @racket[#f], then result is a module path index or
-symbol (see @secref["modpathidx"]) or a @tech{resolved module path}; if @racket[source?] is true, the
-result is a path or symbol corresponding to the loaded module's
-source in the sense of @racket[current-module-declare-source].
+返回其源代码包含 @racket[stx] 的模块的指示，
+如果无法从上下文中推断源代码模块则返回 @racket[#f]。如果
+@racket[source?] 为 @racket[#f]，则结果是模块路径索引或符号（参见 @secref["modpathidx"]）或 @tech{已解析的模块路径}；
+如果 @racket[source?] 为真，则结果是由 @racket[current-module-declare-source] 意义下对应于已加载模块源代码的路径或符号。
 
-Note that @racket[syntax-source-module] does @emph{not} consult the
-source location of @racket[stx]. The result is based on the
-@tech{lexical information} of @racket[stx].}
+请注意，@racket[syntax-source-module] 不会查询 @racket[stx] 的源位置。结果基于 @racket[stx] 的 @tech{词法信息}。}
 
 
 @defproc[(syntax-e [stx syntax?]) any/c]{
 
-Unwraps the immediate datum structure from a @tech{syntax object},
-leaving nested syntax structure (if any) in place.  The result of
-@racket[(syntax-e stx)] is one of the following:
+从 @tech{语法对象} 中解开立即的数据结构，
+保留嵌套的语法结构（如果有的话）。@racket[(syntax-e stx)] 的结果是以下之一：
 
     @itemize[
 
-       @item{a symbol}
+       @item{符号}
 
-       @item{a @tech{syntax pair} (described below)}
+       @item{@tech{语法对}（如下所述）}
 
-       @item{the empty list}
+       @item{空列表}
 
-       @item{an immutable vector containing @tech{syntax object}s}
+       @item{包含 @tech{语法对象} 的不可变向量}
 
-       @item{an immutable box containing @tech{syntax object}s}
+       @item{包含 @tech{语法对象} 的不可变方框}
 
-       @item{an immutable @tech{hash table} containing @tech{syntax
-       object} values (but not necessarily @tech{syntax object} keys)}
+       @item{包含 @tech{语法对象} 值的不可变 @tech{哈希表}（但不一定是 @tech{语法对象} 键）}
 
-       @item{an immutable @tech{prefab} structure containing @tech{syntax object}s}
+       @item{包含 @tech{语法对象} 的不可变 @tech{prefab} 结构}
 
-       @item{some other kind of datum---usually a number, boolean, or
-             string---that is @tech{interned} when
-             @racket[datum-intern-literal] would convert the
-             value}
+       @item{其他类型的数据——通常是数字、布尔值或字符串——当 @racket[datum-intern-literal] 会转换该值时}
 
     ]
 
@@ -172,30 +141,21 @@ leaving nested syntax structure (if any) in place.  The result of
   (syntax-e #'#t)
 ]
 
-A @deftech{syntax pair} is a pair containing a @tech{syntax object} as its
-first element, and either the empty list, a syntax pair, or a syntax
-object as its second element.
+@deftech{语法对} 是一个对，其第一个元素是 @tech{语法对象}，
+其第二个元素是空列表、语法对或语法对象。
 
-A @tech{syntax object} that is the result of @racket[read-syntax] reflects
-the use of delimited @litchar{.} in the input by creating a syntax
-object for every pair of parentheses in the source, and by creating a
-pair-valued @tech{syntax object} @italic{only} for parentheses in the
-source. See @secref["parse-pair"] for more information.
+由 @racket[read-syntax] 生成的 @tech{语法对象} 将通过在输入中使用定界 @litchar{.} 来反映
+由每对括号创建的定界语法对象，并且仅为源代码中的括号创建对值 @tech{语法对象}。更多信息参见 @secref["parse-pair"]。
 
-If @racket[stx] is @tech{tainted}, then any syntax object in the
-result of @racket[(syntax-e stx)] is @tech{tainted}. The results from
-multiple calls to @racket[syntax-e] of @racket[stx] are @racket[eq?].}
+如果 @racket[stx] 是 @tech{污损的}，那么 @racket[(syntax-e stx)] 结果中的任何语法对象都是 @tech{污损的}。多次调用 @racket[syntax-e] 对 @racket[stx] 的结果是 @racket[eq?]。}
 
 
 @defproc[(syntax->list [stx syntax?]) (or/c list? #f)]{
 
-Returns a list of @tech{syntax object}s or @racket[#f]. The result is a list
-of @tech{syntax object}s when @racket[(syntax->datum stx)] would produce a
-list. In other words, @tech{syntax pairs} in @racket[(syntax-e stx)]
-are flattened.
+返回语法对象的列表或 @racket[#f]。当 @racket[(syntax->datum stx)] 会产生列表时，
+结果是一个语法对象列表。换句话说，@racket[(syntax-e stx)] 中的 @tech{语法对} 被展平。
 
-If @racket[stx] is @tech{tainted}, then any syntax
-object in the result of @racket[(syntax->list stx)] is @tech{tainted}.
+如果 @racket[stx] 是 @tech{污损的}，那么 @racket[(syntax->list stx)] 结果中的任何语法对象都是 @tech{污损的}。
 
 @examples[#:eval stx-eval
   (syntax->list #'())
@@ -206,15 +166,11 @@ object in the result of @racket[(syntax->list stx)] is @tech{tainted}.
 
 @defproc[(syntax->datum [stx syntax?]) any/c]{
 
-Returns a datum by stripping the lexical information, source-location
-information, properties, and tamper status from @racket[stx]. Inside of
-pairs, (immutable) vectors, (immutable) boxes, immutable @tech{hash
-table} values (not keys), and immutable @tech{prefab} structures,
-@tech{syntax object}s are recursively stripped.
+通过从 @racket[stx] 中剥离词法信息、源位置信息、属性和篡改状态来返回一个数据。
+在不可变对、不可变向量、不可变方框、不可变 @tech{哈希表} 值（非键）和不可变 @tech{prefab} 结构内，@tech{语法对象} 被递归地剥离。
 
-The stripping operation does not mutate @racket[stx]; it creates new
-pairs, vectors, boxes, hash tables, and @tech{prefab} structures as
-needed to strip lexical and source-location information recursively.
+剥离操作不会改变 @racket[stx]；它根据需要创建新的对、向量、方框、哈希表和 @tech{prefab} 结构，
+以递归地剥离词法和源位置信息。
 
 @examples[#:eval stx-eval
   (syntax->datum #'a)
@@ -248,54 +204,23 @@ needed to strip lexical and source-location information recursively.
                         [ignored (or/c syntax? #f) #f])
           syntax?]{
 
-Converts the @tech{datum} @racket[v] to a @tech{syntax object}.
-If @racket[v] is already a @tech{syntax object}, then there is no conversion,
-and @racket[v] is returned unmodified.
-The contents of pairs, vectors, and boxes, the values of immutable hash tables,
-and the fields of immutable @tech{prefab} structures are recursively converted.
-The keys of @tech{prefab} structures and the keys of immutable hash tables are
-not converted. Mutable vectors and boxes are replaced by immutable vectors and
-boxes. For any kind of value other than a
-pair, vector, box, immutable @tech{hash table}, immutable
-@tech{prefab} structure, or @tech{syntax object}, conversion means
-wrapping the value with lexical information, source-location
-information, and properties after the value is @tech{interned}
-via @racket[datum-intern-literal].
+将 @tech{数据} @racket[v] 转换为 @tech{语法对象}。
+如果 @racket[v] 已经是 @tech{语法对象}，则不进行转换，
+并且 @racket[v] 被原样返回。
+对、向量、方框的内容、不可变哈希表的值以及不可变 @tech{prefab} 结构的字段被递归地转换。
+@tech{prefab} 结构的键和不可变哈希表的键不被转换。可变向量和方框被不可变向量和方框替换。对于除对、向量、方框、不可变 @tech{哈希表}、不可变 @tech{prefab} 结构或 @tech{语法对象} 之外的任何值类型，转换意味着在值通过 @racket[datum-intern-literal] @tech{驻留} 之后，用词法信息、源位置信息和属性包装该值。
 
-Converted objects in @racket[v] are given the lexical context
-information of @racket[ctxt] and the source-location information of
-@racket[srcloc]. The resulting immediate @tech{syntax object} from conversion is given the
-properties (see @secref["stxprops"]) of @racket[prop] (even the
-hidden ones that would not be visible via @racket[syntax-property-symbol-keys]); if @racket[v]
-is a pair, vector, box, immutable @tech{hash table}, or immutable
-@tech{prefab} structure, recursively converted values are not given
-properties. If @racket[ctxt] is @tech{tainted}, then the resulting syntax object from
-@racket[datum->syntax] is @tech{tainted}. The @tech{code inspector}
-of @racket[ctxt], if any, is compared to the code inspector of the
-module for the macro currently being transformed, if any; if both
-inspectors are available and if one is the same as or inferior to the
-other, then the result syntax has the same/inferior inspector,
-otherwise it has no code inspector.
+转换后的 @racket[v] 中的对象被赋予 @racket[ctxt] 的词法上下文信息和 @racket[srcloc] 的源位置信息。转换产生的立即 @tech{语法对象} 被赋予 @racket[prop] 的属性（参见 @secref["stxprops"]）（甚至是那些不会通过 @racket[syntax-property-symbol-keys] 可见的隐藏属性）；如果 @racket[v] 是对、向量、方框、不可变 @tech{哈希表} 或不可变 @tech{prefab} 结构，则递归转换的值不会被赋予属性。如果 @racket[ctxt] 是 @tech{污损的}，那么由 @racket[datum->syntax] 产生的结果语法对象是 @tech{污损的}。@racket[ctxt] 的 @tech{代码检查器}（如果有的话）与当前正在转换的宏的模块的代码检查器进行比较；如果两个检查器都可用且一个是相同或低于另一个的，则结果语法具有相同/较低检查器，否则它没有代码检查器。
 
-Any of @racket[ctxt], @racket[srcloc], or @racket[prop] can be
-@racket[#f], in which case the resulting syntax has no lexical
-context, source information, and/or new properties.
+@racket[ctxt]、@racket[srcloc] 或 @racket[prop] 都可以是 @racket[#f]，在这种情况下，结果语法没有词法上下文、源信息和/或新属性。
 
-If @racket[srcloc] is not @racket[#f], a @racket-srcloc instance, or a
-@tech{syntax object}, it must be a list or vector of five elements
-that correspond to @racket-srcloc fields.
+如果 @racket[srcloc] 不是 @racket[#f]、不是 @racket-srcloc 实例且不是 @tech{语法对象}，则它必须是一个五元素的列表或向量，对应于 @racket-srcloc 字段。
 
-Graph structure is not preserved by the conversion of @racket[v] to a
-@tech{syntax object}. Instead, @racket[v] is essentially unfolded into
-a tree. If @racket[v] has a cycle through pairs, vectors, boxes,
-immutable @tech{hash tables}, and immutable @tech{prefab} structures,
-then the @exnraise[exn:fail:contract].
+图结构不会通过将 @racket[v] 转换为 @tech{语法对象}来保留。相反，@racket[v] 本质上是展开为树。如果 @racket[v] 通过对、向量、方框、不可变 @tech{哈希表} 和不可变 @tech{prefab} 结构有循环，则引发 @exnraise[exn:fail:contract]。
 
-The @racket[ignored] argument is allowed for backward compatibility
-and has no effect on the returned syntax object.
+@racket[ignored] 参数是为了向后兼容而允许的，对返回的语法对象没有影响。
 
-@history[#:changed "8.2.0.5" @elem{Allow a @racket-srcloc value as a
-                                   @racket[srcloc] argument.}]}
+@history[#:changed "8.2.0.5" @elem{允许 @racket-srcloc 值作为 @racket[srcloc] 参数。}]}
 
 @deftogether[(
 @defproc[(syntax-binding-set? [v any/c]) boolean?]
@@ -315,85 +240,41 @@ and has no effect on the returned syntax object.
          syntax-binding-set?]
 )]{
 
-A @deftech{syntax binding set} supports explicit construction of
-binding information for a syntax object. Start by creating an empty
-binding set with @racket[syntax-binding-set], add bindings with
-@racket[syntax-binding-set-extend], and create a syntax object that has the
-bindings as its @tech{lexical information} using
-@racket[syntax-binding-set->syntax].
+@deftech{语法绑定集}支持显式构建语法对象的绑定信息。首先使用 @racket[syntax-binding-set] 创建一个空的绑定集，使用 @racket[syntax-binding-set-extend] 添加绑定，然后使用 @racket[syntax-binding-set->syntax] 创建一个以绑定作为其 @tech{词法信息}的语法对象。
 
-The first three arguments to @racket[syntax-binding-set-extend]
-establish a binding of @racket[symbol] at @racket[phase] to an
-identifier that is defined in the module referenced by @racket[mpi].
-Supply @racket[source-symbol] to make the binding of @racket[symbol]
-refer to a different provided variable from @racket[mpi], and so on;
-the optional arguments correspond to the results of
-@racket[identifier-binding].
+@racket[syntax-binding-set-extend] 的前三个参数建立 @racket[symbol] 在 @racket[phase] 到在 @racket[mpi] 引用的模块中定义的标识符的绑定。提供 @racket[source-symbol] 使 @racket[symbol] 的绑定引用来自 @racket[mpi] 的不同提供的变量，依此类推；可选参数对应于 @racket[identifier-binding] 的结果。
 
 @history[#:added "7.0.0.12"]}
 
 
 @defproc[(datum-intern-literal [v any/c]) any/c]{
 
-Converts some values to be consistent with an @tech{interned} result
-produced by the default reader in @racket[read-syntax] mode.
+转换一些值，以与在 @racket[read-syntax] 模式下默认读取器产生的 @tech{驻留} 结果保持一致。
 
-If @racket[v] is a @tech{number}, @tech{character}, @tech{string},
-@tech{byte string}, or @tech{regular expression}, then the result is a
-value that is @racket[equal?] to @racket[v] and @racket[eq?] to a
-potential result of the default reader. (Note that mutable strings and
-byte strings are @tech{interned} as immutable strings and byte
-strings.)
+如果 @racket[v] 是 @tech{数字}、@tech{字符}、@tech{字符串}、@tech{字节字符串} 或 @tech{正则表达式}，则结果是一个 @racket[equal?] 于 @racket[v] 且 @racket[eq?] 于默认读取器潜在结果的值。（请注意，可变字符串和字节字符串被 @tech{驻留} 为不可变字符串和字节字符串。）
 
-If @racket[v] is an @tech{uninterned} or an @tech{unreadable symbol},
-the result is still @racket[v], since an @tech{interned} symbol would
-not be @racket[equal?] to @racket[v].
+如果 @racket[v] 是 @tech{未驻留的} 或 @tech{不可读的符号}，结果仍然是 @racket[v]，因为 @tech{驻留的} 符号不会 @racket[equal?] 于 @racket[v]。
 
-The conversion process does not traverse compound values. For example,
-if @racket[v] is a @tech{pair} containing strings, then the strings
-within @racket[v] are not @tech{interned}.
+转换过程不会遍历复合值。例如，如果 @racket[v] 是一个包含字符串的 @tech{对}，则 @racket[v] 内的字符串不会被 @tech{驻留}。
 
-If @racket[_v1] and @racket[_v2] are @racket[equal?] but not
-@racket[eq?], then it is possible that @racket[(datum-intern-literal
-_v1)] will return @racket[_v1] and---sometime after @racket[_v1]
-becomes unreachable as determined by the garbage collector (see
-@secref["gc-model"])---@racket[(datum-intern-literal _v2)] can still
-return @racket[_v2]. In other words, @racket[datum-intern-literal]
-may adopt a given value as an @tech{interned} representative, but
-if a former representative becomes otherwise unreachable, then
-@racket[datum-intern-literal] may adopt a new representative.}
+如果 @racket[_v1] 和 @racket[_v2] @racket[equal?] 但非 @racket[eq?]，那么 @racket[(datum-intern-literal _v1)] 可能返回 @racket[_v1] —— 并且在 @racket[_v1] 在垃圾收集器的判定下变为不可达（参见 @secref["gc-model"]）之后的某个时间 —— @racket[(datum-intern-literal _v2)] 仍可能返回 @racket[_v2]。换句话说，@racket[datum-intern-literal] 可能采用给定值作为 @tech{驻留} 代表，但如果之前的代表在其他方面变得不可达，那么 @racket[datum-intern-literal] 可能采用新的代表。}
 
 
 @defproc[(syntax-shift-phase-level [stx syntax?]
                                    [shift (or/c exact-integer? #f)])
          syntax?]{
 
-Returns a syntax object that is like @racket[stx], but with all of its
-top-level and module bindings shifted by @racket[shift] @tech{phase
-levels}. If @racket[shift] is @racket[#f], then only bindings
-at @tech{phase level} 0 are shifted to the @tech{label phase level};
-shifting by an integer @racket[shift] effectively shifts
-which phase has been moved into the @tech{label phase level}.
-If @racket[shift] is @racket[0], then the result is @racket[stx].
+返回一个语法对象，它与 @racket[stx] 类似，但其所有顶层和模块绑定都移动了 @racket[shift] 个 @tech{阶段级别}。如果 @racket[shift] 是 @racket[#f]，则只有 @tech{阶段级别} 0 的绑定移动到 @tech{标签阶段级别}；移动整数 @racket[shift] 有效地移动了已经进入 @tech{标签阶段级别} 的阶段。如果 @racket[shift] 是 @racket[0]，则结果是 @racket[stx]。
 
-@history[#:changed "9.0.0.1" @elem{Shifting by an integer phase level adjust which
-                                   original phase is seen in the
-                                   @tech{label phase level}.}]}
+@history[#:changed "9.0.0.1" @elem{按整数阶段级别移动调整了哪个原始阶段在 @tech{标签阶段级别} 中被看到。}]}
 
 
 @defproc[(generate-temporaries [v stx-list?])
          (listof identifier?)]{
 
-Returns a list of identifiers that are distinct from all other
-identifiers. The list contains as many identifiers as
-@racket[v] contains elements.
-The elements of @racket[v] can be anything, but string, symbol, keyword
-(possibly wrapped as syntax), and identifier elements will be embedded
-in the corresponding generated name, which is useful for debugging
-purposes.
+返回一个与所有其他标识符不同的标识符列表。列表中标识符的数量与 @racket[v] 中元素的数量一样多。@racket[v] 的元素可以是任何内容，但字符串、符号、关键字（可能包装为语法）和标识符元素将嵌入到生成的名称中，这对于调试很有用。
 
-The generated identifiers are built with interned symbols (not
-@racket[gensym]s); see also @secref["print-compiled"].
+生成的标识符使用驻留符号构建（不是 @racket[gensym]）；另请参见 @secref["print-compiled"]。
 
 @examples[#:eval stx-eval
   (generate-temporaries '(a b c d))
@@ -411,30 +292,19 @@ The generated identifiers are built with interned symbols (not
                                            [syms (listof symbol?) (list (syntax-e id-stx))])
          identifier?]{
 
-Returns an identifier with the same binding as @racket[id-stx], but
-without possibly lexical information from @racket[id-stx] that does not apply
-to the symbols in @racket[syms], where even further extension of the
-lexical information drops information for other symbols. In
-particular, transferring the lexical context via
-@racket[datum->syntax] from the result of this function to a symbol
-other than one in @racket[syms] may produce an identifier with no binding.
+返回一个与 @racket[id-stx] 具有相同绑定的标识符，但不包括可能不适用于 @racket[syms] 中符号的 @racket[id-stx] 的词法信息，其中词法信息的进一步扩展会删除其他符号的信息。特别是，通过 @racket[datum->syntax] 从此函数的结果向除 @racket[syms] 中符号之外的其他符号传输词法上下文可能会产生无绑定的标识符。
 
-Currently, the result is always @racket[id-stx] exactly. Pruning was
-intended primarily as a kind of optimization in a previous version of
-Racket, but it is less useful and difficult to implement efficiently
-in the current macro expander.
+目前，结果始终精准地是 @racket[id-stx]。剪枝主要旨在作为 Racket 先前版本的一种优化，但在当前宏扩展器中不太有用且难以高效实现。
 
-See also @racket[quote-syntax/prune].
+另请参见 @racket[quote-syntax/prune]。
 
-@history[#:changed "6.5" @elem{Always return @racket[id-stx].}]}
+@history[#:changed "6.5" @elem{始终返回 @racket[id-stx]。}]}
 
 
 @defproc[(identifier-prune-to-source-module [id-stx identifier?])
          identifier?]{
 
-Returns an identifier with its lexical context minimized to that
-needed for @racket[syntax-source-module]. The minimized lexical
-context does not include any bindings.}
+返回一个标识符，其词法上下文最小化为 @racket[syntax-source-module] 所需的部分。最小化的词法上下文不包含任何绑定。}
 
 
 @defproc[(syntax-recertify [new-stx syntax?]
@@ -443,7 +313,7 @@ context does not include any bindings.}
                            [key any/c])
          syntax?]{
 
-For backward compatibility only; returns @racket[new-stx].}
+仅为向后兼容；返回 @racket[new-stx]。}
 
 
 @defproc[(syntax-debug-info [stx syntax?]
@@ -451,71 +321,52 @@ For backward compatibility only; returns @racket[new-stx].}
                             [all-bindings? any/c #f])
          hash?]{
 
-Produces a hash table that describes the @tech{lexical information} of
-@racket[stx] (not counting components when @racket[(syntax-e stx)]
-would return a compound value). The result can include---but is not
-limited to---the following keys:
+生成一个哈希表，描述 @racket[stx] 的 @tech{词法信息}（当 @racket[(syntax-e stx)] 会返回复合值时不计算组件）。结果可以包括但不限于以下键：
 
 @itemlist[
 
- @item{@racket['name] --- the result of @racket[(syntax-e stx)], if it is a symbol.}
+ @item{@racket['name] --- 如果它是符号，则为 @racket[(syntax-e stx)] 的结果。}
 
- @item{@racket['context] --- a list of vectors, where each vector represents a scope
-       attached to @racket[stx].
+ @item{@racket['context] --- 向量的列表，每个向量表示附加到
+        @racket[stx] 的范围。
+       
+        每个向量以一个对该范围唯一的数字开头。
+        之后的符号提供了范围来源的线索：@racket['module] 表示 @racket[module] 范围，@racket['macro] 表示宏引入范围，@racket['use-site] 表示宏使用范围，
+        或 @racket['local] 表示局部绑定形式。
+        在对应于内边缘的 @racket['module] 范围的情况下，
+        显示模块的名称和阶段（因为为每个阶段生成的
+        内边缘范围）。}
 
-       Each vector starts with a number that is distinct for every
-       scope. A symbol afterward provides a hint at the scope's
-       origin: @racket['module] for a @racket[module] scope,
-       @racket['macro] for a macro-introduction scope,
-       @racket['use-site] for a macro use-site scope, or
-       @racket['local] for a local binding form. In the case of a
-       @racket['module] scope that corresponds to the inside edge, the
-       module's name and a phase (since an inside-edge scope is
-       generated for each phase) are shown.}
-
-  @item{@racket['bindings] --- a list of bindings, each represented by
-        a hash table. A binding table can include---but is not limited
-        to---the following keys:
+  @item{@racket['bindings] --- 绑定的列表，每个绑定由一个哈希表表示。绑定表可以包括但不限于以下键：
 
         @itemlist[
 
-          @item{@racket['name] --- the symbolic name for the binding.}
+          @item{@racket['name] --- 绑定的符号名称。}
 
-          @item{@racket['context] --- the scopes, as a list of vectors,
-                for the binding.}
+          @item{@racket['context] --- 绑定的范围，作为向量列表。}
 
-          @item{@racket['local] --- a symbol representing a @tech{local binding};
-                when this key is present, @racket['module] is absent.}
+          @item{@racket['local] --- 局部绑定的符号;当此键存在时，@racket['module] 不存在。}
 
-          @item{@racket['module] --- an encoding of a import from another module;
-                when this key is present, @racket['local] is absent.}
+          @item{@racket['module] --- 来自另一个模块的导入编码;当此键存在时，@racket['local] 不存在。}
 
-          @item{@racket['free-identifier=?] --- a hash table of debugging information
-                from an identifier for which the binding is an alias.}
+          @item{@racket['free-identifier=?] --- 来自绑定作为别名的标识符的调试信息的哈希表。}
 
           ]}
 
-   @item{@racket['fallbacks] --- a list of hash tables like the one
-         produced by @racket[syntax-debug-info] for cross-namespace binding fallbacks.}
-
-]
+   @item{@racket['fallbacks] --- 类似于 @racket[syntax-debug-info] 为跨命名空间绑定回退产生的哈希表。}
 
 @history[#:added "6.3"]}
 
 
-@section{Syntax Object Source Locations}
+@section{语法对象源位置}
 
 @note-lib-only[racket/syntax-srcloc]
 
 @defproc[(syntax-srcloc [stx syntax?]) (or/c #f srcloc?)]{
 
-Returns the @tech{source location} for the @tech{syntax object}
-@racket[stx], or @racket[#f] if none is known.
+返回 @tech{语法对象} @racket[stx] 的 @tech{源位置}，
+如果未知则返回 @racket[#f]。
 
 @history[#:added "8.2.0.5"]}
 
-
-
-
-@close-eval[stx-eval]
-
+@; 结束文件

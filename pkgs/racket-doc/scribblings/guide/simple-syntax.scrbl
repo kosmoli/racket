@@ -5,31 +5,29 @@
 @(define ex-eval (make-base-eval))
 @(ex-eval '(require racket/string))
 
-@title[#:tag "syntax-overview"]{Simple Definitions and Expressions}
+@title[#:tag "syntax-overview"]{简单定义与表达式}
 
-A program module is written as
+程序模块的书写形式为
 
 @racketblock[
 @#,BNF-seq[@litchar{#lang} @nonterm{langname} @kleenestar{@nonterm{topform}}]
 ]
 
-where a @nonterm{topform} is either a @nonterm{definition} or an
-@nonterm{expr}. The @tech{REPL} also evaluates @nonterm{topform}s.
+其中 @nonterm{topform} 要么是一个 @nonterm{definition}，要么是一个
+@nonterm{expr}。@tech{REPL} 也会对 @nonterm{topform} 求值。
 
-In syntax specifications, text with a gray background, such as
-@litchar{#lang}, represents literal text. Whitespace must appear
-between such literals and nonterminals like @nonterm{id},
-except that whitespace is not required before or after @litchar{(},
-@litchar{)}, @litchar{[}, or @litchar{]}.  A @index['("comments")]{comment}, which starts
-with @litchar{;} and runs until the end of the line, is treated the
-same as whitespace.
+在语法规范中，灰色背景的文本（如
+@litchar{#lang}）表示字面文本。此类字面量与非终结符（如 @nonterm{id}）之间必须出现
+空白字符，但在 @litchar{(}、
+@litchar{)}、@litchar{[} 或 @litchar{]} 之前或之后则不要求空白。
+@index['("comments")]{注释}以 @litchar{;} 开头，直到行末结束，其处理方式
+与空白字符相同。
 
-@refdetails["parse-comment"]{different forms of comments}
+@refdetails["parse-comment"]{注释的不同形式}
 
-Following the usual conventions, @kleenestar{} in a grammar means zero
-or more repetitions of the preceding element, @kleeneplus{} means one
-or more repetitions of the preceding element, and @BNF-group{} groups
-a sequence as an element for repetition.
+按照通常的约定，文法中的 @kleenestar{} 表示对前一元素的零次或多次重复，
+@kleeneplus{} 表示对前一元素的一次或多次重复，@BNF-group{} 则将序列分组
+作为一个可重复的元素。
 
 @(define val-defn-stx
    @BNF-seq[@litchar{(}@litchar{define} @nonterm{id} @nonterm{expr} @litchar{)}])
@@ -62,23 +60,22 @@ a sequence as an element for repetition.
 @(define let*-expr-stx (make-let-expr-stx @litchar{let*}))
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Definitions}
+@section{定义}
 
-A definition of the form
+形式为
 
-@moreguide["define"]{definitions}
+@moreguide["define"]{定义}
 
 @racketblock[@#,val-defn-stx]
 
-binds @nonterm{id} to the result of @nonterm{expr}, while
+的定义将 @nonterm{id} 与 @nonterm{expr} 的求值结果绑定，而
 
 @racketblock[@#,fun-defn-stx]
 
-binds the first @nonterm{id} to a function (also called a
-@defterm{procedure}) that takes arguments as named by the remaining
-@nonterm{id}s. In the function case, the @nonterm{expr}s are the body
-of the function. When the function is called, it returns the result of
-the last @nonterm{expr}.
+则将第一个 @nonterm{id} 绑定到一个函数（也称为
+@defterm{procedure}），其参数由其余的 @nonterm{id} 命名。在函数定义中，
+@nonterm{expr} 构成了函数体。当调用函数时，返回的结果是最后一个
+@nonterm{expr} 的求值结果。
 
 @defexamples[
 #:eval ex-eval
@@ -89,11 +86,9 @@ pie
 (piece "key lime")
 ]
 
-Under the hood, a function definition is really the same as a
-non-function definition, and a function name does not have to be
-used in a function call. A function is just another kind of value,
-though the printed form is necessarily less complete than the printed
-form of a number or string.
+在实际实现中，函数定义与非函数定义本质上是相同的，函数名也不一定
+要在函数调用中使用。函数只是另一种类型的值，
+只不过其打印形式必然不如数字或字符串的打印形式完整。
 
 @examples[
 #:eval ex-eval
@@ -101,10 +96,8 @@ piece
 substring
 ]
 
-A function definition can include multiple expressions for the
-function's body. In that case, only the value of the last expression
-is returned when the function is called. The other expressions are
-evaluated only for some side-effect, such as printing.
+函数定义可以为函数体包含多个表达式。在这种情况下，调用函数时
+仅返回最后一个表达式的值。其他表达式仅因某些副作用（如打印）而被求值。
 
 @defexamples[
 #:eval ex-eval
@@ -114,11 +107,10 @@ evaluated only for some side-effect, such as printing.
 (bake "apple")
 ]
 
-Racket programmers prefer to avoid side-effects, so a definition usually
-has just one expression in its body. It's
-important, though, to understand that multiple expressions are allowed
-in a definition body, because it explains why the following
-@racket[nobake] function fails to include its argument in its result:
+Racket 程序员倾向于避免副作用，因此定义通常
+在函数体内只有一个表达式。然而，重要的是要理解
+定义体内允许多个表达式，因为这解释了为什么以下
+@racket[nobake] 函数未能将其参数包含在结果中：
 
 @def+int[
 #:eval ex-eval
@@ -127,56 +119,48 @@ in a definition body, because it explains why the following
 (nobake "green")
 ]
 
-Within @racket[nobake], there are no parentheses around
-@racket[string-append flavor "jello"], so they are three separate
-expressions instead of one function-call expression. The expressions
-@racket[string-append] and @racket[flavor] are evaluated, but the
-results are never used. Instead, the result of the function is just
-the result of the final expression, @racket["jello"].
+在 @racket[nobake] 内部，没有括号围绕
+@racket[string-append flavor "jello"]，因此它们是三个独立的
+表达式，而不是一个函数调用表达式。表达式
+@racket[string-append] 和 @racket[flavor] 会被求值，但其
+结果从未被使用。相反，最终函数的结果只是
+最后一个表达式 @racket["jello"] 的结果。
 
 @; ----------------------------------------------------------------------
-@section[#:tag "indentation"]{An Aside on Indenting Code}
+@section[#:tag "indentation"]{关于代码缩进的附带说明}
 
-Line breaks and indentation are not significant for parsing Racket
-programs, but most Racket programmers use a standard set of conventions
-to make code more readable. For example, the body of a definition is
-typically indented under the first line of the definition. Identifiers
-are written immediately after an open parenthesis with no extra space,
-and closing parentheses never go on their own line.
+换行和缩进对于解析 Racket 程序并不重要，但大多数 Racket
+程序员使用一套标准约定使代码更具可读性。例如，定义的函数体
+通常在定义的第一行下方缩进标识符紧接在左括号后书写，
+不带额外空格，且右括号永远不会单独占一行。
 
-DrRacket automatically indents according to the standard style when
-you type Enter in a program or @tech{REPL} expression. For example, if you
-hit Enter after typing @litchar{(define (greet name)}, then DrRacket
-automatically inserts two spaces for the next line.  If you change a
-region of code, you can select it in DrRacket and hit Tab, and
-DrRacket will re-indent the code (without inserting any line breaks).
-Editors like Emacs offer a Racket or Scheme mode with similar indentation
-support.
+当你在程序或 @tech{REPL} 表达式中按下回车键时，DrRacket 会根据标准样式
+自动缩进。例如，如果你在输入 @litchar{(define (greet name)} 后按下回车，
+DrRacket 会自动插入两个空格以缩进下一行。如果你更改了一段代码，
+可以在 DrRacket 中选择它并按下 Tab 键，DrRacket 将重新缩进代码
+（不插入任何换行符）。Emacs 等编辑器提供具有类似缩进支持的 Racket
+或 Scheme 模式
 
-Re-indenting not only makes the code easier to read, it gives you
-extra feedback that your parentheses match in the way that you
-intended. For example, if you leave out a closing parenthesis after
-the last argument to a function, automatic indentation starts the
-next line under the first argument, instead of under the
-@racket[define] keyword:
+重新缩进不仅使代码更易阅读，还提供了额外的反馈，
+表明括号是否按预期匹配。例如，如果在函数的最后一个参数后遗漏了右括号，
+自动缩进会将下一行缩进到第一个参数下方，而不是 @racket[define] 关键字下方：
 
 @racketblock[
 (define (halfbake flavor
                   (string-append flavor " creme brulee")))
 ]
 
-In this case, indentation helps highlight the mistake. In other cases,
-where the indentation may be normal while an open parenthesis has no
-matching close parenthesis, both @exec{racket} and DrRacket use the
-source's indentation to suggest where a parenthesis might be missing.
+在这种情况下，缩进有助于突出错误。在其他情况下，
+当缩进可能正常但左括号没有匹配的右括号时，
+@exec{racket} 和 DrRacket 都会利用源代码的缩进
+来提示可能缺少括号的位置。
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Identifiers}
+@section{标识符}
 
-Racket's syntax for identifiers is especially liberal. Excluding the
-special characters
+Racket 的标识符语法特别自由。除特殊字符外，
 
-@moreguide["binding"]{identifiers}
+@moreguide["binding"]{标识符}
 
 @t{
   @hspace[2] @litchar{(} @litchar{)} @litchar{[} @litchar{]}
@@ -185,12 +169,10 @@ special characters
   @litchar{;} @litchar{#} @litchar{|} @litchar{\}
 }
 
-and except for the sequences of characters that make number constants,
-almost any sequence of non-whitespace characters forms an
-@nonterm{id}. For example @racketid[substring] is an
-identifier. Also, @racketid[string-append] and @racketid[a+b] are
-identifiers, as opposed to arithmetic expressions. Here are several
-more examples:
+以及构成数字常量的字符序列外，
+几乎任何非空白字符序列都构成一个 @nonterm{id}。例如 @racketid[substring] 是一个
+标识符。同样，@racketid[string-append] 和 @racketid[a+b] 也是
+标识符，而非算术表达式。以下是更多示例：
 
 @racketblock[
 @#,racketid[+]
@@ -202,28 +184,24 @@ more examples:
 ]
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Function Calls@aux-elem{ (Procedure Applications)}}
+@section{函数调用@aux-elem{ (Procedure Applications)}}
 
-We have already seen many function calls, which are called
-@defterm{procedure applications} in more traditional
-terminology. The syntax of a function call is
+我们已经看到了很多函数调用，在更传统的术语中
+称为 @defterm{procedure applications}。函数调用的语法是
 
-@moreguide["application"]{function calls}
+@moreguide["application"]{函数调用}
 
 @racketblock[
 #,app-expr-stx
 ]
 
-where the number of @nonterm{expr}s determines the number of
-arguments supplied to the function named by @nonterm{id}.
+其中 @nonterm{expr} 的数量决定了提供给由 @nonterm{id} 命名的函数的参数数量。
 
-The @racketmodname[racket] language pre-defines many function
-identifiers, such as @racket[substring] and
-@racket[string-append]. More examples are below.
+@racketmodname[racket] 语言预定义了许多函数标识符，
+如 @racket[substring] 和 @racket[string-append]。更多示例见下文。
 
-In example Racket code throughout the documentation, uses of
-pre-defined names are hyperlinked to the reference manual. So, you can
-click on an identifier to get full details about its use.
+在文档中的示例 Racket 代码中，预定义的名称使用
+会超链接到参考手册。因此，您可以点击标识符以获取有关其使用的完整详细信息。
 
 @interaction[
 #:eval ex-eval
@@ -247,20 +225,19 @@ click on an identifier to get full details about its use.
 ]
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Conditionals with @racket[if], @racket[and], @racket[or], and @racket[cond]}
+@section{使用 @racket[if]、@racket[and]、@racket[or] 和 @racket[cond] 的条件表达式}
 
-The next simplest kind of expression is an @racket[if] conditional:
+下一种最简单的表达式是 @racket[if] 条件表达式：
 
 @racketblock[
 #,if-expr-stx
 ]
 
-@moreguide["conditionals"]{conditionals}
+@moreguide["conditionals"]{条件表达式}
 
-The first @nonterm{expr} is always evaluated. If it produces a
-non-@racket[#f] value, then the second @nonterm{expr} is
-evaluated for the result of the whole @racket[if] expression, otherwise
-the third @nonterm{expr} is evaluated for the result.
+总是对第一个 @nonterm{expr} 求值。如果它产生一个
+非 @racket[#f] 的值，则对第二个 @nonterm{expr} 求值以作为整个
+@racket[if} 表达式的结果，否则对第三个 @nonterm{expr} 求值
 
 @examples[
 (if (> 2 3)
@@ -278,11 +255,9 @@ the third @nonterm{expr} is evaluated for the result.
 (reply "\u03BBx:(\u03BC\u03B1.\u03B1\u2192\u03B1).xx")
 ]
 
-Complex conditionals can be formed by nesting @racket[if]
-expressions. For example, in the previous @racket[reply] example,
-the input must be a string because @racket[string-prefix?]
-would error when given non-strings. You can remove this restriction
-by adding another @racket[if] to check first if the input is a string:
+通过嵌套 @racket[if] 表达式可以构成复杂的条件表达式。例如，在前面的 @racket[reply]
+示例中，输入必须是一个字符串，因为 @racket[string-prefix?]
+在非字符串输入时会出错。你可以通过添加另一个 @racket[if] 来首先检查输入是否为字符串来移除此限制：
 
 @racketblock[
 (define (reply-non-string s)
@@ -293,157 +268,237 @@ by adding another @racket[if] to check first if the input is a string:
       "huh?"))
 ]
 
-Instead of duplicating the @racket["huh?"] case, this function is
-better written as
+@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@section{标识符}
+
+Racket 的标识符语法特别自由。除特殊字符外，
+
+@moreguide["binding"]{标识符}
+
+@t{
+  @hspace[2] @litchar{(} @litchar{)} @litchar{[} @litchar{]}
+  @litchar["{"] @litchar["}"]
+  @litchar{"} @litchar{,} @litchar{'} @litchar{`}
+  @litchar{;} @litchar{#} @litchar{|} @litchar{\}
+}
+
+以及构成数字常量的字符序列外，
+几乎任何非空白字符序列都构成一个 @nonterm{id}。例如 @racketid[substring] 是一个
+标识符。同样，@racketid[string-append] 和 @racketid[a+b] 也是
+标识符，而非算术表达式。以下是更多示例：
 
 @racketblock[
-(define (reply-non-string s)
-  (if (if (string? s)
-          (string-prefix? s "hello ")
-          #f)
-      "hi!"
-      "huh?"))
+@#,racketid[+]
+@#,racketid[integer?]
+@#,racketid[pass/fail]
+@#,racketid[Hfuhruhurr&Uumellmahaye]
+@#,racketid[john-jacob-jingleheimer-schmidt]
+@#,racketid[a-b-c+1-2-3]
 ]
 
-but these kinds of nested @racket[if]s are difficult to read.  Racket
-provides more readable shortcuts through the @racket[and] and
-@racket[or] forms:
+@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@section{函数调用@aux-elem{ (Procedure Applications)}}
 
-@moreguide["and+or"]{@racket[and] and @racket[or]}
+我们已经看到了很多函数调用，在更传统的术语中
+称为 @defterm{procedure applications}。函数调用的语法是
+
+@moreguide["application"]{函数调用}
 
 @racketblock[
-#,and-expr-stx
-#,or-expr-stx
+#,app-expr-stx
 ]
 
-The @racket[and] form short-circuits: it stops and returns @racket[#f]
-when an expression produces @racket[#f], otherwise it keeps
-going. The @racket[or] form similarly short-circuits when it
-encounters a true result.
+其中 @nonterm{expr} 的数量决定了提供给由 @nonterm{id} 命名的函数的参数数量。
 
-@defexamples[
+@racketmodname[racket] 语言预定义了许多函数标识符，
+如 @racket[substring] 和 @racket[string-append]。更多示例见下文。
+
+在文档中的示例 Racket 代码中，预定义的名称使用
+会超链接到参考手册。因此，您可以点击标识符以获取有关其使用的完整详细信息。
+
+@interaction[
 #:eval ex-eval
-(define (reply-non-string s)
-  (if (and (string? s) (string-prefix? s "hello "))
-      "hi!"
-      "huh?"))
-(reply-non-string "hello racket")
-(reply-non-string 17)
+(code:line (string-append "rope" "twine" "yarn")  (code:comment @#,t{append strings}))
+(code:line (substring "corduroys" 0 4)            (code:comment @#,t{extract a substring}))
+(code:line (string-prefix? "shoelace" "shoe")     (code:comment @#,t{recognize string prefix/suffix}))
+(string-suffix? "shoelace" "shoe")
+(code:line (string? "Ceci n'est pas une string.") (code:comment @#,t{recognize strings}))
+(string? 1)
+(code:line (sqrt 16)                              (code:comment @#,t{find a square root}))
+(sqrt -16)
+(code:line (+ 1 2)                                (code:comment @#,t{add numbers}))
+(code:line (- 2 1)                                (code:comment @#,t{subtract numbers}))
+(code:line (< 2 1)                                (code:comment @#,t{compare numbers}))
+(>= 2 1)
+(code:line (number? "c'est une number")           (code:comment @#,t{recognize numbers}))
+(number? 1)
+(code:line (equal? 6 "half dozen")                (code:comment @#,t{compare anything}))
+(equal? 6 6)
+(equal? "half dozen" "half dozen")
 ]
 
-Note that in the above grammar, the @racket[and] and @racket[or] forms
-work with any number of expressions.
+@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@section{使用 @racket[if]、@racket[and]、@racket[or] 和 @racket[cond] 的条件表达式}
 
-@defexamples[
-#:eval ex-eval
-(define (reply-only-enthusiastic s)
-  (if (and (string? s)
-           (string-prefix? s "hello ")
-           (string-suffix? s "!"))
-      "hi!"
-      "huh?"))
-(reply-only-enthusiastic "hello racket!")
-(reply-only-enthusiastic "hello racket")
-]
-
-Another common pattern of nested @racket[if]s involves a sequence of
-tests, each with its own result:
+下一种最简单的表达式是 @racket[if] 条件表达式：
 
 @racketblock[
-(define (reply-more s)
+#,if-expr-stx
+]
+
+@moreguide["conditionals"]{条件表达式}
+
+总是对第一个 @nonterm{expr} 求值。如果它产生一个
+非 @racket[#f] 的值，则对第二个 @nonterm{expr} 求值以作为整个
+@racket[if} 表达式的结果，否则对第三个 @nonterm{expr} 求值
+
+@examples[
+(if (> 2 3)
+    "2 is bigger than 3"
+    "2 is smaller than 3")
+]
+
+@def+int[
+#:eval ex-eval
+(define (reply s)
   (if (string-prefix? s "hello ")
       "hi!"
-      (if (string-prefix? s "goodbye ")
-          "bye!"
-          (if (string-suffix? s "?")
-              "I don't know"
-              "huh?"))))
+      "huh?"))
+(reply "hello racket")
+(reply "\u03BBx:(\u03BC\u03B1.\u03B1\u2192\u03B1).xx")
 ]
 
-The shorthand for a sequence of tests is the @racket[cond] form:
-
-@moreguide["cond"]{@racket[cond]}
+通过嵌套 @racket[if] 表达式可以构成复杂的条件表达式。例如，在前面的 @racket[reply]
+示例中，输入必须是一个字符串，因为 @racket[string-prefix?]
+在非字符串输入时会出错。你可以通过添加另一个 @racket[if] 来首先检查输入是否为字符串来移除此限制：
 
 @racketblock[
-#,cond-expr-stx
+(define (reply-non-string s)
+  (if (string? s)
+      (if (string-prefix? s "hello ")
+          "hi!"
+          "huh?")
+      "huh?"))
 ]
 
-A @racket[cond] form contains a sequence of clauses between square
-brackets. In each clause, the first @nonterm{expr} is a test
-expression. If it produces true, then the clause's remaining
-@nonterm{expr}s are evaluated, and the last one in the clause provides
-the answer for the entire @racket[cond] expression; the rest of the
-clauses are ignored. If the test @nonterm{expr} produces @racket[#f],
-then the clause's remaining @nonterm{expr}s are ignored, and
-evaluation continues with the next clause. The last clause can use
-@racket[else] as a synonym for a @racket[#t] test expression.
+@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@section{标识符}
 
-Using @racket[cond], the @racket[reply-more] function can be more
-clearly written as follows:
+Racket 的标识符语法特别自由。除特殊字符外，
+
+@moreguide["binding"]{标识符}
+
+@t{
+  @hspace[2] @litchar{(} @litchar{)} @litchar{[} @litchar{]}
+  @litchar["{"] @litchar["}"]
+  @litchar{"} @litchar{,} @litchar{'} @litchar{`}
+  @litchar{;} @litchar{#} @litchar{|} @litchar{\}
+}
+
+以及构成数字常量的字符序列外，
+几乎任何非空白字符序列都构成一个 @nonterm{id}。例如 @racketid[substring] 是一个
+标识符。同样，@racketid[string-append] 和 @racketid[a+b] 也是
+标识符，而非算术表达式。以下是更多示例：
+
+@racketblock[
+@#,racketid[+]
+@#,racketid[integer?]
+@#,racketid[pass/fail]
+@#,racketid[Hfuhruhurr&Uumellmahaye]
+@#,racketid[john-jacob-jingleheimer-schmidt]
+@#,racketid[a-b-c+1-2-3]
+]
+
+@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@section{函数调用@aux-elem{ (Procedure Applications)}}
+
+我们已经看到了很多函数调用，在更传统的术语中
+称为 @defterm{procedure applications}。函数调用的语法是
+
+@moreguide["application"]{函数调用}
+
+@racketblock[
+#,app-expr-stx
+]
+
+其中 @nonterm{expr} 的数量决定了提供给由 @nonterm{id} 命名的函数的参数数量。
+
+@racketmodname[racket] 语言预定义了许多函数标识符，
+如 @racket[substring] 和 @racket[string-append]。更多示例见下文。
+
+在文档中的示例 Racket 代码中，预定义的名称使用
+会超链接到参考手册。因此，您可以点击标识符以获取有关其使用的完整详细信息。
+
+@interaction[
+#:eval ex-eval
+(code:line (string-append "rope" "twine" "yarn")  (code:comment @#,t{append strings}))
+(code:line (substring "corduroys" 0 4)            (code:comment @#,t{extract a substring}))
+(code:line (string-prefix? "shoelace" "shoe")     (code:comment @#,t{recognize string prefix/suffix}))
+(string-suffix? "shoelace" "shoe")
+(code:line (string? "Ceci n'est pas une string.") (code:comment @#,t{recognize strings}))
+(string? 1)
+(code:line (sqrt 16)                              (code:comment @#,t{find a square root}))
+(sqrt -16)
+(code:line (+ 1 2)                                (code:comment @#,t{add numbers}))
+(code:line (- 2 1)                                (code:comment @#,t{subtract numbers}))
+(code:line (< 2 1)                                (code:comment @#,t{compare numbers}))
+(>= 2 1)
+(code:line (number? "c'est une number")           (code:comment @#,t{recognize numbers}))
+(number? 1)
+(code:line (equal? 6 "half dozen")                (code:comment @#,t{compare anything}))
+(equal? 6 6)
+(equal? "half dozen" "half dozen")
+]
+
+@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@section{使用 @racket[if]、@racket[and]、@racket[or] 和 @racket[cond] 的条件表达式}
+
+下一种最简单的表达式是 @racket[if] 条件表达式：
+
+@racketblock[
+#,if-expr-stx
+]
+
+@moreguide["conditionals"]{条件表达式}
+
+总是对第一个 @nonterm{expr} 求值。如果它产生一个
+非 @racket[#f] 的值，则对第二个 @nonterm{expr} 求值以作为整个
+@racket[if} 表达式的结果，否则对第三个 @nonterm{expr} 求值
+
+@examples[
+(if (> 2 3)
+    "2 is bigger than 3"
+    "2 is smaller than 3")
+]
 
 @def+int[
 #:eval ex-eval
-(define (reply-more s)
-  (cond
-   [(string-prefix? s "hello ")
-    "hi!"]
-   [(string-prefix? s "goodbye ")
-    "bye!"]
-   [(string-suffix? s "?")
-    "I don't know"]
-   [else "huh?"]))
-(reply-more "hello racket")
-(reply-more "goodbye cruel world")
-(reply-more "what is your favorite color?")
-(reply-more "mine is lime green")
+(define (reply s)
+  (if (string-prefix? s "hello ")
+      "hi!"
+      "huh?"))
+(reply "hello racket")
+(reply "\u03BBx:(\u03BC\u03B1.\u03B1\u2192\u03B1).xx")
 ]
 
-The use of square brackets for @racket[cond] clauses is a
-convention. In Racket, parentheses and square brackets are actually
-interchangeable, as long as @litchar{(} is matched with @litchar{)} and
-@litchar{[} is matched with @litchar{]}. Using square brackets in a
-few key places makes Racket code even more readable.
-
-@;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Function Calls, Again}
-
-In our earlier grammar of function calls, we oversimplified.  The
-actual syntax of a function call allows an arbitrary
-expression for the function, instead of just an @nonterm{id}:
-
-@moreguide["application"]{function calls}
+通过嵌套 @racket[if] 表达式可以构成复杂的条件表达式。例如，在前面的 @racket[reply]
+示例中，输入必须是一个字符串，因为 @racket[string-prefix?]
+在非字符串输入时会出错。你可以通过添加另一个 @racket[if] 来首先检查输入是否为字符串来移除此限制：
 
 @racketblock[
-#,app2-expr-stx
+(define (reply-non-string s)
+  (if (string? s)
+      (if (string-prefix? s "hello ")
+          "hi!"
+          "huh?")
+      "huh?"))
 ]
-
-The first @nonterm{expr} is often an @nonterm{id}, such
-as @racket[string-append] or @racket[+], but it can be anything that
-evaluates to a function. For example, it can be a conditional
-expression:
-
-@def+int[
-(define (double v)
-  ((if (string? v) string-append +) v v))
-(double "mnah")
-(double 5)
-]
-
-Syntactically, the first expression in a function call could
-even be a number---but that leads to an error, since a number is not a
-function.
-
-@interaction[(1 2 3 4)]
-
-When you accidentally omit a function name or when you use
-extra parentheses around an expression, you'll most often get an ``expected
-a procedure'' error like this one.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section{Anonymous Functions with @racket[lambda]}
+@section{匿名函数与 @racket[lambda]}
 
-Programming in Racket would be tedious if you had to name all of your
-numbers. Instead of writing @racket[(+ 1 2)], you'd have to write
+如果必须为所有数字命名，编程将会很繁琐。
+你将不得不写
 
 @moreguide["lambda"]{@racket[lambda]}
 
@@ -453,10 +508,10 @@ numbers. Instead of writing @racket[(+ 1 2)], you'd have to write
 (+ a b)
 ]
 
-It turns out that having to name all your functions can be tedious,
-too. For example, you might have a function @racket[twice] that takes
-a function and an argument. Using @racket[twice] is convenient if you
-already have a name for the function, such as @racket[sqrt]:
+如果必须为所有函数命名，同样会很繁琐
+例如，你可能有一个 @racket[twice] 函数，它接受
+一个函数和一个参数。如果已经有一个命名的函数（如
+@racket[sqrt]），使用 @racket[twice] 是方便的：
 
 @def+int[
 #:eval ex-eval
@@ -465,8 +520,8 @@ already have a name for the function, such as @racket[sqrt]:
 (twice sqrt 16)
 ]
 
-If you want to call a function that is not yet defined, you could
-define it, and then pass it to @racket[twice]:
+如果你想调用一个尚未定义的函数，你可以
+先定义它，然后传给 @racket[twice]：
 
 @def+int[
 #:eval ex-eval
@@ -475,23 +530,21 @@ define it, and then pass it to @racket[twice]:
 (twice louder "hello")
 ]
 
-But if the call to @racket[twice] is the only place where
-@racket[louder] is used, it's a shame to have to write a whole
-definition. In Racket, you can use a @racket[lambda] expression to
-produce a function directly. The @racket[lambda] form is followed by
-identifiers for the function's arguments, and then the function's
-body expressions:
+但是，如果对 @racket[twice] 的调用是 @racket[louder] 唯一被使用的地方，
+那么必须写一个完整的定义就很可惜了。在 Racket 中，你可以使用
+@racket[lambda] 表达式来直接生成函数。@racket[lambda] 的形式后跟
+函数参数的标识符，然后是函数体的表达式：
 
 @racketblock[
 #,lambda-expr-stx
 ]
 
-Evaluating a @racket[lambda] form by itself produces a function:
+对 @racket[lambda] 形式本身求值就会产生一个函数：
 
 @interaction[(lambda (s) (string-append s "!"))]
 
-Using @racket[lambda], the above call to @racket[twice] can be
-re-written as
+使用 @racket[lambda]，上述对 @racket[twice] 的调用可以
+重写为
 
 @interaction[
 #:eval ex-eval
@@ -501,8 +554,8 @@ re-written as
        "hello")
 ]
 
-Another use of @racket[lambda] is as a result for a function that
-generates functions:
+@racket[lambda] 的另一个用途是作为生成函数的函数的
+结果：
 
 @def+int[
 #:eval ex-eval
@@ -513,11 +566,10 @@ generates functions:
 (twice (make-add-suffix "...") "hello")
 ]
 
-Racket is a @defterm{lexically scoped} language, which means that
-@racket[s2] in the function returned by @racket[make-add-suffix]
-always refers to the argument for the call that created the
-function. In other words, the @racket[lambda]-generated function
-``remembers'' the right @racket[s2]:
+Racket 是一种 @defterm{lexically scoped} 语言，这意味着
+由 @racket[make-add-suffix] 返回的函数中的 @racket[s2]
+始终指向创建该函数的调用所用的参数。换句话说，
+@racket[lambda] 生成的函数"记住"了正确的 @racket[s2]：
 
 @interaction[
 #:eval ex-eval
@@ -527,13 +579,12 @@ function. In other words, the @racket[lambda]-generated function
 (twice louder "really")
 ]
 
-We have so far referred to definitions of the form @racket[(define
-@#,nonterm{id} @#,nonterm{expr})] as ``non-function
-definitions.'' This characterization is misleading, because the
-@nonterm{expr} could be a @racket[lambda] form, in which case
-the definition is equivalent to using the ``function'' definition
-form. For example, the following two definitions of @racket[louder]
-are equivalent:
+到目前为止，我们一直将形式为 @racket[(define
+@#,nonterm{id} @#,nonterm{expr})] 的定义称为"非函数
+定义"。这种描述具有误导性，因为 @nonterm{expr} 可以是一个
+@racket[lambda] 形式，此时该定义等价于使用"函数"
+定义形式。例如，以下 @racket[louder] 的两个定义是
+等价的：
 
 @defs+int[
 #:eval ex-eval
@@ -546,28 +597,24 @@ are equivalent:
 louder
 ]
 
-Note that the expression for @racket[louder] in the second case is an
-``anonymous'' function written with @racket[lambda], but, if
-possible, the compiler infers a name, anyway, to make printing and
-error reporting as informative as possible.
+请注意，在第二种情况下，@racket[louder] 的表达式是一个用 @racket[lambda] 
+书写的"匿名"函数，但如果可能的话，编译器会推断出一个名称，以使打印和错误报告尽可能信息丰富。
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@section[#:tag "local-binding-intro"]{Local Binding with
-         @racket[define], @racket[let], and @racket[let*]}
+@section[#:tag "local-binding-intro"]{使用 @racket[define]、@racket[let] 和 @racket[let*} 的局部绑定}
 
-It's time to retract another simplification in our grammar of
-Racket. In the body of a function, definitions can appear before the
-body expressions:
+是时候收回我们 Racket 文法中的另一个简化了。在函数体中，
+定义可以出现在函数体表达式之前：
 
-@moreguide["intdefs"]{local (internal) definitions}
+@moreguide["intdefs"]{局部（内部）定义}
 
 @racketblock[
 #,fun-defn2-stx
 #,lambda2-expr-stx
 ]
 
-Definitions at the start of a function body are local to the
-function body.
+出现在函数体开头的定义是局部的，仅限于该
+函数体。
 
 @defexamples[
 #:eval ex-eval
@@ -587,22 +634,20 @@ function body.
            (parameterize ([current-namespace (make-base-namespace)]) (eval 'starts?)))
 ]
 
-Another way to create local bindings is the @racket[let] form. An
-advantage of @racket[let] is that it can be used in any expression
-position. Also, @racket[let] binds many identifiers at once, instead
-of requiring a separate @racket[define] for each identifier.
+创建局部绑定的另一种方式是 @racket[let] 形式。
+@racket[let] 的优点是它可以在任何表达式位置使用。此外，
+@racket[let} 一次性绑定多个标识符，而不需要为每个标识符单独使用 @racket[define]。
 
-@moreguide["intdefs"]{@racket[let] and @racket[let*]}
+@moreguide["intdefs"]{@racket[let] and @racket[let*}}
 
 @racketblock[
 #,let-expr-stx
 ]
 
-Each binding clause is an @nonterm{id} and an
-@nonterm{expr} surrounded by square brackets, and the
-expressions after the clauses are the body of the @racket[let]. In
-each clause, the @nonterm{id} is bound to the result of the
-@nonterm{expr} for use in the body.
+每个绑定子句是一个由方括号包围的 @nonterm{id} 和
+@nonterm{expr}，子句后的表达式是 @racket[let] 的函数体。在
+每个子句中，@nonterm{id} 被绑定到 @nonterm{expr} 的结果，
+以供函数体使用。
 
 @interaction[
 (let ([x (random 4)]
@@ -613,10 +658,9 @@ each clause, the @nonterm{id} is bound to the result of the
     [else "cat's game"]))
 ]
 
-The bindings of a @racket[let] form are available only in the body of
-the @racket[let], so the binding clauses cannot refer to each
-other. The @racket[let*] form, in contrast, allows later clauses to
-use earlier bindings:
+@racket[let] 形式的绑定仅在 @racket[let] 的函数体内可用，
+因此绑定子句不能相互引用。相比之下，
+@racket[let*] 形式允许后面的子句使用前面的绑定：
 
 @interaction[
 (let* ([x (random 4)]
