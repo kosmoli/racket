@@ -4,47 +4,25 @@
 
 @(define cake-eval (make-base-eval))
 
-@title{Module Syntax}
+@title{模块语法}
 
-The @litchar{#lang} at the start of a module file begins a shorthand
-for a @racket[module] form, much like @litchar{'} is a shorthand for a
-@racket[quote] form. Unlike @litchar{'}, the @litchar{#lang}
-shorthand does not work well in a @tech{REPL}, in part because it must be
-terminated by an end-of-file, but also because the longhand expansion
-of @litchar{#lang} depends on the name of the enclosing file.
+@litchar{#lang} 位于模块文件开头，是 @racket[module] 形式的简写，就像 @litchar{'} 是 @racket[quote] 形式的简写一样。与 @litchar{'} 不同，@litchar{#lang} 简写在 @tech{REPL} 中效果不佳，部分原因在于它必须由文件结束符终止，但更根本的原因是 @litchar{#lang} 的展开形式依赖于外围文件的名称。
 
 @;------------------------------------------------------------------------
-@section[#:tag "module-syntax"]{The @racket[module] Form}
+@section[#:tag "module-syntax"]{@racket[module] 形式}
 
-The longhand form of a module declaration, which works in a
-@tech{REPL} as well as a file, is
+模块声明的完整形式在 @tech{REPL} 和文件中都有效：
 
 @specform[
 (module name-id initial-module-path
   decl ...)
 ]
 
-where the @racket[_name-id] is a name for the module,
-@racket[_initial-module-path] is an initial import, and each
-@racket[_decl] is an import, export, definition, or expression.  In
-the case of a file, @racket[_name-id] normally matches the name of the
-containing file, minus its directory path or file extension, but
-@racket[_name-id] is ignored when the module is @racket[require]d
-through its file's path.
+其中 @racket[_name-id] 是模块的名称，@racket[_initial-module-path] 是初始导入，每个 @racket[_decl] 是导入、导出、定义或表达式。对于文件的情况，@racket[_name-id] 通常与包含文件的名称匹配（减去目录路径或文件扩展名），但当模块通过其文件路径被 @racket[require] 时，@racket[_name-id] 被忽略。
 
-The @racket[_initial-module-path] is needed because even the
-@racket[require] form must be imported for further use in the module
-body. In other words, the @racket[_initial-module-path] import
-bootstraps the syntax that is available in the body. The most commonly used
-@racket[_initial-module-path] is @racketmodname[racket], which supplies most
-of the bindings described in this guide, including @racket[require],
-@racket[define], and @racket[provide]. Another commonly used
-@racket[_initial-module-path] is @racketmodname[racket/base], which provides
-less functionality, but still much of the most commonly needed
-functions and syntax.
+@racket[_initial-module-path] 是必需的，因为即使是 @racket[require] 形式也必须先在模块体中导入才能使用。换句话说，@racket[_initial-module-path] 导入引导了体中可用的语法。最常用的 @racket[_initial-module-path] 是 @racketmodname[racket]，它提供了本指南中描述的大部分绑定，包括 @racket[require]、@racket[define] 和 @racket[provide]。另一个常用的 @racket[_initial-module-path] 是 @racketmodname[racket/base]，它提供的功能较少，但仍包含大多数最常用的函数和语法。
 
-For example, the @filepath{cake.rkt} example of the
-@seclink["module-basics"]{previous section} could be written as
+例如，@seclink["module-basics"]{前一节}中的 @filepath{cake.rkt} 示例可以写成：
 
 @racketblock+eval[
 #:eval cake-eval
@@ -62,10 +40,7 @@ For example, the @filepath{cake.rkt} example of the
     (newline)))
 ]
 
-Furthermore, this @racket[module] form can be evaluated in a
-@tech{REPL} to declare a @racket[cake] module that is not associated
-with any file. To refer to such an unassociated module, quote the
-module name:
+此外，此 @racket[module] 形式可以在 @tech{REPL} 中求值，以声明一个不与任何文件关联的 @racket[cake] 模块。要引用此类未关联的模块，需引用模块名称：
 
 @examples[
 #:eval cake-eval
@@ -73,11 +48,7 @@ module name:
 (eval:alts (print-cake 3) (eval '(print-cake 3)))
 ]
 
-Declaring a module does not immediately evaluate the body definitions
-and expressions of the module. The module must be explicitly
-@racket[require]d at the top level to trigger evaluation. After
-evaluation is triggered once, later @racket[require]s do not
-re-evaluate the module body.
+声明模块不会立即求值模块体的定义和表达式。模块必须在顶层显式 @racket[require] 才能触发求值。求值被触发一次后，后续的 @racket[require] 不会重新求值模块体。
 
 @examples[
 (module hi racket
@@ -87,51 +58,33 @@ re-evaluate the module body.
 ]
 
 @;------------------------------------------------------------------------
-@section[#:tag "hash-lang"]{The @racketmodfont{#lang} Shorthand}
+@section[#:tag "hash-lang"]{@racketmodfont{#lang} 简写}
 
-The body of a @racketmodfont{#lang} shorthand has no specific syntax,
-because the syntax is determined by the language name that follows
-@racketmodfont{#lang}.
+@racketmodfont{#lang} 简写的体没有特定语法，因为语法由 @racketmodfont{#lang} 后面的语言名称决定。
 
-In the case of @racketmodfont{#lang} @racketmodname[racket], the syntax
-is
+对于 @racketmodfont{#lang} @racketmodname[racket]，语法为
 
 @racketmod[
 racket
 _decl ...]
 
-which @seclink["hash-lang reader"]{reads} the same as
+@seclink["hash-lang reader"]{读取}方式与
 
 @racketblock[
 (module _name racket
   _decl ...)
 ]
 
-where @racket[_name] is derived from the name of the file that
-contains the @racketmodfont{#lang} form.
+相同，其中 @racket[_name] 由包含 @racketmodfont{#lang} 形式的文件名称派生。
 
-The @racketmodfont{#lang} @racketmodname[racket/base] form has the same
-syntax as @racketmodfont{#lang} @racketmodname[racket], except that
-the longhand expansion uses @racketmodname[racket/base] instead of
-@racketmodname[racket]. The @racketmodfont{#lang} @racketmodname[scribble/manual] form, in
-contrast, has a completely different syntax that doesn't even look
-like Racket, and which we do not attempt to describe in this guide.
+@racketmodfont{#lang} @racketmodname[racket/base] 形式与 @racketmodfont{#lang} @racketmodname[racket] 语法相同，只是完整展开使用 @racketmodname[racket/base] 而不是 @racketmodname[racket]。相比之下，@racketmodfont{#lang} @racketmodname[scribble/manual] 形式具有完全不同的语法，甚至看起来不像 Racket，本指南中我们不做描述。
 
-Unless otherwise specified, a module that is documented as a
-``language'' using the @racketmodfont{#lang} notation will expand to
-@racket[module] in the same way as @racketmodfont{#lang}
-@racketmodname[racket]. The documented language name can be used
-directly with @racket[module] or @racket[require], too.
+除非另有说明，使用 @racketmodfont{#lang} 表示法记录为"语言"的模块将以与 @racketmodfont{#lang} @racketmodname[racket] 相同的方式展开为 @racket[module]。记录的语言名称也可以直接与 @racket[module] 或 @racket[require] 一起使用。
 
 @; ----------------------------------------------------------------------
-@section[#:tag "submodules"]{Submodules}
+@section[#:tag "submodules"]{子模块}
 
-A @racket[module] form can be nested within a module, in which case
-the nested @racket[module] form declares a
-@deftech{submodule}. Submodules can be referenced directly by the
-enclosing module using a quoted name. The following example prints
-@racket["Tony"] by importing @racket[tiger] from the @racket[zoo]
-submodule:
+@racket[module] 形式可以嵌套在模块内部，此情况下嵌套的 @racket[module] 形式声明一个 @deftech{子模块}。子模块可由外围模块使用引用名称直接引用。以下示例通过从 @racket[zoo] 子模块导入 @racket[tiger] 来打印 @racket["Tony"]：
 
 @racketmod[
   #:file "park.rkt"
@@ -146,50 +99,30 @@ submodule:
   tiger
 ]
 
-Running a module does not necessarily run its submodules. In the above
-example, running @filepath{park.rkt} runs its submodule @racket[zoo]
-only because the @filepath{park.rkt} module @racket[require]s the
-@racket[zoo] submodule. Otherwise, a module and each of its submodules can be run
-independently. Furthermore, if @filepath{park.rkt} is compiled to a
-bytecode file (via @exec{raco make}), then the code for
-@filepath{park.rkt} or the code for @racket[zoo] can be loaded independently.
+运行模块不一定会运行其子模块。在上述示例中，运行 @filepath{park.rkt} 仅当其 @racket[require] 了 @racket[zoo] 子模块时才运行该子模块。否则，模块和每个子模块可以独立运行。此外，如果 @filepath{park.rkt} 被编译为 bytecode 文件（通过 @exec{raco make}），则 @filepath{park.rkt} 或 @racket[zoo] 的代码可以独立加载。
 
-Submodules can be nested within submodules, and a submodule can be
-referenced directly by a module other than its enclosing module by
-using a @elemref["submod"]{submodule path}.
+子模块可以嵌套在子模块内部，子模块也可以由外围模块以外的模块通过 @elemref["submod"]{子模块路径}直接引用。
 
-A @racket[module*] form is similar to a nested @racket[module] form:
+@racket[module*] 形式类似于嵌套的 @racket[module] 形式：
 
 @specform[
 (module* name-id initial-module-path-or-#f
   decl ...)
 ]
 
-The @racket[module*] form differs from @racket[module] in that it
-inverts the possibilities for reference between the submodule and
-enclosing module:
+@racket[module*] 形式与 @racket[module] 的区别在于它反转了子模块与外围模块之间的引用可能性：
 
 @itemlist[
 
- @item{A submodule declared with @racket[module] can be
-       @racket[require]d by its enclosing module, but the submodule
-       cannot @racket[require] the enclosing module or lexically
-       reference the enclosing module's bindings.}
+ @item{用 @racket[module] 声明的子模块可被其外围模块 @racket[require]，但子模块不能 @racket[require] 外围模块，也不能词法引用外围模块的绑定。}
 
- @item{A submodule declared with @racket[module*] can @racket[require]
-       its enclosing module, but the enclosing module cannot
-       @racket[require] the submodule.}
+ @item{用 @racket[module*] 声明的子模块可以 @racket[require] 其外围模块，但外围模块不能 @racket[require] 该子模块。}
 
 ]
 
-In addition, a @racket[module*] form can specify @racket[#f] in place of an
-@racket[_initial-module-path], in which case the submodule sees all of
-the enclosing module's bindings---including bindings that are not
-exported via @racket[provide].
+此外，@racket[module*] 形式可以用 @racket[#f] 代替 @racket[_initial-module-path]，此情况下子模块可以看到外围模块的所有绑定——包括未通过 @racket[provide] 导出的绑定。
 
-One use of submodules declared with @racket[module*] and @racket[#f] is
-to export additional bindings through a submodule that are not
-normally exported from the module:
+使用 @racket[module*] 和 @racket[#f] 声明子模块的一个用途是通过子模块导出通常不从模块导出的附加绑定：
 
 @racketmod[
 #:file "cake.rkt"
@@ -211,19 +144,12 @@ racket
   (provide show))
 ]
 
-In this revised @filepath{cake.rkt} module, @racket[show] is not
-imported by a module that uses @racket[(require "cake.rkt")], since
-most clients of @filepath{cake.rkt} will not want the extra function.  A
-module can require the @racket[extra] @tech{submodule} using
-@racket[(require (submod "cake.rkt" extras))] to access the otherwise
-hidden @racket[show] function.@margin-note*{See @elemref["submod"]{submodule paths}
-for more information on @racket[submod].}
+在此修改后的 @filepath{cake.rkt} 模块中，使用 @racket[(require "cake.rkt")] 的模块不会导入 @racket[show]，因为大多数 @filepath{cake.rkt} 的客户端不需要额外的函数。模块可以使用 @racket[(require (submod "cake.rkt" extras))] 来 require @racket[extra] @tech{子模块}，以访问原本隐藏的 @racket[show] 函数。@margin-note*{参见 @elemref["submod"]{子模块路径}了解 @racket[submod] 的更多信息。}
 
 @; ----------------------------------------------------------------------
-@section[#:tag "main-and-test"]{Main and Test Submodules}
+@section[#:tag "main-and-test"]{主模块和测试子模块}
 
-The following variant of @filepath{cake.rkt} includes a @racket[main]
-submodule that calls @racket[print-cake]:
+以下 @filepath{cake.rkt} 变体包含一个调用 @racket[print-cake] 的 @racket[main] 子模块：
 
 @racketmod[
 #:file "cake.rkt"
@@ -243,43 +169,20 @@ racket
   (print-cake 10))
 ]
 
-Running a module does not run its @racket[module*]-defined
-submodules. Nevertheless, running the above module via @exec{racket}
-or DrRacket prints a cake with 10 candles, because the @racket[main]
-@tech{submodule} is a special case.
+运行模块不会运行其 @racket[module*] 定义的子模块。然而，通过 @exec{racket} 或 DrRacket 运行上述模块会打印一个有 10 根蜡烛的蛋糕，因为 @racket[main] @tech{子模块}是特殊情况。
 
-When a module is provided as a program name to the @exec{racket}
-executable or run directly within DrRacket, if the module has a
-@as-index{@racket[main] submodule}, the @racket[main] submodule is run
-after its enclosing module. Declaring a @racket[main] submodule
-thus specifies extra actions to be performed when a module is run directly,
-instead of @racket[require]d as a library within a larger program.
+当模块作为程序名提供给 @exec{racket} 可执行文件或在 DrRacket 中直接运行时，如果模块有 @as-index{@racket[main] 子模块}，则 @racket[main] 子模块在其外围模块之后运行。因此，声明 @racket[main] 子模块指定了模块直接运行时（而不是作为库在更大程序中 @racket[require] 时）要执行的额外操作。
 
-A @racket[main] submodule does not have to be declared with
-@racket[module*]. If the @racket[main] module does not need to use
-bindings from its enclosing module, it can be declared with
-@racket[module]. More commonly, @racket[main] is declared using
-@racket[module+]:
+@racket[main] 子模块不必用 @racket[module*] 声明。如果 @racket[main] 模块不需要使用外围模块的绑定，可以用 @racket[module] 声明。更常见的是，@racket[main] 使用 @racket[module+] 声明：
 
 @specform[
 (module+ name-id
   decl ...)
 ]
 
-A submodule declared with @racket[module+] is like one declared with
-@racket[module*] using @racket[#f] as its
-@racket[_initial-module-path].  In addition,
-multiple @racket[module+] forms can specify the same submodule name,
-in which case the bodies of the @racket[module+] forms are combined to
-create a single submodule.
+用 @racket[module+] 声明的子模块类似于使用 @racket[#f] 作为 @racket[_initial-module-path] 的 @racket[module*] 声明。此外，多个 @racket[module+] 形式可以指定相同的子模块名称，此情况下 @racket[module+] 形式的体被组合以创建单个子模块。
 
-The combining behavior of @racket[module+] is particularly useful for
-defining a @racket[test] submodule, which can be conveniently run
-using @exec{raco test} in much the same way that @racket[main] is
-conveniently run with @exec{racket}. For example, the following
-@filepath{physics.rkt} module exports @racket[drop] and
-@racket[to-energy] functions, and it defines a @racket[test] module to
-hold unit tests:
+@racket[module+] 的组合行为对于定义 @racket[test] 子模块特别有用，可以方便地使用 @exec{raco test} 运行，类似于 @racket[main] 可以方便地用 @exec{racket} 运行。例如，以下 @filepath{physics.rkt} 模块导出 @racket[drop] 和 @racket[to-energy] 函数，并定义了一个 @racket[test] 模块来保存单元测试：
 
 @racketmod[
 #:file "physics.rkt"
@@ -306,13 +209,9 @@ racket
   (check-= (to-energy 1) 9e+16 1e+15))
 ]
 
-Importing @filepath{physics.rkt} into a larger program does not run
-the @racket[drop] and @racket[to-energy] tests---or even trigger the
-loading of the test code, if the module is compiled---but running
-@exec{raco test physics.rkt} at a command line runs the tests.
+将 @filepath{physics.rkt} 导入更大的程序不会运行 @racket[drop] 和 @racket[to-energy] 测试——如果模块已编译，甚至不会触发测试代码的加载——但在命令行运行 @exec{raco test physics.rkt} 会运行测试。
 
-The above @filepath{physics.rkt} module is equivalent to using
-@racket[module*]:
+上述 @filepath{physics.rkt} 模块等价于使用 @racket[module*]：
 
 @racketmod[
 #:file "physics.rkt"
@@ -336,13 +235,9 @@ racket
   (check-= (to-energy 1) 9e+16 1e+15))
 ]
 
-Using @racket[module+] instead of @racket[module*] allows tests to be
-interleaved with function definitions.
+使用 @racket[module+] 而不是 @racket[module*] 允许测试与函数定义交错排列。
 
-The combining behavior of @racket[module+] is also sometimes helpful
-for a @racket[main] module. Even when combining is not needed,
-@racket[(module+ main ....)] is preferred as it is more readable than
-@racket[(module* main #f ....)].
+@racket[module+] 的组合行为对于 @racket[main] 模块有时也有帮助。即使不需要组合，@racket[(module+ main ....)] 也更受青睐，因为它比 @racket[(module* main #f ....)] 更具可读性。
 
 @; ----------------------------------------------------------------------
 
