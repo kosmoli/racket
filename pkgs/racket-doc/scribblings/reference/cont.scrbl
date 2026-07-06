@@ -1,47 +1,42 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "cont"]{Continuations}
+@title[#:tag "cont"]{延续}
 
 @guideintro["conts"]{continuations}
 
-See @secref["cont-model"] and @secref["prompt-model"] for general
-information about continuations. Racket's support for prompts and
-composable continuations @cite["Flatt07"] closely resembles Sitaram's @racket[%] and
-@racket[fcontrol] operator @cite["Sitaram93"].
+关于 continuation 的一般信息，参见 @secref["cont-model"] 和
+@secref["prompt-model"]。Racket 对 prompt 和可组合 continuation 的支持
+@cite["Flatt07"] 与 Sitaram 的 @racket[%] 和 @racket[fcontrol] 操作符
+@cite["Sitaram93"] 非常相似。
 
 
-Racket installs a @tech{continuation barrier} around evaluation in the
-following contexts, preventing full-continuation jumps into the
-evaluation context protected by the barrier:
+Racket 在以下上下文中围绕求值安装 @tech{continuation barrier}，
+阻止 full-continuation 跳转到受 barrier 保护的求值上下文中：
 
 @itemize[
 
- @item{applying an exception handler, an error escape handler, or an
- error display handler (see @secref["exns"]);}
+ @item{应用 exception handler、error escape handler 或 error display handler
+ （参见 @secref["exns"]）；}
 
- @item{applying a macro transformer (see @secref["stxtrans"]),
- evaluating a compile-time expression, or applying a module name
- resolver (see @secref["modnameresolver"]);}
+ @item{应用 macro transformer（参见 @secref["stxtrans"]）、求值 compile-time 表达式，
+ 或应用 module name resolver（参见 @secref["modnameresolver"]）；}
 
- @item{applying a custom-port procedure (see @secref["customport"]), an
- event guard procedure (see @secref["sync"]), or a parameter guard
- procedure (see @secref["parameters"]);}
+ @item{应用 custom-port procedure（参见 @secref["customport"]）、
+ event guard procedure（参见 @secref["sync"]）或 parameter guard
+ procedure（参见 @secref["parameters"]）；}
 
- @item{applying a security-guard procedure (see
- @secref["securityguards"]);}
+ @item{应用 security-guard procedure（参见 @secref["securityguards"]）；}
 
- @item{applying a will procedure (see @secref["willexecutor"]); or}
+ @item{应用 will procedure（参见 @secref["willexecutor"]）；或}
 
- @item{evaluating or loading code from the stand-alone Racket
- command line (see @secref["running-sa"]).}
+ @item{从独立 Racket 命令行求值或加载代码（参见 @secref["running-sa"]）。}
 
 ]
 
-In addition, extensions of Racket may install barriers in
-additional contexts. Finally,
-@racket[call-with-continuation-barrier] applies a thunk barrier
-between the application and the current continuation.
+此外，Racket 的扩展可能在其他上下文中安装 barrier。最后，
+@racket[call-with-continuation-barrier] 在应用与当前 continuation 之间
+安装一个 thunk barrier。
 
 
 @defproc[(call-with-continuation-prompt 
@@ -51,57 +46,43 @@ between the application and the current continuation.
           [arg any/c] ...)
          any]{
 
-Applies @racket[proc] to the given @racket[arg]s with the current
-continuation extended by a prompt. The prompt is tagged by
-@racket[prompt-tag], which must be a result from either
-@racket[default-continuation-prompt-tag] (the default) or
-@racket[make-continuation-prompt-tag]. The call to
-@racket[call-with-continuation-prompt] returns the result of
-@racket[proc].
+将 @racket[proc] 应用于给定的 @racket[arg]，并将当前 continuation 扩展一个 prompt。
+该 prompt 由 @racket[prompt-tag] 标记，它必须是 @racket[default-continuation-prompt-tag]
+（默认值）或 @racket[make-continuation-prompt-tag] 的结果。对
+@racket[call-with-continuation-prompt] 的调用返回 @racket[proc] 的结果。
 
-The @racket[handler] argument specifies a handler procedure to be
-called in tail position with respect to the
-@racket[call-with-continuation-prompt] call when the installed prompt
-is the target of an @racket[abort-current-continuation] call with
-@racket[prompt-tag]; the remaining arguments of
-@racket[abort-current-continuation] are supplied to the handler
-procedure. If @racket[handler] is @racket[#f], the default handler
-accepts a single @racket[_abort-thunk] argument and calls
-@racket[(call-with-continuation-prompt _abort-thunk prompt-tag #f)];
-that is, the default handler re-installs the prompt and continues with
-a given thunk.}
+@racket[handler] 参数指定一个 handler procedure，当安装的 prompt 是
+@racket[abort-current-continuation] 调用（使用 @racket[prompt-tag]）的目标时，
+该 procedure 在 @racket[call-with-continuation-prompt] 调用的 tail position 被调用；
+@racket[abort-current-continuation] 的剩余参数被提供给 handler procedure。
+如果 @racket[handler] 是 @racket[#f]，默认 handler 接受单个 @racket[_abort-thunk]
+参数并调用 @racket[(call-with-continuation-prompt _abort-thunk prompt-tag #f)]；
+也就是说，默认 handler 重新安装 prompt 并继续执行给定的 thunk。}
 
 @defproc[(abort-current-continuation
           [prompt-tag any/c]
           [v any/c] ...)
          any]{
 
-Resets the current continuation to that of the nearest prompt tagged
-by @racket[prompt-tag] in the current continuation; if no such prompt exists,
-the @exnraise[exn:fail:contract:continuation]. The @racket[v]s are delivered
-as arguments to the target prompt's handler procedure.
+将当前 continuation 重置为当前 continuation 中由 @racket[prompt-tag] 标记的最近 prompt；
+如果不存在这样的 prompt，则 @exnraise[exn:fail:contract:continuation]。@racket[v] 作为参数
+传递给目标 prompt 的 handler procedure。
 
-The protocol for @racket[v]s supplied to an abort is specific to the
-@racket[prompt-tag]. When @racket[abort-current-continuation] is used with
-@racket[(default-continuation-prompt-tag)], generally, a single thunk
-should be supplied that is suitable for use with the default prompt
-handler. Similarly, when @racket[call-with-continuation-prompt] is
-used with @racket[(default-continuation-prompt-tag)], the associated
-handler should generally accept a single thunk argument.
+传递给 abort 的 @racket[v] 的协议是特定于 @racket[prompt-tag] 的。当
+@racket[abort-current-continuation] 与 @racket[(default-continuation-prompt-tag)]
+一起使用时，通常应提供单个 thunk，适合与默认 prompt handler 一起使用。类似地，
+当 @racket[call-with-continuation-prompt] 与 @racket[(default-continuation-prompt-tag)]
+一起使用时，关联的 handler 通常应接受单个 thunk 参数。
 
-Each @tech{thread}'s continuation starts with a prompt for
-@racket[(default-continuation-prompt-tag)] that uses the default
-handler, which accepts a single thunk to apply (with the prompt
-intact).}
+每个 @tech{thread} 的 continuation 都以 @racket[(default-continuation-prompt-tag)]
+的 prompt 开始，该 prompt 使用默认 handler，接受单个 thunk 来应用（保持 prompt 不变）。}
 
 @defproc*[([(make-continuation-prompt-tag) continuation-prompt-tag?]
            [(make-continuation-prompt-tag [name symbol?]) continuation-prompt-tag?])]{
 
-Creates a prompt tag that is not @racket[equal?] to the result of any
-other value (including prior or future results from
-@racket[make-continuation-prompt-tag]). The optional @racket[name]
-argument, if supplied, specifies the name of the prompt tag
-for printing or @racket[object-name].
+创建一个 prompt tag，它不 @racket[equal?] 于任何其他值（包括先前或未来的
+@racket[make-continuation-prompt-tag] 结果）。可选的 @racket[name] 参数（如果提供）
+指定 prompt tag 的名称，用于打印或 @racket[object-name]。
 
 @history[#:changed "7.9.0.13" @elem{The @racket[name] argument
           gives the name of the prompt tag.}]
@@ -109,56 +90,45 @@ for printing or @racket[object-name].
 
 @defproc[(default-continuation-prompt-tag) continuation-prompt-tag?]{
 
-Returns a constant prompt tag for which a prompt is installed at the
-start of every thread's continuation; the handler for each thread's
-initial prompt accepts any number of values and returns. The result of
-@racket[default-continuation-prompt-tag] is the default tag for
-any procedure that accepts a prompt tag.}
+返回一个常量 prompt tag，在每个线程的 continuation 起始处安装一个 prompt；
+每个线程的初始 prompt 的 handler 接受任意数量的值并返回。
+@racket[default-continuation-prompt-tag] 的结果是任何接受 prompt tag 的过程的默认 tag。}
 
 @defproc[(call-with-current-continuation 
           [proc (continuation? . -> . any)]
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)]) 
          any]{
 
-Captures the current continuation up to the nearest prompt tagged by
-@racket[prompt-tag]; if no such prompt exists, the
-@exnraise[exn:fail:contract:continuation]. The truncated continuation
-includes only continuation marks and @racket[dynamic-wind] frames
-installed since the prompt. 
+捕获当前 continuation 直到由 @racket[prompt-tag] 标记的最近 prompt；
+如果不存在这样的 prompt，则 @exnraise[exn:fail:contract:continuation]。
+被截断的 continuation 只包含自 prompt 以来安装的 continuation marks 和
+@racket[dynamic-wind] frame。
 
-The captured continuation is delivered to @racket[proc], which is
-called in tail position with respect to the
-@racket[call-with-current-continuation] call.
+捕获的 continuation 被传递给 @racket[proc]，该 procedure 在
+@racket[call-with-current-continuation] 调用的 tail position 被调用。
 
-If the continuation argument to @racket[proc] is ever applied, then it
-removes the portion of the current continuation up to the nearest
-prompt tagged by @racket[prompt-tag] (not including the prompt; if no
-such prompt exists, the @exnraise[exn:fail:contract:continuation]), or
-up to the nearest continuation frame (if any) shared by the current
-and captured continuations---whichever is first. While removing
-continuation frames, @racket[dynamic-wind] @racket[_post-thunk]s are
-executed. Finally, the (unshared portion of the) captured continuation
-is appended to the remaining continuation, applying
-@racket[dynamic-wind] @racket[_pre-thunk]s.
+如果传递给 @racket[proc] 的 continuation 参数被应用，则它会移除当前 continuation
+到由 @racket[prompt-tag] 标记的最近 prompt 的部分（不包括 prompt；如果不存在这样的 prompt，
+则 @exnraise[exn:fail:contract:continuation]），或到当前 continuation 与捕获的
+continuation 共享的最近 continuation frame（如果有的话）— 以先发生的那个为准。
+在移除 continuation frame 时，@racket[dynamic-wind] 的 @racket[_post-thunk] 被执行。
+最后，捕获的 continuation（未共享的部分）被追加到剩余的 continuation，并应用
+@racket[dynamic-wind] 的 @racket[_pre-thunk]。
 
-The arguments supplied to an applied procedure become the result
-values for the restored continuation. In particular, if multiple
-arguments are supplied, then the continuation receives multiple
-results.
+传递给被应用过程的参数成为恢复后的 continuation 的结果值。特别是，如果传递了多个参数，
+则 continuation 接收多个结果。
 
-If, at application time, a @tech{continuation barrier} would be
-introduced by replacing the current continuation with the applied one,
-then the @exnraise[exn:fail:contract:continuation].
+如果在应用时间，用替换当前 continuation 的 continuation 会引入 @tech{continuation barrier}，
+则 @exnraise[exn:fail:contract:continuation]。
 
-A continuation can be invoked from the thread (see
-@secref["threads"]) other than the one where it was captured.}
+Continuation 可以从捕获它的线程（参见 @secref["threads"]）以外的线程调用。}
 
 @defproc[(call/cc
           [proc (continuation? . -> . any)]
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)]) 
          any]{
 
-The @racket[call/cc] binding is an alias for @racket[call-with-current-continuation].
+@racket[call/cc] 绑定是 @racket[call-with-current-continuation] 的别名。
 }
 
 @defproc[(call-with-composable-continuation 
@@ -166,55 +136,44 @@ The @racket[call/cc] binding is an alias for @racket[call-with-current-continuat
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)]) 
          any]{
 
-Similar to @racket[call-with-current-continuation], but applying
-the resulting continuation procedure does not remove any portion of
-the current continuation. Instead, application always extends the
-current continuation with the captured continuation (without
-installing any prompts other than those captured in the
-continuation).
+类似于 @racket[call-with-current-continuation]，但应用生成的 continuation procedure
+不会移除当前 continuation 的任何部分。相反，应用总是用捕获的 continuation
+扩展当前 continuation（不安装除捕获的 continuation 中那些以外的任何 prompt）。
 
-When @racket[call-with-composable-continuation] is called, if a
-continuation barrier appears in the continuation before the closest
-prompt tagged by @racket[prompt-tag], the
-@exnraise[exn:fail:contract:continuation] (because attempting to apply
-the continuation would always fail).}
+当调用 @racket[call-with-composable-continuation] 时，如果在 continuation 中
+@racket[prompt-tag] 标记的最近 prompt 之前出现 continuation barrier，
+则 @exnraise[exn:fail:contract:continuation]（因为尝试应用 continuation 总会失败）。}
 
 @defproc[(call-with-escape-continuation 
           [proc (continuation? . -> . any)]) 
          any]{
 
-Like @racket[call-with-current-continuation], but @racket[proc] is not
-called in tail position, and the continuation procedure supplied to
-@racket[proc] can only be called during the dynamic extent of the
-@racket[call-with-escape-continuation] call.
+类似于 @racket[call-with-current-continuation]，但 @racket[proc] 不在 tail position 被调用，
+并且提供给 @racket[proc] 的 continuation procedure 只能在 @racket[call-with-escape-continuation]
+调用的 dynamic extent 内调用。
 
-A continuation obtained from @racket[call-with-escape-continuation] is
-actually a kind of prompt. Escape continuations are provided mainly
-for backwards compatibility, since they pre-date general prompts in
-Racket. In the @tech{BC} implementation of Racket,
-@racket[call-with-escape-continuation] is implemented more efficiently
-than @racket[call-with-current-continuation], so
-@racket[call-with-escape-continuation] can sometimes replace
-@racket[call-with-current-continuation] to improve performance in
-those older Racket variants.}
+从 @racket[call-with-escape-continuation] 获得的 continuation 实际上是一种 prompt。
+Escape continuation 主要为了向后兼容而提供，因为它们早于 Racket 中的通用 prompt。
+在 Racket 的 @tech{BC} 实现中，@racket[call-with-escape-continuation] 比
+@racket[call-with-current-continuation] 更高效地实现，因此 @racket[call-with-escape-continuation]
+有时可以替换 @racket[call-with-current-continuation] 以在那些较旧的 Racket 变体中提高性能。}
 
 @defproc[(call/ec
           [proc (continuation? . -> . any)]) 
          any]{
 
-The @racket[call/ec] binding is an alias for @racket[call-with-escape-continuation].
+@racket[call/ec] 绑定是 @racket[call-with-escape-continuation] 的别名。
 }
 
 @defproc[(call-in-continuation [k continuation?]
                                [proc (-> any)])
          any]{
 
-Similar to applying the continuation @racket[k], but instead of
-delivering values to the continuation, @racket[proc] is called with
-@racket[k] as the continuation of the call (so the result of
-@racket[proc] is returned to the continuation). If @racket[k]
-is a composable continuation, the continuation of the call to
-@racket[proc] is the current continuation extended with @racket[k].
+类似于应用 continuation @racket[k]，但不是向 continuation 传递值，
+而是用 @racket[k] 作为调用的 continuation 来调用 @racket[proc]（因此
+@racket[proc] 的结果被返回到 continuation）。如果 @racket[k] 是
+composable continuation，则对 @racket[proc] 的调用的 continuation
+是用 @racket[k] 扩展的当前 continuation。
 
 @mz-examples[
 (+ 1
@@ -246,19 +205,17 @@ is a composable continuation, the continuation of the call to
 @history[#:added "7.6.0.17"]}
 
 @defform[(let/cc k body ...+)]{
-Equivalent to @racket[(call/cc (lambda (k) body ...))].
+等价于 @racket[(call/cc (lambda (k) body ...))]。
 }
 
 @defform[(let/ec k body ...+)]{
-Equivalent to @racket[(call/ec (lambda (k) body ...))].
+等价于 @racket[(call/ec (lambda (k) body ...))]。
 }
 
 @defproc[(call-with-continuation-barrier [thunk (-> any)]) any]{
 
-Applies @racket[thunk] with a @tech{continuation barrier} between the
-application and the current continuation. The results of
-@racket[thunk] are the results of the
-@racket[call-with-continuation-barrier] call.}
+在应用与当前 continuation 之间以 @tech{continuation barrier} 调用 @racket[thunk]。
+@racket[thunk] 的结果是 @racket[call-with-continuation-barrier] 调用的结果。}
 
 
 @defproc[(continuation-prompt-available?
@@ -266,96 +223,70 @@ application and the current continuation. The results of
           [cont continuation? (call/cc values)]) 
          any]{
 
-Returns @racket[#t] if @racket[cont], which must be a continuation,
-includes a prompt tagged by @racket[prompt-tag], @racket[#f]
-otherwise.
+如果 @racket[cont]（必须是 continuation）包含由 @racket[prompt-tag] 标记的 prompt，
+则返回 @racket[#t]，否则返回 @racket[#f]。
 }
 
-@defproc[(continuation? [v any/c]) boolean?]{ Return @racket[#t] if
-@racket[v] is a continuation as produced by
-@racket[call-with-current-continuation],
-@racket[call-with-composable-continuation], or
-@racket[call-with-escape-continuation], @racket[#f] otherwise.}
+@defproc[(continuation? [v any/c]) boolean?]{
+如果 @racket[v] 是由 @racket[call-with-current-continuation]、
+@racket[call-with-composable-continuation] 或 @racket[call-with-escape-continuation]
+产生的 continuation，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(continuation-prompt-tag? [v any/c]) boolean?]{
-Returns @racket[#t] if @racket[v] is a continuation prompt tag as produced by
-@racket[default-continuation-prompt-tag] or @racket[make-continuation-prompt-tag].}
+如果 @racket[v] 是由 @racket[default-continuation-prompt-tag] 或
+@racket[make-continuation-prompt-tag] 产生的 continuation prompt tag，
+则返回 @racket[#t]。}
 
 @defproc[(dynamic-wind [pre-thunk (-> any)]
                        [value-thunk (-> any)]
                        [post-thunk (-> any)]) 
           any]{
 
-Applies its three thunk arguments in order.  The value of a
-@racket[dynamic-wind] expression is the value returned by
-@racket[value-thunk]. The @racket[pre-thunk] procedure is invoked
-before calling @racket[value-thunk] and @racket[post-thunk] is invoked
-after @racket[value-thunk] returns. The special properties of
-@racket[dynamic-wind] are manifest when control jumps into or out of
-the @racket[value-thunk] application (either due to a prompt abort or
-a continuation invocation): every time control jumps into the
-@racket[value-thunk] application, @racket[pre-thunk] is invoked, and
-every time control jumps out of @racket[value-thunk],
-@racket[post-thunk] is invoked. (No special handling is performed for
-jumps into or out of the @racket[pre-thunk] and @racket[post-thunk]
-applications.)
+按顺序应用其三个 thunk 参数。@racket[dynamic-wind] 表达式的值是 @racket[value-thunk] 返回的值。
+@racket[pre-thunk] 过程在调用 @racket[value-thunk] 之前调用，@racket[post-thunk] 在
+@racket[value-thunk] 返回之后调用。@racket[dynamic-wind] 的特殊性质在控制跳入或跳出
+@racket[value-thunk] 应用时显现（无论是由于 prompt abort 还是 continuation 调用）：
+每次控制跳入 @racket[value-thunk] 应用时，@racket[pre-thunk] 被调用；每次控制跳出
+@racket[value-thunk] 时，@racket[post-thunk] 被调用。（对于跳入或跳出 @racket[pre-thunk]
+和 @racket[post-thunk] 应用不执行特殊处理。）
 
-When @racket[dynamic-wind] calls @racket[pre-thunk] for normal
-evaluation of @racket[value-thunk], the continuation of the
-@racket[pre-thunk] application calls @racket[value-thunk] (with
-@racket[dynamic-wind]'s special jump handling) and then
-@racket[post-thunk].  Similarly, the continuation of the
-@racket[post-thunk] application returns the value of the preceding
-@racket[value-thunk] application to the continuation of the entire
-@racket[dynamic-wind] application.
+当 @racket[dynamic-wind] 为正常求值 @racket[value-thunk] 而调用 @racket[pre-thunk] 时，
+@racket[pre-thunk] 应用的 continuation 调用 @racket[value-thunk]（使用 @racket[dynamic-wind]
+的特殊跳转处理），然后调用 @racket[post-thunk]。类似地，@racket[post-thunk] 应用的
+continuation 将前一个 @racket[value-thunk] 应用的值返回给整个 @racket[dynamic-wind]
+应用的 continuation。
 
-When @racket[pre-thunk] is called due to a continuation jump, the
-continuation of the call to @racket[pre-thunk]
+当由于 continuation 跳转而调用 @racket[pre-thunk] 时，对 @racket[pre-thunk] 调用的
+continuation
 
 @itemize[
 
- @item{jumps to a more deeply nested @racket[pre-thunk], if any, or jumps
-       to the destination continuation; then}
+ @item{跳转到更深层嵌套的 @racket[pre-thunk]（如果有的话），或跳转到目标 continuation；然后}
 
- @item{continues the same as the enclosing @racket[dynamic-wind] call
-       in the destination continuation (i.e., matching the
-       continuation of the original @racket[dynamic-wind] call up
-       to the enclosing prompt that delimited capture).}
+ @item{在目标 continuation 中与外层 @racket[dynamic-wind] 调用相同地继续
+ （即，匹配原始 @racket[dynamic-wind] 调用的 continuation 直到界定捕获的外层 prompt）。}
 
 ]
 
-Normally, the second part of this continuation is never reached, due
-to a jump in the first part. However, the second part is relevant
-because it enables jumps to escape continuations that are contained in
-the continuation of the @racket[dynamic-wind] call within the
-destination continuation. Furthermore, it means that the continuation
-marks (see @secref["contmarks"]) and parameterization (see
-@secref["parameters"]) for @racket[pre-thunk] correspond to those of
-the enclosing @racket[dynamic-wind] call. The @racket[pre-thunk] call,
-however, is @racket[parameterize-break]ed to disable breaks (see also
-@secref["breakhandler"]).
+通常，由于第一部分的跳转，这个 continuation 的第二部分永远不会到达。然而，第二部分是相关的，
+因为它使得跳转能够逃逸包含在目标 continuation 中 @racket[dynamic-wind] 调用的
+continuation 中的 continuation。此外，这意味着 @racket[pre-thunk] 的 continuation marks
+（参见 @secref["contmarks"]）和 parameterization（参见 @secref["parameters"]）对应于
+外层 @racket[dynamic-wind] 调用的那些。然而，@racket[pre-thunk] 调用被
+@racket[parameterize-break]ed 以禁用 breaks（参见 @secref["breakhandler"]）。
 
-Similarly, when @racket[post-thunk] is called due to a continuation
-jump, the continuation of calling @racket[post-thunk] jumps to a less
-deeply nested @racket[post-thunk], if any, or jumps to a
-@racket[pre-thunk] protecting the destination, if any, or jumps to the
-destination continuation, then continues the same as the enclosing
-@racket[dynamic-wind] call within the originating continuation for the
-jump. As for @racket[pre-thunk], the continuation marks and
-parameterization of the @racket[dynamic-wind] call are in place for
-@racket[post-thunk], except that the call is further
-@racket[parameterize-break]ed to disable breaks.
+类似地，当由于 continuation 跳转而调用 @racket[post-thunk] 时，调用 @racket[post-thunk]
+的 continuation 跳转到较不深层嵌套的 @racket[post-thunk]（如果有的话），或跳转到保护目标的
+@racket[pre-thunk]（如果有的话），或跳转到目标 continuation，然后在跳转的源 continuation
+中与外层 @racket[dynamic-wind] 调用相同地继续。对于 @racket[pre-thunk]，@racket[dynamic-wind]
+调用的 continuation marks 和 parameterization 对 @racket[post-thunk] 都适用，
+只是该调用进一步被 @racket[parameterize-break]ed 以禁用 breaks。
 
-In both cases, the destination for a jump is recomputed after each
-@racket[pre-thunk] or @racket[post-thunk] completes. When a
-prompt-delimited continuation (see @secref["prompt-model"]) is
-captured in a @racket[post-thunk], it might be delimited and
-instantiated in such a way that the destination of a jump turns out to be
-different when the continuation is applied than when the continuation
-was captured. There may even be no appropriate destination, if a relevant
-prompt or escape continuation is not in the continuation after the
-restore; in that case, the first step in a @racket[pre-thunk] or
-@racket[post-thunk]'s continuation can raise an exception.
+在这两种情况下，跳转的目标在每次 @racket[pre-thunk] 或 @racket[post-thunk] 完成后重新计算。
+当 prompt-delimited continuation（参见 @secref["prompt-model"]）在 @racket[post-thunk] 中被捕获时，
+它可能被界定和实例化，使得当 continuation 被应用时，跳转的目标与捕获 continuation 时的目标不同。
+甚至可能没有适当的目标，如果在恢复后相关的 prompt 或 escape continuation 不在 continuation 中；
+在这种情况下，@racket[pre-thunk] 或 @racket[post-thunk] 的 continuation 的第一步可能引发异常。
 
 @examples[
 (let ([v (let/ec out 
