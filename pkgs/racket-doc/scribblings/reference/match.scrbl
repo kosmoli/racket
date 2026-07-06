@@ -6,13 +6,11 @@
 @examples[#:hidden #:eval match-eval (require racket/match racket/list)]
 @examples[#:hidden #:eval match-eval (require (for-syntax racket/base))]
 
-@title[#:tag "match"]{Pattern Matching}
+@title[#:tag "match"]{模式匹配}
 
-@guideintro["match"]{pattern matching}
+@guideintro["match"]{模式匹配}
 
-The @racket[match] form and related forms support general pattern
-matching on Racket values. See also @secref["regexp"] for information
-on regular-expression matching on strings, bytes, and streams.
+@racket[match] 形式及相关形式支持对 Racket 值的通用模式匹配。另请参见 @secref["regexp"] 了解字符串、字节和流的正则表达式匹配信息。
 
 @note-lib[racket/match #:use-sources (racket/match)]
 
@@ -23,24 +21,11 @@ on regular-expression matching on strings, bytes, and streams.
                [option (code:line #:when cond-expr)
                        (code:line #:do [do-body ...])])]{
 
-Finds the first @racket[pat] that matches the result of
-@racket[val-expr], and evaluates the corresponding @racket[body]s with
-bindings introduced by @racket[pat] (if any). Bindings introduced by
-@racket[pat] are not available in other parts of @racket[pat].
-The last @racket[body]
-in the matching clause is evaluated in tail position with respect to
-the @racket[match] expression. 
+查找第一个与 @racket[val-expr] 的结果匹配的 @racket[pat]，并使用 @racket[pat] 引入的绑定（如果有）求值相应的 @racket[body]。@racket[pat] 引入的绑定在 @racket[pat] 的其他部分不可用。匹配子句中最后一个 @racket[body] 在相对于 @racket[match] 表达式的尾位置求值。
 
-To find a match, the @racket[clause]s are tried in order. If no
-@racket[clause] matches, then the @exnraise[exn:misc:match?].
+为找到匹配，按顺序尝试各 @racket[clause]。如果没有 @racket[clause] 匹配，则 @exnraise[exn:misc:match?]。
 
-An optional @racket[#:when cond-expr] specifies that the pattern
-should only match if @racket[cond-expr] produces a true value.
-@racket[cond-expr] is in the scope of all of the variables bound in
-@racket[pat]. @racket[cond-expr] must not mutate the object being
-matched before calling the failure procedure, otherwise the behavior
-of matching is unpredictable. See also @racket[failure-cont], which is
-a lower-level mechanism achieving the same ends.
+可选的 @racket[#:when cond-expr] 指定模式仅在 @racket[cond-expr] 产生真值时才应匹配。@racket[cond-expr] 在 @racket[pat] 中绑定的所有变量的作用域内。@racket[cond-expr] 在调用失败过程之前不得修改正在匹配的对象，否则匹配行为不可预测。另请参见 @racket[failure-cont]，它是实现相同目标的更低层机制。
 
 @examples[
 #:eval match-eval
@@ -55,10 +40,7 @@ a lower-level mechanism achieving the same ends.
 (m '(2 3 4))
 ]
 
-An optional @racket[#:do [do-body ...]] executes @racket[do-body] forms.
-In particular, the forms may introduce definitions that are visible in the remaining
-options and the main clause body.
-Both @racket[#:when] and @racket[#:do] options may appear multiple times
+可选的 @racket[#:do [do-body ...]] 执行 @racket[do-body] 形式。特别是，这些形式可以引入在其余选项和主子句主体中可见的定义。@racket[#:when] 和 @racket[#:do] 选项均可出现多次
 
 @examples[
 #:eval match-eval
@@ -74,15 +56,7 @@ Both @racket[#:when] and @racket[#:do] options may appear multiple times
 (m '(2 3 4))
 ]
 
-An optional @racket[(=> id)], which must appear immediately after @racket[pat],
-is bound to a @deftech{failure procedure} of zero
-arguments.
-@racket[id] is visible in all clause options and the clause body.
-If this procedure is invoked, it escapes back to the
-pattern matching expression, and resumes the matching process as if
-the pattern had failed to match.  The @racket[body]s must not mutate
-the object being matched before calling the failure procedure,
-otherwise the behavior of matching is unpredictable. 
+可选的 @racket[(=> id)] 必须紧接在 @racket[pat] 之后出现，它被绑定到一个零参数的 @deftech{失败过程}。@racket[id] 在所有子句选项和子句主体中可见。如果调用此过程，它会逃逸回模式匹配表达式，并恢复匹配过程，就像该模式匹配失败一样。@racket[body] 在调用失败过程之前不得修改正在匹配的对象，否则匹配行为不可预测。 
 
 @examples[
 #:eval match-eval
@@ -102,35 +76,17 @@ otherwise the behavior of matching is unpredictable.
 (m '(2 3 4))
 ]
 
-The grammar of @racket[pat] is as follows, where non-italicized
-identifiers are recognized symbolically (i.e., not by binding).
+@racket[pat] 的语法如下，其中非斜体标识符按符号识别（即不通过绑定）。
 
 @|match-grammar|
 
-In more detail, patterns match as follows:
+更详细地说，各模式的匹配方式如下：
 
 @itemize[
 
- @item{@racket[_id] (excluding the reserved names @racketidfont{_},
-       @racketidfont{...}, @racketidfont{___},
-       @racketidfont{..}@racket[_k], and
-       @racketidfont{__}@racket[_k] for non-negative integers
-       @racket[_k]) @margin-note{Unlike in @racket[cond] and @racket[case],
-       @racket[else] is not a keyword in @racket[match].
-       Use the @racketidfont{_} pattern for the ``else'' clause.} or @racket[(var _id)]
-       --- matches anything, and binds @racket[_id] to the
-       matching values. If an @racket[_id] is used multiple times
-       within a pattern, the corresponding matches must be the same
-       according to @racket[(match-equality-test)], except that
-       instances of an @racket[_id] in different @racketidfont{or} and
-       @racketidfont{not} sub-patterns are independent. The binding for @racket[_id] is
-       not available in other parts of the same pattern.
+ @item{@racket[_id]（不包括保留名称 @racketidfont{_}、@racketidfont{...}、@racketidfont{___}、@racketidfont{..}@racket[_k] 以及针对非负整数 @racket[_k] 的 @racketidfont{__}@racket[_k]）@margin-note{与 @racket[cond] 和 @racket[case] 不同，@racket[else] 在 @racket[match] 中不是关键字。使用 @racketidfont{_} 模式作为"else"子句。} 或 @racket[(var _id)] --- 匹配任何内容，并将 @racket[_id] 绑定到匹配值。如果 @racket[_id] 在模式中多次使用，相应的匹配必须根据 @racket[(match-equality-test)] 相同，但不同 @racketidfont{or} 和 @racketidfont{not} 子模式中的 @racket[_id] 实例是独立的。@racket[_id] 的绑定在同一模式的其他部分不可用。
 
-       If @racket[_id] is used multiple times at different ellipsis
-       depths---that is, some uses are under @racketidfont{...} and
-       others are not, or they are under different @racketidfont{...}
-       patterns---a syntax error is raised.
-       See @secref["match-nonlinear-ellipsis"] for details and examples.
+       如果 @racket[_id] 在不同的省略号深度上多次使用——即有些使用在 @racketidfont{...} 下而其他不在，或者它们在不同的 @racketidfont{...} 模式下——会引发语法错误。详见 @secref["match-nonlinear-ellipsis"]。
 
        @examples[
        #:eval match-eval
@@ -147,8 +103,7 @@ In more detail, patterns match as follows:
             [else 'also-not-evaluated])])
        ]}
 
- @item{@match-kw{_} --- matches anything, without binding any
-       identifiers.
+ @item{@match-kw{_} --- 匹配任何内容，不绑定任何标识符。
 
        @examples[
        #:eval match-eval
@@ -156,9 +111,8 @@ In more detail, patterns match as follows:
          [(list _ _ a) a])
        ]}
 
- @item{@racket[#t], @racket[#f], @racket[_string], @racket[_bytes],
-       @racket[_number], @racket[_char], or @racket[(#,(racketidfont
-       "quote") _datum)] --- matches an @racket[equal?] constant.
+ @item{@racket[#t]、@racket[#f]、@racket[_string]、@racket[_bytes]、@racket[_number]、@racket[_char] 或 @racket[(#,(racketidfont
+       "quote") _datum)] --- 匹配 @racket[equal?] 常量。
 
        @examples[
        #:eval match-eval
@@ -167,19 +121,10 @@ In more detail, patterns match as follows:
          ["yes" #t])
        ]}
 
- @item{@racket[(#,(match-kw "list") _lvp ...)] --- matches a list
-       of elements. In the case of @racket[(#,(racketidfont "list")
-       _pat ...)], the pattern matches a list with as many elements as
-       @racket[_pat]s, and each element must match the corresponding
-       @racket[_pat]. In the more general case, each @racket[_lvp]
-       corresponds to a ``spliced'' list of greedy matches.
+ @item{@racket[(#,(match-kw "list") _lvp ...)] --- 匹配元素列表。对于 @racket[(#,(racketidfont "list")
+       _pat ...)] 的情况，该模式匹配具有与 @racket[_pat] 数量相同元素的列表，每个元素必须与相应的 @racket[_pat] 匹配。在更一般的情况下，每个 @racket[_lvp] 对应一个贪心匹配的"拼接"列表。
 
-       For spliced lists, @racketidfont{...} and @racketidfont{___}
-       are aliases for zero or more matches. The
-       @racketidfont{..}@racket[_k] and @racketidfont{__}@racket[_k]
-       forms are also aliases, specifying @racket[_k] or more
-       matches. Pattern variables that precede these splicing
-       operators are bound to lists of matching forms.
+       对于拼接列表，@racketidfont{...} 和 @racketidfont{___} 是零个或多个匹配的别名。@racketidfont{..}@racket[_k] 和 @racketidfont{__}@racket[_k] 形式也是别名，指定 @racket[_k] 个或更多匹配。这些拼接运算符之前的模式变量被绑定到匹配形式的列表。
 
        @examples[
        #:eval match-eval
@@ -202,12 +147,8 @@ In more detail, patterns match as follows:
        ]}
 
  @item{@racket[(#,(match-kw "list-rest") _lvp ... _pat)]
-       or @racket[(#,(match-kw "list*") _lvp ... _pat)] ---
-       similar to a @racketidfont{list} pattern, but the final
-       @racket[_pat] matches the ``rest'' of the list after the last
-       @racket[_lvp]. In fact, the matched value can be a non-list
-       chain of pairs (i.e., an ``improper list'') if @racket[_pat]
-       matches non-list values.
+       或 @racket[(#,(match-kw "list*") _lvp ... _pat)] ---
+       类似于 @racketidfont{list} 模式，但最后的 @racket[_pat] 匹配最后一个 @racket[_lvp] 之后列表的"剩余部分"。事实上，如果 @racket[_pat] 匹配非列表值，匹配的值可以是非列表的对链（即"不正规列表"）。
 
       @examples[
        #:eval match-eval
@@ -234,9 +175,7 @@ In more detail, patterns match as follows:
          @racket[(list-no-order x 1 x ...)] both produce syntax errors.}}
 
  @item{@racket[(#,(racketidfont "list-no-order") _pat ... _lvp)] ---
-       generalizes @racketidfont{list-no-order} to allow a pattern
-       that matches multiple list elements that are interspersed in
-       any order with matches for the other patterns.
+       推广 @racketidfont{list-no-order}，允许模式以任意顺序与其他模式的匹配交错匹配多个列表元素。
 
        @examples[
        #:eval match-eval
@@ -244,8 +183,7 @@ In more detail, patterns match as follows:
          [(list-no-order 6 2 y ...) y])
        ]}
 
- @item{@racket[(#,(match-kw "vector") _lvp ...)] --- like a
-       @racketidfont{list} pattern, but matching a vector.
+ @item{@racket[(#,(match-kw "vector") _lvp ...)] --- 类似 @racketidfont{list} 模式，但匹配 vector。
 
        @examples[
        #:eval match-eval
@@ -327,16 +265,12 @@ In more detail, patterns match as follows:
        ]}
 
  @item{@racket[(#,(match-kw "hash*") [_expr _pat _kv-opt] ... _ht-opt)] ---
-       similar to @racketidfont{hash}, but with the following differences:
+       类似于 @racketidfont{hash}，但有以下区别：
 
        @itemlist[
-         @item{The key-value pattern must be grouped syntactically.}
-         @item{If @racket[_ht-opt] is not specified, it behaves like @racket[#:open]
-               (as opposed to @racket[#:closed]).}
-         @item{If @racket[_kv-opt] is specified with @racket[#:default _def-expr],
-               and the key does not exist in the hash table value, then the default value
-               from @racket[_def-expr] will be matched against the value pattern,
-               instead of immediately failing to match.}
+         @item{键值模式必须在语法上进行分组。}
+         @item{如果未指定 @racket[_ht-opt]，其行为类似 @racket[#:open]（而非 @racket[#:closed]）。}
+         @item{如果 @racket[_kv-opt] 以 @racket[#:default _def-expr] 指定，且键在哈希表值中不存在，则来自 @racket[_def-expr] 的默认值将与值模式匹配，而不是立即匹配失败。}
        ]
 
        @examples[
@@ -352,12 +286,9 @@ In more detail, patterns match as follows:
        ]}
 
  @item{@racket[(#,(match-kw "hash-table") (_pat _pat) ...)] ---
-       @bold{This pattern is deprecated because it can be incorrect.}
-       However, many programs rely on the incorrect behavior,
-       so we still provide this pattern for backward compatibility reasons.
+       @bold{此模式已弃用，因为它可能不正确。}但是，许多程序依赖这种不正确的行为，因此出于向后兼容的原因，我们仍然提供此模式。
 
-       Similar to @racketidfont{list-no-order}, but matching against
-       hash table's key--value pairs.
+       类似于 @racketidfont{list-no-order}，但针对哈希表的键值对进行匹配。
 
        @examples[
        #:eval match-eval
@@ -366,12 +297,9 @@ In more detail, patterns match as follows:
        ]}
 
  @item{@racket[(#,(racketidfont "hash-table") (_pat _pat) ...+ _ooo)] ---
-       @bold{This pattern is deprecated because it can be incorrect.}
-       However, many programs rely on the incorrect behavior,
-       so we still provide this pattern for backward compatibility reasons.
+       @bold{此模式已弃用，因为它可能不正确。}但是，许多程序依赖这种不正确的行为，因此出于向后兼容的原因，我们仍然提供此模式。
 
-       Generalizes @racketidfont{hash-table} to support a final
-       repeating pattern.
+       推广 @racketidfont{hash-table} 以支持最后的重复模式。
 
        @examples[
        #:eval match-eval
@@ -379,7 +307,7 @@ In more detail, patterns match as follows:
          [(hash-table (key val) ...) key])
        ]}
 
- @item{@racket[(#,(match-kw "cons") _pat1 _pat2)] --- matches a pair value.
+ @item{@racket[(#,(match-kw "cons") _pat1 _pat2)] --- 匹配 pair 值。
 
        @examples[
        #:eval match-eval
@@ -387,7 +315,7 @@ In more detail, patterns match as follows:
          [(cons a b) (+ a b)])
        ]}
 
- @item{@racket[(#,(match-kw "mcons") _pat1 _pat2)] --- matches a mutable pair value.
+ @item{@racket[(#,(match-kw "mcons") _pat1 _pat2)] --- 匹配可变 pair 值。
 
        @examples[
        #:eval match-eval
@@ -396,7 +324,7 @@ In more detail, patterns match as follows:
 	 [(mcons a b) 'mutable])
        ]}
 
- @item{@racket[(#,(match-kw "box") _pat)] --- matches a boxed value.
+ @item{@racket[(#,(match-kw "box") _pat)] --- 匹配 box 值。
 
        @examples[
        #:eval match-eval
@@ -404,22 +332,11 @@ In more detail, patterns match as follows:
          [(box a) a])
        ]}
 
- @item{@racket[(_struct-id _pat ...)] or
+ @item{@racket[(_struct-id _pat ...)] 或
        @racket[(#,(match-kw "struct") _struct-id (_pat ...))] ---
-       matches an instance of a structure type named
-       @racket[_struct-id], where each field in the instance matches
-       the corresponding @racket[_pat]. See also @racket[struct*].
+       匹配名为 @racket[_struct-id] 的结构类型的实例，其中实例中的每个字段匹配相应的 @racket[_pat]。另请参见 @racket[struct*]。
 
-       Usually, @racket[_struct-id] is defined with
-       @racket[struct].  More generally, @racket[_struct-id]
-       must be bound to expansion-time information for a structure
-       type (see @secref["structinfo"]), where the information
-       includes at least a predicate binding and field accessor
-       bindings corresponding to the number of field
-       @racket[_pat]s. In particular, a module import or a
-       @racket[unit] import with a signature containing a
-       @racket[struct] declaration can provide the structure type
-       information.
+       通常，@racket[_struct-id] 使用 @racket[struct] 定义。更一般地说，@racket[_struct-id] 必须绑定到结构类型的展开时信息（参见 @secref["structinfo"]），其中信息至少包括与 @racket[_pat] 字段数量对应的谓词绑定和字段访问器绑定。特别是，模块导入或具有包含 @racket[struct] 声明的签名的 @racket[unit] 导入可以提供结构类型信息。
 
        @examples[
        #:eval match-eval
@@ -429,17 +346,10 @@ In more detail, patterns match as follows:
        ]}
 
  @item{@racket[(#,(racketidfont "struct") _struct-id _)] ---
-       matches any instance of @racket[_struct-id], without regard to
-       contents of the fields of the instance.
+       匹配 @racket[_struct-id] 的任何实例，不考虑实例字段的内容。
        }
 
- @item{@racket[(#,(match-kw "regexp") _rx-expr)] --- matches a
-       string that matches the regexp pattern produced by @racket[_rx-expr],
-       where @racket[_rx-expr] can be either a @racket[regexp], a @racket[pregexp],
-       a @racket[byte-regexp], a @racket[byte-pregexp], a string, or a byte string.
-       A string and byte string value is converted to a pattern using
-       @racket[regexp] and @racket[byte-regexp] respectively.
-       See @secref["regexp"] for more information about regexps.
+ @item{@racket[(#,(match-kw "regexp") _rx-expr)] --- 匹配一个与 @racket[_rx-expr] 产生的正则表达式模式匹配的字符串，其中 @racket[_rx-expr] 可以是 @racket[regexp]、@racket[pregexp]、@racket[byte-regexp]、@racket[byte-pregexp]、字符串或字节串。字符串和字节串值分别使用 @racket[regexp] 和 @racket[byte-regexp] 转换为模式。有关正则表达式的更多信息，请参见 @secref["regexp"]。
 
        @examples[
        #:eval match-eval
@@ -463,10 +373,7 @@ In more detail, patterns match as follows:
          [_ 'no])
        ]}
 
- @item{@racket[(#,(racketidfont "regexp") _rx-expr _pat)] --- extends
-       the @racketidfont{regexp} form to further constrain the match
-       where the result of @racket[regexp-match] is matched against
-       @racket[_pat].
+ @item{@racket[(#,(racketidfont "regexp") _rx-expr _pat)] --- 扩展 @racketidfont{regexp} 形式以进一步约束匹配，其中 @racket[regexp-match] 的结果与 @racket[_pat] 进行匹配。
 
        @examples[
        #:eval match-eval
@@ -478,18 +385,10 @@ In more detail, patterns match as follows:
          [_ 'no])
        ]}
 
- @item{@racket[(#,(match-kw "pregexp") _rx-expr)] or
-       @racket[(#,(racketidfont "pregexp") _rx-expr _pat)] --- like the
-       @racketidfont{regexp} patterns, but @racket[_rx-expr] must be either
-       a @racket[pregexp], a @racket[byte-pregexp], a string, or a byte string.
-       A string and byte string value is converted to a pattern using
-       @racket[pregexp] and @racket[byte-pregexp] respectively.}
+ @item{@racket[(#,(match-kw "pregexp") _rx-expr)] 或
+       @racket[(#,(racketidfont "pregexp") _rx-expr _pat)] --- 类似 @racketidfont{regexp} 模式，但 @racket[_rx-expr] 必须是 @racket[pregexp]、@racket[byte-pregexp]、字符串或字节串。字符串和字节串值分别使用 @racket[pregexp] 和 @racket[byte-pregexp] 转换为模式。}
 
- @item{@racket[(#,(match-kw "and") _pat ...)] --- matches if all
-       of the @racket[_pat]s match.  This pattern is often used as
-       @racket[(#,(racketidfont "and") _id _pat)] to bind @racket[_id]
-       to the entire value that matches @racket[pat]. The @racket[_pat]s are
-       matched in the order that they appear.
+ @item{@racket[(#,(match-kw "and") _pat ...)] --- 如果所有 @racket[_pat] 都匹配，则匹配。此模式通常用作 @racket[(#,(racketidfont "and") _id _pat)] 以将 @racket[_id] 绑定到匹配 @racket[pat] 的整个值。@racket[_pat] 按出现顺序进行匹配。
 
        @examples[
        #:eval match-eval
@@ -497,9 +396,7 @@ In more detail, patterns match as follows:
         [(list _ (and a (list _ ...)) _) a])
        ]}
 
- @item{@racket[(#,(match-kw "or") _pat ...)] --- matches if any of
-       the @racket[_pat]s match. Each @racket[_pat] must bind the same set
-       of identifiers.
+ @item{@racket[(#,(match-kw "or") _pat ...)] --- 如果任一 @racket[_pat] 匹配，则匹配。每个 @racket[_pat] 必须绑定相同的标识符集合。
 
        @examples[
        #:eval match-eval
@@ -507,8 +404,7 @@ In more detail, patterns match as follows:
         [(or (list a 1) (list a 2)) a])
        ]}
 
- @item{@racket[(#,(match-kw "not") _pat ...)] --- matches when
-       none of the @racket[_pat]s match, and binds no identifiers.
+ @item{@racket[(#,(match-kw "not") _pat ...)] --- 当所有 @racket[_pat] 都不匹配时匹配，不绑定任何标识符。
 
        @examples[
        #:eval match-eval
@@ -520,10 +416,7 @@ In more detail, patterns match as follows:
         [_ 'no])
        ]}
 
- @item{@racket[(#,(match-kw "app") _expr _pats ...)] --- applies
-       @racket[_expr] to the value to be matched; each result of the
-       application is matched against one of the @racket[_pats],
-       respectively.
+ @item{@racket[(#,(match-kw "app") _expr _pats ...)] --- 将 @racket[_expr] 应用于要匹配的值；应用的每个结果分别与 @racket[_pats] 之一进行匹配。
 
        @examples[
        #:eval match-eval
@@ -539,18 +432,9 @@ In more detail, patterns match as follows:
          (list 'yes x y z)])
        ]}
 
- @item{@racket[(#,(match-kw "?") _expr _pat ...)] --- applies
-       @racket[_expr] to the value to be matched, and checks whether
-       the result is a true value; the additional @racket[_pat]s must
-       also match; i.e., @racketidfont{?} combines a predicate
-       application and an @racketidfont{and} pattern.  However,
-       @racketidfont{?}, unlike @racketidfont{and}, guarantees that
-       @racket[_expr] is matched before any of the @racket[_pat]s.
+ @item{@racket[(#,(match-kw "?") _expr _pat ...)] --- 将 @racket[_expr] 应用于要匹配的值，并检查结果是否为真值；附加的 @racket[_pat] 也必须匹配；即 @racketidfont{?} 结合了谓词应用和 @racketidfont{and} 模式。然而，@racketidfont{?} 与 @racketidfont{and} 不同，它保证 @racket[_expr] 在任何 @racket[_pat] 之前匹配。
 
-       @margin-note{The @racket[_expr] procedure may be called more than once
-       on identical input (although this happens only rarely),
-       and the order in which calls to @racket[_expr] are
-       made should not be relied upon.}
+       @margin-note{@racket[_expr] 过程可能在相同输入上被调用多次（虽然这种情况很少发生），且不应依赖 @racket[_expr] 调用的顺序。}
 
        @examples[
        #:eval match-eval
@@ -558,11 +442,7 @@ In more detail, patterns match as follows:
         [(list (? odd?) ...) 'yes])
        ]}
 
-  @item{@racket[(#,(match-kw "quasiquote") _qp)] --- introduces a
-        quasipattern, in which identifiers match symbols. Like the
-        @racket[quasiquote] expression form, @racketidfont{unquote}
-        and @racketidfont{unquote-splicing} escape back to normal
-        patterns.
+  @item{@racket[(#,(match-kw "quasiquote") _qp)] --- 引入准模式（quasipattern），其中标识符匹配符号。与 @racket[quasiquote] 表达式形式类似，@racketidfont{unquote} 和 @racketidfont{unquote-splicing} 逃逸回正常模式。
 
         @examples[
        #:eval match-eval
@@ -570,31 +450,25 @@ In more detail, patterns match as follows:
           [`(1 ,a ,(? odd? b)) (list a b)])
         ]}
 
- @item{@racket[_derived-pattern] --- matches a pattern defined by a
-       macro extension via @racket[define-match-expander].}
+ @item{@racket[_derived-pattern] --- 匹配通过 @racket[define-match-expander] 的宏扩展定义的模式。}
 
 ]
 
-Note that the matching process may destructure the input multiple times, and
-may evaluate expressions embedded in patterns such as @racket[(#,(racketidfont
-"app") expr pat)] in arbitrary order, or multiple times.  Therefore, such
-expressions must be safe to call multiple times, or in an order other than they
-appear in the original program.
+注意，匹配过程可能会多次解构输入，并可能以任意顺序或多次求值嵌入在模式中的表达式，如 @racket[(#,(racketidfont
+"app") expr pat)]。因此，这些表达式必须是可安全多次调用的，或以不同于原始程序中出现的顺序调用。
 
-@history[#:changed "8.9.0.5" @elem{Added a support for @racket[#:do].}
-         #:changed "8.11.1.10" @elem{Added the @racket[#,(racketidfont "hash")] and
-                                     @racket[#,(racketidfont "hash*")] patterns.}]
+@history[#:changed "8.9.0.5" @elem{添加了对 @racket[#:do] 的支持。}
+         #:changed "8.11.1.10" @elem{添加了 @racket[#,(racketidfont "hash")] 和
+                                     @racket[#,(racketidfont "hash*")] 模式。}]
 }
 
 @; ----------------------------------------------------------------------
 
-@section{Additional Matching Forms}
+@section{其他匹配形式}
 
 @defform/subs[(match* (val-expr ...+) clause* ...)
               ([clause* [(pat ...+) option=> option ... body ...+]])]{
-Matches a sequence of values against each clause in order, matching
-only when all patterns in a clause match.  Each clause must have the
-same number of patterns as the number of @racket[val-expr]s.
+按顺序将值序列与每个子句进行匹配，仅当子句中所有模式都匹配时才匹配。每个子句必须具有与 @racket[val-expr] 数量相同的模式数。
 
 @examples[#:eval match-eval
 (match* (1 2 3)
@@ -608,10 +482,7 @@ same number of patterns as the number of @racket[val-expr]s.
 }
 
 @defform[(match/values expr clause* clause* ...)]{
-If @racket[expr] evaluates to @racket[n] values, then match all @racket[n]
-values against the patterns in @racket[clause* ...]. Each clause must contain
-exactly @racket[n] patterns. At least one clause is required to determine how
-many values to expect from @racket[expr].
+如果 @racket[expr] 求值为 @racket[n] 个值，则将全部 @racket[n] 个值与 @racket[clause* ...] 中的模式进行匹配。每个子句必须恰好包含 @racket[n] 个模式。至少需要一个子句来确定期望从 @racket[expr] 获得多少个值。
 
 @examples[#:eval match-eval
 (match/values (values 1 2 3)
@@ -632,11 +503,7 @@ many values to expect from @racket[expr].
         (code:line keyword [arg-id default-expr])]
    [match*-clause [(pat ...+) option=> option ... body ...+]])
 ]{
-  Binds @racket[id] to a procedure that is defined by pattern matching
-  clauses using @racket[match*]. Each clause takes a sequence of
-  patterns that correspond to the arguments in the function header.
-  The arguments are ordered as they appear in the function header for
-  matching purposes.
+  将 @racket[id] 绑定到通过使用 @racket[match*] 的模式匹配子句定义的过程。每个子句接受与函数头中参数对应的模式序列。参数的顺序与函数头中出现的顺序一致，用于匹配目的。
 
   @examples[#:eval match-eval
     (eval:no-prompt
@@ -646,8 +513,7 @@ many values to expect from @racket[expr].
     (fact 5)
   ]
 
-  The function header may also contain optional or keyword arguments,
-  may have curried arguments, and may also contain a rest argument.
+  函数头还可以包含可选参数或关键字参数，可以有柯里化参数，也可以包含剩余参数。
 
   @examples[#:eval match-eval
     (eval:no-prompt
@@ -671,36 +537,31 @@ many values to expect from @racket[expr].
 @deftogether[(@defform[(match-lambda clause ...)]
               @defform[(match-λ clause ...)])]{
 
-Equivalent to @racket[(lambda (id) (match id clause ...))].
+等价于 @racket[(lambda (id) (match id clause ...))]。
 
-@history[#:changed "8.13.0.5" @elem{Added @racket[match-λ].}]
+@history[#:changed "8.13.0.5" @elem{添加了 @racket[match-λ]。}]
 }
 
 @deftogether[(@defform[(match-lambda* clause ...)]
               @defform[(match-λ* clause ...)])]{
 
-Equivalent to @racket[(lambda lst (match lst clause ...))].
+等价于 @racket[(lambda lst (match lst clause ...))]。
 
-@history[#:changed "8.13.0.5" @elem{Added @racket[match-λ*].}]
+@history[#:changed "8.13.0.5" @elem{添加了 @racket[match-λ*]。}]
 }
 
 @deftogether[(@defform[(match-lambda** clause* ...)]
               @defform[(match-λ** clause* ...)])]{
 
-Equivalent to @racket[(lambda (args ...) (match* (args ...) clause* ...))],
-where the number of @racket[args ...] is computed from the number of patterns
-appearing in each of the @racket[clause*].
+等价于 @racket[(lambda (args ...) (match* (args ...) clause* ...))]，其中 @racket[args ...] 的数量根据每个 @racket[clause*] 中出现的模式数量计算得出。
 
-@history[#:changed "8.13.0.5" @elem{Added @racket[match-λ**].}]
+@history[#:changed "8.13.0.5" @elem{添加了 @racket[match-λ**]。}]
 }
 
 
 @defform[(match-let ([pat expr] ...) body ...+)]{
 
-Generalizes @racket[let] to support pattern bindings. Each
-@racket[expr] is matched against its corresponding @racket[pat] (the
-match must succeed), and the bindings that @racket[pat] introduces are
-visible in the @racket[body]s.
+推广 @racket[let] 以支持模式绑定。每个 @racket[expr] 与其对应的 @racket[pat] 进行匹配（匹配必须成功），@racket[pat] 引入的绑定在 @racket[body] 中可见。
 
 @examples[
 #:eval match-eval
@@ -711,9 +572,7 @@ visible in the @racket[body]s.
 
 @defform[(match-let* ([pat expr] ...) body ...+)]{
 
-Like @racket[match-let], but generalizes @racket[let*], so that the
-bindings of each @racket[pat] are available in each subsequent
-@racket[expr].
+类似 @racket[match-let]，但推广 @racket[let*]，使得每个 @racket[pat] 的绑定在每个后续 @racket[expr] 中可用。
 
 @examples[
 #:eval match-eval
@@ -724,28 +583,27 @@ bindings of each @racket[pat] are available in each subsequent
 
 @defform[(match-let-values ([(pat ...) expr] ...) body ...+)]{
 
-Like @racket[match-let], but generalizes @racket[let-values].}
+类似 @racket[match-let]，但推广 @racket[let-values]。}
 
 @defform[(match-let*-values ([(pat ...) expr] ...) body ...+)]{
 
-Like @racket[match-let*], but generalizes @racket[let*-values].}
+类似 @racket[match-let*]，但推广 @racket[let*-values]。}
 
 @defform[(match-letrec ([pat expr] ...) body ...+)]{
 
-Like @racket[match-let], but generalizes @racket[letrec].}
+类似 @racket[match-let]，但推广 @racket[letrec]。}
 
 
 @defform[(match-letrec-values ([(pat ...) expr] ...) body ...+)]{
 
-Like @racket[match-let], but generalizes @racket[letrec-values].
+类似 @racket[match-let]，但推广 @racket[letrec-values]。
 
 @history[#:added "6.1.1.8"]
 }
  
 @defform[(match-define pat expr)]{
 
-Defines the names bound by @racket[pat] to the values produced by
-matching against the result of @racket[expr].
+将由 @racket[pat] 绑定的名称定义为通过匹配 @racket[expr] 结果产生的值。
 
 @examples[
 #:eval match-eval
@@ -755,9 +613,7 @@ b
 
 @defform[(match-define-values (pat pats ...) expr)]{
 
-Like @racket[match-define] but for when expr produces multiple values.
-Like match/values, it requires at least one pattern to determine the
-number of values to expect.
+类似 @racket[match-define]，但用于当 expr 产生多个值时。与 match/values 一样，它至少需要一个模式来确定期望的值数量。
 
 @examples[
 #:eval match-eval
@@ -768,44 +624,30 @@ b
 @; ----------------------------------------
 
 @defproc[(exn:misc:match? [v any/c]) boolean?]{
-A predicate for the exception raised in the case of a match failure.
+用于匹配失败时引发的异常的谓词。
 }
 
 @defform[(failure-cont)]{
-Continues matching as if the current pattern failed.  Note that unlike
-use of the @racket[=>] form, this does @emph{not} escape the current
-context, and thus should only be used in tail position with respect to
-the @racket[match] form.
+继续匹配，就好像当前模式失败了一样。注意，与使用 @racket[=>] 形式不同，这 @emph{不}会逃逸当前上下文，因此只应在相对于 @racket[match] 形式的尾位置使用。
 }
 
 
 @; ----------------------------------------
 
-@section{Extending @racket[match]}
+@section{扩展 @racket[match]}
 
 @defform*[((define-match-expander id proc-expr)
            (define-match-expander id proc-expr proc-expr))]{
 
-Binds @racket[id] to a @deftech{match expander}.
+将 @racket[id] 绑定到一个 @deftech{匹配展开器}（match expander）。
 
-The first @racket[proc-expr] sub-expression must evaluate to a
- transformer that produces a @racket[_pat] for @racket[match].
- Whenever @racket[id] appears as the beginning of a pattern, this
- transformer is given, at expansion time, a syntax object
- corresponding to the entire pattern (including @racket[id]).  The
- pattern is replaced with the result of the transformer.
+第一个 @racket[proc-expr] 子表达式必须求值为一个转换器，该转换器为 @racket[match] 产生一个 @racket[_pat]。每当 @racket[id] 作为模式的开头出现时，在展开时，此转换器会接收一个对应于整个模式（包括 @racket[id]）的语法对象。该模式被替换为转换器的结果。
 
-A transformer produced by a second @racket[proc-expr] sub-expression is
- used when @racket[id] is used in an expression context. Using the
- second @racket[proc-expr], @racket[id] can be given meaning both
- inside and outside patterns.
+当 @racket[id] 在表达式上下文中使用时，使用第二个 @racket[proc-expr] 子表达式产生的转换器。使用第二个 @racket[proc-expr]，@racket[id] 可以在模式内部和外部都具有含义。
 
-Match expanders are not invoked unless @racket[id] appears in the first
-position in a sequence. Instead, identifiers bound by @racket[define-match-expander]
-are used as binding identifiers (like any other identifier) when they appear
-anywhere except the first position in a sequence.
+除非 @racket[id] 出现在序列的第一个位置，否则不会调用匹配展开器。相反，当由 @racket[define-match-expander] 绑定的标识符出现在序列中除第一个位置之外的任何位置时，它们被用作绑定标识符（与其他任何标识符一样）。
  
-For example, to extend the pattern matcher and destructure syntax lists,
+例如，要扩展模式匹配器并解构语法列表，
 @examples[#:label #f
   #:eval match-eval
   (eval:no-prompt
@@ -838,11 +680,7 @@ For example, to extend the pattern matcher and destructure syntax lists,
      (list "AAANND!" b c)])
  ]
 
-And here is an example showing how 
-@racket[define-match-expander]-bound identifiers are
-@emph{not} treated specially unless they appear
-in the first position of pattern sequence. Consider
-this (incorrect) definition of a length function:
+以下示例展示了 @racket[define-match-expander] 绑定的标识符除非出现在模式序列的第一个位置，否则 @emph{不}会被特殊处理。考虑这个（错误的）长度函数定义：
 @examples[#:label #f
   #:eval match-eval
   (eval:no-prompt
@@ -854,20 +692,14 @@ this (incorrect) definition of a length function:
        [nil 0]
        [(cons hd tl) (+ 1 (len tl))])))]
 
-Because there are no parenthesis around @racket[nil],
-@racket[match] treats the first case as an identifier
-(which matches everything) instead of a use of the match
-expander and @racket[len] always returns @racket[0].
+因为 @racket[nil] 周围没有括号，@racket[match] 将第一个 case 视为标识符（匹配任何内容），而不是匹配展开器的使用，因此 @racket[len] 总是返回 @racket[0]。
 
 @examples[#:label #f #:eval match-eval
   (len nil)
   (len (cons 1 nil))
   (len (cons 1 (cons 2 nil)))]
 
-Match expanders accept any syntax pair whose first element is an
-@racket[identifier?] bound to the expander. The following example
-shows a match expander which can be called with an improper syntax
-list of the form @racket[(expander a b . rest)].
+匹配展开器接受任何其第一个元素是绑定到该展开器的 @racket[identifier?] 的语法对。以下示例展示了一个匹配展开器，它可以用 @racket[(expander a b . rest)] 形式的不正规语法列表调用。
 @examples[#:label #f
   #:eval match-eval
   (eval:no-prompt
@@ -884,92 +716,57 @@ list of the form @racket[(expander a b . rest)].
 
 @history[
  #:changed "7.7.0.2"
- @elem{Match expanders now allowed any syntax pair whose first element is an 
-  @racket[identifier?] bound to the expander. The example above did not work
-  with previous versions.}]
+ @elem{匹配展开器现在允许任何其第一个元素是绑定到该展开器的 @racket[identifier?] 的语法对。上述示例在以前的版本中不起作用。}]
 }
 
 @defthing[prop:match-expander struct-type-property?]{
 
-A @tech{structure type property} to identify structure types that act
-as @tech{match expanders} like the ones created by
-@racket[define-match-expander].
+一个 @tech{结构类型属性}，用于标识充当 @tech{匹配展开器}的结构类型，类似 @racket[define-match-expander] 创建的那些。
 
-The property value must be an exact non-negative integer or a
-procedure of one or two arguments.  In the former case, the integer
-designates a field within the structure that should contain a
-procedure; the integer must be between @racket[0] (inclusive) and the
-number of non-automatic fields in the structure type (exclusive, not
-counting supertype fields), and the designated field must also be
-specified as immutable.
+属性值必须是一个精确的非负整数或一个接受一个或两个参数的过程。在前一种情况下，该整数指定结构内应包含一个过程的字段；该整数必须在 @racket[0]（含）到结构类型中非自动字段的数量（不含，不计超类型字段）之间，且指定字段还必须被指定为不可变的。
 
-If the property value is a procedure of one argument, then the
-procedure serves as the transformer for match expansion. If the property value is a procedure of two
-arguments, then the first argument is the structure whose type has
-@racket[prop:match-expander] property, and the second argument is a
-syntax object as for a @tech{match expander}..
+如果属性值是一个接受一个参数的过程，则该过程充当匹配展开的转换器。如果属性值是一个接受两个参数的过程，则第一个参数是其类型具有 @racket[prop:match-expander] 属性的结构，第二个参数是如 @tech{匹配展开器}的语法对象。
 
-If the property value is a @tech{assignment transformer}, then the wrapped
-procedure is extracted with
-@racket[set!-transformer-procedure] before it is called.
+如果属性值是一个 @tech{赋值转换器}，则在调用之前会使用 @racket[set!-transformer-procedure] 提取包装的过程。
 
-This binding is provided @racket[for-syntax].
+此绑定以 @racket[for-syntax] 提供。
 }
 
 @defthing[prop:legacy-match-expander struct-type-property?]{
-Like @racket[prop:match-expander], but for the legacy match syntax.
+类似 @racket[prop:match-expander]，但用于旧版匹配语法。
 
-This binding is provided @racket[for-syntax].
+此绑定以 @racket[for-syntax] 提供。
 }
 
 @deftogether[[
 @defproc[(match-expander? [v any/c]) boolean?]
 @defproc[(legacy-match-expander? [v any/c]) boolean?]]]{
-Predicates for values which implement the appropriate match expander
-properties.
+用于实现相应匹配展开器属性的值的谓词。
 }
 
 @defproc[(syntax-local-match-introduce [stx syntax?]) syntax?]{
-For backward compatibility only; equivalent to @racket[syntax-local-introduce].
+仅用于向后兼容；等价于 @racket[syntax-local-introduce]。
 
-@history[#:changed "6.90.0.29" @elem{Made equivalent to @racket[syntax-local-introduce].}]}
+@history[#:changed "6.90.0.29" @elem{使其等价于 @racket[syntax-local-introduce]。}]}
 
 
 @defparam[match-equality-test comp-proc (any/c any/c . -> . any)]{
 
-A @tech{parameter} that determines the comparison procedure used to check
-whether multiple uses of an identifier match the ``same'' value. The
-default is @racket[equal?].}
+一个 @tech{参数}，确定用于检查标识符的多次使用是否匹配"相同"值的比较过程。默认值为 @racket[equal?]。}
 
 @deftogether[[@defform[(match/derived val-expr original-datum clause ...)]
               @defform[(match*/derived (val-expr ...) original-datum clause* ...)]]]{
-Like @racket[match] and @racket[match*] respectively, but includes a
-sub-expression to be used as the source for all syntax errors within the form.
-For example, @racket[match-lambda] expands to @racket[match/derived] so that
-errors in the body of the form are reported in terms of @racket[match-lambda]
-instead of @racket[match].}
+分别类似 @racket[match] 和 @racket[match*]，但包含一个子表达式用作形式内所有语法错误的源。例如，@racket[match-lambda] 展开为 @racket[match/derived]，以便形式主体中的错误以 @racket[match-lambda] 而非 @racket[match] 报告。}
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "match-nonlinear-ellipsis"]{Non-linear Patterns and Ellipses}
+@section[#:tag "match-nonlinear-ellipsis"]{非线性模式与省略号}
 
-When the same identifier is used multiple times within a pattern (a
-@deftech{non-linear pattern}), each occurrence must be within the same
-@racketidfont{...}, otherwise a syntax error is raised.  In order for
-the entire pattern to match, each occurrence must match the same value
-according to @racket[(match-equality-test)],
+当同一标识符在模式中多次使用时（@deftech{非线性模式}），每次出现必须在同一 @racketidfont{...} 内，否则会引发语法错误。为了使整个模式匹配，每次出现必须根据 @racket[(match-equality-test)] 匹配相同的值。
 
-When both occurrences of an identifier are under the same
-@racketidfont{...}, each repetition of the pattern checks equality
-between the occurrences within that repetition, but the identifier can
-match different values in different repetitions. The identifier
-is bound to a list of the matched values.
+当标识符的两次出现都在同一 @racketidfont{...} 下时，模式的每次重复检查该重复内的出现之间的相等性，但标识符可以在不同重复中匹配不同的值。该标识符被绑定到一个匹配值的列表。
 
-For example, @racket[(list (list a a) ...)] matches
-@racket['((1 1) (2 2) (3 3))] successfully because within each
-repetition both @racket[a]s are equal, even though @racket[a] is
-@racket[1] in the first repetition, @racket[2] in the second, and
-@racket[3] in the third. In this case, @racket[a] is bound to @racket['(1 2 3)] on the right-hand side.
+例如，@racket[(list (list a a) ...)] 成功匹配 @racket['((1 1) (2 2) (3 3))]，因为在每次重复中两个 @racket[a] 都相等，尽管 @racket[a] 在第一次重复中是 @racket[1]，在第二次中是 @racket[2]，在第三次中是 @racket[3]。在这种情况下，@racket[a] 在右侧被绑定到 @racket['(1 2 3)]。
 
 @examples[
 #:eval match-eval
@@ -983,9 +780,7 @@ repetition both @racket[a]s are equal, even though @racket[a] is
   [_ 'no])
 ]
 
-If an identifier is used at different ellipsis depths---for example,
-once outside @racketidfont{...} and once inside, or under different
-@racketidfont{...} patterns---a syntax error is raised.
+如果标识符在不同的省略号深度上使用——例如，一次在 @racketidfont{...} 外一次在内，或在不同的 @racketidfont{...} 模式下——则会引发语法错误。
 
 @examples[
 #:eval match-eval
@@ -994,20 +789,14 @@ once outside @racketidfont{...} and once inside, or under different
 (eval:error (match '((1 2) 3) [(list (list a ...) a) a]))
 ]
 
-@history[#:changed "9.1.0.9" @elem{Added equality checking for
-non-linear patterns under @racketidfont{...}, and changed
-non-linear patterns with differing ellipsis depth to raise a syntax
-error.}]
+@history[#:changed "9.1.0.9" @elem{为 @racketidfont{...} 下的非线性模式添加了相等性检查，并将具有不同省略号深度的非线性模式改为引发语法错误。}]
 
 @; ----------------------------------------------------------------------
 
-@section{Library Extensions}
+@section{库扩展}
 
 @defform*[[(== val comparator) (== val)]]{
-A @tech{match expander} 
-which checks if the matched value is the same as @racket[val] when
-compared by @racket[comparator].  If @racket[comparator] is
-not provided, it defaults to @racket[equal?].  
+一个 @tech{匹配展开器}，检查匹配值在使用 @racket[comparator] 比较时是否与 @racket[val] 相同。如果未提供 @racket[comparator]，则默认为 @racket[equal?]。  
 
 @examples[#:eval match-eval
 (match (list 1 2 3)
@@ -1024,13 +813,9 @@ not provided, it defaults to @racket[equal?].
 
 
 @defform[(struct* struct-id ([field pat] ...))]{
- A @racket[match] pattern form that matches an instance of a structure
- type named @racket[struct-id], where the field @racket[field] in the
- instance matches the corresponding @racket[pat].
- The fields do not include those from super types.
+ 一个 @racket[match] 模式形式，匹配名为 @racket[struct-id] 的结构类型的实例，其中实例中字段 @racket[field] 匹配相应的 @racket[pat]。这些字段不包括来自超类型的字段。
 
- Any field of @racket[struct-id] may be omitted, and such fields can
- occur in any order.
+ @racket[struct-id] 的任何字段均可省略，且这些字段可以按任意顺序出现。
 
  @examples[
   #:eval match-eval
