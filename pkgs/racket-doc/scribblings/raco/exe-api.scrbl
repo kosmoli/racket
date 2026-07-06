@@ -18,30 +18,15 @@
                      compiler/find-exe
                      setup/dirs))
 
-@title{API for Creating Executables}
+@title{API 用于创建可执行文件}
 
 @defmodule[compiler/embed]{
 
-The @racketmodname[compiler/embed] library provides a function to
-embed Racket code into a copy of Racket or GRacket, thus creating a
-stand-alone Racket executable. To package the executable into a
-distribution that is independent of your Racket installation, use
-@racket[assemble-distribution] from
-@racketmodname[compiler/distribute].}
+@racketmodname[compiler/embed] 库提供一个函数，用于将 Racket 代码嵌入到 Racket 或 GRacket 的副本中，从而创建一个独立的 Racket 可执行文件。要将可执行文件打包成独立于您 Racket 安装的发布版，请使用 @racketmodname[compiler/distribute] 中的 @racket[assemble-distribution]。}
 
-Embedding walks the module dependency graph to find all modules needed
-by some initial set of top-level modules, compiling them if needed,
-and combining them into a ``module bundle.'' In addition to the module
-code, the bundle extends the module name resolver, so that modules can
-be @racket[require]d with their original names, and they will be
-retrieved from the bundle instead of the filesystem.
+嵌入操作会遍历模块依赖图，找到某些初始顶级模块所需的所有模块，必要时对其进行编译，并将它们组合成一个“模块包”。除了模块代码外，包还扩展了模块名称解析器，使得模块可以用其原始名称被 @racket[require] 调用，而且将从包而非文件系统中获取这些模块。
 
-The @racket[create-embedding-executable] function combines the bundle
-with an executable (Racket or GRacket). The
-@racket[write-module-bundle] function prints the bundle to the current
-output port, instead; this stream can be @racket[load]ed directly by a
-running program, as long as the @racket[read-accept-compiled]
-parameter is true.
+@racket[create-embedding-executable] 函数将包与可执行文件（Racket 或 GRacket）组合在一起。而 @racket[write-module-bundle] 函数将包输出到当前输出端口；只要 @racket[read-accept-compiled] 参数为 true，这个流就可以直接被运行中的程序 @racket[load] 加载。
 
 @defproc[(create-embedding-executable [dest path-string?]
                                [#:modules mod-list 
@@ -100,58 +85,21 @@ parameter is true.
                                                     (lambda (p m) null)])
          void?]{
 
-Copies the Racket (if @racket[gracket?] and @racket[mred?] are
-@racket[#f]) or GRacket (otherwise) binary, embedding code into the
-copied executable to be loaded on startup.  On Unix, the binary is
-actually a wrapper executable that @tt{exec}s the original; see also the
-@racket['original-exe?] tag for @racket[aux].
+复制 Racket（如果 @racket[gracket?] 和 @racket[mred?] 均为 @racket[#f]）或 GRacket（否则）二进制文件，将代码嵌入复制的可执行文件中以在启动时加载。在 Unix 上，二进制文件实际是一个包装可执行文件，它会 @tt{exec} 原始文件；参见 @racket[aux] 的 @racket['original-exe?] 标签。
 
-The embedding executable is written to @racket[dest], which is
-overwritten if it exists already (as a file or directory).
+嵌入式可执行文件将写入 @racket[dest]，如果它已经存在（作为文件或目录）则会被覆盖。
 
-The embedded code consists of module declarations followed by
-additional (arbitrary) code. When a module is embedded, every module
-that it imports is also embedded. Library modules are embedded so that
-they are accessible via their @racket[lib] paths in the initial
-namespace.
+嵌入的代码由模块声明和额外的（任意的）代码组成。当一个模块被嵌入时，它导入的所有模块也会被嵌入。库模块被嵌入后，在初始名称空间中可通过其 @racket[lib] 路径访问。
 
-The @racket[#:modules] argument @racket[mod-list] designates modules
-to be embedded, as described below. The @racket[#:early-literal-expressions], @racket[#:literal-files], and
-@racket[#:literal-expressions] arguments specify literal code to be
-copied into the executable: each element of @racket[early-literal-sexps]
-is copied in order, then
-the content of each file in
-@racket[literal-files] in order (with no intervening spaces),
-and then each element of @racket[literal-sexps]. The
-@racket[literal-files] files or @racket[early-literal-sexps] or @racket[literal-sexps] lists can
-contain compiled bytecode, and it's possible that the content of the
-@racket[literal-files] files only parse when concatenated; the files
-and expression are not compiled or inspected in any way during the
-embedding process. Beware that the initial namespace contains no
-bindings; use compiled expressions to bootstrap the namespace.
+@racket[#:modules] 参数 @racket[mod-list] 指定要嵌入的模块（如下所述）。@racket[#:early-literal-expressions]、@racket[#:literal-files] 和 @racket[#:literal-expressions] 参数指定要复制到可执行文件中的字面代码：@racket[early-literal-sexps] 的每个元素按顺序复制，接着是 @racket[literal-files] 中每个文件的内容（不带间隔空格），最后是 @racket[literal-sexps] 的每个元素。@racket[literal-files] 文件或 @racket[early-literal-sexps] 或 @racket[literal-sexps] 列表可包含编译后的字节码，并且 @racket[literal-files] 文件的内容可能只有在连接成字符串时才能解析；这些文件和表达式在嵌入过程中不会被编译或检查。请注意，初始名称空间中不包含任何绑定，请使用编译后的表达式来引导名称空间。
 The @racket[#:literal-expression]
 (singular) argument is for backward compatibility.
 
-If the @racket[#:configure-via-first-module?] argument is specified as
-true, then the language of the first module in @racket[mod-list] is
-used to configure the run-time environment before the expressions
-added by @racket[#:literal-files] and @racket[#:literal-expressions]
-are evaluated, but after the expressions of @racket[#:early-literal-expressions]. See also @secref[#:doc '(lib
-"scribblings/reference/reference.scrbl") "configure-runtime"].
+如果 @racket[#:configure-via-first-module?] 参数指定为 true，那么 @racket[mod-list] 中第一个模块的语言專用于在计算 @racket[#:literal-files] 和 @racket[#:literal-expressions] 添加的表达式之前配置运行时环境，但在计算 @racket[#:early-literal-expressions] 之后。参见 @secref[#:doc '(lib "scribblings/reference/reference.scrbl") "configure-runtime"]。
 
-The @racket[#:cmdline] argument @racket[cmdline] contains command-line
-strings that are prefixed onto any actual command-line arguments that
-are provided to the embedding executable. A command-line argument that
-evaluates an expression or loads a file will be executed after the
-embedded code is loaded.
+@racket[#:cmdline] 参数 @racket[cmdline] 包含命令行字符串，它们会被添加到传递给嵌入式可执行文件的任何实际命令行参数之前。计算表达式或加载文件的命令行参数将在嵌入代码加载完毕后执行。
 
-Each element of the @racket[#:modules] argument @racket[mod-list] is a
-two- or three-item list, where the first item is a prefix for the
-module name, and the second item is a module path datum (that's in the
-format understood by the default module name resolver), and the third
-is a list of submodule names to be included if they are available. The
-prefix can be a symbol, @racket[#f] to indicate no prefix, or
-@racket[#t] to indicate an auto-generated prefix. For example,
+@racket[#:modules] 参数 @racket[mod-list] 的每个元素是一个包含两或三个项的列表，其中第一项是模块名称的前缀，第二项是模块路径数据（格式为默认模块名称解析器能理解的），第三项是可用是师包含的子模块名称列表。前缀可以是 symbol、@racket[#f]（表示无前缀）或 @racket[#t]（表示自动生成前缀）。例如：
 
 @racketblock['((#f "m.rkt"))]
 
@@ -162,81 +110,33 @@ are available and included, the submodule is given a name by
 symbol-appending the @racket[write] form of the submodule path to the
 enclosing module's name.
 
-When an embedded module is not listed in the @racket[#:modules]
-argument or not given a prefix there, a symbolic name for the embedded
-module is generated automatically. The names are generated in a
-deterministic but unspecified way, so that they are not conveniently
-accessible. The generated names may depend on the path of the first
-element of @racket[mod-list]. Modules that were included via a
-collection-based path remain accessible at run time through their
-collection-based paths (via a module name resolver that is installed
-for the embedding executable).
+当一个嵌入的模块未在 @racket[#:modules] 参数中列出或在那里未给定前缀时，系统会自动为嵌入的模块生成一个符号名称。这些名称以确定但未指定的方式生成，因此无法方便地访问。生成的名称可能依赖于 @racket[mod-list] 第一个元素的路径。通过基于 collection 的路径包含的模块在运行时仍可通过其基于 collection 的路径访问（通过为嵌入式可执行文件安装的模块名称解析器）。
 
-Modules are normally compiled before they are embedded into the target
-executable; see also @racket[#:compiler] and @racket[#:src-filter]
-below. When a module declares run-time paths via
-@racket[define-runtime-path], the generated executable records the
-path (for use both by immediate execution and for creating a
-distribution that contains the executable).
+模块通常在嵌入目标可执行文件之前被编译；参见下面的 @racket[#:compiler] 和 @racket[#:src-filter]。当一个模块通过 @racket[define-runtime-path] 声明运行时路径时，生成的可执行文件会记录该路径（以供立即执行和创建包含该可执行文件的发布版使用）。
 
-If @racket[collects-dest] is a path instead of @racket[#f], then
-instead of embedding collection-based modules into the executable, the
-modules (in compiled form, only) are copied into collections in the
-@racket[collects-dest] directory.
+如果 @racket[collects-dest] 是一个路径而非 @racket[#f]，那么不将基于 collection 的模块嵌入可执行文件，而是将这些模块（仅编译形式）复制到 @racket[collects-dest] 目录的 collection 中。
 
-The optional @racket[#:aux] argument is an association list for
-platform-specific options (i.e., it is a list of pairs where the first
-element of the pair is a key symbol and the second element is the
-value for that key). See also @racket[build-aux-from-path]. The
-currently supported keys are as follows:
+可选的 @racket[#:aux] 参数是一个用于平台特定选项的关联列表（即它是一个组对列表，每个组对的第一个元素是键 symbol，第二个元素是对应的值）。参见 @racket[build-aux-from-path]。当前支持的键如下：
 
 @itemize[
 
-  @item{@racket['icns] (Mac OS) : An icon file path (suffix
-        @filepath{.icns}) to use for the executable's desktop icon.}
+  @item{@racket['icns] (Mac OS) ：用于可执行文件桌面图标的图标文件路径（后缀 @filepath{.icns}）。}
 
-  @item{@racket['ico] (Windows) : An icon file path (suffix
-        @filepath{.ico}) to use for the executable's desktop icon.
+  @item{@racket['ico] (Windows) ：用于可执行文件桌面图标的图标文件路径（后缀 @filepath{.ico}）。
 
         @history[#:changed "6.3" @elem{All icons in the
         executable are replaced with icons from the file,
         instead of setting only certain sizes and depths.}]}
 
-  @item{@racket['creator] (Mac OS) : Provides a 4-character string
-        to use as the application signature.}
+  @item{@racket['creator] (Mac OS) ：提供一个 4 字符字符串作为应用签名。}
 
-  @item{@racket['file-types] (Mac OS) : Provides a list of
-        association lists, one for each type of file handled by the
-        application; each association is a two-element list, where the
-        first (key) element is a string recognized by Finder, and the
-        second element is a plist value (see
-        @racketmodname[xml/plist]). See @filepath{drracket.filetypes}
-        in the @filepath{drracket} collection for an example.}
+  @item{@racket['file-types] (Mac OS) ：提供一个关联列表的列表，应用处理的每种文件类型对应一个关联列表；每个关联是一个两元素列表，第一个（键）元素是 Finder 识别的字符串，第二个元素是 plist 值（参见 @racketmodname[xml/plist]）。参见 @filepath{drracket} collection 中的 @filepath{drracket.filetypes} 获取示例。}
 
-  @item{@racket['uti-exports] (Mac OS) : Provides a list of
-        association lists, one for each @as-index{Uniform Type
-        Identifier} (UTI) exported by the executable; each association
-        is a two-element list, where the first (key) element is a
-        string recognized in a UTI declaration, and the second element
-        is a plist value (see @racketmodname[xml/plist]). See
-        @filepath{drracket.utiexports} in the @filepath{drracket}
-        collection for an example.}
+  @item{@racket['uti-exports] (Mac OS) ：提供一个关联列表的列表，可执行文件导出的每个 @as-index{Uniform Type Identifier} (UTI) 对应一个关联列表；每个关联是一个两元素列表，第一个（键）元素是 UTI 声明中识别的字符串，第二个元素是 plist 值（参见 @racketmodname[xml/plist]）。参见 @filepath{drracket} collection 中的 @filepath{drracket.utiexports} 获取示例。}
 
-  @item{@racket['resource-files] (Mac OS) : extra files to copy into
-        the @filepath{Resources} directory of the generated
-        executable.}
+  @item{@racket['resource-files] (Mac OS) ：要复制到生成的可执行文件的 @filepath{Resources} 目录的额外文件。}
 
-  @item{@racket['config-dir] : A string/path to a directory that
-        contains configuration information, such as
-        @filepath{config.rtkd} (see @secref["config-file"]).  If no
-        value is supplied, the path is left as-is and converted to
-        absolute form as needed. If @racket[#f] is supplied, the path
-        is left as-is (in potentially relative form). Note that if
-        @racket[collects-path] is provided as an empty list, then
-        the configuration-directory path is not used by Racket's
-        start up process (in contrast to a normal Racket start-up,
-        where the configuration directory is consulted for information
-        about collection link files).}
+  @item{@racket['config-dir] ：包含配置信息的目录的字符串/路径，例如 @filepath{config.rtkd}（参见 @secref["config-file"]）。如果未提供值，路径保留原样，并在需要时转换为绝对形式。如果提供 @racket[#f]，路径保留原样（可能是相对形式）。请注意，如果 @racket[collects-path] 作为空列表提供，配置目录路径将不被 Racket 的启动过程使用（与普通 Racket 启动相反，后者会查询配置目录以获取 collection 链接文件的信息）。}
 
   @item{@racket['framework-root] (Mac OS) : A string to prefix the
         executable's path to the Racket and GRacket frameworks
@@ -249,141 +149,39 @@ currently supported keys are as follows:
         otherwise the original executable's path to a framework is
         converted to an absolute path if it was relative.}
 
-  @item{@racket['dll-dir] (Windows) : A string/path to a directory
-        that contains Racket DLLs needed by the executable, such as
-        @filepath{racket@nonterm{version}.dll}, or a boolean; a path
-        can be relative to the executable; if @racket[#f] is supplied,
-        the path is left as-is; if @racket[#t] is supplied, the path
-        is dropped (so that the DLLs must be in the system directory
-        or the user's @envvar{PATH}); if no value is supplied the
-        original executable's path to DLLs is converted to an absolute
-        path if it was relative.}
+  @item{@racket['dll-dir] (Windows) ：包含可执行文件所需 Racket DLL 的目录的字符串/路径，例如 @filepath{racket@nonterm{version}.dll}，或一个布尔值；路径可以是相对于可执行文件的；如果提供 @racket[#f]，路径保留原样；如果提供 @racket[#t]，路径会被丢弃（因此 DLL 必须在系统目录或用户的 @envvar{PATH} 中）；如果未提供值，原始可执行文件到 DLL 的路径如果是相对的则会被转换为绝对路径。}
 
-  @item{@racket['embed-dlls?] (Windows) : A boolean indicating whether
-        to copy DLLs into the executable, where the default value is
-        @racket[#f]. Embedded DLLs are instantiated by an internal
-        linking step that bypasses some operating system facilities,
-        so it will not work for all Windows DLLs, but typical DLLs
-        will work as embedded.}
+  @item{@racket['embed-dlls?] (Windows) ：一个布尔值，指示是否将 DLL 复制到可执行文件中，默认值为 @racket[#f]。嵌入式 DLL 通过内部链接步骤实例化，该步骤绕过了一些操作系统功能，因步对了所有 Windows DLL 都不起作用，但典型的 DLL 作为嵌入式是可用的。}
 
-  @item{@racket['subsystem] (Windows) : A symbol, either
-        @racket['console] for a console application or
-        @racket['windows] for a consoleless application; the default
-        is @racket['console] for a Racket-based application and
-        @racket['windows] for a GRacket-based application; see also
-        @racket['single-instance?], below.}
+  @item{@racket['subsystem] (Windows) ：一个 symbol，@racket['console] 表示控制台应用，@racket['windows] 表示无控制台应用；对于基于 Racket 的应用默认为 @racket['console]，对于基于 GRacket 的应用默认为 @racket['windows]；参见下面的 @racket['single-instance?]。}
 
-  @item{@racket['single-instance?] (Windows) : A boolean for
-        GRacket-based apps; the default is @racket[#t], which means that
-        the app looks for instances of itself on startup and merely
-        brings the other instance to the front; @racket[#f] means that
-        multiple instances are expected.}
+  @item{@racket['single-instance?] (Windows) ：用于基于 GRacket 的应用的布尔值；默认为 @racket[#t]，表示应用在启动时查找自身的其他实例并仅将其带到前台；@racket[#f] 表示预期多个实例。}
 
-  @item{@racket['forget-exe?] (Unix, Windows, Mac OS) : A boolean;
-        @racket[#t] for a launcher (see @racket[launcher?] below) does
-        not preserve the original executable name for
-        @racket[(find-system-path 'exec-file)]; one consequence
-        is that library collections will be found relative to the
-        launcher instead of the original executable.}
+  @item{@racket['forget-exe?] (Unix, Windows, Mac OS) ：一个布尔值；对于 launcher（参见下面的 @racket[launcher?]），@racket[#t] 表示不保留 @racket[(find-system-path 'exec-file)] 的原始可执行文件名称；一个后果是库 collection 将相对于 launcher 而非原始可执行文件被找到。}
 
-  @item{@racket['original-exe?] (Unix) : A boolean; @racket[#t] means
-        that the embedding uses the original Racket or GRacket
-        executable, instead of a wrapper binary that @tt{exec}s the
-        original; the default is @racket[#f].}
+  @item{@racket['original-exe?] (Unix) ：一个布尔值；@racket[#t] 表示嵌入使用原始的 Racket 或 GRacket 可执行文件，而不是 @tt{exec} 原始文件的包装二进制文件；默认为 @racket[#f]。}
 
-  @item{@racket['relative?] (Unix, Windows, Mac OS) : A boolean;
-        @racket[#t] means that, to the degree that the generated
-        executable must refer to another, it can use a relative path
-        (so the executables can be moved together, but not
-        separately), and it implies @racket[#f] for
-        @racket['config-dir], @racket['framework-dir], and
-        @racket['dll-dir], unless those are explicitly provided; a
-        @racket[#f] value (the default) means that absolute paths
-        should be used (so the generated executable can be moved).}
+  @item{@racket['relative?] (Unix, Windows, Mac OS) ：一个布尔值；@racket[#t] 表示在生成的可执行文件必须引用另一个可执行文件的范围内，可以使用相对路径（因此可执行文件可以一起移动，但不能单独移动），并且意味着 @racket['config-dir]、@racket['framework-dir] 和 @racket['dll-dir] 都被视为 @racket[#f]，除非这些选项被显式提供；@racket[#f] 值（默认）意味着应使用绝对路径（以便生成的可执行文件可以移动）。}
 
-  @item{@racket['wm-class] (Unix) : A string; used as the default
-        @tt{WM_CLASS} program class for the program's windows.}
+  @item{@racket['wm-class] (Unix) ：一个字符串；用作程序窗口的默认 @tt{WM_CLASS} 程序类。}
 
 ]
 
-If the @racket[#:collects-path] argument is @racket[#f], then the
-created executable maintains its built-in (relative) path to the main
-@filepath{collects} directory---which will be the result of
-@racket[(find-system-path 'collects-dir)] when the executable is
-run---plus a potential list of other directories for finding library
-collections---which are used to initialize the
-@racket[current-library-collection-paths] list in combination with the
-@envvar{PLTCOLLECTS} environment variable.  Otherwise, the argument
-specifies a replacement; it must be either a path, string, or
-list of paths and strings. In the last case, the first path
-or string specifies the main collection directory, and the rest are
-additional directories for the collection search path (placed, in
-order, after the user-specific @filepath{collects} directory, but
-before the main @filepath{collects} directory; then the search list is
-combined with @envvar{PLTCOLLECTS}, if it is defined). If the list
-is empty, then @racket[(find-system-path 'collects-dir)] will return
-the directory of the executable, but @racket[current-library-collection-paths] 
-is initialized to an empty list, and
-@racket[use-collection-link-paths] is set to false to disable the
-use of @tech[#:doc reference-doc]{collection links files}.
+如果 @racket[#:collects-path] 参数为 @racket[#f]，那么创建的可执行文件会保留其内置的（相对的）到主要 @filepath{collects} 目录的路径——当可执行文件运行时，这会是 @racket[(find-system-path 'collects-dir)] 的结果——加上一个用于查找库 collection 的其他目录的列表——这些目录与 @envvar{PLTCOLLECTS} 环境变量组合使用，用于初始化 @racket[current-library-collection-paths] 列表。否则，该参数指定一个替代值；它必须是一个路径、字符串或路径和字符串的列表。在最后一种情况下，第一个路径或字符串指定主要的 collection 目录，其余的是 collection 搜索路径的附加目录（按顺序放置在用户特定的 @filepath{collects} 目录之后，但在主要的 @filepath{collects} 目录之前；然后搜索列表与 @envvar{PLTCOLLECTS} 组合，如果后者已定义）。如果列表为空，那么 @racket[(find-system-path 'collects-dir)] 将返回可执行文件的目录，但 @racket[current-library-collection-paths] 会被初始化为空列表，并且 @racket[use-collection-link-paths] 会被设置为 false 以禁用 @tech[#:doc reference-doc]{collection links files}。
 
-If the @racket[#:launcher?] argument is @racket[#t], then
-@racket[mod-list] should be null, @racket[literal-files] should be
-null, and @racket[literal-sexp] should be @racket[#f]. The embedding executable is created in
-such a way that @racket[(find-system-path 'exec-file)] produces the
-source Racket or GRacket path instead of the embedding executable (but
-the result of @racket[(find-system-path 'run-file)] is still the
-embedding executable), unless @racket['forget-exe?] is associated
-to a true value in @racket[aux].
+如果 @racket[#:launcher?] 参数为 @racket[#t]，那么 @racket[mod-list] 应为 null，@racket[literal-files] 应为 null，@racket[literal-sexp] 应为 @racket[#f]。嵌入式可执行文件会以这样的方式创建：@racket[(find-system-path 'exec-file)] 产生源 Racket 或 GRacket 的路径而不是嵌入式可执行文件的路径（但 @racket[(find-system-path 'run-file)] 的结果仍然是嵌入式可执行文件），除非 @racket[aux] 中 @racket['forget-exe?] 关联了一个真值。
 
-The @racket[#:variant] argument indicates which variant of the
-original binary to use for embedding. The default is
-@racket[(system-type 'gc)]; see also
-@racket[current-launcher-variant].
+@racket[#:variant] 参数指示使用原始二进制文件的哪个变体进行嵌入。默认为 @racket[(system-type 'gc)]；参见 @racket[current-launcher-variant]。
 
-The @racket[#:compiler] argument is used to compile the source of
-modules to be included in the executable (when a compiled form is not
-already available). It should accept a single argument that is a
-syntax object for a @racket[module] form. The default procedure uses
-@racket[compile] parameterized to set the current namespace to
-@racket[expand-namespace].
+@racket[#:compiler] 参数用于编译要包含在可执行文件中的模块的源码（当编译形式尚未可用时）。它应接受一个单一参数，即一个 @racket[module] 形式的 syntax object。默认过程使用 @racket[compile]，并通过参数化将当前名称空间设置为 @racket[expand-namespace]。
 
-The @racket[#:expand-namespace] argument selects a namespace for
-expanding extra modules (and for compiling using the default
-@racket[compile-proc]).  Extra-module expansion is needed to detect
-run-time path declarations in included modules, so that the path
-resolutions can be directed to the current locations (and, ultimately,
-redirected to copies in a distribution).
+@racket[#:expand-namespace] 参数选择一个名称空间用于扩展额外模块（以及使用默认 @racket[compile-proc] 进行编译）。需要对额外模块进行扩展以检测包含的模块中的运行时路径声明，以便将路径解析引向当前位置（并最终重方向到发布版中的副本）。
 
-The @racket[#:src-filter] @racket[src-filter] argument takes a path and returns true if
-the corresponding file source should be included in the embedding
-executable in source form (instead of compiled form), @racket[#f]
-otherwise. The default returns @racket[#f] for all paths. Beware that
-the current output port may be redirected to the result executable
-when the filter procedure is called. Each path given to
-@racket[src-filter] corresponds to the actual file name (e.g.,
-@filepath{.ss}/@filepath{.rkt} conversions have been applied as needed
-to refer to the existing file).
+@racket[#:src-filter] 参数 @racket[src-filter] 接受一个路径并返回 true，如果对应的文件源应以源形式（而非编译形式）包含在嵌入式可执行文件中，否则返回 @racket[#f]。默认对所有路径都返回 @racket[#f]。请注意，在调用过滤器过程时，当前输出端口可能会被重方向到结果可执行文件。传递给 @racket[src-filter] 的每个路径对应于实际文件名（例如，已按需应用 @filepath{.ss}/@filepath{.rkt} 转换以引用现有文件）。
 
-If the @racket[#:on-extension] argument is a procedure, the procedure
-is called when the traversal of module dependencies arrives at an
-extension (i.e., a DLL or shared object). The default, @racket[#f],
-causes a reference to a single-module extension (in its current
-location) to be embedded into the executable. The procedure is called
-with two arguments: a path for the extension, and a @racket[#f] (for
-historical reasons).
+如果 @racket[#:on-extension] 参数是一个过程，那么当遍历模块依赖关系到达一个扩展（即 DLL 或共享对象）时，就会调用该过程。默认值 @racket[#f] 会导致将单模块扩展的引用（在其当前位置）嵌入到可执行文件中。该过程会被传入两个参数：扩展的路径和一个 @racket[#f]（出于历史原因）。
   
-The @racket[#:get-extra-imports] @racket[extras-proc] argument takes a source pathname and
-compiled module for each module to be included in the executable. It
-returns a list of quoted module paths (absolute, as opposed to
-relative to the module) for extra modules to be included in the
-executable in addition to the modules that the source module
-@racket[require]s. For example, these modules might correspond to
-reader extensions needed to parse a module that will be included as
-source, as long as the reader is referenced through an absolute module
-path. Each path given to @racket[extras-proc] corresponds to the
-actual file name (e.g., @filepath{.ss}/@filepath{.rkt} conversions
-have been applied as needed to refer to the existing file).
+@racket[#:get-extra-imports] 参数 @racket[extras-proc] 接受每个要包含在可执行文件中的模块的源路径名称和编译后的模块。它返回一个引用模块路径的列表（绝对路径，而非相对于模块），表示除源模块 @racket[require] 的模块外还要包含的额外模块。例如，这些模块可能对应于解析将作为源包含的模块所需的 reader 扩展，只要通过绝对模块路径引用 reader 即可。传递给 @racket[extras-proc] 的每个路径对应于实际文件名（例如，已按需应用 @filepath{.ss}/@filepath{.rkt} 转换以引用现有文件）。
 
 @history[#:changed "6.90.0.23" @elem{Added @racket[embed-dlls?] as an
                                      @racket[#:aux] key.}
@@ -411,7 +209,7 @@ have been applied as needed to refer to the existing file).
                                               #f])
          void?]{
 
-Old (keywordless) interface to @racket[create-embedding-executable].}
+@racket[create-embedding-executable] 的旧版（无关键字）接口。}
 
 
 @defproc[(write-module-bundle [verbose? any/c]
@@ -424,29 +222,18 @@ Old (keywordless) interface to @racket[create-embedding-executable].}
                               [literal-sexp any/c])
          void?]{
 
-Like @racket[make-embedding-executable], but the module bundle is
-written to the current output port instead of being embedded into an
-executable.  The output of this function can be @racket[read] to load
-and instantiate @racket[mod-list] and its dependencies, adjust the
-module name resolver to find the newly loaded modules, evaluate the
-forms included from @racket[literal-files], and finally evaluate
-@racket[literal-sexpr]. The @racket[read-accept-compiled] parameter
-must be true to read the stream.}
+类似于 @racket[make-embedding-executable]，但模块包被写入当前输出端口而非嵌入到可执行文件中。该函数的输出可以通过 @racket[read] 加载并实例化 @racket[mod-list] 及其依赖项，调整模块名称解析器以找到新加载的模块，计算从 @racket[literal-files] 包含的表单，最终计算 @racket[literal-sexpr]。@racket[read-accept-compiled] 参数必须为 true 才能读取该流。}
 
 
 @defproc[(embedding-executable-is-directory? [mred? any/c]) boolean]{
 
-Indicates whether Racket/GRacket executables for the current platform
-correspond to directories from the user's perspective. The result is
-currently @racket[#f] for all platforms.}
+指示当前平台的 Racket/GRacket 可执行文件是否从用户视角看是目录。结果当前对所有平台均为 @racket[#f]。}
 
 
 @defproc[(embedding-executable-is-actually-directory? [mred? any/c])
          boolean?]{
 
-Indicates whether Racket/GRacket executables for the current platform
-actually correspond to directories. The result is @racket[#t] on
-Mac OS when @racket[mred?] is @racket[#t], @racket[#f] otherwise.}
+指示当前平台的 Racket/GRacket 可执行文件是否实际上是目录。当 @racket[mred?] 为 @racket[#t] 时，在 Mac OS 上结果为 @racket[#t]，否则为 @racket[#f]。}
 
 
 @defproc[(embedding-executable-put-file-extension+style+filters [mred? any/c])
@@ -454,20 +241,15 @@ Mac OS when @racket[mred?] is @racket[#t], @racket[#f] otherwise.}
                  (listof (or/c 'packages 'enter-packages))
                  (listof (list/c string? string?)))]{
 
-Returns three values suitable for use as the @racket[extension],
-@racket[style], and @racket[filters] arguments to @racket[put-file],
-respectively.
+返回三个值，分别适用于作为 @racket[put-file] 的 @racket[extension]、@racket[style] 和 @racket[filters] 参数。
 
-If Racket/GRacket launchers for the current platform were directories
-from the user's perspective, the @racket[style] result is suitable for
-use with @racket[get-directory], and the @racket[extension] result may
-be a string indicating a required extension for the directory name. }
+如果当前平台的 Racket/GRacket 启动器从用户视角看是目录，那么 @racket[style] 结果适用于 @racket[get-directory]，而 @racket[extension] 结果可能是一个指示目录名称所需后缀的字符串。}
 
 
 @defproc[(embedding-executable-add-suffix [path path-string?] [mred? any/c])
          path-string?]{
 
-Adds a suitable executable suffix, if it's not present already.
+如果尚未包含适当的可执行文件后缀，则添加之。
 
 @history[#:changed "8.1.0.7" @elem{Changed to actually add a suffix, instead of
                                    replacing an existing suffix.}]}
@@ -475,25 +257,25 @@ Adds a suitable executable suffix, if it's not present already.
 
 @; ----------------------------------------
 
-@section{Executable Creation Signature}
+@section{可执行文件创建签名}
 
 @defmodule[compiler/embed-sig]
 
 @defsignature/splice[compiler:embed^ ()]{
 
-Includes the identifiers provided by @racketmodname[compiler/embed].}
+包含 @racketmodname[compiler/embed] 提供的标识符。}
 
 @; ----------------------------------------
 
-@section{Executable Creation Unit}
+@section{可执行文件创建单元}
 
 @defmodule[compiler/embed-unit]
 
 @defthing[compiler:embed@ unit?]{
 
-A unit that imports nothing and exports @racket[compiler:embed^].}
+一个不导入任何内容、导出 @racket[compiler:embed^] 的单元。}
 
-@section{Finding the Racket Executable}
+@section{查找 Racket 可执行文件}
 
 @defmodule[compiler/find-exe]
 
@@ -505,16 +287,11 @@ A unit that imports nothing and exports @racket[compiler:embed^].}
                                                     (system-type 'gc))])
          path?]{
 
-  Finds the path to the @exec{racket} or @exec{gracket} (when
-  @racket[gracket?] is true) executable.
+  查找 @exec{racket} 或 @exec{gracket}（当 @racket[gracket?] 为 true 时）可执行文件的路径。
 
-  If @racket[cross?] is true, the executable is found for the target
-  platform in @seclink["cross-system"]{cross-installation mode}.
+  如果 @racket[cross?] 为 true，则在 @seclink["cross-system"]{cross-installation mode} 中为目标平台查找可执行文件。
 
-  If @racket[untethered?] is true, then the original executable is
-  found, instead of an executable that is tethered to a configuration
-  or addon directory via @racket[(find-addon-tethered-console-bin-dir)]
-  and related functions.
+  如果 @racket[untethered?] 为 true，则查找原始可执行文件，而非通过 @racket[(find-addon-tethered-console-bin-dir)] 及相关函数绑定到配置或 addon 目录的可执行文件。
 
   @history[#:changed "6.3" @elem{Added the @racket[#:cross?] argument.}
            #:changed "6.2.0.5" @elem{Added the @racket[#:untethered?] argument.}]}
