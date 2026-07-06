@@ -8,7 +8,7 @@
 @(define-syntax-rule (operations i ...)
    (itemlist #:style 'compact @item{@op[i]} ...))
 
-@title[#:tag "chaperones"]{Impersonators and Chaperones}
+@title[#:tag "chaperones"]{Impersonator 与 Chaperone}
 
 An @deftech{impersonator} is a wrapper for a value where the wrapper
 redirects some of the value's operations. Impersonators apply only to procedures,
@@ -83,7 +83,7 @@ access and mutation operations to arbitrary procedures.}
 
 @defproc[(chaperone? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{chaperone}, @racket[#f] otherwise.
+如果 @racket[v] 是 @tech{chaperone}，则返回 @racket[#t]，否则返回 @racket[#f]。
 
 Programs and libraries generally should avoid @racket[chaperone?] for
 the same reason that they should avoid @racket[impersonator?]. A true
@@ -96,11 +96,11 @@ value for @racket[chaperone?] implies a true value of
 Indicates whether @racket[v1] can be considered equivalent modulo
 impersonators to @racket[v2].
 
-Any two values that are @racket[eq?] to one another are also @racket[impersonator-of?].
+任何两个 @racket[eq?] 的值也是 @racket[impersonator-of?] 的。
 For values that include no impersonators, @racket[v1] and @racket[v2] are
 considered impersonators of each other if they are @racket[equal?].
 
-If at least one of @racket[v1] or @racket[v2] is an impersonator:
+如果 @racket[v1] 或 @racket[v2] 中至少有一个是 impersonator：
 @itemlist[
           @item{If @racket[v1] impersonates @racket[_v1*] then @racket[(impersonator-of? v1 v2)]
                    is @racket[#t] if and only if @racket[(impersonator-of? _v1* v2)] is @racket[#t].}
@@ -180,7 +180,7 @@ an impersonator/chaperone of a value that was created with
 (possibly transitively).}
 
 @; ------------------------------------------------------------
-@section{Impersonator Constructors}
+@section{Impersonator 构造器}
 
 @defproc[(impersonate-procedure [proc procedure?]
                                 [wrapper-proc (or/c procedure? #f)]
@@ -381,7 +381,7 @@ to @racket[impersonate-struct] must be even if @racket[struct-type]
 is provided, odd otherwise) add impersonator properties
 or override impersonator-property values of @racket[v].
 
-Each @racket[orig-proc] must indicate a distinct operation. If no
+每个 @racket[orig-proc] 必须指示一个不同的操作。 If no
 @racket[struct-type] and no @racket[orig-proc]s are supplied, then no @racket[prop]s must be
 supplied. If @racket[orig-proc]s are supplied only with @racket[#f]
 @racket[redirect-proc]s and no @racket[prop]s are supplied, then
@@ -767,7 +767,7 @@ and frequently used within a library.
 @history[#:added "6.9.0.4"]}
 
 @; ------------------------------------------------------------
-@section{Chaperone Constructors}
+@section{Chaperone 构造器}
 
 @defproc[(chaperone-procedure [proc procedure?]
                               [wrapper-proc (or/c procedure? #f)]
@@ -872,7 +872,7 @@ or structure type.
                            [prop-val any/c] ... ...)
           (and/c vector? chaperone?)]{
 
-Like @racket[impersonate-vector], but with support for immutable vectors. The
+类似于 @racket[impersonate-vector]，但支持 immutable vector。 The
 @racket[ref-proc] procedure must produce the same value or a chaperone
 of the original value, and @racket[set-proc] must produce the value
 that is given or a chaperone of the value. The @racket[set-proc] will
@@ -897,7 +897,7 @@ not be used if @racket[vec] is immutable.}
                         [prop-val any/c] ... ...)
           (and/c box? chaperone?)]{
 
-Like @racket[impersonate-box], but with support for immutable boxes. The
+类似于 @racket[impersonate-box]，但支持 immutable box。 The
 @racket[unbox-proc] procedure must produce the same value or a
 chaperone of the original value, and @racket[set-proc] must produce
 the same value or a chaperone of the value that it is given.  The
@@ -994,7 +994,7 @@ Pairs of @racket[prop] and @racket[prop-val] (the number of arguments
 to @racket[chaperone-evt] must be even) add impersonator properties
 or override impersonator-property values of @racket[evt].
 
-The result is @racket[chaperone-of?] the argument @racket[evt].
+结果是参数 @racket[evt] 的 @racket[chaperone-of?]。
 However, if @racket[evt] is a @tech{thread}, @tech{semaphore},
 @tech{input port}, @tech{output port}, or @tech{will executor}, the
 result is not recognized as such. For example, @racket[thread?]
@@ -1036,7 +1036,7 @@ or override impersonator-property values of @racket[channel].}
                                [prop-val any/c] ... ...)
           (and/c continuation-prompt-tag? chaperone?)]{
 
-Like @racket[impersonate-prompt-tag], but produces a chaperoned value.
+类似于 @racket[impersonate-prompt-tag]，但产生一个 chaperoned 值。
 The @racket[handle-proc] procedure must produce the same values or
 chaperones of the original values, @racket[abort-proc] must produce
 the same values or chaperones of the values that it is given,
@@ -1122,14 +1122,14 @@ given.
 }
 
 @; ------------------------------------------------------------
-@section{Impersonator Properties}
+@section{Impersonator Property}
 
 @defproc[(make-impersonator-property [name symbol?])
          (values impersonator-property?
                  (-> any/c boolean?)
                  (->* (impersonator?) (any/c) any))]{
 
-Creates a new @tech{impersonator property} and returns three values:
+创建一个新的 @tech{impersonator property} 并返回三个值：
 
 @itemize[
 
