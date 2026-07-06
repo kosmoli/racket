@@ -1,134 +1,115 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "Namespaces"]{Namespaces}
+@title[#:tag "Namespaces"]{命名空间}
 
-See @secref["namespace-model"] for basic information on the
-@tech{namespace} model.
+参见 @secref["namespace-model"] 了解 @tech{namespace} 模型的基本信息。
 
-A new @tech{namespace} is created with procedures like
-@racket[make-empty-namespace], and @racket[make-base-namespace], which
-return a first-class namespace value. A namespace is used by setting
-the @racket[current-namespace] parameter value, or by providing the
-namespace to procedures such as @racket[eval] and
-@racket[eval-syntax].
+@tech{namespace} 通过 @racket[make-empty-namespace] 和 @racket[make-base-namespace]
+等过程创建，它们返回 first-class namespace 值。Namespace 可通过设置
+@racket[current-namespace] 参数值，或将 namespace 传给 @racket[eval] 和
+@racket[eval-syntax] 等过程来使用。
 
 @defproc[(namespace? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a namespace value, @racket[#f]
-otherwise.}
+如果 @racket[v] 是 namespace 值则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(make-empty-namespace) namespace?]{
 
-Creates a new @tech{namespace} that is empty, and whose @tech{module
-registry} contains only mappings for some internal, predefined modules,
-such as @racket['#%kernel]. The namespace's @tech{base phase} is
-the same as the @tech{base phase} of the @tech{current
-namespace}. Attach modules from an existing namespace to the new one
-with @racket[namespace-attach-module].
+创建一个为空的 @tech{namespace}，其 @tech{module registry} 仅包含
+某些内部预定义 module(如 @racket['#%kernel])的映射。该 namespace 的
+@tech{base phase} 与 @tech{current namespace} 的 @tech{base phase} 相同。
+使用 @racket[namespace-attach-module] 从现有 namespace 向新 namespace
+attach module。
 
-The new namespace is associated with a new @deftech{root namespace},
-which has the same @tech{module registry} as the returned namespace
-and has a @tech{base phase} of 0. The new @tech{root namespace} is
-the same as the returned namespace if both have @tech{base phase} 0.}
+新 namespace 与一个新的 @deftech{root namespace} 关联，
+它具有与返回 namespace 相同的 @tech{module registry}，且 @tech{base phase} 为 0。
+如果新 @tech{root namespace} 和返回 namespace 的 @tech{base phase} 均为 0，
+则两者相同。}
 
 
 @defproc[(make-base-empty-namespace) namespace?]{
 
-Creates a new empty @tech{namespace} like @racket[make-empty-namespace],
-but with @racketmodname[racket/base]
-attached. The namespace's @tech{base phase} is the same as the
-@tech{phase} in which the @racket[make-base-empty-namespace]
-function was created.}
+创建一个像 @racket[make-empty-namespace] 一样的新空 @tech{namespace}，
+但 attach 了 @racketmodname[racket/base]。该 namespace 的 @tech{base phase}
+与创建 @racket[make-base-empty-namespace] 函数时的 @tech{phase} 相同。}
 
 
 @defproc[(make-base-namespace) namespace?]{
 
-Creates a new @tech{namespace} like @racket[make-empty-namespace], but
-with @racketmodname[racket/base] attached and
-@racket[require]d into the top-level environment. The namespace's
-@tech{base phase} is the same as the @tech{phase} in which the
-@racket[make-base-namespace] function was created.}
+创建一个像 @racket[make-empty-namespace] 一样的新 @tech{namespace}，
+但 attach 了 @racketmodname[racket/base] 并 @racket[require] 到 top-level 环境。
+该 namespace 的 @tech{base phase} 与创建 @racket[make-base-namespace]
+函数时的 @tech{phase} 相同。}
 
 
 @defform[(define-namespace-anchor id)]{
 
-Binds @racket[id] to a namespace anchor that can be used with
-@racket[namespace-anchor->empty-namespace] and
-@racket[namespace-anchor->namespace].
+将 @racket[id] 绑定到 namespace anchor，可与
+@racket[namespace-anchor->empty-namespace] 和
+@racket[namespace-anchor->namespace] 一起使用。
 
-This form can be used only in a @tech{top-level context} or in a
-@tech{module-context}.}
+此形式只能用于 @tech{top-level context} 或 @tech{module-context}。}
 
 
 @defproc[(namespace-anchor? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a namespace-anchor value,
-@racket[#f] otherwise.}
+如果 @racket[v] 是 namespace-anchor 值则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(namespace-anchor->empty-namespace [a namespace-anchor?]) namespace?]{
 
-Returns an empty namespace that shares a @tech{module registry}
-and @tech{root namespace} with
-the source of the anchor, and whose @tech{base phase} is the
-@tech{phase} in which the anchor was created.
+返回一个空 namespace，与锚的源共享 @tech{module registry}
+和 @tech{root namespace}，其 @tech{base phase} 是创建锚时的 @tech{phase}。
 
-If the anchor is from a @racket[define-namespace-anchor] form in a
-module context, then the source is the namespace in which the
-containing module is instantiated. If the anchor is from a
-@racket[define-namespace-anchor] form in a top-level content, then the
-source is the namespace in which the anchor definition was evaluated.}
+如果锚来自 module 上下文中的 @racket[define-namespace-anchor] 形式，
+则源是实例化外层 module 的 namespace。如果锚来自 top-level 内容中的
+@racket[define-namespace-anchor] 形式，则源是求值锚定义的 namespace。}
 
 
 @defproc[(namespace-anchor->namespace [a namespace-anchor?]) namespace?]{
 
-Returns a namespace corresponding to the source of the anchor.
+返回与锚的源对应的 namespace。
 
-If the anchor is from a @racket[define-namespace-anchor] form in a
-module context, then the result is a namespace for the module's body
-in the anchor's phase. The result is the same as a namespace obtained
-via @racket[module->namespace], and the module is similarly made
-@tech{available} if it is not available already.
+如果锚来自 module 上下文中的 @racket[define-namespace-anchor] 形式，
+则结果是锚的 phase 中 module 主体的 namespace。结果与通过
+@racket[module->namespace] 获得的 namespace 相同，module 同样被
+@tech{available}(如果尚未可用)。
 
-If the anchor is from a @racket[define-namespace-anchor] form in a
-top-level content, then the result is the namespace in which the
-anchor definition was evaluated.}
+如果锚来自 top-level 内容中的 @racket[define-namespace-anchor] 形式，
+则结果是求值锚定义的 namespace。}
 
 
 @defparam[current-namespace n namespace?]{
 
-A @tech{parameter} that determines the @techlink{current namespace}.}
+确定 @techlink{current namespace} 的 @tech{parameter}。}
 
 
 @defproc[(namespace-symbol->identifier [sym symbol?]) identifier?]{
 
-Similar to @racket[datum->syntax] restricted to symbols. The
-@tech{lexical information} of the resulting identifier corresponds to
-the top-level environment of the current namespace; the identifier has
-no source location or properties.}
+类似于限制为 symbol 的 @racket[datum->syntax]。结果标识符的
+@tech{lexical information} 对应于当前 namespace 的 top-level 环境；
+该标识符没有 source location 或 property。}
 
 
 @defproc[(namespace-base-phase [namespace namespace? (current-namespace)]) exact-integer?]{
 
-Returns the @tech{base phase} of @racket[namespace].}
+返回 @racket[namespace] 的 @tech{base phase}。}
 
 
 @defproc[(namespace-module-identifier [where (or/c namespace? exact-integer? #f)
                                              (current-namespace)])
          identifier?]{
 
-Returns an identifier whose binding is @racket[module] in the
-@tech{base phase} of @racket[where] if it is a namespace, or in the
-@racket[where] @tech{phase level} otherwise.
+返回一个标识符，其 binding 在 @racket[where] 的 @tech{base phase}
+(如果是 namespace)中为 @racket[module]，否则在 @racket[where] 的
+@tech{phase level} 中。
 
-The @tech{lexical information} of the identifier includes bindings (in
-the same @tech{phase level}) for all syntactic forms that appear in
-fully expanded code (see @secref["fully-expanded"]), but using the
-name reported by the second element of @racket[identifier-binding] for
-the binding; the @tech{lexical information} may also include other
-bindings.}
+标识符的 @tech{lexical information} 包含完全展开代码中出现的
+所有 syntactic form 的 binding(在同一 @tech{phase level} 中)，
+但使用 @racket[identifier-binding] 第二个元素报告的 binding 名称；
+@tech{lexical information} 也可能包含其他 binding。}
 
 
 @defproc[(namespace-variable-value [sym symbol?]
@@ -137,35 +118,30 @@ bindings.}
                                    [namespace namespace? (current-namespace)])
          any]{
 
-Returns a value for @racket[sym] in @racket[namespace], using
-@racket[namespace]'s @tech{base phase}. The returned value depends on
-@racket[use-mapping?]:
+返回 @racket[namespace] 中 @racket[sym] 的值，使用 @racket[namespace]
+的 @tech{base phase}。返回值取决于 @racket[use-mapping?]：
 
  @itemize[
 
-   @item{If @racket[use-mapping?] is true (the default), and if
-   @racket[sym] maps to a top-level variable or an imported variable
-   (see @secref["namespace-model"]), then the result is the same as
-   evaluating @racket[sym] as an expression. If @racket[sym] maps to
-   syntax or imported syntax, then @racket[failure-thunk] is called or
-   the @exnraise[exn:fail:syntax]. If @racket[sym] is mapped to an
-   undefined variable or an uninitialized module variable, then
-   @racket[failure-thunk] is called or the
-   @exnraise[exn:fail:contract:variable].}
+   @item{如果 @racket[use-mapping?] 为真(默认值)，且
+   @racket[sym] 映射到 top-level variable 或 imported variable
+   (参见 @secref["namespace-model"])，则结果与将 @racket[sym]
+   作为表达式求值相同。如果 @racket[sym] 映射到 syntax 或 imported syntax，
+   则调用 @racket[failure-thunk] 或 @exnraise[exn:fail:syntax]。
+   如果 @racket[sym] 映射到 undefined variable 或未初始化的 module variable，
+   则调用 @racket[failure-thunk] 或 @exnraise[exn:fail:contract:variable]。}
 
-   @item{If @racket[use-mapping?] is @racket[#f], the namespace's
-   syntax and import mappings are ignored. Instead, the value of the
-   top-level variable named @racket[sym] in namespace is returned. If
-   the variable is undefined, then @racket[failure-thunk] is called or
-   the @exnraise[exn:fail:contract:variable].}
+   @item{如果 @racket[use-mapping?] 为 @racket[#f]，则忽略 namespace
+   的 syntax 和 import 映射。相反，返回 namespace 中名为 @racket[sym]
+   的 top-level variable 的值。如果该 variable 未定义，则调用
+   @racket[failure-thunk] 或 @exnraise[exn:fail:contract:variable]。}
 
  ]
 
-If @racket[failure-thunk] is not @racket[#f],
-@racket[namespace-variable-value] calls @racket[failure-thunk] to
-produce the return value in place of raising an
-@racket[exn:fail:contract:variable] or @racket[exn:fail:syntax]
-exception.}
+如果 @racket[failure-thunk] 不是 @racket[#f]，
+@racket[namespace-variable-value] 调用 @racket[failure-thunk]
+来产生返回值，而不是引发 @racket[exn:fail:contract:variable] 或
+@racket[exn:fail:syntax] 异常。}
  
 
 @defproc[(namespace-set-variable-value! [sym symbol?]
@@ -175,18 +151,15 @@ exception.}
                                         [as-constant? any/c #f])
          void?]{
 
-Sets the value of @racket[sym] in the top-level environment of
-@racket[namespace] in the @tech{base phase}, defining @racket[sym] if
-it is not already defined.
+在 @racket[namespace] 的 @tech{base phase} 的 top-level 环境中设置
+@racket[sym] 的值，如果尚未定义则定义 @racket[sym]。
 
-If @racket[map?] is supplied as true, then the namespace's
-@tech{identifier} mapping is also adjusted (see
-@secref["namespace-model"]) in the @tech{phase level} corresponding to
-the @tech{base phase}, so that @racket[sym] maps to the variable.
+如果 @racket[map?] 为真，则 namespace 的 @tech{identifier} 映射
+也会在对应于 @tech{base phase} 的 @tech{phase level} 中调整
+(参见 @secref["namespace-model"])，使 @racket[sym] 映射到该 variable。
 
-If @racket[as-constant?] is true, then the variable is made a constant
-(so future assignments are rejected) after @racket[v] is installed as
-the value.
+如果 @racket[as-constant?] 为真，则在 @racket[v] 被安装为值后，
+该 variable 成为 constant(因此后续赋值会被拒绝)。
 
 @history[#:changed "6.90.0.14" @elem{Added the @racket[as-constant?] argument.}]}
 
@@ -195,18 +168,16 @@ the value.
                                        [namespace namespace? (current-namespace)])
          void?]{
 
-Removes the @racket[sym] variable, if any, in the top-level
-environment of @racket[namespace] in its @tech{base phase}. The
-namespace's @tech{identifier} mapping (see @secref["namespace-model"])
-is unaffected.}
+移除 @racket[namespace] 在其 @tech{base phase} 的 top-level 环境中
+的 @racket[sym] variable(如果存在)。Namespace 的 @tech{identifier} 映射
+(参见 @secref["namespace-model"])不受影响。}
 
  
 @defproc[(namespace-mapped-symbols [namespace namespace? (current-namespace)])
          (listof symbol?)]{
 
-Returns a list of all symbols that are mapped to variables, syntax,
-and imports in @racket[namespace] for the @tech{phase level}
-corresponding to the @tech{namespace}'s @tech{base phase}.}
+返回所有映射到 @racket[namespace] 中 variable、syntax 和 import
+的 symbol 的 list，对应于 @tech{namespace} 的 @tech{base phase} 的 @tech{phase level}。}
 
 
 
@@ -214,17 +185,15 @@ corresponding to the @tech{namespace}'s @tech{base phase}.}
                             [namespace namespace? (current-namespace)])
          void?]{
 
-Performs the import corresponding to @racket[quoted-raw-require-spec]
-in the top-level environment of @racket[namespace], like a
-top-level @racket[#%require]. The @racket[quoted-raw-require-spec]
-argument must be either a datum that corresponds to a quoted
-@racket[_raw-require-spec] for @racket[#%require], which includes
-module paths, or it can be a @tech{resolved module path}.
+在 @racket[namespace] 的 top-level 环境中执行对应于
+@racket[quoted-raw-require-spec] 的 import，类似于 top-level 的
+@racket[#%require]。@racket[quoted-raw-require-spec] 参数必须是对应于
+@racket[#%require] 的 quoted @racket[_raw-require-spec] 的数据
+(包括 module path)，也可以是 @tech{resolved module path}。
 
-Module paths in @racket[quoted-raw-require-spec] are resolved with respect
-to @racket[current-load-relative-directory] or
-@racket[current-directory] (if the former is @racket[#f]), even if the
-current namespace corresponds to a module body.
+@racket[quoted-raw-require-spec] 中的 module path 是相对于
+@racket[current-load-relative-directory] 或 @racket[current-directory]
+(如果前者是 @racket[#f])解析的，即使当前 namespace 对应于 module 主体。
 
 @history[#:changed "6.90.0.16" @elem{Added the @racket[namespace] optional argument.}]}
 
@@ -234,10 +203,9 @@ current namespace corresponds to a module body.
                                  [namespace namespace? (current-namespace)])
          void?]{
 
-Like @racket[namespace-require] for syntax exported from the module,
-but exported variables at the namespace's @tech{base phase} are
-treated differently: the export's current value is copied to a
-top-level variable in @racket[namespace].
+类似于 @racket[namespace-require]，用于 module 导出的 syntax，
+但对 namespace 的 @tech{base phase} 的导出 variable 处理不同：
+导出项的当前值被复制到 @racket[namespace] 中的 top-level variable。
 
 @history[#:changed "6.90.0.16" @elem{Added the @racket[namespace] optional argument.}]}
 
@@ -246,11 +214,10 @@ top-level variable in @racket[namespace].
                                      [namespace namespace? (current-namespace)])
          void?]{
 
-Like @racket[namespace-require], but for each exported variable at the
-@tech{namespace}'s @tech{base phase}, the export's value is copied to
-a corresponding top-level variable that is made immutable. Despite
-setting the top-level variable, the corresponding identifier is bound
-as imported.
+类似于 @racket[namespace-require]，但对于 @tech{namespace} 的
+@tech{base phase} 的每个导出 variable，导出项的值被复制到对应的
+top-level variable 并被设为 immutable。尽管设置了 top-level variable，
+对应的标识符仍作为 imported 绑定。
 
 @history[#:changed "6.90.0.16" @elem{Added the @racket[namespace] optional argument.}]}
 
@@ -259,12 +226,10 @@ as imported.
                                            [namespace namespace? (current-namespace)])
          void?]{
 
-Like @racket[namespace-require], but only the transformer part of the
-module is executed relative to @racket[namespace]'s @tech{base
-phase}; that is, the module is merely @tech{visit}ed, and not
-@tech{instantiate}d (see @secref["mod-parse"]). If the required module
-has not been instantiated before, the module's variables remain
-undefined.
+类似于 @racket[namespace-require]，但仅相对于 @racket[namespace] 的
+@tech{base phase} 执行 module 的 transformer 部分；即 module 仅被
+@tech{visit}，而未被 @tech{instantiate}(参见 @secref["mod-parse"])。
+如果所需 module 之前未被实例化，则 module 的 variable 保持未定义状态。
 
 @history[#:changed "6.90.0.16" @elem{Added the @racket[namespace] optional argument.}]}
 
@@ -274,48 +239,39 @@ undefined.
                                   [dest-namespace namespace? (current-namespace)])
          void?]{
 
- Attaches the instantiated module named by @racket[modname]
- in @racket[src-namespace] (at its @tech{base phase}) to the
- @tech{module registry} of @racket[dest-namespace].
+ 将 @racket[src-namespace] 中由 @racket[modname] 命名的已实例化 module
+ (在其 @tech{base phase})attach 到 @racket[dest-namespace] 的
+ @tech{module registry}。
 
- In addition to @racket[modname], every module that it
- imports (directly or indirectly) is also recorded in the
- current namespace's @tech{module registry}, and instances
- at the same @tech{phase} are also attached to 
- @racket[dest-namespace] (while @tech{visits} at the
- module's phase and instances at higher or lower phases are
- not attached, nor even made @tech{available} for on-demand
- @tech{visits}). The inspector of the module invocation in 
- @racket[dest-namespace] is the same as inspector of the
- invocation in @racket[src-namespace].
+ 除 @racket[modname] 外，它导入的每个 module(直接或间接)
+ 也会被记录在当前 namespace 的 @tech{module registry} 中，
+ 且相同 @tech{phase} 的实例也会被 attach 到 @racket[dest-namespace]
+ (而 module 的 phase 上的 @tech{visit} 以及更高或更低 phase 上的实例
+ 不会被 attach，甚至不会为按需 @tech{visit} 而 @tech{available})。
+ @racket[dest-namespace] 中 module 调用的 inspector 与
+ @racket[src-namespace] 中调用的 inspector 相同。
 
- If @racket[modname] is not a symbol, the current module
- name resolver is called to resolve the path, but no module
- is loaded; the resolved form of @racket[modname] is used as
- the module name in @racket[dest-namespace].
+ 如果 @racket[modname] 不是 symbol，则调用当前 module name resolver
+ 来解析路径，但不加载 module；@racket[modname] 的解析形式用作
+ @racket[dest-namespace] 中的 module name。
 
- If @racket[modname] refers to a submodule or a module with
- submodules, unless the module was loaded from bytecode
- (i.e., a @filepath{.zo} file) independently from submodules
- within the same top-level module, then declarations for all
- submodules within the module's top-level module are also
- attached to @racket[dest-namespace].
+ 如果 @racket[modname] 引用 submodule 或带 submodule 的 module，
+ 除非 module 是从字节码(即 @filepath{.zo} 文件)加载的，
+ 独立于同一 top-level module 内的 submodule，
+ 则 module 的 top-level module 内所有 submodule 的声明也会被
+ attach 到 @racket[dest-namespace]。
 
- If @racket[modname] does not refer to an 
- @tech{instantiate}d module in @racket[src-namespace], or if
- the name of any module to be attached already has a
- different declaration or same-@tech{phase} instance in 
- @racket[dest-namespace], then the 
- @exnraise[exn:fail:contract].
+ 如果 @racket[modname] 不引用 @racket[src-namespace] 中
+ @tech{instantiate} 的 module，或任何要 attach 的 module 的名称
+ 在 @racket[dest-namespace] 中已有不同的声明或相同 @tech{phase} 的实例，
+ 则 @exnraise[exn:fail:contract]。
 
- If @racket[src-namespace] and @racket[dest-namespace] do
- not have the same @tech{base phase}, then the 
- @exnraise[exn:fail:contract].
+ 如果 @racket[src-namespace] 和 @racket[dest-namespace]
+ 没有相同的 @tech{base phase}，则 @exnraise[exn:fail:contract]。
 
- Unlike @racket[namespace-require], 
- @racket[namespace-attach-module] does not
- @tech{instantiate} the module, but copies the module
- instance from the source namespace to the target namespace.
+ 与 @racket[namespace-require] 不同，
+ @racket[namespace-attach-module] 不会 @tech{instantiate} module，
+ 而是将 module 实例从源 namespace 复制到目标 namespace。
 
 @examples[
  (module food racket/base
@@ -340,10 +296,9 @@ undefined.
                                               [dest-namespace namespace? (current-namespace)])
          void?]{
 
-Like @racket[namespace-attach-module], but the module
-specified by @racket[modname] need only be declared (and not
-necessarily @tech{instantiate}d) in @racket[src-namespace], and the
-module is merely declared in @racket[dest-namespace].}
+类似于 @racket[namespace-attach-module]，但 @racket[modname]
+指定的 module 只需在 @racket[src-namespace] 中声明(不必 @tech{instantiate})，
+且 module 仅在 @racket[dest-namespace] 中声明。}
 
 
 @defproc[(namespace-unprotect-module [inspector inspector?]
@@ -351,33 +306,30 @@ module is merely declared in @racket[dest-namespace].}
                                      [namespace namespace? (current-namespace)])
          void?]{
 
-Changes the inspector for the instance of the module referenced by
-@racket[modname] in @racket[namespace]'s @tech{module registry} so
-that it is controlled by the current code inspector. The given
-@racket[inspector] must currently control the invocation of the module
-in @racket[namespace]'s @tech{module registry}, otherwise the
-inspector is not changed. See also @secref["modprotect"].}
+更改 @racket[namespace] 的 @tech{module registry} 中 @racket[modname]
+引用的 module 实例的 inspector，使其由当前 code inspector 控制。
+给定的 @racket[inspector] 必须当前控制 @racket[namespace] 的
+@tech{module registry} 中 module 的调用，否则 inspector 不会更改。
+另参见 @secref["modprotect"]。}
 
 
 @defproc[(namespace-module-registry [namespace namespace?])
          any]{
 
-Returns the @tech{module registry} of the given namespace. This value
-is useful only for identification via @racket[eq?].}
+返回给定 namespace 的 @tech{module registry}。此值仅对通过
+@racket[eq?] 进行标识有用。}
 
 
 @defproc[(namespace-call-with-registry-lock [namespace namespace?]
                                             [thunk (-> any)])
          any]{
 
-Calls @racket[thunk] while holding a reentrant lock for the namespace's
-@tech{module registry}.
+在持有 namespace 的 @tech{module registry} 的可重入锁时调用 @racket[thunk]。
 
-Namespace functions do not automatically use the registry lock, but it
-can be used via @racket[namespace-call-with-registry-lock] among
-threads that load and instantiate modules to avoid internal race
-conditions. On-demand @tech{instantiation} of @tech{available} modules
-also takes the lock; see @secref["mod-parse"].
+Namespace 函数不会自动使用 registry lock，但可以通过
+@racket[namespace-call-with-registry-lock] 在加载和实例化 module 的
+线程之间使用以避免内部竞态条件。@tech{available} module 的按需
+@tech{instantiation} 也会获取该锁；参见 @secref["mod-parse"]。
 
 @history[#:added "8.1.0.5"]}
 
@@ -387,27 +339,23 @@ also takes the lock; see @secref["mod-parse"].
                             [src-namespace namespace? (current-namespace)])
          namespace?]{
 
-Returns a namespace that corresponds to the body of an instantiated
-module in @racket[src-namespace]'s @tech{module registry} and in the
-@racket[src-namespace]'s @tech{base phase}, making the module
-@tech{available} for on-demand @tech{visits} at @racket[src-namespace]'s
-@tech{base phase}. The returned namespace has the same @tech{module
-registry} as @racket[src-namespace]. Modifying a binding in the
-resulting namespace changes the binding seen in modules that require the
-namespace's module.
+返回一个 namespace，对应于 @racket[src-namespace] 的 @tech{module registry}
+中已实例化 module 的主体，且在 @racket[src-namespace] 的 @tech{base phase} 中，
+使 module 在 @racket[src-namespace] 的 @tech{base phase} 上可用于按需
+@tech{visit}。返回的 namespace 与 @racket[src-namespace] 具有相同的
+@tech{module registry}。修改结果 namespace 中的 binding 会改变需要
+该 namespace 的 module 所看到的 binding。
 
-Module paths in a top-level @racket[require] expression are resolved
-with respect to the namespace's module. New @racket[provide]
-declarations are not allowed.
+Top-level @racket[require] 表达式中的 module path 是相对于 namespace
+的 module 解析的。不允许新的 @racket[provide] 声明。
 
 If the current code inspector does not control the invocation of the
 module in @racket[src-namespace]'s @tech{module registry}, the
 @exnraise[exn:fail:contract]; see also @secref["modprotect"].
 
-Bindings in the result namespace cannot be modified if the
-@racket[compile-enforce-module-constants] parameter was true when the
-module was declared, unless the module declaration itself included
-assignments to the binding via @racket[set!].
+如果 module 声明时 @racket[compile-enforce-module-constants] 参数为真，
+则结果 namespace 中的 binding 不可修改，除非 module 声明本身通过
+@racket[set!] 包含对该 binding 的赋值。
 
 @history[#:changed "6.90.0.16" @elem{Added the @racket[src-namespace] optional argument.}]}
 
@@ -416,13 +364,11 @@ assignments to the binding via @racket[set!].
                                      [namespace namespace? (current-namespace)])
          syntax?]{
 
-Returns a syntax object like @racket[stx], except that
-@racket[namespace]'s bindings are included in the @tech{syntax object}'s
-@tech{lexical information} (see @secref["stxobj-model"]). The
-additional context is overridden by any existing @tech{top-level
-bindings} in the @tech{syntax object}'s @tech{lexical information}, or
-by any existing or future @tech{module bindings} in the @tech{lexical
-information}.
+返回类似于 @racket[stx] 的 syntax object，但 @racket[namespace]
+的 binding 被包含在 @tech{syntax object} 的 @tech{lexical information} 中
+(参见 @secref["stxobj-model"])。额外的上下文会被 @tech{syntax object}
+的 @tech{lexical information} 中任何现有的 @tech{top-level binding} 覆盖，
+或被 @tech{lexical information} 中任何现有的或未来的 @tech{module binding} 覆盖。
 
 @history[#:changed "6.90.0.16" @elem{Added the @racket[namespace] optional argument.}]}
 
@@ -431,133 +377,121 @@ information}.
                                     [sym symbol?])
          boolean?]{
 
-Returns @racket[#f] if the module declaration for
-@racket[module-path-index] defines @racket[sym] and exports it
-unprotected, @racket[#t] otherwise (which may mean that the symbol
-corresponds to an unexported definition, a protected export, or an
-identifier that is not defined at all within the module).
+如果 @racket[module-path-index] 的 module 声明定义了 @racket[sym]
+并以 unprotected 方式导出，则返回 @racket[#f]，否则返回 @racket[#t]
+(这可能意味着该 symbol 对应于未导出的定义、受保护的导出，
+或根本未在 module 内定义的标识符)。
 
-The @racket[module-path-index] argument can be a symbol; see
-@secref["modpathidx"] for more information on module path
-indices.
+@racket[module-path-index] 参数可以是 symbol；参见
+@secref["modpathidx"] 了解 module path index 的更多信息。
 
-Typically, the arguments to @racket[module-provide-protected?]
-correspond to the first two elements of a list produced by
-@racket[identifier-binding].}
+通常，@racket[module-provide-protected?] 的参数对应于
+@racket[identifier-binding] 产生的 list 的前两个元素。}
 
 
 @defproc[(variable-reference? [v any/c]) boolean?]{
 
-Return @racket[#t] if @racket[v] is a @tech{variable reference}
-produced by @racket[#%variable-reference], @racket[#f] otherwise.}
+如果 @racket[v] 是由 @racket[#%variable-reference] 产生的
+@tech{variable reference}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(variable-reference-constant? [varref variable-reference?]) boolean?]{
 
-Returns @racket[#t] if the variable represented by @racket[varref]
-will retain its current value (i.e., @racket[varref] refers to a
-variable that cannot be further modified by @racket[set!] or
-@racket[define]), @racket[#f] otherwise.}
+如果 @racket[varref] 表示的 variable 将保留其当前值
+(即 @racket[varref] 引用的是无法通过 @racket[set!] 或 @racket[define]
+进一步修改的 variable)，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(variable-reference->empty-namespace [varref variable-reference?])
          namespace?]{
 
-Returns an empty namespace that shares module declarations and
-instances with the namespace in which @racket[varref] is instantiated,
-and with the same phase as @racket[varref].}
+返回一个空 namespace，与 @racket[varref] 实例化的 namespace
+共享 module 声明和实例，且 phase 与 @racket[varref] 相同。}
 
 
 @defproc[(variable-reference->namespace [varref variable-reference?])
          namespace?]{
 
-If @racket[varref] refers to a @tech{module-level variable}, then the
-result is a namespace for the module's body in the referenced
-variable's @tech{phase}; the result is the same as a namespace
-obtained via @racket[module->namespace], and the module is similarly made
-@tech{available} if it is not available already.
+如果 @racket[varref] 引用 @tech{module-level variable}，
+则结果是引用 variable 的 @tech{phase} 中 module 主体的 namespace；
+结果与通过 @racket[module->namespace] 获得的 namespace 相同，
+module 同样被 @tech{available}(如果尚未可用)。
 
-If @racket[varref] refers to a @tech{top-level variable}, then the
-result is the namespace in which the referenced variable is defined.}
+如果 @racket[varref] 引用 @tech{top-level variable}，
+则结果是定义引用 variable 的 namespace。}
 
 
 @defproc[(variable-reference->resolved-module-path [varref variable-reference?])
          (or/c resolved-module-path? #f)]{
 
-If @racket[varref] refers to a @tech{module-level variable}, the
-result is a @tech{resolved module path} naming the module.
+如果 @racket[varref] 引用 @tech{module-level variable}，
+则结果是命名 module 的 @tech{resolved module path}。
 
-If @racket[varref] refers to a @tech{top-level variable}, then the
-result is @racket[#f].}
+如果 @racket[varref] 引用 @tech{top-level variable}，
+则结果是 @racket[#f]。}
 
 
 @defproc[(variable-reference->module-path-index [varref variable-reference?])
          (or/c module-path-index? #f)]{
 
-If @racket[varref] refers to a @tech{module-level variable}, the
-result is a @tech{module path index} naming the module.
+如果 @racket[varref] 引用 @tech{module-level variable}，
+则结果是命名 module 的 @tech{module path index}。
 
-If @racket[varref] refers to a @tech{top-level variable}, then the
-result is @racket[#f].}
+如果 @racket[varref] 引用 @tech{top-level variable}，
+则结果是 @racket[#f]。}
 
 
 @defproc[(variable-reference->module-source [varref variable-reference?])
          (or/c symbol? (and/c path? complete-path?) #f)]{
 
-If @racket[varref] refers to a @tech{module-level variable}, the
-result is a path or symbol naming the module's source (which is
-typically, but not always, the same as in the @tech{resolved module
-path}).  If the relevant module is a @tech{submodule}, the result
-corresponds to the enclosing top-level module's source.
+如果 @racket[varref] 引用 @tech{module-level variable}，
+则结果是命名 module 源文件的 path 或 symbol(通常但不总是与
+@tech{resolved module path} 中相同)。如果相关 module 是 @tech{submodule}，
+则结果对应于外层 top-level module 的源文件。
 
-If @racket[varref] refers to a @tech{top-level variable}, then the
-result is @racket[#f].}
+如果 @racket[varref] 引用 @tech{top-level variable}，
+则结果是 @racket[#f]。}
 
 
 @defproc[(variable-reference->phase [varref variable-reference?])
          exact-nonnegative-integer?]{
 
-Returns the @tech{phase} of the variable referenced by @racket[varref].}
+返回 @racket[varref] 引用的 variable 的 @tech{phase}。}
 
 
 @defproc[(variable-reference->module-base-phase [varref variable-reference?])
          exact-integer?]{
 
-Returns the @tech{phase} in which the module is instantiated for the
-variable referenced by @racket[varref], or @racket[0] if the variable
-for @racket[varref] is not within a module.
+返回 @racket[varref] 引用的 variable 所在 module 被实例化时的
+@tech{phase}，如果 @racket[varref] 的 variable 不在 module 内，则返回 @racket[0]。
 
-For a variable with a module, the result is less than the result of
-@racket[(variable-reference->phase varref)] by @math{n} when the
-variable is bound at @tech{phase level} @math{n} within the module.}
+对于有 module 的 variable，当 variable 绑定在 module 内的
+@tech{phase level} @math{n} 时，结果比 @racket[(variable-reference->phase varref)]
+的结果小 @math{n}。}
 
 
 @defproc[(variable-reference->module-declaration-inspector [varref variable-reference?])
          inspector?]{
 
-Returns the declaration @tech{inspector} (see @secref["modprotect"])
-for the module of @racket[varref], where @racket[varref] must refer to
-an anonymous module variable as produced by
-@racket[(#%variable-reference)].}
+返回 @racket[varref] 所在 module 的声明 @tech{inspector}
+(参见 @secref["modprotect"])，其中 @racket[varref] 必须引用由
+@racket[(#%variable-reference)] 产生的匿名 module variable。}
 
 
 @defproc[(variable-reference-from-unsafe? [varref variable-reference?]) boolean?]{
 
-Returns @racket[#t] if the module of the variable reference itself
-(not necessarily a referenced variable) is compiled in unsafe mode,
-@racket[#f] otherwise. @tech{Unsafe mode} can be enabled through the
-@tech{linklet} interface or enable for a module with
-@racket[(#%declare #:unsafe)].
+如果 variable reference 本身的 module(不一定是引用的 variable)
+以 unsafe 模式编译，则返回 @racket[#t]，否则返回 @racket[#f]。
+@tech{Unsafe mode} 可通过 @tech{linklet} 接口或通过
+@racket[(#%declare #:unsafe)] 为 module 启用。
 
-The @racket[variable-reference-from-unsafe?] procedure is intended for
-use as
+@racket[variable-reference-from-unsafe?] 过程旨在用作
 
 @racketblock[
 (variable-reference-from-unsafe? (#%variable-reference))
 ]
 
-which the compiler can optimize to a literal @racket[#t] or
-@racket[#f] (since the enclosing module is being compiled in
-@tech{unsafe mode} or not).
+编译器可将其优化为字面量 @racket[#t] 或 @racket[#f]
+(因为外层 module 正以 @tech{unsafe mode} 编译或不是)。
 
 @history[#:added "6.12.0.4"]}
