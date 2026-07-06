@@ -5,7 +5,7 @@
 @(define (bc-only cs)
     @elem{(@tech{BC} only; @cs for @tech{CS})})
  
-@title[#:tag "runtime"]{Environment and Runtime Information}
+@title[#:tag "runtime"]{环境与运行时信息}
 
 @defproc[(system-type [mode (or/c 'os 'os* 'arch 'word 'so-find 'platform
                                   'vm 'gc 'link 'machine 'target-machine
@@ -13,9 +13,7 @@
                             'os])
          (or/c symbol? string? bytes? exact-positive-integer? vector? #f)]{
 
-Returns information about the operating system, build mode, or machine
-for a running Racket. (Installation tools should use @racket[cross-system-type],
-instead, to support cross-installation.)
+返回有关操作系统、构建模式或运行 Racket 的机器的信息。（安装工具应使用 @racket[cross-system-type] 以支持交叉安装。）
 
 In @indexed-racket['os] mode,
  the possible symbol results are:
@@ -26,53 +24,29 @@ In @indexed-racket['os] mode,
 @item{@indexed-racket['macosx]}
 ]
 
-@margin-note{Prior to the introduction of @racket['os*] and
-@racket['arch] modes, @racket[(system-library-subpath #f)] could be
-used to obtain this information somewhat indirectly.}
+@margin-note{在引入 @racket['os*] 和 @racket['arch] 模式之前，@racket[(system-library-subpath #f)] 可用于间接获取此信息。}
 
-In @indexed-racket['os*] mode, the result is similar to @racket['os]
-mode, but refined to a specific operating system, such as
-@racket['linux] or @racket['freebsd], instead of a generic
-@racket['unix] classification.
+在 @indexed-racket['os*] 模式下，结果类似于 @racket['os] 模式，但细化到特定的操作系统，如 @racket['linux] 或 @racket['freebsd]，而不是通用的 @racket['unix] 分类。
 
-In @indexed-racket['arch] mode, the result is a symbol representing an
-architecture. Possible results include @racket['x86_64], @racket['i386],
-@racket['aarch64], @racket['arm] (32-bit), and @racket['ppc] (32-bit).
+在 @indexed-racket['arch] 模式下，结果是表示架构的 symbol。可能的结果包括 @racket['x86_64]、@racket['i386]、@racket['aarch64]、@racket['arm]（32 位）和 @racket['ppc]（32 位）。
 
-In @indexed-racket['word] mode, the result is either @racket[32] or
-@racket[64] to indicate whether Racket is running as a 32-bit program
-or 64-bit program.
+在 @indexed-racket['word] 模式下，结果为 @racket[32] 或 @racket[64]，以指示 Racket 是作为 32 位程序还是 64 位程序运行。
 
-In @indexed-racket['so-find] mode, the result is a symbol that
-identifies a convention for finding and managing platform-specific
-shared objects (i.e., dynamic libraries). Possible results include
-@racket['natipkg], meaning that native libraries are normally supplied
-through Racket packages, and @racket['system], meaning that they are
-normally managed through the operating system. Racket builds that are
-intended for use with other package managers can report symbols other
-than @racket['natipkg] or @racket['system].
+在 @indexed-racket['so-find] 模式下，结果是标识用于查找和管理平台特定共享对象（即动态库）的约定的 symbol。可能的结果包括 @racket['natipkg]（表示原生库通常通过 Racket 包提供）和 @racket['system]（表示它们通常通过操作系统管理）。旨在与其他包管理器一起使用的 Racket 构建可以报告 @racket['natipkg] 或 @racket['system] 以外的 symbol。
 
-In @indexed-racket['platform] mode, the result is a string that has
-the same information at the combination of @racket['os*],
-@racket['arch], and @racket['so-find] to represent the platform. The
-@racket['so-find] mode is omitted if it is the default for an
-@racket['os*]: @racket['natipkg] for Windows and Mac OS,
-@racket['system] otherwise. A @tech{path} form of the same string is
-returned by @racket[(system-library-subpath #f)].
+在 @indexed-racket['platform] 模式下，结果是一个字符串，包含 @racket['os*]、@racket['arch] 和 @racket['so-find] 的组合信息以表示平台。如果 @racket['so-find] 是 @racket['os*] 的默认值，则省略该模式：Windows 和 Mac OS 为 @racket['natipkg]，否则为 @racket['system]。相同字符串的 @tech{path} 形式由 @racket[(system-library-subpath #f)] 返回。
 
 @margin-note{See @guidesecref["virtual-machines"] for more information
  about the @racket['vm] and @racket['gc] mode results.}
 
-In @indexed-racket['vm] mode,
-the possible symbol results are (see also @secref["implementations"]):
+在 @indexed-racket['vm] 模式下，可能的 symbol 结果为（另见 @secref["implementations"]）：
 
 @itemize[
 @item{@indexed-racket['racket]}
 @item{@indexed-racket['chez-scheme]}
 ]
 
-In @indexed-racket['gc] mode,
-the possible symbol results are (see also @secref["implementations"]):
+在 @indexed-racket['gc] 模式下，可能的 symbol 结果为（另见 @secref["implementations"]）：
 
 @itemize[
 @item{@indexed-racket['cgc] --- when @racket[(system-type 'vm)] is @racket['racket]}
@@ -80,7 +54,7 @@ the possible symbol results are (see also @secref["implementations"]):
 @item{@indexed-racket['cs] --- when @racket[(system-type 'vm)] is @racket['chez-scheme]}
 ]
 
-In @indexed-racket['link] mode, the possible symbol results are:
+在 @indexed-racket['link] 模式下，可能的 symbol 结果为：
 
 @itemize[
 @item{@indexed-racket['static] (Unix)}
@@ -89,35 +63,17 @@ In @indexed-racket['link] mode, the possible symbol results are:
 @item{@indexed-racket['framework] (Mac OS)}
 ]
 
-Future ports of Racket may expand the list of @racket['os], @racket['os*],
-@racket['arch], @racket['vm], @racket['gc], and @racket['link] results.
+Racket 的未来移植版本可能会扩展 @racket['os]、@racket['os*]、@racket['arch]、@racket['vm]、@racket['gc] 和 @racket['link] 的结果列表。
 
-In @indexed-racket['machine] mode, then the result is a string, which
-contains further details about the current machine in a
-platform-specific format.
+在 @indexed-racket['machine] 模式下，结果是一个字符串，包含有关当前机器的更多详细信息，采用平台特定的格式。
 
-In @indexed-racket['target-machine] mode, the result is a symbol for
-the running Racket's native bytecode format, or it is @racket[#f] if
-there is no native format other than the machine-independent format.
-If the result is a symbol, then @racket[compile-target-machine?] returns
-@racket[#t] when applied to the symbol; see also
-@racket[current-compile-target-machine].
+在 @indexed-racket['target-machine] 模式下，结果是运行 Racket 的本机字节码格式的 symbol，如果除机器无关格式外没有本机格式，则为 @racket[#f]。如果结果是 symbol，则 @racket[compile-target-machine?] 在应用于该 symbol 时返回 @racket[#t]；另见 @racket[current-compile-target-machine]。
 
-In @indexed-racket['so-suffix] mode, then the result is an immutable byte string
-that represents the file extension used for shared objects on the
-current platform. The byte string starts with a period, so it is
-suitable as a second argument to @racket[path-replace-suffix].
+在 @indexed-racket['so-suffix] 模式下，结果是一个不可变的字节字符串，表示当前平台上用于共享对象的文件扩展名。字节字符串以句点开头，因此适合作为 @racket[path-replace-suffix] 的第二个参数。
 
-In @indexed-racket['so-mode] mode, then the result is @racket['local]
-if foreign libraries should be opened in ``local'' mode by default
-(as on most platforms) or @racket['global] if foreign libraries
-should be opened in ``global'' mode.
+在 @indexed-racket['so-mode] 模式下，如果默认情况下应以 ``local'' 模式打开外部库（如大多数平台上），则结果为 @racket['local]；如果应以 ``global'' 模式打开外部库，则结果为 @racket['global]。
 
-In @indexed-racket['fs-change] mode, the result is an immutable vector
-of four elements. Each element is either @racket[#f] or a symbol,
-where a symbol indicates the presence of a property and @racket[#f]
-indicates the absence of a property. The possible symbols, in order,
-are:
+在 @indexed-racket['fs-change] 模式下，结果是一个包含四个元素的不可变向量。每个元素要么是 @racket[#f]，要么是 symbol，其中 symbol 表示存在某属性，@racket[#f] 表示不存在该属性。可能的 symbol 按顺序为：
 
 @itemize[
 @item{@indexed-racket['supported] --- @racket[filesystem-change-evt]
@@ -136,10 +92,7 @@ are:
  file's directory; this property is @racket[#f] on Windows}
 ]
 
-In @indexed-racket['cross] mode, the result reports whether
-cross-platform build mode has been selected (through the @Flag{C} or
-@DFlag{cross} argument to @exec{racket}; see @secref["mz-cmdline"]).
-The possible symbols are:
+在 @indexed-racket['cross] 模式下，结果报告是否已选择跨平台构建模式（通过 @exec{racket} 的 @Flag{C} 或 @DFlag{cross} 参数；参见 @secref["mz-cmdline"]）。可能的 symbol 为：
 
 @itemize[
 @item{@indexed-racket['infer] --- infer cross-platform mode based on
@@ -159,14 +112,9 @@ The possible symbols are:
 
 @defproc[(system-language+country) string?]{
 
-Returns a string to identify the current user's language and
-country.
+返回一个字符串以标识当前用户的语言和国家/地区。
 
-On Unix and Mac OS, the string is five characters: two lowercase
-ASCII letters for the language, an underscore, and two uppercase ASCII
-letters for the country. On Windows, the string can be arbitrarily
-long, but the language and country are in English (all ASCII letters
-or spaces) separated by an underscore.
+在 Unix 和 Mac OS 上，字符串为五个字符：两个小写 ASCII 字母表示语言，一个下划线，两个大写 ASCII 字母表示国家/地区。在 Windows 上，字符串可以任意长，但语言和国家/地区用英语（所有 ASCII 字母或空格）表示，用下划线分隔。
 
 On Unix, the result is determined by checking the
 @indexed-envvar{LC_ALL}, @indexed-envvar{LC_TYPE}, and
@@ -181,58 +129,37 @@ Mac OS, the result is determined by system calls.}
                                        (system-type 'gc)])
          path?]{
 
-Returns a relative directory path. This string can be used to build
-paths to system-specific files. For example, when Racket is running
-on Solaris on a Sparc architecture, the subpath starts
-@racket["sparc-solaris"], while the subpath for Windows on an i386
-architecture starts @racket["win32\\i386"].
+返回一个相对目录路径。此字符串可用于构建指向系统特定文件的路径。例如，当 Racket 在 Sparc 架构的 Solaris 上运行时，子路径以 @racket["sparc-solaris"] 开头，而在 i386 架构的 Windows 上，子路径以 @racket["win32\\i386"] 开头。
 
-The optional @racket[mode] argument specifies the relevant
-garbage-collection variant, which one of the possible results of
-@racket[(system-type 'gc)]: @racket['cgc], @racket['3m], or @racket['cs]. It can also
-be @racket[#f], in which case the result is independent of the
-garbage-collection variant, and its string form is the same as the
-result of @racket[(system-type 'platform)].
+可选的 @racket[mode] 参数指定相关的垃圾回收变体，即 @racket[(system-type 'gc)] 的可能结果之一：@racket['cgc]、@racket['3m] 或 @racket['cs]。它也可以是 @racket[#f]，在这种情况下，结果与垃圾回收变体无关，其字符串形式与 @racket[(system-type 'platform)] 的结果相同。
 
-Installation tools should use @racket[cross-system-library-subpath],
-instead, to support cross-installation.
+安装工具应使用 @racket[cross-system-library-subpath] 以支持交叉安装。
 
 @history[#:changed "7.0" @elem{Added @racket['cs] mode.}]}
 
 
 @defproc[(version) (and/c string? immutable?)]{
 
-Returns an immutable string indicating the currently executing version of
-Racket.}
+返回一个不可变的字符串，指示当前执行的 Racket 版本。}
 
 
 @defproc[(banner) (and/c string? immutable?)]{
 
-Returns an immutable string for Racket's start-up banner text (or the
-banner text for an embedding program, such as GRacket). The banner string
-ends with a newline.}
+返回一个不可变的字符串，用于 Racket 的启动横幅文本（或嵌入程序（如 GRacket）的横幅文本）。横幅字符串以换行符结尾。}
 
 
 @defparam*[current-command-line-arguments argv
                                           (vectorof string?)
                                           (vectorof (and/c string? immutable?))]{
 
-A @tech{parameter} that is initialized with command-line arguments when
-Racket starts (not including any command-line arguments that were
-treated as flags for the system).
+@tech{parameter}，在 Racket 启动时使用命令行参数初始化（不包括任何被视为系统标志的命令行参数）。
 
-On Unix and Mac OS, command-line arguments are provided to the
-Racket process as @tech{byte strings}. The arguments are converted to
-@tech{strings} using @racket[bytes->string/locale] and
-@racketvalfont{#\uFFFD} as the encoding-error character.}
+在 Unix 和 Mac OS 上，命令行参数作为 @tech{byte strings} 提供给 Racket 进程。参数使用 @racket[bytes->string/locale] 转换为 @tech{strings}，使用 @racketvalfont{#\uFFFD} 作为编码错误字符。}
 
 
 @defparam[current-thread-initial-stack-size size exact-positive-integer?]{
 
-A @tech{parameter} that provides a hint about how much space to reserve for a
-newly created thread's local variables. The actual space used by a
-computation is affected by @tech{JIT} compilation, but it is
-otherwise platform-independent.}
+@tech{parameter}，提供有关为新建线程的局部变量保留多少空间的提示。计算实际使用的空间受 @tech{JIT} 编译影响，但在其他方面与平台无关。}
 
 
 @defproc[(vector-set-performance-stats! [results (and/c vector?
@@ -240,17 +167,9 @@ otherwise platform-independent.}
                                         [thd (or/c thread? #f) #f])
          void?]{
 
-Sets elements in @racket[results] to report current performance
-statistics. If @racket[thd] is not @racket[#f], a particular set of
-thread-specific statistics are reported, otherwise a different set of
-global (within the current @tech{place}) statistics are reported.
+设置 @racket[results] 中的元素以报告当前性能统计信息。如果 @racket[thd] 不是 @racket[#f]，则报告一组特定的线程相关统计信息，否则报告一组不同的全局（在当前 @tech{place} 内）统计信息。
 
-For global statistics, up to @math{12} elements are set in the vector,
-starting from the beginning. If @racket[results] has @math{n} elements
-where @math{n < 12}, then the @math{n} elements are set to the first
-@math{n} performance-statistics values. The reported statistics values
-are as follows, in the order that they are set within
-@racket[results]:
+对于全局统计信息，最多在向量中设置 @math{12} 个元素，从开头开始。如果 @racket[results] 有 @math{n} 个元素，其中 @math{n < 12}，则前 @math{n} 个元素被设置为前 @math{n} 个性能统计值。报告的统计值按在 @racket[results] 中设置的顺序如下：
 
  @itemize[
 
@@ -296,8 +215,7 @@ are as follows, in the order that they are set within
 
  ]
 
-For thread-specific statistics, up to @math{4} elements are set in the
-vector:
+对于线程特定的统计信息，最多在向量中设置 @math{4} 个元素：
 
  @itemize[
 
