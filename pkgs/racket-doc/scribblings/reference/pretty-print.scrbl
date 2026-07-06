@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" scribble/bnf)
 
-@title[#:tag "pretty-print"]{Pretty Printing}
+@title[#:tag "pretty-print"]{美化打印}
 
 @note-lib[racket/pretty]
 
@@ -10,44 +10,13 @@
                        [#:newline? newline? boolean? #t])
          void?]{
 
-Pretty-prints the value @racket[v] using the same printed form as the
-default @racket[print] mode, but with newlines and whitespace inserted
-to avoid lines longer than @racket[(pretty-print-columns)], as
-controlled by @racket[(pretty-print-current-style-table)]. The printed
-form ends in a newline by default, unless the @racket[newline?]
-argument is supplied with false or the @racket[pretty-print-columns]
-parameter is set to @racket['infinity]. When @racket[port] has line
-counting enabled (see @secref["linecol"]), then printing is sensitive
-to the column when printing starts---both for determining an initial
-line break and indenting subsequent lines.
+使用与默认 @racket[print] 模式相同的打印形式来美化打印值 @racket[v]，但会插入换行和空白以避免行长度超过 @racket[(pretty-print-columns)]，具体由 @racket[(pretty-print-current-style-table)] 控制。打印形式默认以换行结尾，除非 @racket[newline?] 参数为 false 或 @racket[pretty-print-columns] 参数设为 @racket['infinity]。当 @racket[port] 启用了行计数时（参见 @secref["linecol"]），打印会对起始列敏感——既用于确定初始换行，也用于缩进后续行。
 
-In addition to the parameters defined in this section,
-@racket[pretty-print] conforms to the @racket[print-graph],
-@racket[print-struct], @racket[print-hash-table],
-@racket[print-vector-length], @racket[print-box], and
-@racket[print-as-expression] parameters.
+除了本节中定义的参数外，@racket[pretty-print] 还遵循 @racket[print-graph]、@racket[print-struct]、@racket[print-hash-table]、@racket[print-vector-length]、@racket[print-box] 和 @racket[print-as-expression] 参数。
 
-The pretty printer detects structures that have the
-@racket[prop:custom-write] property and calls the corresponding
-custom-write procedure. The custom-write procedure can check the
-parameter @racket[pretty-printing] to cooperate with the
-pretty-printer. Recursive printing to the port automatically uses
-pretty printing, but if the structure has multiple recursively printed
-sub-expressions, a custom-write procedure may need to cooperate more
-to insert explicit newlines. Use @racket[port-next-location] to
-determine the current output column, use @racket[pretty-print-columns]
-to determine the target printing width, and use
-@racket[pretty-print-newline] to insert a newline (so that the
-function in the @racket[pretty-print-print-line] parameter can be
-called appropriately). Use
-@racket[make-tentative-pretty-print-output-port] to obtain a port for
-tentative recursive prints (e.g., to check the length of the output).
+美化打印器会检测具有 @racket[prop:custom-write] property 的 struct，并调用相应的 custom-write 过程。custom-write 过程可以检查 @racket[pretty-printing] 参数来与美化打印器协作。到 port 的递归打印自动使用美化打印，但如果 struct 有多个递归打印的子表达式，custom-write 过程可能需要更深入地协作以插入显式换行。使用 @racket[port-next-location] 确定当前输出列，使用 @racket[pretty-print-columns] 确定目标打印宽度，使用 @racket[pretty-print-newline] 插入换行（以便正确调用 @racket[pretty-print-print-line] 参数中的函数）。使用 @racket[make-tentative-pretty-print-output-port] 获取用于试探性递归打印的 port（例如检查输出长度）。
 
-If the @racket[newline?] argument is omitted or supplied with true,
-the @racket[pretty-print-print-line] callback is called with false as
-the first argument to print the last newline after the printed value.
-If it is supplied with false, the @racket[pretty-print-print-line]
-callback is not called after the printed value.
+如果省略 @racket[newline?] 参数或其为 true，则在打印完值的最后一个换行后，@racket[pretty-print-print-line] 回调会以 false 作为第一个参数被调用。如果 @racket[newline?] 为 false，则在打印完值后不调用 @racket[pretty-print-print-line] 回调。
 
 @history[#:changed "6.6.0.3" @elem{Added @racket[newline?] argument.}]
 }
@@ -56,8 +25,7 @@ callback is not called after the printed value.
                        [#:newline? newline? boolean? #t])
          void?]{
 
-Same as @racket[pretty-print], but @racket[v] is printed like
-@racket[write] instead of like @racket[print].
+与 @racket[pretty-print] 相同，但 @racket[v] 的打印方式类似于 @racket[write] 而非 @racket[print]。
 
 @history[#:changed "6.6.0.3" @elem{Added @racket[newline?] argument.}]
 }
@@ -66,8 +34,7 @@ Same as @racket[pretty-print], but @racket[v] is printed like
                          [#:newline? newline? boolean? #t])
          void?]{
 
-Same as @racket[pretty-print], but @racket[v] is printed like
-@racket[display] instead of like @racket[print].
+与 @racket[pretty-print] 相同，但 @racket[v] 的打印方式类似于 @racket[display] 而非 @racket[print]。
 
 @history[#:changed "6.6.0.3" @elem{Added @racket[newline?] argument.}]
 }
@@ -77,74 +44,52 @@ Same as @racket[pretty-print], but @racket[v] is printed like
                         [#:mode mode (or/c 'print 'write 'display) 'print])
          string?]{
 
-Like @racket[pretty-print], except that it returns a string containing
-the pretty-printed value, rather than sending the output to a port.
+类似于 @racket[pretty-print]，但返回包含美化打印值的字符串，而不是将输出发送到 port。
 
-The optional argument @racket[columns] argument is used to
-parameterize @racket[pretty-print-columns].
+可选参数 @racket[columns] 用于参数化 @racket[pretty-print-columns]。
 
-The keyword argument @racket[mode] controls whether printing is done like
-either @racket[pretty-print] (the default), @racket[pretty-write] or
-@racket[pretty-display].
+关键字参数 @racket[mode] 控制打印方式：@racket[pretty-print]（默认）、@racket[pretty-write] 或 @racket[pretty-display]。
 
 @history[#:changed "6.3" @elem{Added a @racket[mode] argument.}]}
 
 
 @defproc[(pretty-print-handler [v any/c]) void?]{
 
-Pretty-prints @racket[v] if @racket[v] is not @|void-const|, or prints
-nothing if @racket[v] is @|void-const|. Pass this procedure to
-@racket[current-print] to install the pretty printer into the REPL run
-by @racket[read-eval-print-loop].}
+如果 @racket[v] 不是 @|void-const|，则美化打印 @racket[v]；如果 @racket[v] 是 @|void-const|，则不打印任何内容。将此过程传递给 @racket[current-print] 以将美化打印器安装到由 @racket[read-eval-print-loop] 运行的 REPL 中。}
 
 
 @; ----------------------------------------------------------------------
 
-@section{Basic Pretty-Print Options}
+基本美化打印选项
 
 @defparam[pretty-print-columns width (or/c exact-positive-integer? 'infinity)]{
 
-A @tech{parameter} that determines the default width for pretty printing.
+决定美化打印默认宽度的 @tech{parameter}。
 
-If the display width is @racket['infinity], then pretty-printed output
-is never broken into lines, and a newline is not added to the end of
-the output.}
+如果显示宽度为 @racket['infinity]，则美化打印输出不会断行，也不会在末尾添加换行。}
 
 
 @defparam[pretty-print-depth depth (or/c exact-nonnegative-integer? #f)]{
 
-Parameter that controls the default depth for recursive pretty
-printing. Printing to @racket[depth] means that elements nested more
-deeply than @racket[depth] are replaced with ``...''; in particular, a
-depth of @racket[0] indicates that only simple values are printed. A depth of
-@racket[#f] (the default) allows printing to arbitrary
-depths.}
+控制递归美化打印默认深度的参数。打印到 @racket[depth] 深度意味着嵌套超过 @racket[depth] 的元素被替换为“...”；特别地，@racket[0] 表示只打印简单值。@racket[#f]（默认值）允许打印任意深度。}
 
 
 @defboolparam[pretty-print-exact-as-decimal as-decimal?]{
 
-A @tech{parameter} that determines how exact non-integers are printed.  If
-the parameter's value is @racket[#t], then an exact non-integer with a
-decimal representation is printed as a decimal number instead of a
-fraction. The initial value is @racket[#f].}
+决定如何打印精确非整数的 @tech{parameter}。如果参数值为 @racket[#t]，则具有小数表示的精确非整数将打印为小数而不是分数。初始值为 @racket[#f]。}
 
 @defboolparam[pretty-print-.-symbol-without-bars on?]{
 
-A @tech{parameter} that controls the printing of the symbol whose print name
-is just a period. If set to a true value, then such a symbol is
-printed as only the period.  If set to a false value, it is printed as
-a period with vertical bars surrounding it.}
+控制打印 symbol 名称仅为句点的 @tech{parameter}。如果设为真值，则该 symbol 仅打印为句点。如果设为假值，则打印为带竖线包围的句点。}
 
 
 @defboolparam[pretty-print-show-inexactness show?]{
 
-A @tech{parameter} that determines how inexact numbers are printed.  If the
-parameter's value is @racket[#t], then inexact numbers are always
-printed with a leading @litchar{#i}. The initial value is @racket[#f].}
+决定如何打印不精确数的 @tech{parameter}。如果参数值为 @racket[#t]，则不精确数总是打印为带前导 @litchar{#i} 的形式。初始值为 @racket[#f]。}
 
 @; ----------------------------------------------------------------------
 
-@section{Per-Symbol Special Printing}
+按 Symbol 特殊打印
 
 
 @defboolparam[pretty-print-abbreviate-read-macros abbrev?]{
@@ -160,14 +105,12 @@ See also @racket[pretty-print-remap-stylable].
 
 @defproc[(pretty-print-style-table? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a style table for use with
-@racket[pretty-print-current-style-table], @racket[#f] otherwise.}
+如果 @racket[v] 是用于 @racket[pretty-print-current-style-table] 的 style table，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defparam[pretty-print-current-style-table style-table pretty-print-style-table?]{
 
-A @tech{parameter} that holds a table of style mappings. See
-@racket[pretty-print-extend-style-table].}
+保存 style 映射表的 @tech{parameter}。参见 @racket[pretty-print-extend-style-table]。}
 
 
 @defproc[(pretty-print-extend-style-table [style-table pretty-print-style-table?]
@@ -175,23 +118,11 @@ A @tech{parameter} that holds a table of style mappings. See
                                           [like-symbol-list (listof symbol?)])
          pretty-print-style-table?]{
 
-Creates a new style table by extending an existing
-@racket[style-table], so that the style mapping for each symbol of
-@racket[like-symbol-list] in the original table is used for the
-corresponding symbol of @racket[symbol-list] in the new table. The
-@racket[symbol-list] and @racket[like-symbol-list] lists must have the
-same length. The @racket[style-table] argument can be @racket[#f], in
-which case the default mappings are used from the original table (see
-below).
+通过扩展现有的 @racket[style-table] 创建新的 style table，使原始表中 @racket[like-symbol-list] 每个 symbol 的 style 映射用于新表中对应的 @racket[symbol-list] symbol。@racket[symbol-list] 和 @racket[like-symbol-list] 必须具有相同长度。@racket[style-table] 参数可以为 @racket[#f]，此时使用原始表的默认映射（见下文）。
 
-The style mapping for a symbol controls the way that whitespace is
-inserted when printing a list that starts with the symbol. In the
-absence of any mapping, when a list is broken across multiple lines,
-each element of the list is printed on its own line, each with the
-same indentation.
+symbol 的 style 映射控制打印以该 symbol 开头的 list 时插入空白的方式。在没有任何映射的情况下，当 list 跨多行断开时，list 的每个元素打印在单独一行，每行具有相同的缩进。
 
-The default style mapping includes mappings for the following symbols,
-so that the output follows popular code-formatting rules:
+默认 style 映射包括以下 symbol 的映射，使输出遵循流行的代码格式化规则：
 
 @racketblock[
 'lambda 'λ 'case-lambda
@@ -217,32 +148,19 @@ so that the output follows popular code-formatting rules:
           proc 
           (any/c . -> . (or/c symbol? #f))]{
 
-A @tech{parameter} that controls remapping for styles and for the determination of 
-the reader shorthands.
+控制 style 重映射和 reader 缩写确定的 @tech{parameter}。
 
-This procedure is
-called with each sub-expression that appears as the first element in a
-sequence. If it returns a symbol, the style table is used, as if that
-symbol were at the head of the sequence. If it returns @racket[#f],
-the style table is treated normally.
-Similarly, when determining whether to abbreviate reader macros,
-this parameter is consulted.
+此过程以序列中作为第一个元素出现的每个子表达式调用。如果返回 symbol，则使用 style table，如同该 symbol 位于序列头部。如果返回 @racket[#f]，则正常处理 style table。同样，在确定是否缩写 reader macro 时，会参考此参数。
 }
 
 
 @; ----------------------------------------------------------------------
 
-@section{Line-Output Hook}
+行输出 Hook
 
 @defproc[(pretty-print-newline [port output-port?] [width exact-nonnegative-integer?]) void?]{
 
-Calls the procedure associated with the
-@racket[pretty-print-print-line] parameter to print a newline to
-@racket[port], if @racket[port] is the output port that is redirected
-to the original output port for printing, otherwise a plain newline is
-printed to @racket[port]. The @racket[width] argument should be the
-target column width, typically obtained from
-@racket[pretty-print-columns].}
+如果 @racket[port] 是重定向到原始输出端口的输出端口，则调用与 @racket[pretty-print-print-line] 参数关联的过程向 @racket[port] 打印换行，否则向 @racket[port] 打印普通换行。@racket[width] 参数应为目标列宽，通常从 @racket[pretty-print-columns] 获取。}
 
 
 @defparam[pretty-print-print-line proc
@@ -253,45 +171,20 @@ target column width, typically obtained from
            . -> .
            exact-nonnegative-integer?)]{
 
-A @tech{parameter} that determines a procedure for printing the newline
-separator between lines of a pretty-printed value. The procedure is
-called with four arguments: a new line number, an output port, the old
-line's length, and the number of destination columns. The return value
-from @racket[proc] is the number of extra characters it printed at the
-beginning of the new line.
+确定美化打印值行间换行分隔符打印过程的 @tech{parameter}。该过程以四个参数调用：新行号、输出端口、旧行长度和目标列数。@racket[proc] 的返回值是它在行首打印的额外字符数。
 
-The @racket[proc] procedure is called before any characters are
-printed with @racket[0] as the line number and @racket[0] as the old
-line length. Whenever the pretty-printer starts a new line,
-@racket[proc] is called with the new line's number (where the first
-new line is numbered @racket[1]) and the just-finished line's length.
-The destination-columns argument to @racket[proc] is always
-the total width of the destination printing area, or
-@racket['infinity] if pretty-printed values are not broken into lines.
+在打印任何字符之前，先以 @racket[0] 作为行号和旧行长度调用 @racket[proc] 过程。每当美化打印器开始新行时，以新的行号（第一行新行编号为 @racket[1]）和刚完成的行长度调用 @racket[proc]。@racket[proc] 的 destination-columns 参数始终是目标打印区域的总宽度，或者如果美化打印值不断行，则为 @racket['infinity]。
 
-If the @racket[#:newline?] argument was omitted or supplied with
-a true value, @racket[proc] is also called after the last character of the
-value has been printed, with @racket[#f] as the line number and with
-the length of the last line.
+如果省略 @racket[#:newline?] 参数或提供了真值，则在值的最后一个字符打印完成后，以 @racket[#f] 作为行号和最后一行的长度调用 @racket[proc]。
 
-The default @racket[proc] procedure prints a newline whenever the line
-number is not @racket[0] and the column count is not
-@racket['infinity], always returning @racket[0]. A custom
-@racket[proc] procedure can be used to print extra text before each
-line of pretty-printed output; the number of characters printed before
-each line should be returned by @racket[proc] so that the next line
-break can be chosen correctly.
+默认的 @racket[proc] 过程在行号不是 @racket[0] 且列数不是 @racket['infinity] 时打印换行，始终返回 @racket[0]。自定义 @racket[proc] 过程可用于在每行美化打印输出前打印额外文本；@racket[proc] 应返回每行前打印的字符数，以便正确选择下一行断行。
 
-The destination port supplied to @racket[proc] is generally not the
-port supplied to @racket[pretty-print] or @racket[pretty-display] (or
-the current output port), but output to this port is ultimately
-redirected to the port supplied to @racket[pretty-print] or
-@racket[pretty-display].}
+提供给 @racket[proc] 的目标端口通常不是提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口（或当前输出端口），但对此端口的输出最终会重定向到提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口。}
 
 
 @; ----------------------------------------------------------------------
 
-@section{Value Output Hook}
+值输出 Hook
 
 
 @defparam[pretty-print-size-hook proc
@@ -299,71 +192,39 @@ redirected to the port supplied to @racket[pretty-print] or
            . -> . 
            (or/c #f exact-nonnegative-integer?))]{
 
-A @tech{parameter} that determines a sizing hook for pretty-printing.
+确定美化打印 sizing hook 的 @tech{parameter}。
 
-The sizing hook is applied to each value to be printed. If the hook
-returns @racket[#f], then printing is handled internally by the
-pretty-printer. Otherwise, the value should be an integer specifying
-the length of the printed value in characters; the print hook will be
-called to actually print the value (see
-@racket[pretty-print-print-hook]).
+sizing hook 应用于每个要打印的值。如果 hook 返回 @racket[#f]，则由美化打印器内部处理打印。否则，该值应为指定打印值字符长度的整数；将调用 print hook 来实际打印倸（参见 @racket[pretty-print-print-hook]）。
 
-The sizing hook receives three arguments. The first argument is the
-value to print.  The second argument is a boolean: @racket[#t] for
-printing like @racket[display] and @racket[#f] for printing like
-@racket[write]. The third argument is the destination port; the port
-is the one supplied to @racket[pretty-print] or
-@racket[pretty-display] (or the current output port).  The sizing hook
-may be applied to a single value multiple times during
-pretty-printing.}
+sizing hook 接收三个参数。第一个参数是要打印的值。第二个参数是布尔值：@racket[#t] 表示类似 @racket[display] 的打印，@racket[#f] 表示类似 @racket[write] 的打印。第三个参数是目标端口；该端口是提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口（或当前输出端口）。sizing hook 可能在美化打印期间多次应用于单个值。}
 
 
 @defparam[pretty-print-print-hook proc
           (any/c boolean? output-port? . -> . void?)]{
 
-A @tech{parameter} that determines a print hook for pretty-printing.  The
-print-hook procedure is applied to a value for printing when the
-sizing hook (see @racket[pretty-print-size-hook]) returns an integer
-size for the value.
+确定美化打印 print hook 的 @tech{parameter}。当 sizing hook（参见 @racket[pretty-print-size-hook]）为值返回整数大小时，print-hook 过程应用于要打印的值。
 
-The print hook receives three arguments. The first argument is the
-value to print.  The second argument is a boolean: @racket[#t] for
-printing like @racket[display] and @racket[#f] for printing like
-@racket[write]. The third argument is the destination port; this port
-is generally not the port supplied to @racket[pretty-print] or
-@racket[pretty-display] (or the current output port), but output to
-this port is ultimately redirected to the port supplied to
-@racket[pretty-print] or @racket[pretty-display].}
+print hook 接收三个参数。第一个参数是要打印的值。第二个参数是布尔值：@racket[#t] 表示类似 @racket[display] 的打印，@racket[#f] 表示类似 @racket[write] 的打印。第三个参数是目标端口；此端口通常不是提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口（或当前输出端口），但对此端口的输出最终会重定向到提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口。}
 
 
 @defparam[pretty-print-pre-print-hook proc
           (any/c output-port? . -> . void)]{
 
-A @tech{parameter} that determines a hook procedure to be called just before
-an object is printed. The hook receives two arguments: the object and
-the output port. The port is the one supplied to @racket[pretty-print]
-or @racket[pretty-display] (or the current output port).}
+确定在对象即将打印前调用的 hook 过程的 @tech{parameter}。hook 接收两个参数：对象和输出端口。该端口是提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口（或当前输出端口）。}
 
 
 @defparam[pretty-print-post-print-hook proc
           (any/c output-port? . -> . void)]{
 
-A @tech{parameter} that determines a hook procedure to be called just after
-an object is printed. The hook receives two arguments: the object and
-the output port. The port is the one supplied to @racket[pretty-print]
-or @racket[pretty-display] (or the current output port).}
+确定在对象打印完成后调用的 hook 过程的 @tech{parameter}。hook 接收两个参数：对象和输出端口。该端口是提供给 @racket[pretty-print] 或 @racket[pretty-display] 的端口（或当前输出端口）。}
 
 @; ----------------------------------------------------------------------
 
-@section{Additional Custom-Output Support}
+附加自定义输出支持
 
 @defboolparam[pretty-printing on?]{
 
-A @tech{parameter} that is set to @racket[#t] when the pretty printer calls a
-custom-write procedure (see @racket[prop:custom-write]) for output in
-a mode that supports line breaks.  When pretty printer calls a
-custom-write procedure merely to detect cycles or to try to print on a
-single line, it sets this parameter to @racket[#f].}
+当美化打印器以支持换行的模式调用 custom-write 过程（参见 @racket[prop:custom-write]）进行输出时，此 @tech{parameter} 设为 @racket[#t]。当美化打印器仅为了检测循环或尝试在单行上打印而调用 custom-write 过程时，将此参数设为 @racket[#f]。}
 
 
 @defproc[(make-tentative-pretty-print-output-port 
@@ -372,49 +233,20 @@ single line, it sets this parameter to @racket[#f].}
           [overflow-thunk (-> any)])
          output-port?]{
 
-Produces an output port that is suitable for recursive pretty printing
-without actually producing output. Use such a port to tentatively
-print when proper output depends on the size of recursive
-prints. After printing, determine the size of the tentative output
-using @racket[file-position].
+生成适用于递归美化打印但不实际产生输出的端口。当正确的输出取决于递归打印的大小时，使用此类端口进行试探性打印。打印后，使用 @racket[file-position] 确定试探性输出的大小。
 
-The @racket[out] argument should be a pretty-printing port, such as
-the one supplied to a custom-write procedure when
-@racket[pretty-printing] is set to true, or another tentative output
-port. The @racket[width] argument should be a target column width,
-usually obtained from @racket[pretty-print-columns], possibly
-decremented to leave room for a terminator. The
-@racket[overflow-thunk] procedure is called if more than
-@racket[width] items are printed to the port or if a newline is
-printed to the port via @racket[pretty-print-newline]; it can escape from the
-recursive print through a continuation as a shortcut, but
-@racket[overflow-thunk] can also return, in which case it is called
-every time afterward that additional output is written to the port.
+@racket[out] 参数应为美化打印端口，例如当 @racket[pretty-printing] 设为 true 时提供给 custom-write 过程的端口，或另一个试探性输出端口。@racket[width] 参数应为目标列宽，通常从 @racket[pretty-print-columns] 获取，可能递减以为终止符留出空间。如果向端口打印了超过 @racket[width] 个项，或如果通过 @racket[pretty-print-newline] 向端口打印了换行，则调用 @racket[overflow-thunk] 过程；它可以通过 continuation 作为快捷方式从递归打印中逃逸，但 @racket[overflow-thunk] 也可以返回，在这种情况下，每次后续向端口写入额外输出时都会调用它。
 
-After tentative printing, either accept the result with
-@racket[tentative-pretty-print-port-transfer] or reject it with
-@racket[tentative-pretty-print-port-cancel]. Failure to accept or
-cancel properly interferes with graph-structure printing, calls to
-hook procedures, etc.  Explicitly cancel the tentative print even when
-@racket[overflow-thunk] escapes from a recursive print.}
+试探性打印后，使用 @racket[tentative-pretty-print-port-transfer] 接受结果或使用 @racket[tentative-pretty-print-port-cancel] 拒绝结果。未能正确接受或取消会干扰 graph 结构打印、hook 过程调用等。即使 @racket[overflow-thunk] 从递归打印中逃逸，也要显式取消试探性打印。}
 
  
 @defproc[(tentative-pretty-print-port-transfer 
           [tentative-out output-port?] [orig-out output-port?])
          void?]{
 
-Causes the data written to @racket[tentative-out] to be transferred as
-if written to @racket[orig-out]. The @racket[tentative-out] argument
-should be a port produced by
-@racket[make-tentative-pretty-print-output-port], and
-@racket[orig-out] should be either a pretty-printing port (provided to
-a custom-write procedure) or another tentative output port.}
+使写入 @racket[tentative-out] 的数据如同写入 @racket[orig-out] 一样被传输。@racket[tentative-out] 参数应为 @racket[make-tentative-pretty-print-output-port] 生成的端口，@racket[orig-out] 应为美化打印端口（提供给 custom-write 过程）或另一个试探性输出端口。}
 
 
 @defproc[(tentative-pretty-print-port-cancel [tentative-out output-port?]) void?]{
 
-Cancels the content of @racket[tentative-out], which was produced by
-@racket[make-tentative-pretty-print-output-port]. The main effect of
-canceling is that graph-reference definitions are undone, so that a
-future print of a graph-referenced object includes the defining
-@litchar{#}@nonterm{n}@litchar{=}.}
+取消 @racket[tentative-out] 的内容，该内容由 @racket[make-tentative-pretty-print-output-port] 生成。取消的主要效果是撤销 graph-reference 定义，使得将来打印 graph-referenced 对象时包含定义 @litchar{#}@nonterm{n}@litchar{=}。}
