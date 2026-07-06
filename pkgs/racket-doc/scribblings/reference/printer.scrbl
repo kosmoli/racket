@@ -3,7 +3,7 @@
 
 @title[#:tag "printing" #:style 'quiet]{The Printer}
 
-The Racket printer supports three modes:
+Racket printer 支持三种模式：
 
 @itemlist[
 
@@ -26,37 +26,22 @@ The Racket printer supports three modes:
 
 ]
 
-In @racket[print] mode when @racket[print-as-expression] is
-@racket[#t] (as is the default), a value prints at a @deftech{quoting
-depth} of either @racket[0] (unquoted) or @racket[1] (quoted). The
-initial quoting depth is accepted as an optional argument by
-@racket[print], and printing of some compound datatypes adjusts the
-print depth for component values. For example, when a list is printed
-at quoting depth @racket[0] and all of its elements are
-@deftech{quotable}, the list is printed with a @litchar{'} prefix, and
-the list's elements are printed at quoting depth @racket[1].
+在 @racket[print] mode 且 @racket[print-as-expression] 为 @racket[#t] 时（默认情况），
+值以 @deftech{quoting depth}（引用深度）@racket[0]（无引号）或 @racket[1]（带引号）打印。 初始引用深度由 @racket[print] 接受为可选参数，
+某些复合数据类型的打印会为组件值调整打印深度。 例如，当列表以引用深度 @racket[0] 打印且其所有元素均为 @deftech{quotable}（可引用）时，
+列表以 @litchar{'} 为前缀打印，其元素以引用深度 @racket[1] 打印。
 
-When the @racket[print-graph] parameter is set to @racket[#t], then
-the printer first scans an object to detect cycles. The scan traverses
-the components of pairs, mutable pairs, vectors, boxes (when
-@racket[print-box] is @racket[#t]), hash tables (when
-@racket[print-hash-table] is @racket[#t] and when key are held strongly), fields of structures
-exposed by @racket[struct->vector] (when @racket[print-struct] is
-@racket[#t]), and fields of structures exposed by printing when the
-structure's type has the @racket[prop:custom-write] property. If
-@racket[print-graph] is @racket[#t], then this information is used to
-print sharing through graph definitions and references (see
-@secref["parse-graph"]). If a cycle is detected in the initial scan,
-then @racket[print-graph] is effectively set to @racket[#t]
-automatically.
+当 @racket[print-graph] 参数设为 @racket[#t] 时，printer 首先扫描对象以检测循环。 扫描遍历 pair、mutable pair、vector、box（当 @racket[print-box] 为 @racket[#t] 时）、
+hash table（当 @racket[print-hash-table] 为 @racket[#t] 且 key 被强持有时）、
+由 @racket[struct->vector] 暴露的 structure 字段（当 @racket[print-struct] 为 @racket[#t] 时），
+以及通过打印暴露的结构字段（当结构类型具有 @racket[prop:custom-write] 属性时）。 如果 @racket[print-graph] 为 @racket[#t]，则此信息用于通过 graph definition 和 reference 打印共享结构
+（参见 @secref["parse-graph"]）。 如果在初始扫描中检测到循环，则 @racket[print-graph] 实际上会自动设为 @racket[#t]。
 
-With the exception of displaying @tech{byte strings}, printing is defined in
-terms of Unicode characters; see @secref["ports"] for information
-on how a character stream is written to a port's underlying byte
-stream.
+除了显示 @tech{byte strings} 之外，打印以 Unicode 字符定义；
+关于字符流如何写入 port 的底层字节流的信息，参见 @secref["ports"]。
 
 
-@section[#:tag "print-symbol"]{Printing Symbols}
+@section[#:tag "print-symbol"]{打印符号}
 
 @tech{Symbols} containing spaces or special characters @racket[write] using
 escaping @litchar{\} and quoting @litchar{|}s. When the
@@ -67,15 +52,13 @@ quoted with @litchar{|}s or leading @litchar{\} when they would
 otherwise print the same as a numerical constant or as a delimited
 @litchar{.} (when @racket[read-accept-dot] is @racket[#t]).
 
-When @racket[read-accept-bar-quote] is @racket[#t], @litchar{|}s are
-used in printing when one @litchar{|} at the beginning and one
-@litchar{|} at the end suffice to correctly print the
-symbol. Otherwise, @litchar{\}s are always used to escape special
+当 @racket[read-accept-bar-quote] 为 @racket[#t] 时，
+如果开头一个 @litchar{|} 和结尾一个 @litchar{|} 足以正确打印符号，
+则打印时使用 @litchar{|}。 Otherwise, @litchar{\}s are always used to escape special
 characters, instead of quoting them with @litchar{|}s.
 
-When @racket[read-accept-bar-quote] is @racket[#f], then @litchar{|}
-is not treated as a special character. The following are always
-special characters:
+当 @racket[read-accept-bar-quote] 为 @racket[#f] 时，
+@litchar{|} 不被视为特殊字符。以下是始终被视为特殊字符的字符：
 
 @t{
   @hspace[2] @litchar{(} @litchar{)} @litchar{[} @litchar{]}
@@ -84,24 +67,19 @@ special characters:
   @litchar{;} @litchar{\}
 }
 
-In addition, @litchar{#} is a special character when it appears at the
-beginning of the symbol, and when it is not followed by @litchar{%}.
+此外，当 @litchar{#} 出现在符号开头且后面未跟 @litchar{%} 时，它是特殊字符。
 
-Symbols @racket[display] without escaping or quoting special
-characters. That is, the display form of a symbol is the same as the
-display form of @racket[symbol->string] applied to the symbol.
+Symbols @racket[display] 时不转义也不引用特殊字符。
+也就是说，符号的 display 形式与对其应用 @racket[symbol->string] 的 display 形式相同。
 
 Symbols @racket[print] the same as they @racket[write], unless
 @racket[print-as-expression] is set to @racket[#t] (as is the default) and the current
-@tech{quoting depth} is @racket[0]. In that case, the symbol's
-@racket[print]ed form is prefixed with @litchar{'}. For the purposes
-of printing enclosing datatypes, a symbol is @tech{quotable}.
+@tech{quoting depth} is @racket[0]. 在这种情况下，符号的 @racket[print] 形式前会加上 @litchar{'} 前缀。
+就打印外围数据类型而言，symbol 是 @tech{quotable} 的。
 
-@section[#:tag "print-number"]{Printing Numbers}
+@section[#:tag "print-number"]{打印数值}
 
-A @tech{number} prints the same way in @racket[write], @racket[display], and
-@racket[print] modes. For the purposes of printing enclosing
-datatypes, a number is @tech{quotable}.
+@tech{number} 在 @racket[write]、@racket[display] 和 @racket[print] 模式中的打印方式相同。 就打印外围数据类型而言，number 是 @tech{quotable} 的。
 
 A @tech{complex number} that is not a @tech{real number} always prints
 as @nonterm{m}@litchar{+}@nonterm{n}@litchar{i} or
@@ -110,44 +88,34 @@ as @nonterm{m}@litchar{+}@nonterm{n}@litchar{i} or
 @litchar{-}@nonterm{n} (for a negative imaginary part) are the printed
 forms of its real and imaginary parts, respectively.
 
-An exact @racket[0] prints as @litchar{0}. A positive, exact
-@tech{integer} prints as a sequence of digits that does not start with
-@litchar{0}. A positive, exact, real, non-integer number prints as
+精确的 @racket[0] 打印为 @litchar{0}。 正的精确 @tech{integer} 打印为不以 @litchar{0} 开头的数字序列。 A positive, exact, real, non-integer number prints as
 @nonterm{m}@litchar{/}@nonterm{n}, where @nonterm{m} and @nonterm{n}
 are the printed forms of the number's numerator and denominator (as
-determined by @racket[numerator] and @racket[denominator]). A negative
-@tech{exact number} prints with a @litchar{-} prefix on the printed
-form of the number's exact negation. When printing a number as
+determined by @racket[numerator] and @racket[denominator]). 负的 @tech{exact number} 打印时在数字精确否定的形式前加上 @litchar{-} 前缀。 When printing a number as
 hexadecimal (e.g., via @racket[number->string]), digits @litchar{a}
 though @litchar{f} are printed in lowercase. A @litchar{#e} or radix
 marker such as @litchar{#d} @emph{does not} prefix the number.
 
-A double-precision @tech{inexact number} (i.e., a @tech{flonum}) that
-is a @tech{rational number} prints with either a @litchar{.} decimal
-point, an @litchar{e} exponent marker and non-zero exponent, or both.
-The form is selected to keep the output short, with
-the constraint that reading the printed form back in produces an
-@racket[equal?] number. A @litchar{#i} @emph{does not} prefix the
+作为 @tech{rational number} 的双精度 @tech{inexact number}（即 @tech{flonum}）
+以 @litchar{.} 小数点、@litchar{e} 指数标记和非零指数或两者结合的形式打印。
+所选形式旨在保持输出简短，约束条件是读回打印形式会产生一个 @racket[equal?] 的数字。 A @litchar{#i} @emph{does not} prefix the
 number, and @litchar{#} is never used in place of a digit. A
 @litchar{+} does not prefix a positive number, but a @litchar{+} or
 @litchar{-} is printed before the exponent if @litchar{e} is present.
-Positive infinity prints as @litchar{+inf.0}, negative infinity prints
-as @litchar{-inf.0}, and not-a-number prints as @litchar{+nan.0}.
+正无穷打印为 @litchar{+inf.0}，负无穷打印为 @litchar{-inf.0}，
+非数字打印为 @litchar{+nan.0}。
 
 A single-precision @tech{inexact number} that is a @tech{rational
 number} prints like a double-precision number, but always with an
 exponent, using @litchar{f} in place of @litchar{e} to indicate the
 number's precision; if the number would otherwise print without an
 exponent, @litchar{0} (with no @litchar{+}) is printed as the exponent
-part. Single-precision positive infinity prints as
-@litchar{+inf.f}, negative infinity prints as @litchar{-inf.f}, and
-not-a-number prints as @litchar{+nan.f}.
+part. 单精度正无穷打印为 @litchar{+inf.f}，负无穷打印为 @litchar{-inf.f}，
+非数字打印为 @litchar{+nan.f}。
 
-@section[#:tag "print-extflonum"]{Printing Extflonums}
+@section[#:tag "print-extflonum"]{打印 Extflonum}
 
-An @tech{extflonum} prints the same way in @racket[write],
-@racket[display], and @racket[print] modes. For the purposes of
-printing enclosing datatypes, an extflonum is @tech{quotable}.
+@tech{extflonum} 在 @racket[write]、@racket[display] 和 @racket[print] 模式中的打印方式相同。 就打印外围数据类型而言，extflonum 是 @tech{quotable} 的。
 
 An extflonum prints in the same way a single-precision inexact number
 (see @secref["print-number"]), but always with a @litchar{t} or
@@ -158,7 +126,7 @@ extflonum operations are supported, printing always uses lowercase
 extflonum prints the same as its reader (see @secref["reader"])
 source, since reading is the only way to produce an extflonum.
 
-@section[#:tag "print-booleans"]{Printing Booleans}
+@section[#:tag "print-booleans"]{打印布尔值}
 
 The @tech{boolean} constant @racket[#t] prints as @litchar{#true} or @litchar{#t} in
 all modes (@racket[display], @racket[write], and @racket[print]),
@@ -167,12 +135,9 @@ constant @racket[#f] prints as @litchar{#false} or @litchar{#f}. For
 the purposes of printing enclosing datatypes, a symbol is
 @tech{quotable}.
 
-@section[#:tag "print-pairs"]{Printing Pairs and Lists}
+@section[#:tag "print-pairs"]{打印 Pair 和 List}
 
-In @racket[write] and @racket[display] modes, an empty @tech{list} prints as
-@litchar{()}. A @tech{pair} normally prints starting with @litchar{(}
-followed by the printed form of its @racket[car]. The rest of the
-printed form depends on the @racket[cdr]:
+在 @racket[write] 和 @racket[display] 模式中，空的 @tech{list} 打印为 @litchar{()}。 @tech{pair} 通常以 @litchar{(} 开始，后跟其 @racket[car] 的打印形式。 其余打印形式取决于 @racket[cdr]：
 
 @itemize[
 
@@ -210,9 +175,8 @@ The printed form of a pair is the same in both @racket[write] and
 form is also the same if @racket[print-as-expression] is @racket[#f]
 or the quoting depth is @racket[1].
 
-For @racket[print] mode when @racket[print-as-expression] is
-@racket[#t] and the @tech{quoting depth} is @racket[0], then the empty
-list prints as @litchar{'()}. For a pair whose @racket[car] and
+对于 @racket[print] mode 且 @racket[print-as-expression] 为
+@racket[#t] 且 @tech{quoting depth} 为 @racket[0] 时，空列表打印为 @litchar{'()}。 For a pair whose @racket[car] and
 @racket[cdr] are @tech{quotable}, the pair prints in @racket[write]
 mode but with a @litchar{'} prefix; the pair's content is printed with
 @tech{quoting depth} @racket[1]. Otherwise, when the @racket[car] or
@@ -258,9 +222,9 @@ is never @tech{quotable}.
                                    or @litchar{#,} followed by a symbol
                                    that prints with a leading @litchar["@"].}]
 
-@section[#:tag "print-string"]{Printing Strings}
+@section[#:tag "print-string"]{打印字符串}
 
-All @tech{strings} @racket[display] as their literal character sequences.
+所有 @tech{strings} @racket[display] 为其字面的字符序列。
 
 The @racket[write] or @racket[print] form of a string starts with @litchar{"} and ends
 with another @litchar{"}. Between the @litchar{"}s, each character is
@@ -296,7 +260,7 @@ For the purposes of printing enclosing datatypes, a string or a byte
 string is @tech{quotable}.
 
 
-@section[#:tag "print-vectors"]{Printing Vectors}
+@section[#:tag "print-vectors"]{打印向量}
 
 In @racket[display] mode, the printed form of a @tech{vector} is @litchar{#}
 followed by the printed form of @racket[vector->list] applied to the
@@ -327,7 +291,7 @@ they print like a @tech{vector} at @tech{quoting depth} 0 using a
 @litchar["(flvector "] or @litchar["(fxvector "] prefix, respectively.
 
 
-@section[#:tag "print-structure"]{Printing Structures}
+@section[#:tag "print-structure"]{打印结构体}
 
 When the @racket[print-struct] parameter is set to @racket[#t], then
 the way that @tech{structures} print depends on details of the structure type
@@ -420,7 +384,7 @@ unreadable values (see @secref["print-unreadable"]) and count as
 @tech{quotable}.
 
 
-@section[#:tag "print-hashtable"]{Printing Hash Tables}
+@section[#:tag "print-hashtable"]{打印哈希表}
 
 When the @racket[print-hash-table] parameter is set to @racket[#t], in
 @racket[write] and @racket[display] modes, a @tech{hash table} prints
@@ -447,12 +411,11 @@ separated by spaces, and finally a closing @litchar{)}. A hash table
 is @tech{quotable} when all of its keys and values are
 @tech{quotable}.
 
-When the @racket[print-hash-table] parameter is set to @racket[#f]
-or when a hash table retains its keys weakly, a
-hash table prints as @litchar{#<hash>} and counts as @tech{quotable}.
+当 @racket[print-hash-table] 参数设为 @racket[#f] 或 hash table 弱持有其 key 时，
+hash table 打印为 @litchar{#<hash>} 并算作 @tech{quotable}。
 
 
-@section[#:tag "print-box"]{Printing Boxes}
+@section[#:tag "print-box"]{打印 Box}
 
 When the @racket[print-box] parameter is set to @racket[#t], a @tech{box}
 prints as @litchar{#&} followed by the printed form of its content in
@@ -472,7 +435,7 @@ When the @racket[print-box] parameter is set to @racket[#f], a box
 prints as @litchar{#<box>} and counts as @tech{quotable}.
 
 
-@section[#:tag "print-character"]{Printing Characters}
+@section[#:tag "print-character"]{打印字符}
 
 @tech{Characters} with the special names described in
 @secref["parse-character"] @racket[write] and @racket[print] using the
@@ -488,11 +451,10 @@ value does not fit in four digits).
 All characters @racket[display] directly as themselves (i.e., a single
 character).
 
-For the purposes of printing enclosing datatypes, a character is
-@tech{quotable}.
+就打印外围数据类型而言，字符是 @tech{quotable} 的。
 
 
-@section[#:tag "print-keyword"]{Printing Keywords}
+@section[#:tag "print-keyword"]{打印关键字}
 
 @tech{Keywords} @racket[write], @racket[print], and @racket[display] the same
 as symbols (see @secref["print-symbol"]) except with a leading
@@ -505,23 +467,21 @@ For the purposes of printing enclosing datatypes, a keyword is
 @tech{quotable}.
 
 
-@section[#:tag "print-regexp"]{Printing Regular Expressions}
+@section[#:tag "print-regexp"]{打印正则表达式}
 
 @tech{Regexp values} @racket[write], @racket[display], and @racket[print]
 starting with @litchar{#px} (for @racket[pregexp]-based regexps) or
 @litchar{#rx} (for @racket[regexp]-based regexps) followed by the
 @racket[write] form of the regexp's source string or byte string.
 
-For the purposes of printing enclosing datatypes, a regexp value is
-@tech{quotable}.
+就打印外围数据类型而言，regexp 值是 @tech{quotable} 的。
 
 
-@section[#:tag "print-path"]{Printing Paths}
+@section[#:tag "print-path"]{打印路径}
 
-@tech{Paths} @racket[write] and @racket[print] as @litchar{#<path:....>}. A
+@tech{Paths} 以 @litchar{#<path:....>} 的形式进行 @racket[write] 和 @racket[print]。 A
 path @racket[display]s the same as the string produced by
-@racket[path->string]. For the purposes of printing enclosing
-datatypes, a path counts as @tech{quotable}.
+@racket[path->string]. 就打印外围数据类型而言，path 算作 @tech{quotable}。
 
 Although a path can be converted to a string with
 @racket[path->string] or to a byte string with @racket[path->bytes],
@@ -535,24 +495,20 @@ way. Paths do not print in a readable way so that programmers are not
 misled into thinking that either choice is always appropriate.
 
 
-@section[#:tag "print-unreadable"]{Printing Unreadable Values}
+@section[#:tag "print-unreadable"]{打印不可读的值}
 
 For any value with no other printing specification, assuming that the
 @racket[print-unreadable] parameter is set to @racket[#t], the output
 form is @litchar{#<}@nonterm{something}@litchar{>}, where
 @nonterm{something} is specific to the type of the value and sometimes
-to the value itself. If @racket[print-unreadable] is set to
-@racket[#f], then attempting to print an unreadable value raises
-@racket[exn:fail].
+to the value itself. 如果 @racket[print-unreadable] 设为 @racket[#f]，那么尝试打印不可读的值会引发 @racket[exn:fail]。
 
-For the purposes of printing enclosing datatypes, a value that prints
-unreadably nevertheless counts as @tech{quotable}.
+就打印外围数据类型而言，不可读打印的值仍然算作 @tech{quotable}。
 
 
-@section[#:tag "print-compiled"]{Printing Compiled Code}
+@section[#:tag "print-compiled"]{打印编译后的代码}
 
-Compiled code as produced by @racket[compile] prints using
-@as-index{@litchar{#~}}. Compiled code printed with @litchar{#~} is
+由 @racket[compile] 产生的编译后代码使用 @as-index{@litchar{#~}} 进行打印。 Compiled code printed with @litchar{#~} is
 essentially assembly code for Racket, and reading such a form produces
 a compiled form when the @racket[read-accept-compiled] parameter is
 set to @racket[#t].
