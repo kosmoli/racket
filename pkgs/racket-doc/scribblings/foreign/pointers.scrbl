@@ -2,88 +2,58 @@
 @(require "utils.rkt"
           (for-label ffi/unsafe/custodian))
 
-@title[#:tag "foreign:pointer-funcs"]{Pointer Functions}
+@title[#:tag "foreign:pointer-funcs"]{指针函数}
 
 @defproc[(cpointer? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a C pointer or a value that can
-be used as a pointer: @racket[#f] (used as a @cpp{NULL} pointer), byte
-strings (used as memory blocks), or a structure instance with the
-@racket[prop:cpointer] @tech[#:doc reference.scrbl]{structure type
-property}.  Returns @racket[#f] for other values.}
+如果 @racket[v] 是一个 C 指针或可用作指针的值，则返回 @racket[#t]：@racket[#f](用作 @cpp{NULL} 指针)、字节串(用作内存块)，或具有 @racket[prop:cpointer] @tech[#:doc reference.scrbl]{structure type property} 的 structure 实例。对其他值返回 @racket[#f]。}
 
 @defproc[(ptr-equal? [cptr1 cpointer?] [cptr2 cpointer?]) boolean?]{
 
-Compares the values of the two pointers. Two different Racket
-pointer objects can contain the same pointer.
+比较两个指针的值。两个不同的 Racket 指针对象可能包含相同的指针。
 
-If the values are both pointers that are not represented by
-@racket[#f], a byte string, a callback, a pointer based on
-@racket[_fpointer], or a structure with the @racket[prop:cpointer]
-property, then the @racket[ptr-equal?] comparison is the
-same as using @racket[equal?].}
+如果两个值都是不由 @racket[#f] 表示的指针、字节串、callback、基于 @racket[_fpointer] 的指针，或具有 @racket[prop:cpointer] 属性的 structure，则 @racket[ptr-equal?] 的比较结果与使用 @racket[equal?] 相同。}
 
 
 @defproc[(ptr-add [cptr cpointer?] [offset exact-integer?] [type ctype? _byte]) 
          cpointer?]{
 
-Returns a cpointer that is like @racket[cptr] offset by
-@racket[offset] instances of @racket[ctype].
+返回一个类似于 @racket[cptr] 的 cpointer，但按 @racket[offset] 个 @racket[ctype] 实例进行偏移。
 
-The resulting cpointer keeps the base pointer and offset separate. The
-two pieces are combined at the last minute before any operation on the
-pointer, such as supplying the pointer to a foreign function. In
-particular, the pointer and offset are not combined until after all
-allocation leading up to a foreign-function call; if the called
-function does not itself call anything that can trigger a garbage
-collection, it can safely use pointers that are offset into the middle
-of a GCable object.}
+生成的 cpointer 将基指针和偏移量分开保存。这两部分在指针上执行任何操作之前的最后一刻才合并，例如将指针提供给 foreign 函数。特别地，指针和偏移量直到 foreign 函数调用之前的所有分配完成之后才合并；如果被调用的函数本身不会调用任何可能触发垃圾回收的操作，那么它可以安全地使用偏移到 GCable 对象中间的指针。}
 
 
 @defproc[(offset-ptr? [cptr cpointer?]) boolean?]{
 
-A predicate for cpointers that have an offset, such as pointers that
-were created using @racket[ptr-add].  Returns @racket[#t] even if such
-an offset happens to be 0.  Returns @racket[#f] for other cpointers
-and non-cpointers.}
+用于判断 cpointer 是否具有偏移量的谓词，例如使用 @racket[ptr-add] 创建的指针。即使偏移量为 0 也返回 @racket[#t]。对其他 cpointer 和非 cpointer 返回 @racket[#f]。}
 
 
 @defproc[(ptr-offset [cptr cpointer?]) exact-integer?]{
 
-Returns the offset of a pointer that has an offset. The resulting
-offset is always in bytes.}
+返回具有偏移量的指针的偏移量。结果偏移量始终以字节为单位。}
 
 
 @defproc[(cpointer-gcable? [cptr cpointer?]) boolean?]{
 
-Returns @racket[#t] if @racket[cptr] is treated as a reference to
-memory that is (assumed to be) managed by the garbage collector,
-@racket[#f] otherwise.
+如果 @racket[cptr] 被视为对(假定由)垃圾回收器管理的内存的引用，则返回 @racket[#t]，否则返回 @racket[#f]。
 
-For a pointer based on @racket[_gcpointer] as a result type,
-@racket[cpointer-gcable?] will return @racket[#t]. For a pointer based
-on @racket[_pointer] as a result type, @racket[cpointer-gcable?] will
-return @racket[#f].}
+对于以 @racket[_gcpointer] 为结果类型的指针，@racket[cpointer-gcable?] 返回 @racket[#t]。对于以 @racket[_pointer] 为结果类型的指针，@racket[cpointer-gcable?] 返回 @racket[#f]。}
 
 
 @; ----------------------------------------------------------------------
 
-@section{Pointer Dereferencing}
+@section{指针解引用}
 
 @defproc[(set-ptr-offset! [cptr cpointer?] [offset exact-integer?] [ctype ctype? _byte]) 
          void?]{
 
-Sets the offset component of an offset pointer.  The arguments are
-used in the same way as @racket[ptr-add].  If @racket[cptr] has no
-offset, the @racket[exn:fail:contract] exception is raised.}
+设置偏移指针的偏移量分量。参数的使用方式与 @racket[ptr-add] 相同。如果 @racket[cptr] 没有偏移量，则引发 @racket[exn:fail:contract] 异常。}
 
 
 @defproc[(ptr-add! [cptr cpointer?] [offset exact-integer?] [ctype ctype? _byte]) 
          void?]{
 
-Like @racket[ptr-add], but destructively modifies the offset contained
-in a pointer.  The same operation could be performed using
-@racket[ptr-offset] and @racket[set-ptr-offset!].}
+类似于 @racket[ptr-add]，但会破坏性地修改指针中包含的偏移量。同样的操作可以通过 @racket[ptr-offset] 和 @racket[set-ptr-offset!] 来完成。}
 
 
 @defproc*[([(ptr-ref [cptr cpointer?]
@@ -111,25 +81,11 @@ in a pointer.  The same operation could be performed using
                       [val any/c])
             void?])]{
 
-The @racket[ptr-ref] procedure returns the object referenced by
-@racket[cptr], using the given @racket[type]. The @racket[ptr-set!]
-procedure stores the @racket[val] in the memory @racket[cptr] points
-to, using the given @racket[type] for the conversion.
+@racket[ptr-ref] 过程返回 @racket[cptr] 引用的对象，使用给定的 @racket[type]。@racket[ptr-set!] 过程将 @racket[val] 存储到 @racket[cptr] 指向的内存中，使用给定的 @racket[type] 进行转换。
 
-In each case, @racket[offset] defaults to @racket[0] (which is the
-only value that should be used with @racket[ffi-obj] objects, see
-@secref["foreign:c-only"]).  If an @racket[offset] index is
-non-@racket[0], the value is read or stored at that location,
-considering the pointer as a vector of @racket[type]s --- so the
-actual address is the pointer plus the size of @racket[type]
-multiplied by @racket[offset].  In addition, a @racket['abs] flag can
-be used to use the @racket[offset] as counting bytes rather then
-increments of the specified @racket[type].
+在每种情况下，@racket[offset] 默认为 @racket[0](这是用于 @racket[ffi-obj] 对象的唯一值，见 @secref["foreign:c-only"])。如果 @racket[offset] 索引非 @racket[0]，则在该位置读取或存储值，此时将指针视为 @racket[type] 的向量——因此实际地址是指针加上 @racket[type] 的大小乘以 @racket[offset]。此外，可以使用 @racket['abs] 标志来将 @racket[offset] 作为字节计数而非指定 @racket[type] 的增量。
 
-Beware that the @racket[ptr-ref] and @racket[ptr-set!] procedure do
-not keep any meta-information on how pointers are used.  It is the
-programmer's responsibility to use this facility only when
-appropriate.  For example, on a little-endian machine:
+注意 @racket[ptr-ref] 和 @racket[ptr-set!] 过程不会保留任何关于指针使用方式的元信息。程序员有责任仅在适当时使用此功能。例如，在小端机器上：
 
 @racketblock[
 > (define block (malloc _int 5))
@@ -138,9 +94,7 @@ appropriate.  For example, on a little-endian machine:
 @#,(racketresultfont "(1 255 2 0)")
 ]
 
-In addition, @racket[ptr-ref] and @racket[ptr-set!] cannot detect when
-offsets are beyond an object's memory bounds; out-of-bounds access can
-easily lead to a segmentation fault or memory corruption.}
+此外，@racket[ptr-ref] 和 @racket[ptr-set!] 无法检测偏移量是否超出对象的内存边界；超界访问很容易导致段错误或内存损坏。}
 
 
 @defproc*[([(memmove [cptr cpointer?]
@@ -151,12 +105,7 @@ easily lead to a segmentation fault or memory corruption.}
                      [type ctype? _byte])
             void?])]{
 
-Copies to @racket[cptr] from @racket[src-cptr]. The destination
-pointer can be offset by an optional @racket[offset], which is in
-@racket[type] instances.  The source pointer can be similarly offset
-by @racket[src-offset].  The number of bytes copied from source to
-destination is determined by @racket[count], which is in @racket[type]
-instances when supplied.}
+从 @racket[src-cptr] 复制到 @racket[cptr]。目标指针可以通过可选的 @racket[offset] 进行偏移，以 @racket[type] 实例为单位。源指针同样可以通过 @racket[src-offset] 进行偏移。从源复制到目标的字节数由 @racket[count] 确定，当提供时以 @racket[type] 实例为单位。}
 
 @defproc*[([(memcpy [cptr cpointer?]
                     [offset exact-integer? 0]
@@ -166,8 +115,7 @@ instances when supplied.}
                     [type ctype? _byte])
             void?])]{
 
-Like @racket[memmove], but the result is undefined if the destination
-and source overlap.}
+类似于 @racket[memmove]，但如果目标和源重叠，则结果未定义。}
 
 @defproc*[([(memset [cptr cpointer?]
                     [offset exact-integer? 0]
@@ -176,35 +124,23 @@ and source overlap.}
                     [type ctype? _byte])
             void?])]{
 
-Similar to @racket[memmove], but the destination is uniformly filled
-with @racket[byte] (i.e., an exact integer between 0 and 255
-inclusive). When a @racket[type] argument is present, the result
-is that of a call to memset with no @racket[type] argument and the
-@racket[count] multiplied by the size associated with the
-@racket[type].}
+类似于 @racket[memmove]，但目标被统一填充为 @racket[byte](即 0 到 255 之间的精确整数)。当提供 @racket[type] 参数时，结果相当于调用无 @racket[type] 参数的 memset，且 @racket[count] 乘以与 @racket[type] 关联的大小。}
 
 @defproc[(cpointer-tag [cptr cpointer?]) any]{
 
-Returns the Racket object that is the tag of the given @racket[cptr]
-pointer.}
+返回作为给定 @racket[cptr] 指针 tag 的 Racket 对象。}
 
 
 @defproc[(set-cpointer-tag! [cptr cpointer?] [tag any/c]) void?]{
 
-Sets the tag of the given @racket[cptr]. The @racket[tag] argument can
-be any arbitrary value; other pointer operations ignore it.  When a
-cpointer value is printed, its tag is shown if it is a symbol, a byte
-string, a string. In addition, if the tag is a pair holding one of
-these in its @racket[car], the @racket[car] is shown (so that the tag
-can contain other information).}
+设置给定 @racket[cptr] 的 tag。@racket[tag] 参数可以是任意值；其他指针操作会忽略它。当打印 cpointer 值时，如果 tag 是 symbol、字节串或字符串，则会显示该 tag。此外，如果 tag 是 pair 且其 @racket[car] 包含上述之一，则显示 @racket[car](以便 tag 可以包含其他信息)。}
 
 
 @; ------------------------------------------------------------
 
-@section{Memory Management}
+@section{内存管理}
 
-For general information on C-level memory management with Racket,
-see @|InsideRacket|.
+有关 Racket 中 C 级内存管理的常规信息，见 @|InsideRacket|。
 
 @defproc[(malloc [bytes-or-type (or/c (and/c exact-nonnegative-integer? fixnum?) 
                                       ctype?)]
@@ -220,12 +156,7 @@ see @|InsideRacket|.
                  [fail-mode (or/c 'fail-ok 'failok) @#,elem{absent}])
          cpointer?]{
 
-Allocates a memory block of a specified size using a specified
-allocation. The result is a C pointer to the allocated
-memory, or @racket[#f] if the requested size is zero.  Although 
-not reflected above, the four arguments can appear in
-any order, since they are all different types of Racket objects; a size
-specification is required at minimum:
+使用指定的分配方式分配指定大小的内存块。结果是指向分配内存的 C 指针，如果请求的大小为零则为 @racket[#f]。虽然上面未体现，但四个参数可以按任意顺序出现，因为它们都是不同类型的 Racket 对象；至少需要指定大小：
 
 @itemize[
 
@@ -247,80 +178,56 @@ specification is required at minimum:
 
    @itemlist[
 
-     @item{@indexed-racket['raw] --- Allocates memory that is outside
-       the garbage collector's space and is not traced by the garbage
-       collector (i.e., is treated as holding no pointers to
-       collectable memory). This memory must be freed with
-       @racket[free]. The initial content of the memory is
-       unspecified.}
+     @item{@indexed-racket['raw] --- 分配在垃圾回收器空间之外的内存，
+       不被垃圾回收器追踪(即视为不包含指向可回收内存的指针)。
+       此内存必须使用 @racket[free] 释放。内存的初始内容未指定。}
 
-     @item{@indexed-racket['atomic] --- Allocates memory that can be
-       reclaimed by the garbage collector but is not traced by the
-       garbage collector. The initial content of the memory is
-       unspecified.
+     @item{@indexed-racket['atomic] --- 分配可被垃圾回收器回收但不被垃圾回收器追踪的内存。
+       内存的初始内容未指定。
 
-       For the @BC[] Racket implementation, this allocation mode corresponds
-       to @cpp{scheme_malloc_atomic} in the C API.}
+       对于 @BC[] Racket 实现，此分配模式对应 C API 中的 @cpp{scheme_malloc_atomic}。}
 
-     @item{@indexed-racket['nonatomic] --- Allocates memory that can
-       be reclaimed by the garbage collector, is treated by the
-       garbage collector as holding only pointers, and is initially
-       filled with zeros. The memory is allowed to contain a mixture of
-       references to objects managed by the garbage collector and
-       addresses that are outside the garbage collector's space.
+     @item{@indexed-racket['nonatomic] --- 分配可被垃圾回收器回收的内存，
+       被垃圾回收器视为仅包含指针，且初始填充为零。内存允许包含对垃圾回收器管理对象的引用
+       和垃圾回收器空间之外的地址的混合。
 
-       For the @BC[] Racket implementation, this allocation mode corresponds
-       to @cpp{scheme_malloc} in the C API.}
+       对于 @BC[] Racket 实现，此分配模式对应 C API 中的 @cpp{scheme_malloc}。}
 
-     @item{@indexed-racket['atomic-interior] --- Like
-       @racket['atomic], but the allocated object will not be moved by
-       the garbage collector as long as the allocated object is
-       retained.
+     @item{@indexed-racket['atomic-interior] --- 类似于
+       @racket['atomic]，但只要分配的对象被保留，垃圾回收器就不会移动它。
 
-       A better name for this allocation mode would be
-       @racket['atomic-immobile], but it's @racket['atomic-interior]
-       for historical reasons.
+       此分配模式的更好名称是
+       @racket['atomic-immobile]，但出于历史原因使用了 @racket['atomic-interior]。
 
-       For the @BC[] Racket implementation, a reference can point
-       to the interior of the object, instead of its starting address.
-       This allocation mode corresponds to
-       @cpp{scheme_malloc_atomic_allow_interior} in the C API.}
+       对于 @BC[] Racket 实现，引用可以指向对象的内部而非起始地址。
+       此分配模式对应 C API 中的 @cpp{scheme_malloc_atomic_allow_interior}。}
 
-     @item{@indexed-racket['interior] --- Like
-       @racket['nonatomic], but the allocated object will not be moved
-       by the garbage collector as long as the allocated object is
-       retained.
+     @item{@indexed-racket['interior] --- 类似于
+       @racket['nonatomic]，但只要分配的对象被保留，垃圾回收器就不会移动它。
 
-       A better name for this allocation mode would be
-       @racket['nonatomic-immobile], but it's @racket['interior] for
-       historical reasons.
+       此分配模式的更好名称是
+       @racket['nonatomic-immobile]，但出于历史原因使用了 @racket['interior]。
 
-       For the @BC[] Racket implementation, a reference can point
-       to the interior of the object, instead of its starting address.
-       This allocation mode corresponds to
-       @cpp{scheme_malloc_allow_interior} in the C API.}
+       对于 @BC[] Racket 实现，引用可以指向对象的内部而非起始地址。
+       此分配模式对应 C API 中的 @cpp{scheme_malloc_allow_interior}。}
 
-     @item{@indexed-racket['zeroed-atomic] --- Like @racket['atomic],
-       but the allocated object is filled with zeros, instead of
-       having unspecified initial content.}
+     @item{@indexed-racket['zeroed-atomic] --- 类似于 @racket['atomic]，
+       但分配的对象填充为零，而非具有未指定的初始内容。}
 
-     @item{@indexed-racket['zeroed-atomic-interior] --- Like
-       @racket['atomic-interior], but the allocated object is filled
-       with zeros, instead of having unspecified initial content.}
+     @item{@indexed-racket['zeroed-atomic-interior] --- 类似于
+       @racket['atomic-interior]，但分配的对象填充为零，而非具有未指定的初始内容。}
 
-     @item{@indexed-racket['tagged] --- Allocates memory that must
-       start with a @tt{short} value that is registered as a tag with
-       the garbage collector.
+     @item{@indexed-racket['tagged] --- 分配必须以 @tt{short} 值开头的内存，
+       该值作为 tag 向垃圾回收器注册。
 
-       This mode is supported only for the @BC[] Racket implementation, and
-       it corresponds to @cpp{scheme_malloc_tagged} in the C API.}
+       此模式仅受 @BC[] Racket 实现支持，
+       对应 C API 中的 @cpp{scheme_malloc_tagged}。}
 
-     @item{@indexed-racket['stubborn] --- Like @racket['nonatomic],
-       but supports a hint to the GC via @racket[end-stubborn-change]
-       after all changes to the object have been made.
+     @item{@indexed-racket['stubborn] --- 类似于 @racket['nonatomic]，
+       但在对对象的所有更改完成后通过 @racket[end-stubborn-change] 向 GC 提供提示。
 
-       This mode is supported only for the @BC[] Racket implementation, and
-       it corresponds to @cpp{scheme_malloc_stubborn} in the C API.}
+       此模式仅受 @BC[] Racket 实现支持，
+       对应 C API 中的 @cpp{scheme_malloc_stubborn}。}
 
      @item{@indexed-racket['eternal] --- Like @racket['raw], except the
        allocated memory cannot be freed.
@@ -328,24 +235,20 @@ specification is required at minimum:
        This mode is supported only for the @CGC[] Racket variant, and
        it corresponds to @cpp{scheme_malloc_uncollectable} in the C API.}
 
-     @item{@indexed-racket['uncollectable] --- Allocates memory that is
-       never collected, cannot be freed, and potentially contains
-       pointers to collectable memory.
+     @item{@indexed-racket['uncollectable] --- 分配永不被回收、无法释放且可能包含指向可回收内存的指针的内存。
 
-       This mode is supported only for the @CGC[] Racket variant, and
-       it corresponds to @cpp{scheme_malloc_uncollectable} in the C API.}
+       此模式仅受 @CGC[] Racket 变体支持，
+       对应 C API 中的 @cpp{scheme_malloc_uncollectable}。}
 
    ]}
 
-  @item{If an additional @indexed-racket['failok] or @indexed-racket['fail-ok] flag is given, then
-        some effort may be made to detect an allocation failure and
-        raise @racket[exn:fail:out-of-memory] instead of crashing.}
+  @item{如果额外提供了 @indexed-racket['failok] 或 @indexed-racket['fail-ok] 标志，
+        则会尝试检测分配失败并引发 @racket[exn:fail:out-of-memory] 而非崩溃。}
 
 ]
 
-If no mode is specified, then @racket['nonatomic] allocation is used
-when the type is a @racket[_gcpointer]- or @racket[_scheme]-based
-type, and @racket['atomic] allocation is used otherwise.
+如果未指定 mode，则当类型是基于 @racket[_gcpointer] 或 @racket[_scheme] 的类型时使用
+@racket['nonatomic] 分配，否则使用 @racket['atomic] 分配。
 
 @history[#:changed "6.4.0.10" @elem{Added the @racket['tagged] allocation mode.}
          #:changed "8.0.0.13" @elem{Changed CS to support the @racket['interior] allocation mode.}
@@ -361,76 +264,52 @@ type, and @racket['atomic] allocation is used otherwise.
 
 @defproc[(free [cptr cpointer?]) void]{
 
-Uses the operating system's @cpp{free} function for
-@racket['raw]-allocated pointers, and for pointers that a foreign
-library allocated and we should free.  Note that this is useful as
-part of a finalizer (see below) procedure hook (e.g., on the Racket
-pointer object, freeing the memory when the pointer object is
-collected, but beware of aliasing).
+对 @racket['raw] 分配的指针以及由 foreign 库分配且我们应该释放的指针使用操作系统的 @cpp{free} 函数。
+注意，这作为 finalizer 过程钩子的一部分很有用(例如，在 Racket 指针对象上，当指针对象被回收时释放内存，但要注意别名问题)。
 
-Memory allocated with @racket[malloc] and modes other than
-@racket['raw] must not be @racket[free]d, since those modes allocate
-memory that is managed by the garbage collector.}
+使用 @racket[malloc] 和除 @racket['raw] 以外的模式分配的内存不得被 @racket[free]，因为这些模式分配的是由垃圾回收器管理的内存。}
 
 
 @defproc[(end-stubborn-change [cptr cpointer?]) void?]{
 
-Uses @cpp{scheme_end_stubborn_change} on the given stubborn-allocated
-pointer.}
+在给定的 stubborn 分配的指针上使用 @cpp{scheme_end_stubborn_change}。}
 
 
 @defproc[(malloc-immobile-cell [v any/c]) cpointer?]{
 
-Allocates memory large enough to hold one arbitrary (collectable)
-Racket value, but that is not itself collectable or moved by the
-memory manager. The cell is initialized with @racket[v]; use the type
-@racket[_scheme] with @racket[ptr-ref] and @racket[ptr-set!] to get
-or set the cell's value. The cell must be explicitly freed with
-@racket[free-immobile-cell].}
+分配足大以容纳一个任意(可回收的)Racket 值的内存，但其本身不可回收也不会被内存管理器移动。
+cell 用 @racket[v] 初始化；使用 @racket[_scheme] 类型配合 @racket[ptr-ref] 和 @racket[ptr-set!]
+来获取或设置 cell 的值。cell 必须使用 @racket[free-immobile-cell] 显式释放。}
 
 
 @defproc[(free-immobile-cell [cptr cpointer?]) void?]{
 
-Frees an immobile cell created by @racket[malloc-immobile-cell].}
+释放由 @racket[malloc-immobile-cell] 创建的 immobile cell。}
 
 
 @defproc[(register-finalizer [obj any/c] [finalizer (any/c . -> . any)]) void?]{
 
-Registers a finalizer procedure @racket[finalizer] with the given
-@racket[obj], which can be any Racket (GC-able) object. The finalizer
-is registered with a ``late'' @tech[#:doc reference.scrbl]{will
-executor} that makes wills ready for a value only after all
-weak references (such as in a @tech[#:doc reference.scrbl]{weak box}) for the value have
-been cleared, which implies that the value is unreachable and no
-normal @tech[#:doc reference.scrbl]{will executor} has a will ready
-for the value. The finalizer is invoked when the will for @racket[obj]
-becomes ready in the ``late'' will executor, which means that the
-value is unreachable (even from wills, and even from itself) by safe code.
+为给定的 @racket[obj] 注册 finalizer 过程 @racket[finalizer]，@racket[obj] 可以是任意 Racket(可 GC)对象。
+finalizer 注册到一个“late” @tech[#:doc reference.scrbl]{will executor}，该 executor 仅在值的所有弱引用
+(如在 @tech[#:doc reference.scrbl]{weak box} 中)都被清除后才会使遗嘱准备就绪，
+这意味着该值已不可达且没有正常的 @tech[#:doc reference.scrbl]{will executor} 有准备好的遗嘱。
+当 @racket[obj] 的遗嘱在“late” will executor 中准备就绪时调用 finalizer，
+这意味着该值对安全代码不可达(即使从遗嘱，生自身)。
 
-The finalizer is invoked in a thread that is in charge of triggering
-will executors for @racket[register-finalizer]. The given
-@racket[finalizer] procedure should generally not rely on the
-environment of the triggering thread, and it must not use any
-parameters or call any parameter functions, except that relying on a
-default logger and/or calling @racket[current-logger] is allowed.
+finalizer 在负责触发 @racket[register-finalizer] 的 will executor 的线程中调用。
+给定的 @racket[finalizer] 过程通常不应依赖触发线程的环境，
+且不得使用任何 parameter 或调用任何 parameter 函数，但依赖默认 logger 和/或调用 @racket[current-logger] 是允许的。
 
-Finalizers are mostly intended to be used with cpointer objects (for
-freeing unused memory that is not under GC control), but it can be
-used with any Racket object---even ones that have nothing to do with
-foreign code.  Note, however, that the finalizer is registered for the
-@italic{Racket} object that represents the pointer. If you intend to
-free a pointer object, then you must be careful to not register
-finalizers for two cpointers that point to the same address.  Also, be
-careful to not make the finalizer a closure that holds on to the
-object. Finally, beware that the finalizer is not guaranteed to
-be run when a place exits; see @racketmodname[ffi/unsafe/alloc]
-and @racket[register-finalizer-and-custodian-shutdown] for more
-complete solutions.
+finalizer 主要用于 cpointer 对象(用于释放不受 GC 控制的未使用内存)，但可用于任何 Racket 对象——
+生自与 foreign 代码无关的对象。但请注意，finalizer 是为表示指针的 @italic{Racket} 对象注册的。
+如果要释放指针对象，则必须小心不要为两个指向相同地址的 cpointer 注册 finalizer。
+还要小心不要让 finalizer 成为持有该对象的 closure。
+最后，注意当 place 退出时不保证 finalizer 会被运行；
+见 @racketmodname[ffi/unsafe/alloc] 和 @racket[register-finalizer-and-custodian-shutdown] 获取更完整的解决方案。
 
-As an example for @racket[register-finalizer],
-suppose that you're dealing with a foreign function that returns a
-C pointer that you should free, but you mostly want to use the memory
-at a 16-byte offset.  Here is an attempt at creating a suitable type:
+作为 @racket[register-finalizer] 的示例，
+假设你正在处理一个返回 C 指针的 foreign 函数，你应该释放该指针，但主要想使用偏移 16 字节的内存。
+以下是创建合适类型的尝试：
 
 @racketblock[
 (define @#,racketidfont{_pointer-at-sixteen/free}
@@ -442,12 +321,9 @@ at a 16-byte offset.  Here is an attempt at creating a suitable type:
                   p))))
 ]
 
-The above code is wrong: the finalizer is registered for @racket[x],
-which is no longer needed after the new pointer @racket[p] is created.  Changing
-the example to register the finalizer for @racket[p] corrects the problem,
-but then @racket[free] is invoked @racket[p] instead of on @racket[x].
-In the process of fixing this problem, we might be careful and log a message
-for debugging:
+上面的代码是错误的：finalizer 是为 @racket[x] 注册的，在创建新指针 @racket[p] 后不再需要 @racket[x]。
+将示例改为为 @racket[p] 注册 finalizer 可以修正问题，但随后 @racket[free] 会在 @racket[p] 上调用而非在 @racket[x] 上。
+在修复此问题的过程中，我们可能会小心地记录一条消息用于调试：
 
 @racketblock[
 (define @#,racketidfont{_pointer-at-sixteen/free}
@@ -462,12 +338,9 @@ for debugging:
                   p))))
 ]
 
-Now, we never see any logged event. The problem is that the finalizer is a
-closure that keeps a reference to @racket[p]. Instead of referencing the
-value that is finalized, use the input argument to the finalizer; simply changing
-@racket[ignored] to @racket[p] above solves the problem.  (Removing the
-debugging message also avoids the problem, since the finalization
-procedure would then not close over @racket[p].)}
+现在，我们永远看不到任何记录的事件。问题是 finalizer 是一个保持对 @racket[p] 引用的 closure。
+应使用 finalizer 的输入参数而非引用被 final 化的值；只需将上面的 @racket[ignored] 改为 @racket[p] 即可解决问题。
+(移除调试消息也可以避免此问题，因为此时 finalization 过程不会在 @racket[p] 上闭包。)}
 
 
 @deftogether[(
@@ -475,61 +348,42 @@ procedure would then not close over @racket[p].)}
 @defproc[(make-late-weak-hasheq [v any/c]) (and/c hash? hash-eq? hash-weak?)]
 )]{
 
-Like @racket[make-weak-box] and @racket[make-weak-hasheq], but with
-``late'' weak references that last longer than references in the
-result of @racket[make-weak-box] or @racket[make-weak-hasheq].
-Specifically, a ``late'' weak reference remains intact if a value is
-unreachable but not yet processed by a finalizer installed with
-@racket[register-finalizer]. ``Late'' weak references are intended for
-use by such finalizers.}
+类似于 @racket[make-weak-box] 和 @racket[make-weak-hasheq]，但使用“late”弱引用，
+比 @racket[make-weak-box] 或 @racket[make-weak-hasheq] 结果中的引用持续时间更长。
+具体而言，如果值已不可达但尚未被使用 @racket[register-finalizer] 安装的 finalizer 处理，
+则“late”弱引用保持完整。“late”弱引用旨供此类 finalizer 使用。}
 
 
 @defproc[(make-sized-byte-string [cptr cpointer?] [length exact-nonnegative-integer?]) 
          bytes?]{
 
-Returns a byte string made of the given pointer and the given length
-in the @BC[] implementation of Racket; no copying is performed.
-In the @CS[] implementation, the @racket[exn:fail:unsupported] exception is
-raised.
+在 Racket 的 @BC[] 实现中返回由给定指针和给定长度构成的字节串；不执行复制。
+在 @CS[] 实现中，引发 @racket[exn:fail:unsupported] 异常。
 
-Beware that the representation of a Racket byte string normally
-requires a nul terminator at the end of the byte string (after
-@racket[length] bytes), but some functions work with a byte-string
-representation that has no such terminator---notably
-@racket[bytes-copy].
+注意，Racket 字节串的表示通常需要在字节串末導(@racket[length] 字节之后)有一个 nul 终止符，
+但某些函数使用没有此类终止符的字节串表示——特别是 @racket[bytes-copy]。
 
-If @racket[cptr] is an offset pointer created by @racket[ptr-add], the
-offset is immediately added to the pointer. Thus, this function cannot
-be used with @racket[ptr-add] to create a substring of a Racket byte
-string, because the offset pointer would be to the middle of a
-collectable object (which is not allowed).}
+如果 @racket[cptr] 是由 @racket[ptr-add] 创建的偏移指针，则偏移量会立即加到指针上。
+因此，此函数不能与 @racket[ptr-add] 一起使用来创建 Racket 字节串的子串，
+因为偏移指针会指向可回收对象的中间(这是不允许的)。}
 
 
 @defproc[(void/reference-sink [v any/c] ...) void?]{
 
-Returns @|void-const|, but unlike calling the @racket[void] function
-where the compiler may optimize away the call and replace it with a
-@|void-const| result, calling @racket[void/reference-sink] ensures
-that the arguments are considered reachable by the garbage collector
-until the call returns.
+返回 @|void-const|，但与调用 @racket[void] 函数不同——编译器可能会优化掉调用并用 @|void-const| 结果替换——
+调用 @racket[void/reference-sink] 确保参数在调用返回之前被垃圾回收器视为可达。
 
 @history[#:added "6.10.1.2"]}
 
 @; ----------------------------------------------------------------------
 
-@section{Pointer Structure Property}
+@section{指针结构属性}
 
 @defthing[prop:cpointer struct-type-property?]{
 
-A @tech[#:doc reference.scrbl]{structure type property} that causes
-instances of a structure type to work as C pointer values. The
-property value must be either an exact non-negative integer indicating
-an immutable field in the structure (which must, in turn, be
-initialized to a C pointer value), a procedure that takes the
-structure instance and returns a C pointer value, or a C pointer
-value.
+一个 @tech[#:doc reference.scrbl]{structure type property}，使 structure 类型的实例能够作为 C 指针值使用。
+属性值必须是一个表示 structure 中不可变字段的精确非负整数(该字段又必须初始化为 C 指针值)，
+一个接受 structure 实例并返回 C 指针值的过程，或者一个 C 指针值。
 
-The @racket[prop:cpointer] property allows a structure instance to be
-used transparently as a C pointer value, or it allows a C pointer
-value to be transparently wrapped by a structure that may have
-additional values or properties.}
+@racket[prop:cpointer] 属性允许 structure 实例透明地用作 C 指针值，
+或者允许 C 指针值被可能具有额外值或属性的 structure 透明地包装。}
