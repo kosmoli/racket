@@ -7,40 +7,17 @@
 @(define the-eval (make-base-eval))
 @(the-eval '(require racket/treelist racket/mutable-treelist racket/stream))
 
-@title[#:tag "treelist"]{Treelists}
+@title[#:tag "treelist"]{树列表}
 
-A @deftech{treelist} represents a sequence of elements in a
-way that supports many operations in @math{O(log N)} time: accessing
-an element of the list by index, adding to the front of the list,
-adding to the end of the list, removing an element by index, replacing
-an element by index, appending lists, dropping elements from the start
-or end of the list, and extracting a sublist. More generally,
-unless otherwise specified, operations on a
-treelist of length @math{N} take @math{O(log N)} time. The base for the
-@math{log} in @math{O(log N)} is large enough that it's effectively
-constant-time for many purposes. Treelists are currently implemented
-as RRB trees @cite["Stucki15"].
+@deftech{树列表}（treelist）以支持许多 @math{O(log N)} 时间操作的方式表示元素序列：按索引访问列表元素、添加到列表前端、添加到列表末尾、按索引删除元素、按索引替换元素、追加列表、从列表开头或末尾移除元素以及提取子列表。更一般地说，除非另有说明，长度为 @math{N} 的树列表上的操作需要 @math{O(log N)} 时间。@math{O(log N)} 中 @math{log} 的底数足够大，以至于在许多用途上它实际上是常数时间。树列表目前以 RRB 树的形式实现 @cite["Stucki15"]。
 
-Treelists are primarily intended to be used in immutable form via
-@racketmodname[racket/treelist], where an operation such as adding to
-the treelist produces a new treelist while the old one remains intact.
-A mutable variant of treelists is provided by
-@racketmodname[racket/mutable-treelist], where a mutable treelist can
-be a convenient alternative to putting an immutable treelist into a
-@tech{box}. Mutable treelist operations take the same time as
-immutable treelist operations, unless otherwise specified. Where the
-term ``treelist'' is used by itself, it refers to an immutable
-treelist.
+树列表主要通过 @racketmodname[racket/treelist] 以不可变形式使用，其中诸如向树列表添加元素等操作会生成新的树列表，而旧列表保持不变。树列表的可变变体由 @racketmodname[racket/mutable-treelist] 提供，其中可变树列表可以是将不可变树列表放入 @tech{box} 的便捷替代方案。除非另有说明，可变树列表操作与不可变树列表操作耗时相同。当术语"树列表"单独使用时，它指的是不可变树列表。
 
-An immutable or mutable treelist can be used as a single-valued
-sequence (see @secref["sequences"]). The elements of the list serve as
-elements of the sequence. See also @racket[in-treelist] and
-@racket[in-mutable-treelist]. An immutable treelist can also be used
-as a @tech{stream}.
+不可变或可变树列表可用作单值序列（参见 @secref["sequences"]）。列表的元素作为序列的元素。另请参见 @racket[in-treelist] 和 @racket[in-mutable-treelist]。不可变树列表还可用作 @tech{stream}。
 
-@history[#:changed "8.15.0.3" @elem{Made treelists serializable.}]
+@history[#:changed "8.15.0.3" @elem{使树列表可序列化。}]
 
-@section{Immutable Treelists}
+@section{不可变树列表}
 
 @note-lib-only[racket/treelist]
 
@@ -49,15 +26,13 @@ as a @tech{stream}.
 
 @defproc[(treelist? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{treelist}, @racket[#f]
-otherwise.}
+如果 @racket[v] 是 @tech{树列表}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(treelist [v any/c] ...) treelist?]{
 
-Returns a @tech{treelist} with @racket[v]s as its elements in order.
+返回以 @racket[v] 为元素按顺序排列的 @tech{树列表}。
 
-This operation takes @math{O(N log N)} time to construct a treelist of
-@math{N} elements.
+此操作构造包含 @math{N} 个元素的树列表需要 @math{O(N log N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -66,10 +41,8 @@ This operation takes @math{O(N log N)} time to construct a treelist of
 
 @defproc[(make-treelist [size exact-nonnegative-integer?] [v any/c]) treelist?]{
 
- Returns a @tech{treelist} with size @racket[size], where
- every element is @racket[v].
- This operation takes @math{O(log N)} time to construct a
- treelist of @math{N} elements.
+ 返回大小为 @racket[size] 的 @tech{树列表}，其中每个元素均为 @racket[v]。
+ 此操作构造包含 @math{N} 个元素的树列表需要 @math{O(log N)} 时间。
 
  @examples[
  #:eval the-eval
@@ -84,18 +57,14 @@ This operation takes @math{O(N log N)} time to construct a treelist of
 @defthing[empty-treelist (and/c treelist? treelist-empty?)]
 )]{
 
-A predicate and constant for a @tech{treelist} of length 0.
+长度为 0 的 @tech{树列表}的谓词和常量。
 
-Although every empty treelist is @racket[equal?] to
-@racket[empty-treelist], since a treelist can be chaperoned via
-@racket[chaperone-treelist], not every empty treelist is @racket[eq?]
-to @racket[empty-treelist].}
+虽然每个空树列表都与 @racket[empty-treelist] @racket[equal?]，但由于树列表可以通过 @racket[chaperone-treelist] 进行监护，并非每个空树列表都与 @racket[empty-treelist] @racket[eq?]。}
 
 
 @defproc[(treelist-length [tl treelist?]) exact-nonnegative-integer?]{
 
-Returns the number of elements in @racket[tl]. This operation takes
-@math{O(1)} time.
+返回 @racket[tl] 中的元素数量。此操作需要 @math{O(1)} 时间。
 
 @examples[
 #:eval the-eval
@@ -105,9 +74,7 @@ Returns the number of elements in @racket[tl]. This operation takes
 
 @defproc[(treelist-ref [tl treelist?] [pos exact-nonnegative-integer?]) any/c]{
 
-Returns the @racket[pos]th element of @racket[tl]. The first element is
-position @racket[0], and the last position is one less than
-@racket[(treelist-length tl)].
+返回 @racket[tl] 的第 @racket[pos] 个元素。第一个元素位于位置 @racket[0]，最后一个位置为 @racket[(treelist-length tl)] 减一。
 
 @examples[
 #:eval the-eval
@@ -123,8 +90,7 @@ position @racket[0], and the last position is one less than
 @defproc[(treelist-last [tl treelist?]) any/c]
 )]{
 
-Shorthands for using @racket[treelist-ref] to access the first or last
-element of a @tech{treelist}.
+使用 @racket[treelist-ref] 访问 @tech{树列表}的第一个或最后一个元素的简写形式。
 
 @examples[
 #:eval the-eval
@@ -136,10 +102,7 @@ element of a @tech{treelist}.
 
 @defproc[(treelist-insert [tl treelist?] [pos exact-nonnegative-integer?] [v any/c]) treelist?]{
 
-Produces a treelist like @racket[tl], except that @racket[v] is
-inserted as an element before the element at @racket[pos]. If
-@racket[pos] is @racket[(treelist-length tl)], then @racket[v] is
-added to the end of the treelist.
+生成一个类似 @racket[tl] 的树列表，区别在于 @racket[v] 作为元素插入到 @racket[pos] 处的元素之前。如果 @racket[pos] 为 @racket[(treelist-length tl)]，则 @racket[v] 被添加到树列表的末尾。
 
 @examples[
 #:eval the-eval
@@ -154,13 +117,9 @@ added to the end of the treelist.
 @defproc[(treelist-cons [tl treelist?] [v any/c]) treelist?]
 )]{
 
-Shorthands for using @racket[treelist-insert] to insert at the
-end or beginning of a @tech{treelist}.
+使用 @racket[treelist-insert] 在 @tech{树列表}的末尾或开头插入的简写形式。
 
-Although the main operation to extend a pair @tech{list} is
-@racket[cons] to add to the front, treelists are intended to be
-extended by adding to the end with @racket[treelist-add], and
-@racket[treelist-add] tends to be faster than @racket[treelist-cons].
+虽然扩展 pair @tech{list} 的主要操作是向前端添加的 @racket[cons]，但树列表的设计意图是通过 @racket[treelist-add] 向末尾添加来扩展，且 @racket[treelist-add] 通常比 @racket[treelist-cons] 更快。
 
 @examples[
 #:eval the-eval
@@ -172,8 +131,7 @@ extended by adding to the end with @racket[treelist-add], and
 
 @defproc[(treelist-delete [tl treelist?] [pos exact-nonnegative-integer?]) treelist?]{
 
-Produces a treelist like @racket[tl], except that the element at
-@racket[pos] is removed.
+生成一个类似 @racket[tl] 的树列表，区别在于位置 @racket[pos] 处的元素被移除。
 
 @examples[
 #:eval the-eval
@@ -185,9 +143,7 @@ Produces a treelist like @racket[tl], except that the element at
 
 @defproc[(treelist-set [tl treelist?] [pos exact-nonnegative-integer?] [v any/c]) treelist?]{
 
-Produces a treelist like @racket[tl], except that the element at
-@racket[pos] is replaced with @racket[v]. The result is equivalent to
-@racket[(treelist-insert (treelist-delete tl pos) pos v)].
+生成一个类似 @racket[tl] 的树列表，区别在于位置 @racket[pos] 处的元素被替换为 @racket[v]。结果等价于 @racket[(treelist-insert (treelist-delete tl pos) pos v)]。
 
 @examples[
 #:eval the-eval
@@ -197,10 +153,7 @@ Produces a treelist like @racket[tl], except that the element at
 
 @defproc[(treelist-append [tl treelist?] ...) treelist?]{
 
-Appends the elements of the given @racket[tl]s into a single
-@tech{treelist}. If @math{M} treelists are given and the resulting
-treelist's length is @math{N}, then appending takes @math{O(M log N)}
-time.
+将给定 @racket[tl] 的元素追加到单个 @tech{树列表}中。如果给出 @math{M} 个树列表且结果树列表的长度为 @math{N}，则追加操作需要 @math{O(M log N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -216,10 +169,7 @@ time.
 @defproc[(treelist-drop-right [tl treelist?] [n exact-nonnegative-integer?]) treelist?]
 )]{
 
-Produces a @tech{treelist} like @racket[tl] but with only the first
-@racket[n] elements, without the first @racket[n] elements, with only
-the last @racket[n] elements, or without the last @racket[n] elements,
-respectively.
+生成一个类似 @racket[tl] 的 @tech{树列表}，但分别仅保留前 @racket[n] 个元素、去除前 @racket[n] 个元素、仅保留后 @racket[n] 个元素或去除后 @racket[n] 个元素。
 
 @examples[
 #:eval the-eval
@@ -232,8 +182,7 @@ respectively.
 
 @defproc[(treelist-sublist [tl treelist?] [n exact-nonnegative-integer?] [m exact-nonnegative-integer?]) treelist?]{
 
-Produces a @tech{treelist} like @racket[tl] but with only elements at
-position @racket[n] (inclusive) through position @racket[m] (exclusive).
+生成一个类似 @racket[tl] 的 @tech{树列表}，但仅包含位置 @racket[n]（含）到位置 @racket[m]（不含）的元素。
 
 @examples[
 #:eval the-eval
@@ -244,11 +193,7 @@ position @racket[n] (inclusive) through position @racket[m] (exclusive).
 
 @defproc[(treelist-reverse  [tl treelist?]) treelist?]{
 
-Produces a @tech{treelist} like @racket[tl] but with its elements
-reversed, equivalent to using @racket[treelist-take] to keep
-@racket[0] elements (but also any chaperone on the treelist) and then
-adding each element back in reverse order. Reversing takes
-@math{O(N log N)} time.
+生成一个类似 @racket[tl] 的 @tech{树列表}，但其元素顺序反转，等价于使用 @racket[treelist-take] 保留 @racket[0] 个元素（同时保留树列表上的任何监护），然后按逆序重新添加每个元素。反转操作需要 @math{O(N log N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -259,13 +204,9 @@ adding each element back in reverse order. Reversing takes
 
 @defproc[(treelist-rest [tl treelist?]) treelist?]{
 
-A shorthand for using @racket[treelist-drop] to drop the first element
-of a @tech{treelist}.
+使用 @racket[treelist-drop] 删除 @tech{树列表}第一个元素的简写形式。
 
-The @racket[treelist-rest] operation is efficient, but not as fast as
-@racket[rest] or @racket[cdr]. For iterating through a treelist,
-consider using @racket[treelist-ref] or a @racket[for] form with
-@racket[in-treelist], instead.
+@racket[treelist-rest] 操作是高效的，但不如 @racket[rest] 或 @racket[cdr] 快。要遍历树列表，请考虑改用 @racket[treelist-ref] 或配合 @racket[in-treelist] 使用 @racket[for] 形式。
 
 @examples[
 #:eval the-eval
@@ -281,9 +222,7 @@ consider using @racket[treelist-ref] or a @racket[for] form with
 @defproc[(list->treelist [lst list?]) treelist?]
 )]{
 
-Convenience functions for converting between @tech{treelists},
-@tech{lists}, and @tech{vectors}. Each conversion takes @math{O(N)}
-time.
+在 @tech{树列表}、@tech{lists} 和 @tech{vectors} 之间转换的便捷函数。每次转换需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -294,9 +233,7 @@ time.
 
 @defproc[(treelist-map [tl treelist?] [proc (any/c . -> . any/c)]) treelist?]{
 
-Produces a @tech{treelist} by applying @racket[proc] to each element
-of @racket[tl] and gathering the results into a new treelist. For a
-constant-time @racket[proc], this operation takes @math{O(N)} time.
+通过对 @racket[tl] 的每个元素应用 @racket[proc] 并将结果收集到新树列表中来生成 @tech{树列表}。对于常数时间的 @racket[proc]，此操作需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -307,9 +244,7 @@ constant-time @racket[proc], this operation takes @math{O(N)} time.
 
 @defproc[(treelist-for-each [tl treelist?] [proc (any/c . -> . any)]) void?]{
 
-Applies @racket[proc] to each element of @racket[tl], ignoring the
-results. For a constant-time @racket[proc], this operation takes
-@math{O(N)} time.
+对 @racket[tl] 的每个元素应用 @racket[proc]，忽略结果。对于常数时间的 @racket[proc]，此操作需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -320,8 +255,7 @@ results. For a constant-time @racket[proc], this operation takes
 @defproc[(treelist-filter [keep (any/c . -> . any/c)] [tl treelist?])
          treelist?]{
 
-Produces a treelist with only members of @racket[tl] that satisfy
-@racket[keep].
+生成仅包含 @racket[tl] 中满足 @racket[keep] 的成员的树列表。
 
 @examples[
 #:eval the-eval
@@ -335,11 +269,7 @@ Produces a treelist with only members of @racket[tl] that satisfy
 
 @defproc[(treelist-member? [tl treelist?] [v any/c] [eql? (any/c any/c . -> . any/c) equal?]) boolean?]{
 
-Checks each element of @racket[tl] with @racket[eql?] and @racket[v]
-(with @racket[v] the second argument) until the result is a true
-value, and then returns @racket[#t]. If no such element is found, the
-result is @racket[#f]. For a constant-time @racket[eql?], this
-operation takes @math{O(N)} time.
+使用 @racket[eql?] 和 @racket[v]（以 @racket[v] 作为第二个参数）检查 @racket[tl] 的每个元素，直到结果为真值，然后返回 @racket[#t]。如果未找到此类元素，则结果为 @racket[#f]。对于常数时间的 @racket[eql?]，此操作需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -351,10 +281,7 @@ operation takes @math{O(N)} time.
 
 @defproc[(treelist-find [tl treelist?] [pred (any/c . -> . any/c)]) any/c]{
 
-Checks each element of @racket[tl] with @racket[pred] until the result
-is a true value, and then returns that element. If no such element is
-found, the result is @racket[#f]. For a constant-time
-@racket[pred], this operation takes @math{O(N)} time.
+使用 @racket[pred] 检查 @racket[tl] 的每个元素，直到结果为真值，然后返回该元素。如果未找到此类元素，则结果为 @racket[#f]。对于常数时间的 @racket[pred]，此操作需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -369,9 +296,7 @@ found, the result is @racket[#f]. For a constant-time
                             [eql? (any/c any/c . -> . any/c) equal?])
          (or/c exact-nonnegative-integer? #f)]{
 
-Returns the index of the first element in @racket[tl] that is
-@racket[eql?] to @racket[v].
-If no such element is found, the result is @racket[#f].
+返回 @racket[tl] 中第一个与 @racket[v] @racket[eql?] 相等的元素的索引。如果未找到此类元素，则结果为 @racket[#f]。
 
 @examples[
 #:eval the-eval
@@ -386,7 +311,7 @@ If no such element is found, the result is @racket[#f].
 
 @defproc[(treelist-flatten [v any/c]) treelist?]{
 
-Flattens a tree of nested treelists into a single treelist.
+将嵌套树列表的树展平为单个树列表。
 
 @examples[
 #:eval the-eval
@@ -399,8 +324,7 @@ Flattens a tree of nested treelists into a single treelist.
 
 @defproc[(treelist-append* [tlotl (treelist/c treelist?)]) treelist?]{
 
-Appends elements of a treelist of treelists together into one treelist,
-leaving any further nested treelists alone.
+将树列表的树列表的元素追加到一个树列表中，保持任何更深层嵌套的树列表不变。
 
 @examples[
 #:eval the-eval
@@ -416,8 +340,7 @@ leaving any further nested treelists alone.
                         [#:cache-keys? cache-keys? boolean? #f])
          treelist?]{
 
-Like @racket[sort], but operates on a @tech{treelist} to
-produce a sorted treelist. Sorting takes @math{O(N log N)} time.
+类似 @racket[sort]，但操作于 @tech{树列表}以生成排序后的树列表。排序需要 @math{O(N log N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -427,7 +350,7 @@ produce a sorted treelist. Sorting takes @math{O(N log N)} time.
 
 @defproc[(in-treelist [tl treelist?]) sequence?]{
 
-Returns a @tech{sequence} equivalent to @racket[tl].
+返回一个等价于 @racket[tl] 的 @tech{sequence}。
 @speed[in-treelist "treelist"]
 
 @examples[
@@ -439,9 +362,7 @@ Returns a @tech{sequence} equivalent to @racket[tl].
 
 @defproc[(sequence->treelist [s sequence?]) treelist?]{
 
-Returns a treelist whose elements are the elements of @racket[s],
-each of which must be a single value.
-If @racket[s] is infinite, this function does not terminate.
+返回一个树列表，其元素为 @racket[s] 的元素，其中每个元素必须是单个值。如果 @racket[s] 是无限的，此函数不会终止。
 
 @examples[
 #:eval the-eval
@@ -459,8 +380,7 @@ If @racket[s] is infinite, this function does not terminate.
 @defform[(for*/treelist (for-clause ...) body-or-break ... body)]
 )]{
 
-Like @racket[for/list] and @racket[for*/list], but generating
-@tech{treelists}.
+类似 @racket[for/list] 和 @racket[for*/list]，但生成 @tech{树列表}。
 
 @examples[
 #:eval the-eval
@@ -493,80 +413,23 @@ Like @racket[for/list] and @racket[for*/list], but generating
                              [prop-val any/c] ... ...)
           (and/c treelist? chaperone?)]{
 
-Analogous to @racket[chaperone-vector], returns a @tech{chaperone} of
-@racket[tl], which redirects the @racket[treelist-ref],
-@racket[treelist-set], @racket[treelist-insert],
-@racket[treelist-append], @racket[treelist-delete],
-@racket[treelist-take], and @racket[treelist-drop]
-operations, as well as operations derived
-from those. The @racket[state] argument is an initial state, where
-a state value is passed to each procedure that redirects an operation,
-and except for @racket[ref-proc] (which corresponds to the one
-operation that does not update a treelist), a new state is returned to
-be associated with the updated treelist. When @racket[state-key]
-is provided, it can be used with @racket[treelist-chaperone-state]
-to extract the state from the original treelist or an updated
-treelist.
+类似 @racket[chaperone-vector]，返回 @racket[tl] 的一个 @tech{监护}（chaperone），它重定向 @racket[treelist-ref]、@racket[treelist-set]、@racket[treelist-insert]、@racket[treelist-append]、@racket[treelist-delete]、@racket[treelist-take] 和 @racket[treelist-drop] 操作，以及由这些操作派生的操作。@racket[state] 参数是初始状态，状态值会传递给每个重定向操作的过程，除 @racket[ref-proc] 外（它对应于不更新树列表的唯一操作），新状态会被返回以与更新后的树列表关联。当提供 @racket[state-key] 时，可结合 @racket[treelist-chaperone-state] 从原始树列表或更新后的树列表中提取状态。
 
-The @racket[ref-proc] procedure must accept @racket[tl], an index
-passed to @racket[treelist-ref], the value that
-@racket[treelist-ref] on @racket[tl] produces for the given index, and
-the current chaperone state; it
-must produce a chaperone replacement for the value, which is the
-result of @racket[treelist-ref] on the chaperone.
+@racket[ref-proc] 过程必须接受 @racket[tl]、传递给 @racket[treelist-ref] 的索引、对 @racket[tl] 调用 @racket[treelist-ref] 在给定索引处产生的值以及当前监护状态；它必须产生该值的监护替换值，作为在监护对象上调用 @racket[treelist-ref] 的结果。
 
-The @racket[set-proc] procedure must accept @racket[tl], an index
-passed to @racket[treelist-set], the value provided to
-@racket[treelist-set], and the current chaperone state;
-it must produce two values: a chaperone replacement for the
-value, which is used in the result of @racket[treelist-set] on the
-chaperone, and an updated state. The result of @racket[treelist-set] is chaperoned with the
-same procedures and properties as @racket[tl], but with the updated state.
+@racket[set-proc] 过程必须接受 @racket[tl]、传递给 @racket[treelist-set] 的索引、提供给 @racket[treelist-set] 的值以及当前监护状态；它必须产生两个值：该值的监护替换值（用于在监护对象上调用 @racket[treelist-set] 的结果）和更新后的状态。@racket[treelist-set] 的结果使用与 @racket[tl] 相同的过程和属性进行监护，但使用更新后的状态。
 
-The @racket[insert-proc] procedure is like @racket[set-proc], but for
-inserting via @racket[treelist-insert].
+@racket[insert-proc] 过程类似 @racket[set-proc]，但用于通过 @racket[treelist-insert] 进行插入。
 
-The @racket[delete-proc], @racket[take-proc], and @racket[drop-proc]
-procedures must accept @racket[tl], the index or count for deleting,
-taking or dropping, and the current chaperone state; they
-must produce an updated state. The result of @racket[treelist-delete],
-@racket[treelist-take], or @racket[treelist-drop] is chaperoned
-with the same procedures and properties as @racket[tl], but with the
-updated state.
+@racket[delete-proc]、@racket[take-proc] 和 @racket[drop-proc] 过程必须接受 @racket[tl]、用于删除、保留或丢弃的索引或数量以及当前监护状态；它们必须产生更新后的状态。@racket[treelist-delete]、@racket[treelist-take] 或 @racket[treelist-drop] 的结果使用与 @racket[tl] 相同的过程和属性进行监护，但使用更新后的状态。
 
-The @racket[append-proc] procedure must accept @racket[tl], a treelist
-to append onto @racket[tl], and the current chaperone state; it must
-produce a chaperone replacement for the second treelist, which is
-appended for the result of @racket[treelist-append] on the chaperone,
-and an updated state. The result of @racket[treelist-append] is
-chaperoned with the same procedures and properties as @racket[tl], but
-with the updated state.
+@racket[append-proc] 过程必须接受 @racket[tl]、要追加到 @racket[tl] 的树列表以及当前监护状态；它必须产生第二个树列表的监护替换值（该值被追加到监护对象上 @racket[treelist-append] 的结果中）和更新后的状态。@racket[treelist-append] 的结果使用与 @racket[tl] 相同的过程和属性进行监护，但使用更新后的状态。
 
-The @racket[prepend-proc] procedure must accept a treelist being
-append with @racket[tl], @racket[tl], and the current chaperone
-state; it must produce a chaperone replacement for the first
-treelist, which is prepended for the result of @racket[treelist-append]
-on the chaperone, and an updated state. The result of
-@racket[treelist-append] is chaperoned with the same procedures and
-properties as @racket[tl], but with the updated state.
+@racket[prepend-proc] 过程必须接受正在与 @racket[tl] 追加的树列表、@racket[tl] 以及当前监护状态；它必须产生第一个树列表的监护替换值（该值被前置到监护对象上 @racket[treelist-append] 的结果中）和更新后的状态。@racket[treelist-append] 的结果使用与 @racket[tl] 相同的过程和属性进行监护，但使用更新后的状态。
 
-The @racket[append2-proc] procedure is optional and similar to
-@racket[append-proc], but when it is non-@racket[#f],
-@racket[append2-proc] is used instead of @racket[append-proc] when a
-second argument to @racket[treelist-append] is chaperoned with the
-same @racket[state-key]. In that case, the second argument to
-@racket[append2-proc] is the second argument with a @racket[state-key]
-chaperone wrapper removed, and with that chaperone's state as the last
-argument to @racket[append2-proc].
+@racket[append2-proc] 过程是可选的，类似于 @racket[append-proc]，但当其为非 @racket[#f] 时，如果 @racket[treelist-append] 的第二个参数使用相同的 @racket[state-key] 进行监护，则使用 @racket[append2-proc] 而非 @racket[append-proc]。在这种情况下，传递给 @racket[append2-proc] 的第二个参数是移除了 @racket[state-key] 监护包装的第二个参数，并将该监护的状态作为 @racket[append2-proc] 的最后一个参数。
 
-When two chaperoned treelists are given to @racket[treelist-append]
-and @racket[append2-proc] is not used, then the @racket[append-proc]
-of the first treelist is used, and the result of @racket[append-proc] will
-still be a chaperone whose @racket[prepend-proc] is used. If the result
-of @racket[prepend-proc] is a chaperone, then that chaperone's
-@racket[append-proc] is used, and so on. If @racket[prepend-proc] and
-@racket[append-proc] keep returning chaperones, it is possible that
-no progress will be made.
+当两个受监护的树列表被传递给 @racket[treelist-append] 且未使用 @racket[append2-proc] 时，将使用第一个树列表的 @racket[append-proc]，且 @racket[append-proc] 的结果仍将是一个监护对象，其 @racket[prepend-proc] 会被使用。如果 @racket[prepend-proc] 的结果是监护对象，则使用该监护对象的 @racket[append-proc]，以此类推。如果 @racket[prepend-proc] 和 @racket[append-proc] 持续返回监护对象，则可能无法取得进展。
 
 @examples[
 #:eval the-eval
@@ -597,48 +460,29 @@ no progress will be made.
                                    [state-key any/c]
                                    [fail-k (procedure-arity-includes/c 0) _key-error]) any/c]{
 
-Extracts state associated with a treelist chaperone where
-@racket[state-key] (compared using @racket[eq?])
-was provided along with the initial state to
-@racket[chaperone-treelist]. If @racket[tl] is not a chaperone with
-state keyed by @racket[state-key], then @racket[fail-k] is called,
-and the default @racket[fail-k] raises @racket[exn:fail:contract].
+提取与树列表监护关联的状态，其中 @racket[state-key]（使用 @racket[eq?] 比较）随初始状态一起提供给 @racket[chaperone-treelist]。如果 @racket[tl] 不是以 @racket[state-key] 为键的状态的监护对象，则调用 @racket[fail-k]，默认的 @racket[fail-k] 会引发 @racket[exn:fail:contract]。
 
 }
 
 
 
-@section{Mutable Treelists}
+@section{可变树列表}
 
 @note-lib-only[racket/mutable-treelist]
 
-A @deftech{mutable treelist} is like an immutable @tech{treelist} in a
-box, where operations that change the mutable treelist replace the
-treelist in the box. As a special case, @racket[mutable-treelist-set!]
-on an unimpersonated mutable treelist modifies the treelist representation within the boxed value. This
-model of a mutable treelist explains its behavior in the case of
-concurrent modification: concurrent @racket[mutable-treelist-set!]
-operations for different positions will not interefere, but races with
-other operations or on impersonated mutable treelists will sometimes negate one of the modifications.
-Concurrent modification is thus somewhat unpredictable but still safe,
-and it is not managed by a lock.
+@deftech{可变树列表}类似于放在盒子中的不可变 @tech{树列表}，其中改变可变树列表的操作会替换盒子中的树列表。作为一种特殊情况，在未拟人化的可变树列表上调用 @racket[mutable-treelist-set!] 会修改盒子值内的树列表表示。这种可变树列表模型解释了其在并发修改情况下的行为：对不同位置的并发 @racket[mutable-treelist-set!] 操作不会互相干扰，但与其他操作的竞争或在拟人化可变树列表上的竞争有时会否定其中一项修改。因此，并发修改在某种程度上不可预测，但仍然是安全的，且不由锁管理。
 
-A mutable treelist is not a treelist in the sense of
-@racket[treelist?], which recognizes only immutable treelists.
-Operations on a mutable treelist have the same time complexity as
-corresponding operations on an immutable treelist unless otherwise
-noted.
+可变树列表不是 @racket[treelist?] 意义上的树列表，后者仅识别不可变树列表。除非另有说明，可变树列表上的操作与不可变树列表上对应操作具有相同的时间复杂度。
 
 @history[#:added "8.12.0.7"]
 
 @defproc[(mutable-treelist? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{mutable treelist},
-@racket[#f] otherwise.}
+如果 @racket[v] 是 @tech{可变树列表}，则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(mutable-treelist [v any/c] ...) mutable-treelist?]{
 
-Returns a @tech{mutable treelist} with @racket[v]s as its elements in order.
+返回以 @racket[v] 为元素按顺序排列的 @tech{可变树列表}。
 
 @examples[
 #:eval the-eval
@@ -647,9 +491,7 @@ Returns a @tech{mutable treelist} with @racket[v]s as its elements in order.
 
 @defproc[(make-mutable-treelist [n exact-nonnegative-integer?] [v any/c #f]) mutable-treelist?]{
 
-Creates a @tech{mutable treelist} that contains @racket[n] elements,
-each initialized as @racket[v]. Creating the mutable treelist takes @math{O(N)}
-time for @math{N} elements.
+创建一个包含 @racket[n] 个元素的 @tech{可变树列表}，每个元素初始化为 @racket[v]。创建包含 @math{N} 个元素的可变树列表需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -662,9 +504,7 @@ time for @math{N} elements.
 @defproc[(mutable-treelist-copy [tl mutable-treelist?]) mutable-treelist?]
 )]{
 
-Creates a @tech{mutable treelist} that contains the same elements as
-@racket[tl]. Creating the mutable treelist takes @math{O(N)} time for
-@math{N} elements.
+创建一个包含与 @racket[tl] 相同元素的 @tech{可变树列表}。创建包含 @math{N} 个元素的可变树列表需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -677,13 +517,7 @@ Creates a @tech{mutable treelist} that contains the same elements as
                                     [m (or/c #f exact-nonnegative-integer?) #f])
          treelist?]{
 
-Produces an immutable @tech{treelist} that has the same elements as
-@racket[tl] at position @racket[n] (inclusive) through position
-@racket[m] (exclusive). If @racket[m] is @racket[#f], then the length
-of @racket[tl] is used, instead. Creating the immutable treelist takes
-@math{O(N)} time for @math{N} elements of the resulting treelist, on
-top of the cost of @racket[treelist-sublist] if the result is a
-sublist.
+生成一个不可变 @tech{树列表}，其元素与 @racket[tl] 在位置 @racket[n]（含）到位置 @racket[m]（不含）的元素相同。如果 @racket[m] 为 @racket[#f]，则改用 @racket[tl] 的长度。创建包含结果树列表中 @math{N} 个元素的不可变树列表需要 @math{O(N)} 时间，如果结果是子列表，还需加上 @racket[treelist-sublist] 的开销。
 
 @examples[
 #:eval the-eval
@@ -700,13 +534,12 @@ snap
 
 @defproc[(mutable-treelist-empty? [tl mutable-treelist?]) boolean?]{
 
-Returns @racket[#t] for @tech{mutable treelist} that is currently of
-length 0, @racket[#f] otherwise.}
+对于当前长度为 0 的 @tech{可变树列表}返回 @racket[#t]，否则返回 @racket[#f]。}
 
 
 @defproc[(mutable-treelist-length [tl mutable-treelist?]) exact-nonnegative-integer?]{
 
-Returns the number of elements currently in @racket[tl].
+返回 @racket[tl] 中当前的元素数量。
 
 @examples[
 #:eval the-eval
@@ -718,9 +551,7 @@ Returns the number of elements currently in @racket[tl].
 
 @defproc[(mutable-treelist-ref [tl mutable-treelist?] [pos exact-nonnegative-integer?]) any/c]{
 
-Returns the @racket[pos]th element of @racket[tl]. The first element is
-position @racket[0], and the last position is one less than
-@racket[(mutable-treelist-length tl)].
+返回 @racket[tl] 的第 @racket[pos] 个元素。第一个元素位于位置 @racket[0]，最后一个位置为 @racket[(mutable-treelist-length tl)] 减一。
 
 @examples[
 #:eval the-eval
@@ -736,8 +567,7 @@ position @racket[0], and the last position is one less than
 @defproc[(mutable-treelist-last [tl mutable-treelist?]) any/c]
 )]{
 
-Shorthands for using @racket[mutable-treelist-ref] to access the first or last
-element of a @tech{treelist}.
+使用 @racket[mutable-treelist-ref] 访问 @tech{树列表}的第一个或最后一个元素的简写形式。
 
 @examples[
 #:eval the-eval
@@ -749,10 +579,7 @@ element of a @tech{treelist}.
 
 @defproc[(mutable-treelist-insert! [tl mutable-treelist?] [pos exact-nonnegative-integer?] [v any/c]) void?]{
 
-Modifies @racket[tl] to insert @racket[v] into the list before
-position @racket[pos]. If @racket[pos] is
-@racket[(mutable-treelist-length tl)], then @racket[v] is added to the
-end of the treelist.
+修改 @racket[tl]，在位置 @racket[pos] 之前将 @racket[v] 插入列表中。如果 @racket[pos] 为 @racket[(mutable-treelist-length tl)]，则 @racket[v] 被添加到树列表的末尾。
 
 @examples[
 #:eval the-eval
@@ -767,8 +594,7 @@ items
 @defproc[(mutable-treelist-add! [tl mutable-treelist?] [v any/c]) void?]
 )]{
 
-Shorthands for using @racket[mutable-treelist-insert!] to insert at the
-beginning or end of a @tech{treelist}.
+使用 @racket[mutable-treelist-insert!] 在 @tech{树列表}的开头或末尾插入的简写形式。
 
 @examples[
 #:eval the-eval
@@ -781,7 +607,7 @@ items
 
 @defproc[(mutable-treelist-delete! [tl mutable-treelist?] [pos exact-nonnegative-integer?]) void?]{
 
-Modifies @racket[tl] to remove the element at @racket[pos].
+修改 @racket[tl]，移除位置 @racket[pos] 处的元素。
 
 @examples[
 #:eval the-eval
@@ -793,8 +619,7 @@ items
 
 @defproc[(mutable-treelist-set! [tl mutable-treelist?] [pos exact-nonnegative-integer?] [v any/c]) void?]{
 
-Modifies @racket[tl] to change the element at @racket[pos] to
-@racket[v].
+修改 @racket[tl]，将位置 @racket[pos] 处的元素改为 @racket[v]。
 
 @examples[
 #:eval the-eval
@@ -833,10 +658,7 @@ items
 @defproc[(mutable-treelist-drop-right! [tl mutable-treelist?] [n exact-nonnegative-integer?]) void?]
 )]{
 
-Modifies @racket[tl] to remove all but the first @racket[n] elements,
-to remove the first @racket[n] elements, to remove all but the last
-@racket[n] elements, or to remove the last @racket[n] elements,
-respectively.
+修改 @racket[tl]，分别仅保留前 @racket[n] 个元素、移除前 @racket[n] 个元素、仅保留后 @racket[n] 个元素或移除后 @racket[n] 个元素。
 
 @examples[
 #:eval the-eval
@@ -849,9 +671,7 @@ items
 
 @defproc[(mutable-treelist-sublist! [tl mutable-treelist?] [n exact-nonnegative-integer?] [m exact-nonnegative-integer?]) void?]{
 
-Modifies @racket[tl] to remove elements other than elements at
-position @racket[n] (inclusive) through position @racket[m]
-(exclusive).
+修改 @racket[tl]，移除位置 @racket[n]（含）到位置 @racket[m]（不含）之外的元素。
 
 @examples[
 #:eval the-eval
@@ -862,7 +682,7 @@ items
 
 @defproc[(mutable-treelist-reverse! [tl mutable-treelist?]) void?]{
 
-Modifies @racket[tl] to reverse all of its elements.
+修改 @racket[tl]，反转其所有元素。
 
 @examples[
 #:eval the-eval
@@ -878,9 +698,7 @@ items
 @defproc[(list->mutable-treelist [lst list?]) mutable-treelist?]
 )]{
 
-Convenience functions for converting between @tech{mutable treelists},
-@tech{lists}, and @tech{vectors}. Each conversion takes @math{O(N)}
-time.
+在 @tech{可变树列表}、@tech{lists} 和 @tech{vectors} 之间转换的便捷函数。每次转换需要 @math{O(N)} 时间。
 
 @examples[
 #:eval the-eval
@@ -891,8 +709,7 @@ time.
 
 @defproc[(mutable-treelist-map! [tl mutable-treelist?] [proc (any/c . -> . any/c)]) void?]{
 
-Modifies @racket[tl] by applying @racket[proc] to each element
-of @racket[tl] and installing the result in place of the element.
+修改 @racket[tl]，通过对 @racket[tl] 的每个元素应用 @racket[proc] 并将结果就地替换该元素。
 
 @examples[
 #:eval the-eval
@@ -904,7 +721,7 @@ items
 
 @defproc[(mutable-treelist-for-each [tl mutable-treelist?] [proc (any/c . -> . any)]) void?]{
 
-Like @racket[treelist-for-each], but for a @tech{mutable treelist}.
+类似 @racket[treelist-for-each]，但用于 @tech{可变树列表}。
 
 @examples[
 #:eval the-eval
@@ -914,7 +731,7 @@ Like @racket[treelist-for-each], but for a @tech{mutable treelist}.
 
 @defproc[(mutable-treelist-member? [tl mutable-treelist?] [v any/c] [eql? (any/c any/c . -> . any/c) equal?]) boolean?]{
 
-Like @racket[treelist-member?], but for a @tech{mutable treelist}.
+类似 @racket[treelist-member?]，但用于 @tech{可变树列表}。
 
 @examples[
 #:eval the-eval
@@ -925,7 +742,7 @@ Like @racket[treelist-member?], but for a @tech{mutable treelist}.
 
 @defproc[(mutable-treelist-find [tl mutable-treelist?] [pred (any/c . -> . any/c)]) any/c]{
 
-Like @racket[treelist-find], but for a @tech{mutable treelist}.
+类似 @racket[treelist-find]，但用于 @tech{可变树列表}。
 
 @examples[
 #:eval the-eval
@@ -940,7 +757,7 @@ Like @racket[treelist-find], but for a @tech{mutable treelist}.
                                  [#:cache-keys? cache-keys? boolean? #f])
          void?]{
 
-Like @racket[vector-sort!], but operates on a @tech{mutable treelist}.
+类似 @racket[vector-sort!]，但操作于 @tech{可变树列表}。
 
 @examples[
 #:eval the-eval
@@ -951,7 +768,7 @@ items
 
 @defproc[(in-mutable-treelist [tl mutable-treelist?]) sequence?]{
 
-Returns a @tech{sequence} equivalent to @racket[tl].
+返回一个等价于 @racket[tl] 的 @tech{sequence}。
 @speed[in-mutable-treelist "mutable treelist"]
 
 @examples[
@@ -966,8 +783,7 @@ Returns a @tech{sequence} equivalent to @racket[tl].
 @defform[(for*/mutable-treelist maybe-length (for-clause ...) body-or-break ... body)]
 )]{
 
-Like @racket[for/vector] and @racket[for*/vector], but generating
-@tech{mutable treelists}.
+类似 @racket[for/vector] 和 @racket[for*/vector]，但生成 @tech{可变树列表}。
 
 @examples[
 #:eval the-eval
@@ -992,13 +808,7 @@ Like @racket[for/vector] and @racket[for*/vector], but generating
                                      [prop-val any/c] ... ...)
           (and/c mutable-treelist? chaperone?)]{
 
-Similar to @racket[chaperone-treelist], but for @tech{mutable treelists}.
-For example, the given @racket[set-proc] is used for
-@racket[mutable-treelist-set!], and the resulting value is installed
-into the mutable treelist instead of the one provided to
-@racket[set-proc]. Mutable treelist chaperones do not have state
-separate from the treelist itself, and procedures like
-@racket[set-proc] do not consume or return a state.}
+类似 @racket[chaperone-treelist]，但用于 @tech{可变树列表}。例如，给定的 @racket[set-proc] 用于 @racket[mutable-treelist-set!]，其结果值被安装到可变树列表中，而非提供给 @racket[set-proc] 的值。可变树列表监护不具有独立于树列表本身的状态，像 @racket[set-proc] 这样的过程不消耗也不返回状态。}
 
 @defproc[(impersonate-mutable-treelist [tl mutable-treelist?]
                                        [#:ref ref-proc (mutable-treelist? exact-nonnegative-integer? any/c
@@ -1016,9 +826,7 @@ separate from the treelist itself, and procedures like
                                        [prop-val any/c] ... ...)
           (and/c mutable-treelist? impersonator?)]{
 
-Like @racket[chaperone-mutable-treelist], but @racket[ref-proc],
-@racket[set-proc], @racket[insert-proc], and @racket[append-proc]
-are not obligated to produce chaperones.}
+类似 @racket[chaperone-mutable-treelist]，但 @racket[ref-proc]、@racket[set-proc]、@racket[insert-proc] 和 @racket[append-proc] 不必产生监护对象。}
 
 
 @(close-eval the-eval)
