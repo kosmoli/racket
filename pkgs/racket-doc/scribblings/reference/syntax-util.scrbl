@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/syntax))
 
-@title[#:tag "syntax-util"]{Syntax Utilities}
+@title[#:tag "syntax-util"]{语法工具}
 
 @(define the-eval (make-base-eval))
 @(the-eval '(require racket/syntax))
@@ -12,7 +12,7 @@
 
 @;{----}
 
-@section{Creating formatted identifiers}
+@section{创建格式化标识符}
 
 @defproc[(format-id [lctx (or/c syntax? #f)]
                     [fmt string?]
@@ -27,14 +27,9 @@
                                   (if (syntax-transforming?) syntax-local-introduce values)])
          identifier?]{
 
-Like @racket[format], but produces an identifier using @racket[lctx]
-for the lexical context, @racket[src] for the source location, and
-@racket[props] for the properties. An argument supplied with
-@racket[#:cert] is ignored. (See @racket[datum->syntax].)
+类似于 @racket[format]，但生成一个标识符，使用 @racket[lctx] 作为词法上下文，@racket[src] 作为源位置，@racket[props] 作为属性。使用 @racket[#:cert] 提供的参数将被忽略。（参见 @racket[datum->syntax]。）
 
-The format string must use only @litchar{~a} placeholders.
-Syntax objects in the argument list are automatically unwrapped
-(e.g., identifiers will be automatically converted to symbols).
+格式字符串只能使用 @litchar{~a} 占位符。参数列表中的 syntax object 会自动解包（例如，标识符会自动转换为 symbol）。
 
 @examples[#:eval the-eval
 (define-syntax (make-pred stx)
@@ -51,25 +46,18 @@ Syntax objects in the argument list are automatically unwrapped
 (eval:error (better-make-pred none-such))
 ]
 
-(Scribble doesn't show it, but the DrRacket pinpoints the location of
-the second error but not of the first.)
+（Scribble 不显示这一点，但 DrRacket 精确定位了第二个错误的位置，而不是第一个。）
 
-If @racket[subs?] is @racket[#t], then a @racket['sub-range-binders]
-syntax property is added to the result that records the position of
-each identifier in the @racket[v]s. The @racket[subs-intro] procedure
-is applied to each identifier, and its result is included in the
-sub-range binder record. This property value overrides a
-@racket['sub-range-binders] property copied from @racket[props].
+如果 @racket[subs?] 为 @racket[#t]，则会为结果添加一个 @racket['sub-range-binders] syntax property，记录每个标识符在 @racket[v] 中的位置。@racket[subs-intro] 过程应用于每个标识符，其结果包含在 sub-range binder 记录中。此属性值会覆盖从 @racket[props] 复制的 @racket['sub-range-binders] 属性。
 
 @examples[#:eval the-eval
 (syntax-property (format-id #'here "~a/~a-~a" #'point 2 #'y #:subs? #t)
                  'sub-range-binders)
 ]
 
-@history[#:changed "7.4.0.5" @elem{Added the @racket[#:subs?] and
-@racket[#:subs-intro] arguments.}
-         #:changed "8.7.0.7" @elem{Allowed @racket[v] to be a syntax object
-wrapping a string, a keyword, a character, or a number.}]
+@history[#:changed "7.4.0.5" @elem{添加了 @racket[#:subs?] 和
+@racket[#:subs-intro] 参数。}
+         #:changed "8.7.0.7" @elem{允许 @racket[v] 为包装 string、keyword、character 或 number 的 syntax object。}]
 }
 
 @defproc[(format-symbol [fmt string?]
@@ -77,31 +65,24 @@ wrapping a string, a keyword, a character, or a number.}]
                                  (syntax/c (or/c string? symbol? keyword? char? number?)))] ...)
          symbol?]{
 
-Like @racket[format], but produces a symbol. The format string must
-use only @litchar{~a} placeholders.
-Syntax objects in the argument list are automatically unwrapped
-(e.g., identifiers will be automatically converted to symbols).
+类似于 @racket[format]，但生成一个 symbol。格式字符串只能使用 @litchar{~a} 占位符。参数列表中的 syntax object 会自动解包（例如，标识符会自动转换为 symbol）。
 
 @examples[#:eval the-eval
   (format-symbol "make-~a" 'triple)
 ]
 
-@history[#:changed "8.7.0.7" @elem{Allowed @racket[v] to be a syntax object
-wrapping a string, a keyword, a character, or a number.}]
+@history[#:changed "8.7.0.7" @elem{允许 @racket[v] 为包装 string、keyword、character 或 number 的 syntax object。}]
 }
 
 
 @;{----}
 
-@section{Pattern variables}
+@section{模式变量}
 
 @defform[(define/with-syntax pattern stx-expr)
          #:contracts ([stx-expr syntax?])]{
 
-Definition form of @racket[with-syntax]. That is, it matches the
-syntax object result of @racket[stx-expr] against @racket[pattern] and
-creates pattern variable definitions for the pattern variables of
-@racket[pattern].
+@racket[with-syntax] 的定义形式。它将 @racket[stx-expr] 的 syntax object 结果与 @racket[pattern] 进行匹配，并为 @racket[pattern] 中的模式变量创建定义。
 
 @examples[#:eval the-eval
 (define/with-syntax (px ...) #'(a b c))
@@ -115,25 +96,17 @@ creates pattern variable definitions for the pattern variables of
 
 @;{----}
 
-@section{Error reporting}
+@section{错误报告}
 
 @defparam[current-syntax-context stx (or/c syntax? #f)]{
 
-The current contextual syntax object, defaulting to @racket[#f].  It
-determines the special form name that prefixes syntax errors created
-by @racket[wrong-syntax].
+当前的上下文 syntax object，默认为 @racket[#f]。它决定了 @racket[wrong-syntax] 创建的语法错误所使用的前缀特殊形式名称。
 }
 
 @defproc[(wrong-syntax [stx syntax?] [format-string string?] [v any/c] ...)
          any]{
 
-Raises a syntax error using the result of
-@racket[(current-syntax-context)] as the ``major'' syntax object and
-the provided @racket[stx] as the specific syntax object. (The latter,
-@racket[stx], is usually the one highlighted by DrRacket.) The error
-message is constructed using the format string and arguments, and it
-is prefixed with the special form name as described under
-@racket[current-syntax-context].
+使用 @racket[(current-syntax-context)] 的结果作为"主要" syntax object，使用提供的 @racket[stx] 作为具体的语法对象来引发语法错误。（后者 @racket[stx] 通常是 DrRacket 高亮显示的那个。）错误消息使用格式字符串和参数构造，并以 @racket[current-syntax-context] 下描述的特殊形式名称作为前缀。
 
 @examples[#:eval the-eval
 (eval:error (wrong-syntax #'here "expected ~s" 'there))
@@ -142,94 +115,69 @@ is prefixed with the special form name as described under
    (wrong-syntax #'here "expected ~s" 'there)))
 ]
 
-A macro using @racket[wrong-syntax] might set the syntax context at the very
-beginning of its transformation as follows:
+使用 @racket[wrong-syntax] 的 macro 可能在其转换开始时设置语法上下文，如下所示：
 @RACKETBLOCK[
 (define-syntax (my-macro stx)
   (parameterize ([current-syntax-context stx])
     (syntax-case stx ()
       ___)))
 ]
-Then any calls to @racket[wrong-syntax] during the macro's
-transformation will refer to @racket[my-macro] (more precisely, the name that
-referred to @racket[my-macro] where the macro was used, which may be
-different due to renaming, prefixing, etc).
+然后在 macro 转换期间对 @racket[wrong-syntax] 的任何调用都将引用 @racket[my-macro]（更准确地说，是引用 @racket[my-macro] 被使用时所绑定的名称，该名称可能因重命名、前缀等不同而不同）。
+
 }
 
 
 @;{----}
 
-@section{Recording disappeared uses}
+@section{记录消失的 use}
 
 @defparam[current-recorded-disappeared-uses ids
           (or/c (listof identifier?) #f)]{
 
-Parameter for tracking disappeared uses. Tracking is ``enabled'' when
-the parameter has a non-false value. This is done automatically by
-forms like @racket[with-disappeared-uses].
+用于跟踪消失的 use 的参数。当参数具有非假值时，跟踪被"启用"。这由 @racket[with-disappeared-uses] 等形式自动完成。
 }
 
 @defform[(with-disappeared-uses body-expr ... stx-expr)
          #:contracts ([stx-expr syntax?])]{
 
-Evaluates the @racket[body-expr]s and @racket[stx-expr], catching identifiers
-looked up using @racket[syntax-local-value/record]. Adds the caught identifiers
-to the @racket['disappeared-use] syntax property of the syntax object produced
-by @racket[stx-expr].
+对 @racket[body-expr] 和 @racket[stx-expr] 求值，捕获通过 @racket[syntax-local-value/record] 查找的标识符。将捕获的标识符添加到 @racket[stx-expr] 产生的 syntax object 的 @racket['disappeared-use] syntax property 中。
 
-@history[#:changed "6.5.0.7" @elem{Added the option to include @racket[body-expr]s.}]
+@history[#:changed "6.5.0.7" @elem{添加了包含 @racket[body-expr] 的选项。}]
 }
 
 @defproc[(syntax-local-value/record [id identifier?] [predicate (-> any/c boolean?)])
          any/c]{
 
-Looks up @racket[id] in the syntactic environment (as
-@racket[syntax-local-value]). If the lookup succeeds and returns a
-value satisfying the predicate, the value is returned and @racket[id]
-is recorded as a disappeared use by calling @racket[record-disappeared-uses]. 
-If the lookup fails or if the value
-does not satisfy the predicate, @racket[#f] is returned and the
-identifier is not recorded as a disappeared use.
+在语法环境中查找 @racket[id]（通过 @racket[syntax-local-value]）。如果查找成功并返回满足谓词的值，则返回该值，并通过调用 @racket[record-disappeared-uses] 将 @racket[id] 记录为消失的 use。如果查找失败或值不满足谓词，则返回 @racket[#f]，标识符不会被记录为消失的 use。
 }
 
 @defproc[(record-disappeared-uses [id (or/c identifier? (listof identifier?))]
                                   [intro? boolean? (syntax-transforming?)])
          void?]{
 
-Add @racket[id] to @racket[(current-recorded-disappeared-uses)]. If
-@racket[id] is a list, perform the same operation on all the
-identifiers. If @racket[intro?] is true, then
-@racket[syntax-local-introduce] is first called on the identifiers.
+将 @racket[id] 添加到 @racket[(current-recorded-disappeared-uses)]。如果 @racket[id] 是列表，则对所有标识符执行相同的操作。如果 @racket[intro?] 为真，则先对标识符调用 @racket[syntax-local-introduce]。
 
-If not used within the extent of a @racket[with-disappeared-uses] 
-form or similar, has no effect.
+如果不用于 @racket[with-disappeared-uses] 之类的形式范围内，则没有效果。
 
-@history[#:changed "6.5.0.7"
-         @elem{Added the option to pass a single identifier instead of
-               requiring a list.}
-         #:changed "7.2.0.11"
-         @elem{Added the @racket[intro?] argument.}]
+@history[#:changed "6.5.0.7" @elem{添加了传入单个标识符而非要求列表的选项。}
+         #:changed "7.2.0.11" @elem{添加了 @racket[intro?] 参数。}]
 }
 
 
 @;{----}
 
-@section{Miscellaneous utilities}
+@section{其他工具}
 
 @defproc[(generate-temporary [name-base any/c 'g]) identifier?]{
 
-Generates one fresh identifier. Singular form of
-@racket[generate-temporaries]. If @racket[name-base] is supplied, it
-is used as the basis for the identifier's name.
+生成一个新鲜标识符。@racket[generate-temporaries] 的单数形式。如果提供了 @racket[name-base]，它将用作标识符名称的基础。
 }
 
 @defproc[(internal-definition-context-apply [intdef-ctx internal-definition-context?]
                                             [stx syntax?])
          syntax?]{
 
-Equivalent to @racket[(internal-definition-context-introduce intdef-ctx stx 'add)]. The
-@racket[internal-definition-context-apply] function is provided for backwards compatibility; the
- @racket[internal-definition-context-add-scopes] function is preferred.
+等同于 @racket[(internal-definition-context-introduce intdef-ctx stx 'add)]。提供 @racket[internal-definition-context-apply] 函数是为了向后兼容；推荐使用 @racket[internal-definition-context-add-scopes] 函数。
 }
 
 @defproc[(syntax-local-eval [stx any/c]
@@ -239,10 +187,7 @@ Equivalent to @racket[(internal-definition-context-introduce intdef-ctx stx 'add
                              '()])
          any]{
 
-Evaluates @racket[stx] as an expression in the current @tech{transformer environment} (that is, at
-@tech{phase level} 1). If @racket[intdef-ctx] is not @racket[#f], the value provided for
-@racket[intdef-ctx] is used to enrich @racket[stx]’s @tech{lexical information} and extend the
-@tech{local binding context} in the same way as the fourth argument to @racket[local-expand].
+将 @racket[stx] 作为表达式在当前 @tech{transformer environment}（即 @tech{phase level} 1）中求值。如果 @racket[intdef-ctx] 不为 @racket[#f]，则使用 @racket[intdef-ctx] 提供的值来丰富 @racket[stx] 的 @tech{lexical information} 并扩展 @tech{local binding context}，方式与 @racket[local-expand] 的第四个参数相同。
 
 @examples[#:eval the-eval
 (define-syntax (show-me stx)
@@ -259,21 +204,14 @@ Evaluates @racket[stx] as an expression in the current @tech{transformer environ
 (show-me fruit)
 ]
 
-@history[
- #:changed "6.90.0.27" @elem{Changed @racket[intdef-ctx] to accept a list of internal-definition
-                             contexts in addition to a single internal-definition context or
-                             @racket[#f].}]
+@history[#:changed "6.90.0.27" @elem{将 @racket[intdef-ctx] 更改为除了接受单个 internal-definition context 或 @racket[#f] 外，还可以接受 internal-definition context 的列表。}]
 }
 
 @defform[(with-syntax* ([pattern stx-expr] ...)
            body ...+)
          #:contracts ([stx-expr syntax?])]{
 
-Similar to @racket[with-syntax], but the pattern variables of each
-@racket[pattern] are bound in the @racket[stx-expr]s of subsequent
-clauses as well as the @racket[body]s, and the @racket[pattern]s need
-not bind distinct pattern variables; later bindings shadow earlier
-bindings.
+类似于 @racket[with-syntax]，但每个 @racket[pattern] 的模式变量在后续子句的 @racket[stx-expr] 以及 @racket[body] 中都被绑定，并且 @racket[pattern] 不需要绑定不同的模式变量；后面的绑定会遮蔽前面的绑定。
 
 @examples[#:eval the-eval
 (with-syntax* ([(x y) (list #'val1 #'val2)]
