@@ -16,31 +16,17 @@
                               s16vector-ref
                               s16vector-set!)))
 
-@title[#:tag "unsafe"]{Unsafe Operations}
+@title[#:tag "unsafe"]{不安全操作}
 
 @defmodule[racket/unsafe/ops]
 
-All functions and forms provided by @racketmodname[racket/base] and
-@racketmodname[racket] check their arguments to ensure that the
-arguments conform to contracts and other constraints. For example,
-@racket[vector-ref] checks its arguments to ensure that the first
-argument is a vector, that the second argument is an exact integer,
-and that the second argument is between @racket[0] and one less than
-the vector's length, inclusive.
+@racketmodname[racket/base] 和 @racketmodname[racket] 提供的所有函数和形式都会检查其参数，以确保参数符合合约和其他约束。例如，@racket[vector-ref] 检查其参数以确保第一个参数是 vector，第二个参数是精确整数，且第二个参数在 @racket[0] 到 vector 长度减一之间（含）。
 
-Functions provided by @racketmodname[racket/unsafe/ops] are
-@deftech{unsafe}. They have certain constraints, but the constraints
-are not checked, which allows the system to generate and execute
-faster code. If arguments violate an unsafe function's constraints,
-the function's behavior and result is unpredictable, and the entire
-system can crash or become corrupted.
+@racketmodname[racket/unsafe/ops] 提供的函数是 @deftech{不安全}（unsafe）的。它们有特定的约束，但这些约束不会被检查，这使得系统能够生成和执行更快的代码。如果参数违反了不安全函数的约束，该函数的行为和结果是不可预测的，整个系统可能会崩溃或损坏。
 
-All of the exported bindings of @racketmodname[racket/unsafe/ops] are
-protected in the sense of @racket[protect-out], so access to unsafe
-operations can be prevented by adjusting the code inspector (see
-@secref["modprotect"]).
+@racketmodname[racket/unsafe/ops] 的所有导出绑定都受 @racket[protect-out] 意义上的保护，因此可以通过调整代码检查器来阻止对不安全操作的访问（参见 @secref["modprotect"]）。
 
-@section{Unsafe Numeric Operations}
+@section{不安全数值操作}
 
 @deftogether[(
 @defproc[(unsafe-fx+ [a fixnum?] ...) fixnum?]
@@ -52,13 +38,9 @@ operations can be prevented by adjusting the code inspector (see
 @defproc[(unsafe-fxabs       [a fixnum?]) fixnum?]
 )]{
 
-For @tech{fixnums}: Unchecked versions of @racket[fx+], @racket[fx-],
-@racket[fx*], @racket[fxquotient],
-@racket[fxremainder], @racket[fxmodulo], and
-@racket[fxabs].
+针对 @tech{fixnums}：@racket[fx+]、@racket[fx-]、@racket[fx*]、@racket[fxquotient]、@racket[fxremainder]、@racket[fxmodulo] 和 @racket[fxabs] 的未检查版本。
 
-@history[#:changed "7.0.0.13" @elem{Allow zero or more arguments for @racket[unsafe-fx+] and @racket[unsafe-fx*]
-                                    and allow one or more arguments for @racket[unsafe-fx-].}]}
+@history[#:changed "7.0.0.13" @elem{允许 @racket[unsafe-fx+] 和 @racket[unsafe-fx*] 接受零个或多个参数，并允许 @racket[unsafe-fx-] 接受一个或多个参数。}]}
 
 
 @deftogether[(
@@ -71,13 +53,10 @@ For @tech{fixnums}: Unchecked versions of @racket[fx+], @racket[fx-],
 @defproc[(unsafe-fxrshift/logical [a fixnum?] [b fixnum?]) fixnum?]
 )]{
 
-For @tech{fixnums}: Unchecked versions of @racket[fxand], @racket[fxior], @racket[fxxor],
-@racket[fxnot], @racket[fxlshift], @racket[fxrshift], and @racket[fxrshift/logical].
+针对 @tech{fixnums}：@racket[fxand]、@racket[fxior]、@racket[fxxor]、@racket[fxnot]、@racket[fxlshift]、@racket[fxrshift] 和 @racket[fxrshift/logical] 的未检查版本。
 
-@history[#:changed "7.0.0.13" @elem{Allow zero or more arguments for
-                                    @racket[unsafe-fxand], @racket[unsafe-fxior],
-                                    and @racket[unsafe-fxxor].}
-        #:changed "8.8.0.5" @elem{Added @racket[unsafe-fxrshift/logical].}]}
+@history[#:changed "7.0.0.13" @elem{允许 @racket[unsafe-fxand]、@racket[unsafe-fxior] 和 @racket[unsafe-fxxor] 接受零个或多个参数。}
+        #:changed "8.8.0.5" @elem{添加了 @racket[unsafe-fxrshift/logical]。}]}
 
 @deftogether[(
 @defproc[(unsafe-fxpopcount [a (and/c fixnum? (not/c negative?))]) fixnum?]
@@ -85,8 +64,7 @@ For @tech{fixnums}: Unchecked versions of @racket[fxand], @racket[fxior], @racke
 @defproc[(unsafe-fxpopcount16 [a (and/c fixnum? (integer-in 0 @#,racketvalfont{#xFFFF})) ]) fixnum?]
 )]{
 
-For @tech{fixnums}: Unchecked versions of @racket[fxpopcount],
-@racket[fxpopcount32], and @racket[fxpopcount16].
+针对 @tech{fixnums}：@racket[fxpopcount]、@racket[fxpopcount32] 和 @racket[fxpopcount16] 的未检查版本。
 
 @history[#:added "8.5.0.6"]}
 
@@ -98,12 +76,10 @@ For @tech{fixnums}: Unchecked versions of @racket[fxpopcount],
 @defproc[(unsafe-fxlshift/wraparound [a fixnum?] [b fixnum?]) fixnum?]
 )]{
 
-For @tech{fixnums}: Unchecked versions of @racket[fx+/wraparound],
-@racket[fx-/wraparound], @racket[fx*/wraparound], and
-@racket[fxlshift/wraparound].
+针对 @tech{fixnums}：@racket[fx+/wraparound]、@racket[fx-/wraparound]、@racket[fx*/wraparound] 和 @racket[fxlshift/wraparound] 的未检查版本。
 
 @history[#:added "7.9.0.6"
-         #:changed "8.15.0.12" @elem{Changed @racket[unsafe-fx-/wraparound] to accept a single argument.}]}
+         #:changed "8.15.0.12" @elem{将 @racket[unsafe-fx-/wraparound] 改为接受单个参数。}]}
 
 
 @deftogether[(
@@ -116,12 +92,9 @@ For @tech{fixnums}: Unchecked versions of @racket[fx+/wraparound],
 @defproc[(unsafe-fxmax [a fixnum?] [b fixnum?] ...) fixnum?]
 )]{
 
-For @tech{fixnums}: Unchecked versions of @racket[fx=], @racket[fx<],
- @racket[fx>], @racket[fx<=], @racket[fx>=],
- @racket[fxmin], and @racket[fxmax].
+针对 @tech{fixnums}：@racket[fx=]、@racket[fx<]、@racket[fx>]、@racket[fx<=]、@racket[fx>=]、@racket[fxmin] 和 @racket[fxmax] 的未检查版本。
 
-@history[#:changed "7.0.0.13" @elem{Allow one or more argument,
-                                    instead of allowing just two.}]}
+@history[#:changed "7.0.0.13" @elem{允许一个或多个参数，而非仅允许两个。}]}
 
 
 @deftogether[(
@@ -132,11 +105,9 @@ For @tech{fixnums}: Unchecked versions of @racket[fx=], @racket[fx<],
 @defproc[(unsafe-flabs [a flonum?]) flonum?]
 )]{
 
-For @tech{flonums}: Unchecked versions of @racket[fl+], @racket[fl-],
-@racket[fl*], @racket[fl/], and @racket[flabs].
+针对 @tech{flonums}：@racket[fl+]、@racket[fl-]、@racket[fl*]、@racket[fl/] 和 @racket[flabs] 的未检查版本。
 
-@history[#:changed "7.0.0.13" @elem{Allow zero or more arguments for @racket[unsafe-fl+] and @racket[unsafe-fl*]
-                                    and one or more arguments for @racket[unsafe-fl-] and @racket[unsafe-fl/].}]}
+@history[#:changed "7.0.0.13" @elem{允许 @racket[unsafe-fl+] 和 @racket[unsafe-fl*] 接受零个或多个参数，并允许 @racket[unsafe-fl-] 和 @racket[unsafe-fl/] 接受一个或多个参数。}]}
 
 
 @deftogether[(
@@ -149,12 +120,9 @@ For @tech{flonums}: Unchecked versions of @racket[fl+], @racket[fl-],
 @defproc[(unsafe-flmax [a flonum?] [b flonum?] ...) flonum?]
 )]{
 
-For @tech{flonums}: Unchecked versions of @racket[fl=], @racket[fl<],
-@racket[fl>], @racket[fl<=], @racket[fl>=], @racket[flmin], and
-@racket[flmax].
+针对 @tech{flonums}：@racket[fl=]、@racket[fl<]、@racket[fl>]、@racket[fl<=]、@racket[fl>=]、@racket[flmin] 和 @racket[flmax] 的未检查版本。
 
-@history[#:changed "7.0.0.13" @elem{Allow one or more argument,
-                                    instead of allowing just two.}]}
+@history[#:changed "7.0.0.13" @elem{允许一个或多个参数，而非仅允许两个。}]}
 
 
 @deftogether[(
@@ -164,23 +132,19 @@ For @tech{flonums}: Unchecked versions of @racket[fl=], @racket[fl<],
 @defproc[(unsafe-fltruncate [a flonum?]) flonum?]
 )]{
 
-For @tech{flonums}: Unchecked (potentially) versions of
-@racket[flround], @racket[flfloor], @racket[flceiling], and
-@racket[fltruncate]. Currently, these bindings are simply aliases for
-the corresponding safe bindings.}
+针对 @tech{flonums}：@racket[flround]、@racket[flfloor]、@racket[flceiling] 和 @racket[fltruncate] 的（潜在）未检查版本。目前，这些绑定只是相应安全绑定的别名。}
 
 
 @defproc[(unsafe-flsingle [a flonum?]) flonum?]{
 
-For @tech{flonums}: Unchecked (potentially) version of
-@racket[flsingle].
+针对 @tech{flonums}：@racket[flsingle] 的（潜在）未检查版本。
 
 @history[#:added "7.8.0.7"]}
 
 @defproc[(unsafe-flbit-field [a flonum?] [start (integer-in 0 64)] [end (integer-in 0 64)])
          exact-nonnegative-integer?]{
 
-For @tech{flonums}: Unchecked version of @racket[flbit-field].
+针对 @tech{flonums}：@racket[flbit-field] 的未检查版本。
 
 @history[#:added "8.15.0.3"]}
 
@@ -198,11 +162,7 @@ For @tech{flonums}: Unchecked version of @racket[flbit-field].
 @defproc[(unsafe-flexpt [a flonum?] [b flonum?]) flonum?]
 )]{
 
-For @tech{flonums}: Unchecked (potentially) versions of
-@racket[flsin], @racket[flcos], @racket[fltan], @racket[flasin],
-@racket[flacos], @racket[flatan], @racket[fllog], @racket[flexp],
-@racket[flsqrt], and @racket[flexpt]. Currently, some of these
-bindings are simply aliases for the corresponding safe bindings.}
+针对 @tech{flonums}：@racket[flsin]、@racket[flcos]、@racket[fltan]、@racket[flasin]、@racket[flacos]、@racket[flatan]、@racket[fllog]、@racket[flexp]、@racket[flsqrt] 和 @racket[flexpt] 的（潜在）未检查版本。目前，其中一些绑定只是相应安全绑定的别名。}
 
 
 @deftogether[(
@@ -220,26 +180,25 @@ bindings are simply aliases for the corresponding safe bindings.}
          flonum?]
 )]{
 
-For @tech{flonums}: Unchecked versions of @racket[make-flrectangular],
-@racket[flreal-part], and @racket[flimag-part].}
+针对 @tech{flonums}：@racket[make-flrectangular]、@racket[flreal-part] 和 @racket[flimag-part] 的未检查版本。}
 
 
 @deftogether[(
 @defproc[(unsafe-fx->fl [a fixnum?]) flonum?]
 @defproc[(unsafe-fl->fx [a flonum?]) fixnum?]
 )]{
-Unchecked versions of @racket[fx->fl] and @racket[fl->fx].
+@racket[fx->fl] 和 @racket[fl->fx] 的未检查版本。
 
-@history[#:changed "7.7.0.8" @elem{Changed @racket[unsafe-fl->fx] to truncate.}]}
+@history[#:changed "7.7.0.8" @elem{将 @racket[unsafe-fl->fx] 改为截断。}]}
 
 
 @defproc[(unsafe-flrandom [rand-gen pseudo-random-generator?]) (and flonum? (>/c 0) (</c 1))]{
 
-Unchecked version of @racket[flrandom].
+@racket[flrandom] 的未检查版本。
 }
 
 
-@section{Unsafe Character Operations}
+@section{不安全字符操作}
 
 @deftogether[(
 @defproc[(unsafe-char=?   [a char?] [b char?] ...) boolean?]
@@ -250,14 +209,13 @@ Unchecked version of @racket[flrandom].
 @defproc[(unsafe-char->integer [a char?]) fixnum?]
 )]{
 
-Unchecked versions of @racket[char=?], @racket[char<?], @racket[char>?],
-@racket[char<=?], @racket[char>=?], and @racket[char->integer].
+@racket[char=?]、@racket[char<?]、@racket[char>?]、@racket[char<=?]、@racket[char>=?] 和 @racket[char->integer] 的未检查版本。
 
 @history[#:added "7.0.0.14"]}
 
 
 
-@section[#:tag "Unsafe Data Extraction"]{Unsafe Compound-Data Operations}
+@section[#:tag "Unsafe Data Extraction"]{不安全复合数据操作}
 
 @deftogether[(
 @defproc[(unsafe-car [p pair?]) any/c]
@@ -268,14 +226,12 @@ Unchecked versions of @racket[char=?], @racket[char<?], @racket[char>?],
 @defproc[(unsafe-set-mcdr! [p mpair?] [v any/c]) void?]
 )]{
 
-Unsafe variants of @racket[car], @racket[cdr], @racket[mcar],
-@racket[mcdr], @racket[set-mcar!], and @racket[set-mcdr!].}
+@racket[car]、@racket[cdr]、@racket[mcar]、@racket[mcdr]、@racket[set-mcar!] 和 @racket[set-mcdr!] 的不安全变体。}
 
 
 @defproc[(unsafe-cons-list [v any/c] [rest list?]) (and/c pair? list?)]{
 
-Unsafe variant of @racket[cons] that produces a pair that claims to be
-a list---without checking whether @racket[rest] is a list.}
+@racket[cons] 的不安全变体，生成一个声称是列表的 pair---而不检查 @racket[rest] 是否是列表。}
 
 
 @deftogether[(
@@ -283,10 +239,7 @@ a list---without checking whether @racket[rest] is a list.}
 @defproc[(unsafe-list-tail [lst any/c] [pos (and/c exact-nonnegative-integer? fixnum?)]) any/c]
 )]{
 
-Unsafe variants of @racket[list-ref] and @racket[list-tail], where
-@racket[pos] must be a @tech{fixnum}, and @racket[lst] must start with
-at least @racket[(add1 pos)] (for @racket[unsafe-list-ref]) or
-@racket[pos] (for @racket[unsafe-list-tail]) pairs.}
+@racket[list-ref] 和 @racket[list-tail] 的不安全变体，其中 @racket[pos] 必须是 @tech{fixnum}，且 @racket[lst] 必须至少以 @racket[(add1 pos)]（对于 @racket[unsafe-list-ref]）或 @racket[pos]（对于 @racket[unsafe-list-tail]）个 pair 开头。}
 
 
 @deftogether[(
@@ -294,34 +247,17 @@ at least @racket[(add1 pos)] (for @racket[unsafe-list-ref]) or
 @defproc[(unsafe-set-immutable-cdr! [p pair?] [v any/c]) void?]
 )]{
 
-As their oxymoronic names should suggest, there is @emph{no generally
-correct way} to use these functions. They may be useful nevertheless,
-as a last resort, in settings where pairs are used in a constrained
-way and when making correct assumptions about Racket's implementation
-(including limits on the compiler's optimizations).
+正如它们矛盾修辞的名称所示，使用这些函数 @emph{没有普遍正确的方式}。尽管如此，它们可能作为最后的手段有用，在 pair 以受限方式使用且对 Racket 的实现做出正确假设（包括对编译器优化限制的假设）的情况下。
 
-Some pitfalls of using @racket[unsafe-set-immutable-car!] and
-@racket[unsafe-set-immutable-cdr!]:
+使用 @racket[unsafe-set-immutable-car!] 和 @racket[unsafe-set-immutable-cdr!] 的一些陷阱：
 
 @itemlist[
 
- @item{Functions that consume a pair may take advantage of
-       immutability, such as computing a list's length once and
-       expecting the list to retain that length, or checking a list
-       against a contract and expecting the contract to hold
-       thereafter.}
+ @item{消费 pair 的函数可能会利用不可变性，例如计算列表的长度一次并期望列表保持该长度，或根据合约检查列表并期望合约此后保持。}
 
- @item{The result of @racket[list?] for a pair may be cached
-       internally, so that changing the @racket[cdr] of a pair from a
-       list to a non-list or vice versa may cause @racket[list?] to
-       produce the wrong value---for the mutated pair or for another
-       pair that reaches the mutated pair.}
+ @item{对 pair 调用 @racket[list?] 的结果可能在内部缓存，因此将 pair 的 @racket[cdr] 从列表改为非列表或反之可能会导致 @racket[list?] 产生错误的值---对于被修改的 pair 或到达被修改 pair 的其他 pair。}
 
- @item{The compiler may reorder or even optimize away a call to
-       @racket[car] or @racket[cdr] on the grounds that pairs are
-       immutable, in which case a @racket[unsafe-set-immutable-car!]
-       or @racket[unsafe-set-immutable-cdr!] may not have an effect on
-       the use of @racket[car] or @racket[cdr].}
+ @item{编译器可能基于 pair 是不可变的理由，重新排序甚至优化掉对 @racket[car] 或 @racket[cdr] 的调用，在这种情况下，@racket[unsafe-set-immutable-car!] 或 @racket[unsafe-set-immutable-cdr!] 可能不会对 @racket[car] 或 @racket[cdr] 的使用产生影响。}
 
 ]
 
@@ -333,13 +269,10 @@ Some pitfalls of using @racket[unsafe-set-immutable-car!] and
 @defproc[(unsafe-unbox* [v (and/c box? (not/c impersonator?))]) any/c]
 @defproc[(unsafe-set-box*! [v (and/c box? (not/c impersonator?))] [val any/c]) void?])]{
 
-Unsafe versions of @racket[unbox] and @racket[set-box!], where the
-@schemeidfont{box*} variants can be faster but do not work on
-@tech{impersonators}.}
+@racket[unbox] 和 @racket[set-box!] 的不安全版本，其中 @schemeidfont{box*} 变体可以更快，但不能用于 @tech{拟人化对象}（impersonator）。}
 
 @defproc[(unsafe-box*-cas! [loc box?] [old any/c] [new any/c]) boolean?]{
-  Unsafe version of @racket[box-cas!].  Like @racket[unsafe-set-box*!], it does
-  not work on @tech{impersonators}.
+  @racket[box-cas!] 的不安全版本。与 @racket[unsafe-set-box*!] 一样，它不能用于 @tech{拟人化对象}。
 }
 
 @deftogether[(
@@ -358,25 +291,17 @@ Unsafe versions of @racket[unbox] and @racket[set-box!], where the
 @defproc[(unsafe-vector*-append [v vector?] ...) vector?]
 )]{
 
-Unsafe versions of @racket[vector-length], @racket[vector-ref],
-@racket[vector-set!], @racket[vector-cas!], @racket[vector-copy], @racket[vector-set/copy],
-and @racket[vector-append], where the @schemeidfont{vector*} variants can be
-faster but do not work on @tech{impersonators}.
+@racket[vector-length]、@racket[vector-ref]、@racket[vector-set!]、@racket[vector-cas!]、@racket[vector-copy]、@racket[vector-set/copy] 和 @racket[vector-append] 的不安全版本，其中 @schemeidfont{vector*} 变体可以更快，但不能用于 @tech{拟人化对象}。
 
-A vector's size can never be larger than a @tech{fixnum}, so even
-@racket[vector-length] always returns a fixnum.
+vector 的大小永远不能大于 @tech{fixnum}，因此即使是 @racket[vector-length] 也总是返回 fixnum。
 
-@history[#:changed "6.11.0.2" @elem{Added @racket[unsafe-vector*-cas!].}
-         #:changed "8.11.1.9" @elem{Added @racket[unsafe-vector-copy], @racket[unsafe-vector*-copy],
-                                    @racket[unsafe-vector-set/copy], @racket[unsafe-vector*-set/copy],
-                                    @racket[unsafe-vector-append], and @racket[unsafe-vector*-append].}]}
+@history[#:changed "6.11.0.2" @elem{添加了 @racket[unsafe-vector*-cas!]。}
+         #:changed "8.11.1.9" @elem{添加了 @racket[unsafe-vector-copy]、@racket[unsafe-vector*-copy]、@racket[unsafe-vector-set/copy]、@racket[unsafe-vector*-set/copy]、@racket[unsafe-vector-append] 和 @racket[unsafe-vector*-append]。}]}
 
 
 @defproc[(unsafe-vector*->immutable-vector! [v (and/c vector? (not/c impersonator?))]) (and/c vector? immutable?)]{
 
-Similar to @racket[vector->immutable-vector], but potentially destroys
-@racket[v] and reuses it space, so @racket[v] must not be used after
-calling @racket[unsafe-vector*->immutable-vector!].
+类似 @racket[vector->immutable-vector]，但可能会销毁 @racket[v] 并重用其空间，因此在调用 @racket[unsafe-vector*->immutable-vector!] 后不得使用 @racket[v]。
 
 @history[#:added "7.7.0.6"]}
 
@@ -388,17 +313,11 @@ calling @racket[unsafe-vector*->immutable-vector!].
 @defproc[(unsafe-string-set! [str (and/c string? (not/c immutable?))] [k fixnum?] [ch char?]) void?]
 )]{
 
-Unsafe versions of @racket[string-length], @racket[string-ref], and
-@racket[string-set!]. The @racket[unsafe-string-ref] procedure can be used
-only when the result will be a Latin-1 character. A string's size can
-never be larger than a @tech{fixnum} (so even @racket[string-length]
-always returns a fixnum).}
+@racket[string-length]、@racket[string-ref] 和 @racket[string-set!] 的不安全版本。@racket[unsafe-string-ref] 过程只能在结果为 Latin-1 字符时使用。字符串的大小永远不能大于 @tech{fixnum}（因此即使是 @racket[string-length] 也总是返回 fixnum）。}
 
 @defproc[(unsafe-string->immutable-string! [str string?]) (and/c string? immutable?)]{
 
-Similar to @racket[string->immutable-string], but potentially destroys
-@racket[str] and reuses it space, so @racket[str] must not be used
-after calling @racket[unsafe-string->immutable-string!].
+类似 @racket[string->immutable-string]，但可能会销毁 @racket[str] 并重用其空间，因此在调用 @racket[unsafe-string->immutable-string!] 后不得使用 @racket[str]。
 
 @history[#:added "7.7.0.6"]}
 
@@ -415,20 +334,14 @@ after calling @racket[unsafe-string->immutable-string!].
          void?]
 )]{
 
-Unsafe versions of @racket[bytes-length], @racket[bytes-ref],
-@racket[bytes-set!], and @racket[bytes-copy!].
-A bytes's size can never be larger than a
-@tech{fixnum} (so even @racket[bytes-length] always returns a
-fixnum).
+@racket[bytes-length]、@racket[bytes-ref]、@racket[bytes-set!] 和 @racket[bytes-copy!] 的不安全版本。bytes 的大小永远不能大于 @tech{fixnum}（因此即使是 @racket[bytes-length] 也总是返回 fixnum）。
 
-@history[#:changed "7.5.0.15" @elem{Added @racket[unsafe-bytes-copy!].}]}
+@history[#:changed "7.5.0.15" @elem{添加了 @racket[unsafe-bytes-copy!]。}]}
 
 
 @defproc[(unsafe-bytes->immutable-bytes! [bstr bytes?]) (and/c bytes? immutable?)]{
 
-Similar to @racket[bytes->immutable-bytes], but potentially destroys
-@racket[bstr] and reuses it space, so @racket[bstr] must not be used
-after calling @racket[unsafe-bytes->immutable-bytes!].
+类似 @racket[bytes->immutable-bytes]，但可能会销毁 @racket[bstr] 并重用其空间，因此在调用 @racket[unsafe-bytes->immutable-bytes!] 后不得使用 @racket[bstr]。
 
 @history[#:added "7.7.0.6"]}
 
@@ -439,10 +352,7 @@ after calling @racket[unsafe-bytes->immutable-bytes!].
 @defproc[(unsafe-fxvector-set! [v fxvector?] [k fixnum?] [x fixnum?]) void?]
 )]{
 
-Unsafe versions of @racket[fxvector-length], @racket[fxvector-ref], and
-@racket[fxvector-set!]. A @tech{fxvector}'s size can never be larger than a
-@tech{fixnum} (so even @racket[fxvector-length] always returns a
-fixnum).}
+@racket[fxvector-length]、@racket[fxvector-ref] 和 @racket[fxvector-set!] 的不安全版本。@tech{fxvector} 的大小永远不能大于 @tech{fixnum}（因此即使是 @racket[fxvector-length] 也总是返回 fixnum）。}
 
 
 @deftogether[(
@@ -451,10 +361,7 @@ fixnum).}
 @defproc[(unsafe-flvector-set! [v flvector?] [k fixnum?] [x flonum?]) void?]
 )]{
 
-Unsafe versions of @racket[flvector-length], @racket[flvector-ref], and
-@racket[flvector-set!]. A @tech{flvector}'s size can never be larger than a
-@tech{fixnum} (so even @racket[flvector-length] always returns a
-fixnum).}
+@racket[flvector-length]、@racket[flvector-ref] 和 @racket[flvector-set!] 的不安全版本。@tech{flvector} 的大小永远不能大于 @tech{fixnum}（因此即使是 @racket[flvector-length] 也总是返回 fixnum）。}
 
 
 @deftogether[(
@@ -462,8 +369,7 @@ fixnum).}
 @defproc[(unsafe-f64vector-set! [vec f64vector?] [k fixnum?] [n flonum?]) void?]
 )]{
 
-Unsafe versions of @racket[f64vector-ref] and
-@racket[f64vector-set!].}
+@racket[f64vector-ref] 和 @racket[f64vector-set!] 的不安全版本。}
 
 
 @deftogether[(
@@ -471,8 +377,7 @@ Unsafe versions of @racket[f64vector-ref] and
 @defproc[(unsafe-s16vector-set! [vec s16vector?] [k fixnum?] [n (integer-in -32768 32767)]) void?]
 )]{
 
-Unsafe versions of @racket[s16vector-ref] and
-@racket[s16vector-set!].}
+@racket[s16vector-ref] 和 @racket[s16vector-set!] 的不安全版本。}
 
 
 @deftogether[(
@@ -480,8 +385,7 @@ Unsafe versions of @racket[s16vector-ref] and
 @defproc[(unsafe-u16vector-set! [vec u16vector?] [k fixnum?] [n (integer-in 0 65535)]) void?]
 )]{
 
-Unsafe versions of @racket[u16vector-ref] and
-@racket[u16vector-set!].}
+@racket[u16vector-ref] 和 @racket[u16vector-set!] 的不安全版本。}
 
 
 @deftogether[(
@@ -508,9 +412,7 @@ Unsafe versions of @racket[u16vector-ref] and
          stencil-vector?]
 )]{
 
-Unsafe variants of @racket[stencil-vector], @racket[stencil-vector-mask], @racket[stencil-vector-length],
-@racket[stencil-vector-ref], @racket[stencil-vector-set!],
-and @racket[stencil-vector-update].
+@racket[stencil-vector]、@racket[stencil-vector-mask]、@racket[stencil-vector-length]、@racket[stencil-vector-ref]、@racket[stencil-vector-set!] 和 @racket[stencil-vector-update] 的不安全变体。
 
 @history[#:added "8.5.0.7"]}
 
@@ -523,23 +425,14 @@ and @racket[stencil-vector-update].
 @defproc[(unsafe-struct*-cas! [v (not/c impersonator?)] [k fixnum?] [old-val any/c] [new-val any/c]) boolean?]
 )]{
 
-Unsafe field access and update for an instance of a structure
-type, where the @schemeidfont{struct*} variants can be
-faster but do not work on @tech{impersonators}.
-The index @racket[k] must be between @racket[0] (inclusive) and
-the number of fields in the structure (exclusive). In the case of
-@racket[unsafe-struct-set!], @racket[unsafe-struct*-set!], and @racket[unsafe-struct*-cas!], the
-field must be mutable. The @racket[unsafe-struct*-cas!] operation
-is analogous to @racket[box-cas!] to perform an atomic compare-and-set.
+用于结构类型实例的不安全字段访问和更新，其中 @schemeidfont{struct*} 变体可以更快，但不能用于 @tech{拟人化对象}。索引 @racket[k] 必须在 @racket[0]（含）到结构中字段的数量（不含）之间。对于 @racket[unsafe-struct-set!]、@racket[unsafe-struct*-set!] 和 @racket[unsafe-struct*-cas!]，字段必须是可变的。@racket[unsafe-struct*-cas!] 操作类似于 @racket[box-cas!]，执行原子比较并设置。
 
-@history[#:changed "6.11.0.2" @elem{Added @racket[unsafe-struct*-cas!].}]}
+@history[#:changed "6.11.0.2" @elem{添加了 @racket[unsafe-struct*-cas!]。}]}
 
 
 @defproc[(unsafe-struct*-type [v any/c]) struct-type?]{
 
-Similar to @racket[struct-info], but without an inspector check,
-returning only the first result, and without support for
-@tech{impersonators}.
+类似 @racket[struct-info]，但不进行检查器检查，仅返回第一个结果，且不支持 @tech{拟人化对象}。
 
 @history[#:added "8.8.0.3"]}
 
@@ -734,28 +627,15 @@ returning only the first result, and without support for
           [bad-index-v any/c]) 
 	  pair?]
 )]{
-Unsafe versions of @racket[hash-iterate-key] and similar procedures.
-These operations support @tech{chaperones} and @tech{impersonators}.
+@racket[hash-iterate-key] 及类似过程的不安全版本。这些操作支持 @tech{监护}（chaperone）和 @tech{拟人化对象}（impersonator）。
 
-Each unsafe ...@code{-first} and ...@code{-next} procedure may return,
-instead of a number index, an internal representation of a view into
-the hash structure, enabling faster iteration. The result of these
-...@code{-first} and ...@code{-next} functions should be given as
-@racket[pos] to the corresponding unsafe accessor functions.
+每个不安全的 ...@code{-first} 和 ...@code{-next} 过程可能返回哈希结构视图的内部表示而非数字索引，从而实现更快的迭代。这些 ...@code{-first} 和 ...@code{-next} 函数的结果应作为 @racket[pos] 传递给相应的不安全访问器函数。
 
-If the @racket[pos] provided to an accessor function for a mutable
-@racket[hash] was formerly a @tech{valid hash index} but is no longer
-a @tech{valid hash index} for @racket[hash], and if
-@racket[bad-index-v] is not provided, then the
-@exnraise[exn:fail:contract]. No behavior is specified for a
-@racket[pos] that was never a @tech{valid hash index} for
-@racket[hash]. Note that @racket[bad-index-v] argument is technically
-not useful for the @code{unsafe-immutable-hash-iterate-} functions,
-since an index cannot become invalid for an immutable @racket[hash].
+如果提供给可变 @racket[hash] 访问器函数的 @racket[pos] 之前是 @tech{有效哈希索引}，但不再是 @racket[hash] 的 @tech{有效哈希索引}，且未提供 @racket[bad-index-v]，则 @exnraise[exn:fail:contract]。对于从未是 @racket[hash] 的 @tech{有效哈希索引}的 @racket[pos]，未指定行为。注意，@racket[bad-index-v] 参数在技术上对 @code{unsafe-immutable-hash-iterate-} 函数无用，因为对于不可变 @racket[hash]，索引不会变为无效。
 
 @history[#:added "6.4.0.6"
-         #:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}
-         #:changed "8.0.0.10" @elem{Added @schemeidfont{ephemeron} variants.}]}
+         #:changed "7.0.0.10" @elem{添加了可选的 @racket[bad-index-v] 参数。}
+         #:changed "8.0.0.10" @elem{添加了 @schemeidfont{ephemeron} 变体。}]}
 
 @defproc[(unsafe-make-srcloc [source any/c]
                              [line (or/c exact-positive-integer? #f)]
@@ -764,13 +644,13 @@ since an index cannot become invalid for an immutable @racket[hash].
                              [span (or/c exact-nonnegative-integer? #f)])
          srcloc?]{
 
-Unsafe version of @racket[srcloc].
+@racket[srcloc] 的不安全版本。
 
 @history[#:added "7.2.0.10"]}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unsafeextfl"]{Unsafe Extflonum Operations}
+@section[#:tag "unsafeextfl"]{不安全 Extflonum 操作}
 
 @deftogether[(
 @defproc[(unsafe-extfl+   [a extflonum?] [b extflonum?]) extflonum?]
@@ -780,8 +660,7 @@ Unsafe version of @racket[srcloc].
 @defproc[(unsafe-extflabs [a extflonum?]) extflonum?]
 )]{
 
-Unchecked versions of @racket[extfl+], @racket[extfl-],
-@racket[extfl*], @racket[extfl/], and @racket[extflabs].}
+@racket[extfl+]、@racket[extfl-]、@racket[extfl*]、@racket[extfl/] 和 @racket[extflabs] 的未检查版本。}
 
 
 @deftogether[(
@@ -794,9 +673,7 @@ Unchecked versions of @racket[extfl+], @racket[extfl-],
 @defproc[(unsafe-extflmax [a extflonum?] [b extflonum?]) extflonum?]
 )]{
 
-Unchecked versions of @racket[extfl=], @racket[extfl<],
-@racket[extfl>], @racket[extfl<=], @racket[extfl>=], @racket[extflmin], and
-@racket[extflmax].}
+@racket[extfl=]、@racket[extfl<]、@racket[extfl>]、@racket[extfl<=]、@racket[extfl>=]、@racket[extflmin] 和 @racket[extflmax] 的未检查版本。}
 
 
 @deftogether[(
@@ -806,10 +683,7 @@ Unchecked versions of @racket[extfl=], @racket[extfl<],
 @defproc[(unsafe-extfltruncate [a extflonum?]) extflonum?]
 )]{
 
-Unchecked (potentially) versions of @racket[extflround],
-@racket[extflfloor], @racket[extflceiling], and
-@racket[extfltruncate]. Currently, these bindings are simply aliases
-for the corresponding safe bindings.}
+@racket[extflround]、@racket[extflfloor]、@racket[extflceiling] 和 @racket[extfltruncate] 的（潜在）未检查版本。目前，这些绑定只是相应安全绑定的别名。}
 
 
 @deftogether[(
@@ -825,21 +699,16 @@ for the corresponding safe bindings.}
 @defproc[(unsafe-extflexpt [a extflonum?] [b extflonum?]) extflonum?]
 )]{
 
-Unchecked (potentially) versions of @racket[extflsin],
-@racket[extflcos], @racket[extfltan], @racket[extflasin],
-@racket[extflacos], @racket[extflatan], @racket[extfllog],
-@racket[extflexp], @racket[extflsqrt], and
-@racket[extflexpt]. Currently, some of these bindings are simply
-aliases for the corresponding safe bindings.}
+@racket[extflsin]、@racket[extflcos]、@racket[extfltan]、@racket[extflasin]、@racket[extflacos]、@racket[extflatan]、@racket[extfllog]、@racket[extflexp]、@racket[extflsqrt] 和 @racket[extflexpt] 的（潜在）未检查版本。目前，其中一些绑定只是相应安全绑定的别名。}
 
 
 @deftogether[(
 @defproc[(unsafe-fx->extfl [a fixnum?]) extflonum?]
 @defproc[(unsafe-extfl->fx [a extflonum?]) fixnum?]
 )]{
-Unchecked (potentially) versions of @racket[fx->extfl] and @racket[extfl->fx].
+@racket[fx->extfl] 和 @racket[extfl->fx] 的（潜在）未检查版本。
 
-@history[#:changed "7.7.0.8" @elem{Changed @racket[unsafe-fl->fx] to truncate.}]}
+@history[#:changed "7.7.0.8" @elem{将 @racket[unsafe-fl->fx] 改为截断。}]}
 
 @deftogether[(
 @defproc[(unsafe-extflvector-length [v extflvector?]) fixnum?]
@@ -847,14 +716,11 @@ Unchecked (potentially) versions of @racket[fx->extfl] and @racket[extfl->fx].
 @defproc[(unsafe-extflvector-set! [v extflvector?] [k fixnum?] [x extflonum?]) void?]
 )]{
 
-Unchecked versions of @racket[extflvector-length], @racket[extflvector-ref], and
-@racket[extflvector-set!]. A @tech{extflvector}'s size can never be larger than a
-@tech{fixnum} (so even @racket[extflvector-length] always returns a
-fixnum).}
+@racket[extflvector-length]、@racket[extflvector-ref] 和 @racket[extflvector-set!] 的未检查版本。@tech{extflvector} 的大小永远不能大于 @tech{fixnum}（因此即使是 @racket[extflvector-length] 也总是返回 fixnum）。}
 
 @; ------------------------------------------------------------------------
 
-@section{Unsafe Impersonators and Chaperones}
+@section{不安全拟人化对象与监护}
 
 @defproc[(unsafe-impersonate-procedure [proc procedure?]
                                        [replacement-proc procedure?]
@@ -862,35 +728,15 @@ fixnum).}
                                        [prop-val any] ... ...)
          (and/c procedure? impersonator?)]{
 
- Like @racket[impersonate-procedure], but assumes that
- @racket[replacement-proc] calls @racket[proc] itself. When the result
- of @racket[unsafe-impersonate-procedure] is applied to arguments, the
- arguments are passed on to @racket[replacement-proc] directly,
- ignoring @racket[proc]. At the same time, @racket[impersonator-of?]
- reports @racket[#t] when given the result of
- @racket[unsafe-impersonate-procedure] and @racket[proc].
+ 类似 @racket[impersonate-procedure]，但假定 @racket[replacement-proc] 自身调用 @racket[proc]。当 @racket[unsafe-impersonate-procedure] 的结果应用于参数时，参数直接传递给 @racket[replacement-proc]，忽略 @racket[proc]。同时，@racket[impersonator-of?] 在给定 @racket[unsafe-impersonate-procedure] 的结果和 @racket[proc] 时报告 @racket[#t]。
 
- If @racket[proc] is itself an impersonator that is derived from
- @racket[impersonate-procedure*] or @racket[chaperone-procedure*],
- beware that @racket[replacement-proc] will not be able to call it
- correctly. Specifically, the impersonator produced by
- @racket[unsafe-impersonate-procedure] will not get passed to a
- wrapper procedure that was supplied to
- @racket[impersonate-procedure*] or @racket[chaperone-procedure*] to
- generate @racket[proc].
+ 如果 @racket[proc] 本身是从 @racket[impersonate-procedure*] 或 @racket[chaperone-procedure*] 派生的拟人化对象，注意 @racket[replacement-proc] 将无法正确调用它。具体来说，由 @racket[unsafe-impersonate-procedure] 生成的拟人化对象不会传递给提供给 @racket[impersonate-procedure*] 或 @racket[chaperone-procedure*] 以生成 @racket[proc] 的包装过程。
 
- Finally, unlike @racket[impersonate-procedure],
- @racket[unsafe-impersonate-procedure] does not specially handle
- @racket[impersonator-prop:application-mark] as a @racket[prop].
+ 最后，与 @racket[impersonate-procedure] 不同，@racket[unsafe-impersonate-procedure] 不会将 @racket[impersonator-prop:application-mark] 作为 @racket[prop] 特殊处理。
 
- The unsafety of @racket[unsafe-impersonate-procedure] is limited to
- the above differences from @racket[impersonate-procedure]. The
- contracts on the arguments of @racket[unsafe-impersonate-procedure] are
- checked when the arguments are supplied.
+ @racket[unsafe-impersonate-procedure] 的不安全性仅限于上述与 @racket[impersonate-procedure] 的区别。@racket[unsafe-impersonate-procedure] 的参数合约在提供参数时进行检查。
 
- As an example, assuming that @racket[f] accepts a single argument and
- is not derived from @racket[impersonate-procedure*] or
- @racket[chaperone-procedure*], then
+ 作为一个示例，假设 @racket[f] 接受单个参数且非从 @racket[impersonate-procedure*] 或 @racket[chaperone-procedure*] 派生，则
  @racketblock[(λ (f)
                 (unsafe-impersonate-procedure
                  f
@@ -898,7 +744,7 @@ fixnum).}
                    (if (number? x)
                        (error 'no-numbers!)
                        (f x)))))]
- is equivalent to
+ 等价于
  @racketblock[(λ (f)
                 (impersonate-procedure
                  f
@@ -907,15 +753,7 @@ fixnum).}
                        (error 'no-numbers!)
                        x))))]
  
- Similarly, with the same assumptions about @racket[f], the following
- two procedures @racket[_wrap-f1] and
- @racket[_wrap-f2] are almost equivalent; they differ only
- in the error message produced when their arguments are
- functions that return multiple values (and that they update
- different global variables). The version using @racket[unsafe-impersonate-procedure]
- will signal an error in the @racket[let] expression about multiple
- return values, whereas the one using @racket[impersonate-procedure] signals
- an error from @racket[impersonate-procedure] about multiple return values.
+ 类似地，在同样关于 @racket[f] 的假设下，以下两个过程 @racket[_wrap-f1] 和 @racket[_wrap-f2] 几乎等价；它们仅在参数是返回多值的函数时产生的错误消息不同（且它们更新不同的全局变量）。使用 @racket[unsafe-impersonate-procedure] 的版本将在 @racket[let] 表达式中发出关于多个返回值的错误，而使用 @racket[impersonate-procedure] 的版本从 @racket[impersonate-procedure] 发出关于多个返回值的错误。
  @racketblock[(define log1-args '())
               (define log1-results '())
               (define wrap-f1
@@ -950,10 +788,7 @@ fixnum).}
                                      [prop impersonator-property?]
                                      [prop-val any] ... ...)
          (and/c procedure? chaperone?)]{
- Like @racket[unsafe-impersonate-procedure], but creates a @tech{chaperone}.
- Since @racket[wrapper-proc] will be called in lieu of @racket[proc],
- @racket[wrapper-proc] is assumed to return a chaperone of the value that
- @racket[proc] would return.
+ 类似 @racket[unsafe-impersonate-procedure]，但创建 @tech{监护}（chaperone）。由于 @racket[wrapper-proc] 将代替 @racket[proc] 被调用，假定 @racket[wrapper-proc] 返回 @racket[proc] 将返回的值的监护。
 
  @history[#:added "6.4.0.4"]
 }
@@ -963,10 +798,9 @@ fixnum).}
                                     [prop impersonator-property?]
                                     [prop-val any/c] ... ...)
          (and/c vector? impersonator?)]{
- Like @racket[impersonate-vector], but instead of going through interposition procedures, all
- accesses to the impersonator are dispatched to @racket[replacement-vec].
+ 类似 @racket[impersonate-vector]，但不通过插入过程，所有对拟人化对象的访问都分发到 @racket[replacement-vec]。
 
- The result of @racket[unsafe-impersonate-vector] is an impersonator of @racket[vec].
+ @racket[unsafe-impersonate-vector] 的结果是 @racket[vec] 的拟人化对象。
 
  @history[#:added "6.9.0.2"]
 }
@@ -975,26 +809,20 @@ fixnum).}
                                   [prop impersonator-property?]
                                   [prop-val any/c] ... ...)
          (and/c vector? chaperone?)]{
- Like @racket[unsafe-impersonate-vector], but the result of @racket[unsafe-chaperone-vector] is a
- chaperone of @racket[vec].
+ 类似 @racket[unsafe-impersonate-vector]，但 @racket[unsafe-chaperone-vector] 的结果是 @racket[vec] 的监护。
 
  @history[#:added "6.9.0.2"]
 }
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unsafeassert"]{Unsafe Assertions}
+@section[#:tag "unsafeassert"]{不安全断言}
 
 @defproc[(unsafe-assert-unreachable) none/c]{
 
-Like @racket[assert-unreachable], but the contract of
-@racket[unsafe-assert-unreachable] is never satisfied, and the
-``unsafe'' implication is that anything at all can happen if a call to
-@racket[unsafe-assert-unreachable] is reached.
+类似 @racket[assert-unreachable]，但 @racket[unsafe-assert-unreachable] 的合约永远不会被满足，"不安全"的含义是，如果到达对 @racket[unsafe-assert-unreachable] 的调用，任何事情都可能发生。
 
-The compiler may take advantage of its liberty to pick convenient or
-efficient behavior in place of a call to
-@racket[unsafe-assert-unreachable]. For example, the expression
+编译器可以利用其自由，选择便捷或高效的行为来代替对 @racket[unsafe-assert-unreachable] 的调用。例如，表达式
 
 @racketblock[
 (lambda (x)
@@ -1003,21 +831,19 @@ efficient behavior in place of a call to
       (unsafe-assert-unreachable)))
 ]
 
-may be compiled to code equivalent to
+可能被编译为等价于以下代码
 
 @racketblock[
 (lambda (x) (unsafe-car x))
 ]
 
-because choosing to make @racket[(unsafe-assert-unreachable)] behave
-the same as @racket[(unsafe-car x)] makes both branches of the
-@racket[if] the same, and then @racket[pair?] test can be eliminated.
+因为选择让 @racket[(unsafe-assert-unreachable)] 的行为与 @racket[(unsafe-car x)] 相同，使得 @racket[if] 的两个分支相同，从而可以消除 @racket[pair?] 测试。
 
 @history[#:added "8.0.0.11"]}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unsafe-struct-type-prop"]{Unsafe Structure Type Properties}
+@section[#:tag "unsafe-struct-type-prop"]{不安全结构类型属性}
 
 @note-lib-only[racket/unsafe/struct-type-property]
 
@@ -1035,22 +861,9 @@ the same as @racket[(unsafe-car x)] makes both branches of the
                  (any/c . -> . boolean?)
                  procedure?)]{
 
-The same as @racket[make-struct-type-property], but asserts that
-@racket[guard] does not call any procedures that are contained in its
-property-value argument. Similarly, no procedure in @racket[supers]
-calls a contained procedure, and properties in @racket[supers] have no
-guards or conversions that call contained procedures.
+与 @racket[make-struct-type-property] 相同，但断言 @racket[guard] 不调用包含在其属性值参数中的任何过程。类似地，@racket[supers] 中没有过程调用被包含的过程，且 @racket[supers] 中的属性没有调用被包含过程的 guard 或转换。
 
-Asserting that given procedures are not called by a property's guards
-can reduce checks and improve optimization on operations for structure
-types that use the property. Specifically, when the property created by
-@racket[unsafe-make-struct-type-property/guard-calls-no-arguments] is
-used in a structure-type declaration, and when a value that is given
-for the property includes procedures that refer back to the
-structure-type declaration's bindings (which is a common pattern for
-method-like properties), the compiler can more easily conclude that
-the defined name that is referenced in a property value cannot be
-referenced too early.
+断言给定过程不会被属性的 guard 调用，可以减少检查并改进对使用该属性的结构类型操作的优化。具体来说，当由 @racket[unsafe-make-struct-type-property/guard-calls-no-arguments] 创建的属性用于结构类型声明时，并且当为该属性提供的值包含引用回结构类型声明绑定的过程（这是方法类属性的常见模式）时，编译器可以更容易地得出结论：在属性值中引用的已定义名称不会被过早引用。
 
 @history[#:added "8.18.0.18"]}
 
