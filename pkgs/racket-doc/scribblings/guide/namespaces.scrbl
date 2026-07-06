@@ -1,11 +1,10 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval racket/class "guide-utils.rkt")
 
-@title[#:tag "reflection" #:style 'toc]{Reflection and Dynamic Evaluation}
+@title[#:tag "reflection" #:style 'toc]{反射与动态求值}
 
-Racket is a @italic{dynamic} language. It offers numerous facilities
-for loading, compiling, and even constructing new code at run
-time.
+Racket 是 @italic{dynamic} 语言。它提供了大量设施用于在运行时加载、
+编译乃至构造新代码。
 
 @local-table-of-contents[]
 
@@ -13,19 +12,17 @@ time.
 
 @section[#:tag "eval"]{@racket[eval]}
 
-@margin-note{This example will not work within a module or in DrRacket's definitions window,
-             but it will work in the interactions window, for reasons that are
-             explained by the end of @secref["namespaces"].}
+@margin-note{此示例在模块内或 DrRacket 的定义窗口中无法运行，
+             但可以在交互窗口中运行，原因将在 @secref["namespaces"] 末尾解释。}
 
-The @racket[eval] function takes a representation of an expression or definition
-(as a ``quoted'' form or @tech{syntax object}) and evaluates it:
+@racket[eval] 函数接受表达式或定义的表示("quoted" 形式或
+@tech{syntax object})并对其进行求值：
 
 @interaction[
 (eval '(+ 1 2))
 ]
 
-The power of @racket[eval] is that an expression can be
-constructed dynamically:
+@racket[eval] 的强大之处在于可以动态构造表达式：
 
 @interaction[
 (define (eval-formula formula)
@@ -36,9 +33,8 @@ constructed dynamically:
 (eval-formula '(+ (* x y) y))
 ]
 
-Of course, if we just wanted to evaluate expressions with given values
-for @racket[x] and @racket[y], we do not need @racket[eval]. A more
-direct approach is to use first-class functions:
+当然，如果我们只是想对 @racket[x] 和 @racket[y] 给定值来求值表达式，
+并不需要 @racket[eval]。更直接的方式是使用 first-class function：
 
 @interaction[
 (define (apply-formula formula-proc)
@@ -47,25 +43,21 @@ direct approach is to use first-class functions:
 (apply-formula (lambda (x y) (+ (* x y) y)))
 ]
 
-However, if expressions like @racket[(+ x y)] and @racket[(+ (* x y)
-y)] are read from a file supplied by a user, for example, then
-@racket[eval] might be appropriate. Similarly, the @tech{REPL} reads
-expressions that are typed by a user and uses @racket[eval] to
-evaluate them.
+然而，如果 @racket[(+ x y)] 和 @racket[(+ (* x y) y)] 等表达式
+来自用户提供的文件，则 @racket[eval] 可能是合适的。类似地，@tech{REPL}
+读取用户输入的表达式并使用 @racket[eval] 对其进行求值。
 
-Also, @racket[eval] is often used directly or indirectly on whole
-modules. For example, a program might load a module on demand using
-@racket[dynamic-require], which is essentially a wrapper around
-@racket[eval] to dynamically load the module code.
+此外，@racket[eval] 常常直接或间接作用于整个 module。例如，
+程序可以使用 @racket[dynamic-require] 按需加载一个 module，
+它本质上是对 @racket[eval] 的包装，用于动态加载 module 代码。
 
 @; ----------------------------------------
 
-@subsection{Local Scopes}
+@subsection{局部作用域}
 
-The @racket[eval] function cannot see local bindings in the context
-where it is called. For example, calling @racket[eval] inside an
-unquoted @racket[let] form to evaluate a formula does not make values
-visible for @racket[x] and @racket[y]:
+@racket[eval] 函数无法看到其调用上下文中的局部绑定。例如，
+在未 quoted 的 @racket[let] 形式内调用 @racket[eval] 来求值公式时，
+@racket[x] 和 @racket[y] 的值并不可见：
 
 @interaction[
 (define (broken-eval-formula formula)
@@ -75,67 +67,54 @@ visible for @racket[x] and @racket[y]:
 (broken-eval-formula '(+ x y))
 ]
 
-The @racket[eval] function cannot see the @racket[x] and @racket[y]
-bindings precisely because it is a function, and Racket is a lexically
-scoped language. Imagine if @racket[eval] were implemented as
+@racket[eval] 无法看到 @racket[x] 和 @racket[y] 的绑定，
+恰恰因为它是一个 function，而 Racket 是词法作用域语言。
+假设 @racket[eval] 实现如下
 
 @racketblock[
 (define (eval x)
   (eval-expanded (macro-expand x)))
 ]
 
-then at the point when @racket[eval-expanded] is called, the most
-recent binding of @racket[x] is to the expression to evaluate, not the
-@racket[let] binding in @racket[broken-eval-formula]. Lexical scope
-prevents such confusing and fragile behavior, and consequently
-prevents @racket[eval] from seeing local bindings in the context where
-it is called.
+则在调用 @racket[eval-expanded] 时，@racket[x] 最近的绑定是待求值的表达式，
+而不是 @racket[broken-eval-formula] 中的 @racket[let] 绑定。词法作用域防止了
+这种混乱脆弱的行为，因此也阻止了 @racket[eval] 看到其调用上下文中的局部绑定。
 
-You might imagine that even though @racket[eval] cannot see the local
-bindings in @racket[broken-eval-formula], there must actually be a
-data structure mapping @racket[x] to @racket[2] and @racket[y] to
-@racket[3], and you would like a way to get that data structure. In
-fact, no such data structure exists; the compiler is free to replace
-every use of @racket[x] with @racket[2] at compile time, so that the
-local binding of @racket[x] does not exist in any concrete sense at
-run-time. Even when variables cannot be eliminated by
-constant-folding, normally the names of the variables can be
-eliminated, and the data structures that hold local values do not
-resemble a mapping from names to values.
+你可能会想，即使 @racket[eval] 看不到 @racket[broken-eval-formula] 中的局部绑定，
+实际上必然存在将 @racket[x] 映射到 @racket[2] 且将 @racket[y] 映射到 @racket[3]
+的数据结构，并希望获取该数据结构。实际上，该数据结构并不存在；
+编译器可以在编译时自由地将所有 @racket[x] 替换为 @racket[2]，
+因此 @racket[x] 的局部绑定在运行时并不以任何具体形式存在。
+即使变量无法通过 constant-folding 被消除，通常变量名也可以被消除，
+保存局部值的数据结构并不像从名字到值的映射。
 
 @; ----------------------------------------
 
-@subsection[#:tag "namespaces"]{Namespaces}
+@subsection[#:tag "namespaces"]{命名空间}
 
-Since @racket[eval] cannot see the bindings from the context where it
-is called, another mechanism is needed to determine dynamically
-available bindings. A @deftech{namespace} is a first-class value that
-encapsulates the bindings available for dynamic evaluation.
+由于 @racket[eval] 无法看到其调用上下文中的绑定，需要另一种机制来
+确定动态可用的绑定。@deftech{namespace} 是一个 first-class value，
+封装了可用于动态求值的绑定。
 
-@margin-note{Informally, the term @defterm{namespace} is sometimes
- used interchangeably with @defterm{environment} or
- @defterm{scope}. In Racket, the term @defterm{namespace} has the
- more specific, dynamic meaning given above, and it should not be
- confused with static lexical concepts.}
+@margin-note{非正式地，@defterm{namespace} 有时可与 @defterm{environment}
+ 或 @defterm{scope} 互换使用。在 Racket 中，@defterm{namespace} 具有更具体的、
+ 上述的动态含义，不应与静态词法概念混淆。}
 
-Some functions, such as @racket[eval], accept an optional namespace
-argument. More often, the namespace used by a dynamic operation is the
-@deftech{current namespace} as determined by the
-@racket[current-namespace] @tech{parameter}.
+某些函数(如 @racket[eval])接受可选的 namespace 参数。更常见的是，
+动态操作使用的 namespace 是由 @racket[current-namespace] @tech{parameter}
+确定的 @deftech{current namespace}。
 
-When @racket[eval] is used in a @tech{REPL}, the current namespace is the one
-that the @tech{REPL} uses for evaluating expressions. That's why the
-following interaction successfully accesses @racket[x] via
-@racket[eval]:
+在 @tech{REPL} 中使用 @racket[eval] 时，current namespace 是 @tech{REPL}
+用于求值表达式的 namespace。这就是为什么以下交互能通过 @racket[eval]
+成功访问 @racket[x]：
 
 @interaction[
 (define x 3)
 (eval 'x)
 ]
 
-In contrast, try the following simple module and running it directly
-in DrRacket or supplying the file as a command-line argument to
-@exec{racket}:
+相反，尝试以下简单 module，直接在 DrRacket 中运行它，
+或将文件作为命令行参数传给 @exec{racket}：
 
 @racketmod[
 racket
@@ -143,15 +122,13 @@ racket
 (eval '(cons 1 2))
 ]
 
-This fails because the initial current namespace is empty. When you
-run @exec{racket} in interactive mode (see
-@secref["start-interactive-mode"]), the initial namespace is
-initialized with the exports of the @racket[racket] module, but when
-you run a module directly, the initial namespace starts empty.
+这会失败，因为初始 current namespace 是空的。当你以交互模式运行
+@exec{racket}(参见 @secref["start-interactive-mode"])时，初始 namespace
+用 @racket[racket] module 的导出项初始化，但当你直接运行 module 时，
+初始 namespace 从零开始。
 
-In general, it's a bad idea to use @racket[eval] with whatever
-namespace happens to be installed. Instead, create a namespace
-explicitly and install it for the call to eval:
+一般来说，使用当前已安装的 namespace 来调用 @racket[eval] 不是好做法。
+相反，应显式创建 namespace 并为 eval 调用安装它：
 
 @racketmod[
 racket
@@ -160,23 +137,21 @@ racket
 (eval '(cons 1 2) ns) (code:comment @#,t{works})
 ]
 
-The @racket[make-base-namespace] function creates a namespace that is
-initialized with the exports of @racket[racket/base]. The later
-section @secref["mk-namespace"] provides more information on creating
-and configuring namespaces.
+@racket[make-base-namespace] 函数创建一个 namespace，用 @racket[racket/base]
+的导出项进行初始化。后面的 @secref["mk-namespace"] 一节提供了更多关于
+创建和配置 namespace 的信息。
 
 @; ----------------------------------------
 
-@subsection{Namespaces and Modules}
+@subsection{命名空间与模块}
 
-As with @racket[let] bindings, lexical scope means that @racket[eval]
-cannot automatically see the definitions of a @racket[module] in which
-it is called. Unlike @racket[let] bindings, however, Racket provides a
-way to reflect a module into a @tech{namespace}.
+与 @racket[let] 绑定一样，词法作用域意味着 @racket[eval] 无法自动看到
+其调用的 @racket[module] 中的定义。但与 @racket[let] 绑定不同的是，
+Racket 提供了将 module 反射到 @tech{namespace} 的方法。
 
-The @racket[module->namespace] function takes a quoted @tech{module
-path} and produces a namespace for evaluating expressions and
-definitions as if they appeared in the @racket[module] body:
+@racket[module->namespace] 函数接受 quoted 的 @tech{module path}，
+并产生一个 namespace，用于求值表达式和定义，就像它们出现在
+@racket[module] 主体中一样：
 
 @interaction[
 (module m racket/base
@@ -186,20 +161,16 @@ definitions as if they appeared in the @racket[module] body:
 (eval 'x ns)
 ]
 
-@margin-note{The double quoting in @racket[''m] is because @racket['m]
-is a module path that refers to an interactively declared module, and
-so @racket[''m] is the quoted form of the path.}
+@margin-note{@racket[''m] 中的双重 quoting 是因为 @racket['m] 是指向
+交互式声明 module 的 module path，所以 @racket[''m] 是该 path 的 quoted 形式。}
 
-The @racket[module->namespace] function is mostly useful from outside
-a module, where the module's full name is known. Inside a
-@racket[module] form, however, the full name of a module may not be
-known, because it may depend on where the module source is located
-when it is eventually loaded.
+@racket[module->namespace] 主要在 module 外部使用，此时 module 的全名已知。
+然而在 @racket[module] 形式内部，module 的全名可能未知，
+因为它可能取决于 module 源文件加载时的位置。
 
-From within a @racket[module], use @racket[define-namespace-anchor] to
-declare a reflection hook on the module, and use
-@racket[namespace-anchor->namespace] to reel in the module's
-namespace:
+在 @racket[module] 内部，使用 @racket[define-namespace-anchor]
+在 module 上声明反射钩子，并使用 @racket[namespace-anchor->namespace]
+获取 module 的 namespace：
 
 @racketmod[
 racket
@@ -216,80 +187,64 @@ racket
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "mk-namespace"]{Manipulating Namespaces}
+@section[#:tag "mk-namespace"]{操作命名空间}
 
-A @tech{namespace} encapsulates two pieces of information:
+@tech{namespace} 封装了两部分信息：
 
 @itemize[
 
- @item{A mapping from identifiers to bindings. For example, a
-       namespace might map the identifier @racketidfont{lambda} to the
-       @racket[lambda] form. An ``empty'' namespace is one that maps
-       every identifier to an uninitialized top-level variable.}
+ @item{标识符到 binding 的映射。例如，namespace 可能将标识符
+       @racketidfont{lambda} 映射到 @racket[lambda] 形式。"空"namespace
+       将每个标识符映射到未初始化的 top-level variable。}
 
- @item{A mapping from module names to module declarations and
-       instances. (The distinction between declaration and instance is
-       discussed in @secref["macro-module"].)}
+ @item{module name 到 module 声明和实例的映射。
+       (声明和实例之间的区别在 @secref["macro-module"] 中讨论。)}
 
 ]
 
-The first mapping is used for evaluating expressions in a top-level
-context, as in @racket[(eval '(lambda (x) (+ x 1)))]. The second
-mapping is used, for example, by @racket[dynamic-require] to locate a
-module. The call @racket[(eval '(require racket/base))] normally uses
-both pieces: the identifier mapping determines the binding of
-@racketidfont{require}; if it turns out to mean @racket[require], then
-the module mapping is used to locate the @racketmodname[racket/base]
-module.
+第一种映射用于在 top-level 上下文中求值表达式，如
+@racket[(eval '(lambda (x) (+ x 1)))]。第二种映射被用于，例如，
+@racket[dynamic-require] 定位 module。调用 @racket[(eval '(require racket/base))]
+通常使用两部分：标识符映射确定 @racketidfont{require} 的 binding；
+如果它的含义是 @racket[require]，则使用 module 映射定位
+@racketmodname[racket/base] module。
 
-From the perspective of the core Racket run-time system, all
-evaluation is reflective. Execution starts with an initial namespace
-that contains a few primitive modules, and that is further populated
-by loading files and modules as specified on the command line or as
-supplied in the @tech{REPL}. Top-level @racket[require] and
-@racket[define] forms adjusts the identifier mapping, and module
-declarations (typically loaded on demand for a @racket[require] form)
-adjust the module mapping.
+从核心 Racket 运行时系统的角度来看，所有求值都是反射式的。
+执行从一个包含少数 primitive module 的初始 namespace 开始，
+并通过按命令行指定的或 @tech{REPL} 中加载文件和 module 来进一步填充。
+Top-level @racket[require] 和 @racket[define] 形式调整标识符映射，
+而 module 声明(通常因 @racket[require] 形式而按需加载)调整 module 映射。
 
 @; ----------------------------------------
 
-@subsection{Creating and Installing Namespaces}
+@subsection{创建和安装命名空间}
 
-The function @racket[make-empty-namespace] creates a new, empty
-@tech{namespace}. Since the namespace is truly empty, it cannot at
-first be used to evaluate any top-level expression---not even
-@racket[(require racket)]. In particular,
+@racket[make-empty-namespace] 函数创建一个新的空 @tech{namespace}。
+由于该 namespace 是真正的空，起初无法用于求值任何 top-level 表达式——
+甚至不能求值 @racket[(require racket)]。特别是，
 
 @racketblock[
 (parameterize ([current-namespace (make-empty-namespace)])
   (namespace-require 'racket))
 ]
 
-fails, because the namespace does not include the primitive modules on
-which @racket[racket] is built.
+会失败，因为该 namespace 不包含构建 @racket[racket] 所依赖的 primitive module。
 
-To make a namespace useful, some modules must be @deftech{attached}
-from an existing namespace. Attaching a module adjusts the mapping of
-module names to instances by transitively copying entries (the module
-and all its imports) from an existing namespace's mapping. Normally,
-instead of just attaching the primitive modules---whose names and
-organization are subject to change---a higher-level module is
-attached, such as @racketmodname[racket] or
-@racketmodname[racket/base].
+为使 namespace 可用，必须从现有 namespace 中 @deftech{attach} 一些 module。
+Attach module 会通过从现有 namespace 的映射中转态复制条目(module 及其所有导入项)，
+来调整 module name 到实例的映射。通常，attach 的不是 primitive module
+(其名称和组织随时可能改变)，而是更高级别的 module，
+如 @racketmodname[racket] 或 @racketmodname[racket/base]。
 
-The @racket[make-base-empty-namespace] function provides a namespace
-that is empty, except that @racketmodname[racket/base] is
-attached. The resulting namespace is still ``empty'' in the sense that
-the identifiers-to-bindings part of the namespace has no mappings;
-only the module mapping has been populated. Nevertheless, with an
-initial module mapping, further modules can be loaded.
+@racket[make-base-empty-namespace] 函数提供一个 namespace，它是空的，
+但 attach 了 @racketmodname[racket/base]。结果 namespace 仍然"空"，
+即 namespace 的标识符到 binding 部分没有映射；只有 module 映射已被填充。
+然而，有了初始 module 映射后，可以加载更多 module。
 
-A namespace created with @racket[make-base-empty-namespace] is
-suitable for many basic dynamic tasks. For example, suppose that a
-@racketmodfont{my-dsl} library implements a domain-specific language
-in which you want to execute commands from a user-specified file. A
-namespace created with @racket[make-base-empty-namespace] is enough to
-get started:
+用 @racket[make-base-empty-namespace] 创建的 namespace 适用于许多基本动态任务。
+例如，假设 @racketmodfont{my-dsl} 库实现了一种领域特定语言，你希望执行
+来自用户指定文件的命令。用 @racket[make-base-empty-namespace] 创建的
+namespace 足以开始：
 
 @racketblock[
 (define (run-dsl file)
@@ -298,36 +253,28 @@ get started:
     (load file)))
 ]
 
-Note that the @racket[parameterize] of @racket[current-namespace] does
-not affect the meaning of identifiers like @racket[namespace-require]
-within the @racket[parameterize] body. Those identifiers obtain their
-meaning from the enclosing context (probably a module). Only
-expressions that are dynamic with respect to this code, such as the
-content of @racket[load]ed files, are affected by the
-@racket[parameterize].
+注意 @racket[current-namespace] 的 @racket[parameterize] 不影响标识符
+(如 @racket[namespace-require])在 @racket[parameterize] 主体内的含义。
+这些标识符从其封闭上下文(很可能是 module)获得含义。
+只有相对于此代码是动态的表达式(如 @racket[load] 的文件内容)
+才受 @racket[parameterize] 影响。
 
-Another subtle point in the above example is the use of
-@racket[(namespace-require 'my-dsl)] instead of @racket[(eval
-'(require my-dsl))]. The latter would not work, because @racket[eval]
-needs to obtain a meaning for @racket[require] in the namespace, and
-the namespace's identifier mapping is initially empty. The
-@racket[namespace-require] function, in contrast, directly imports the
-given module into the current namespace.  Starting with
-@racket[(namespace-require 'racket/base)] would introduce a binding
-for @racketidfont{require} and make a subsequent @racket[(eval
-'(require my-dsl))] work. The above is better, not only because it is
-more compact, but also because it avoids introducing bindings that are
-not part of the domain-specific languages.
+上述示例中另一个细微之处在于使用了 @racket[(namespace-require 'my-dsl)]
+而不是 @racket[(eval '(require my-dsl))]。后者不会生效，因为 @racket[eval]
+需要在 namespace 中获取 @racket[require] 的含义，而 namespace 的
+标识符映射起初是空的。@racket[namespace-require] 函数则直接将给定 module
+导入 current namespace。从 @racket[(namespace-require 'racket/base)] 开始
+会引入 @racketidfont{require} 的绑定，使得后续 @racket[(eval
+'(require my-dsl))] 可以工作。上述做法更好，不仅因为它更紧凑，
+还因为它避免了引入不属于领域特定语言的绑定。
 
 @; ----------------------------------------
 
-@subsection{Sharing Data and Code Across Namespaces}
+@subsection{跨命名空间共享数据和代码}
 
-Modules not attached to a new namespace will be loaded and
-instantiated afresh if they are demanded by evaluation. For example,
-@racketmodname[racket/base] does not include
-@racketmodname[racket/class], and loading @racketmodname[racket/class]
-again will create a distinct class datatype:
+未 attach 到新 namespace 的 module 在求值需要时会被重新加载和实例化。
+例如，@racketmodname[racket/base] 不包含 @racketmodname[racket/class]，
+再次加载 @racketmodname[racket/class] 会创建不同的 class 数据类型：
 
 @interaction[
 (require racket/class)
@@ -338,12 +285,10 @@ again will create a distinct class datatype:
    (eval 'object%)))
 ]
 
-For cases when dynamically loaded code needs to share more code and
-data with its context, use the @racket[namespace-attach-module]
-function. The first argument to @racket[namespace-attach-module] is a
-source namespace from which to draw a module instance; in some cases,
-the current namespace is known to include the module that needs to be
-shared:
+当动态加载的代码需要与其上下文共享更多代码和数据时，使用
+@racket[namespace-attach-module] 函数。@racket[namespace-attach-module]
+的第一个参数是从中获取 module 实例的源 namespace；在某些情况下，
+(current namespace 已知包含需要共享的 module：
 
 @interaction[
 (require racket/class)
@@ -357,10 +302,8 @@ shared:
      (eval 'object%))))
 ]
 
-Within a module, however, the combination of
-@racket[define-namespace-anchor] and
-@racket[namespace-anchor->empty-namespace] offers a more reliable
-method for obtaining a source namespace:
+然而在 module 内部，结合使用 @racket[define-namespace-anchor] 和
+@racket[namespace-anchor->empty-namespace] 提供了获取源 namespace 的更可靠方法：
 
 @racketmod[
 racket/base
@@ -378,33 +321,26 @@ racket/base
       (dynamic-require file 'plug-in%))))
 ]
 
-The anchor bound by @racket[namespace-attach-module] connects the
-run time of a module with the namespace in which a module is loaded
-(which might differ from the current namespace).  In the above
-example, since the enclosing module requires
-@racketmodname[racket/class], the namespace produced by
-@racket[namespace-anchor->empty-namespace] certainly contains an
-instance of @racketmodname[racket/class]. Moreover, that instance is
-the same as the one imported into the module, so the class datatype is
-shared.
+@racket[namespace-attach-module] 绑定的锚将 module 的运行时
+与加载 module 的 namespace(可能与 current namespace)连接起来。
+在上述示例中，由于外层 module 需要 @racketmodname[racket/class]，
+@racket[namespace-anchor->empty-namespace] 产生的 namespace 必然包含
+@racketmodname[racket/class] 的实例。而且，该实例与导入 module 的实例相同，
+因此 class 数据类型是共享的。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "load"]{Scripting Evaluation and Using @racket[load]}
+@section[#:tag "load"]{脚本求值与使用 @racket[load]}
 
-Historically, Lisp implementations did not offer module
-systems. Instead, large programs were built by essentially scripting
-the @tech{REPL} to evaluate program fragments in a particular order.
-While @tech{REPL} scripting turns out to be a bad way to structure
-programs and libraries, it is still sometimes a useful capability.
+历史上，Lisp 实现并不提供 module 系统。相反，大型程序本质上是通过脚本化
+@tech{REPL} 来按特定顺序求值程序片段构建的。虽然 @tech{REPL} 脚本化
+被发现是组织程序和库的糟糕方式，但它有时仍然是有用的能力。
 
-@margin-note{Describing a program via @racket[load] interacts
-especially badly with macro-defined language extensions
-@cite["Flatt02"].}
+@margin-note{通过 @racket[load] 描述程序与 macro 定义的语言扩展
+交互尤其糟糕 @cite["Flatt02"]。}
 
-The @racket[load] function runs a @tech{REPL} script by
-@racket[read]ing S-expressions from a file, one by one, and passing
-them to @racket[eval]. If a file @filepath{place.rkts} contains
+@racket[load] 函数通过从文件中逐个 @racket[read] S-expression
+并传给 @racket[eval] 来运行 @tech{REPL} 脚本。如果文件 @filepath{place.rkts} 包含
 
 @racketblock[
 (define city "Salt Lake City")
@@ -412,7 +348,7 @@ them to @racket[eval]. If a file @filepath{place.rkts} contains
 (printf "~a, ~a\n" city state)
 ]
 
-then it can be loaded in a @tech{REPL}:
+则可以在 @tech{REPL} 中加载：
 
 @interaction[
 (eval:alts (load "place.rkts") (begin (define city "Salt Lake City")
@@ -420,9 +356,8 @@ then it can be loaded in a @tech{REPL}:
 city
 ]
 
-Since @racket[load] uses @racket[eval], however, a module like the
-following generally will not work---for the same reasons described in
-@secref["namespaces"]:
+然而，由于 @racket[load] 使用 @racket[eval]，类似下面的 module
+通常不会生效——原因与 @secref["namespaces"] 中描述的相同：
 
 @racketmod[
 racket
@@ -432,19 +367,16 @@ racket
 (load "here.rkts")
 ]
 
-The current namespace for evaluating the content of
-@filepath{here.rkts} is likely to be empty; in any case, you cannot get
-@racket[there] from @filepath{here.rkts}. Also, any definitions in
-@filepath{here.rkts} will not become visible for use within the module;
-after all, the @racket[load] happens dynamically, while references to
-identifiers within the module are resolved lexically, and therefore
-statically.
+用于求值 @filepath{here.rkts} 内容的 current namespace 很可能是空的；
+无论如何，无法从 @filepath{here.rkts} 获取 @racket[there]。此外，
+@filepath{here.rkts} 中的任何定义不会在 module 内部可见以供使用；
+毕竟 @racket[load] 是动态发生的，而 module 内对标识符的引用是词法解析的，
+因此是静态的。
 
-Unlike @racket[eval], @racket[load] does not accept a namespace
-argument. To supply a namespace to @racket[load], set the
-@racket[current-namespace] @tech{parameter}. The following example evaluates
-the expressions in @filepath{here.rkts} using the bindings of the
-@racketmodname[racket/base] module:
+与 @racket[eval] 不同，@racket[load] 不接受 namespace 参数。
+要为 @racket[load] 提供 namespace，设置 @racket[current-namespace] @tech{parameter}。
+以下示例使用 @racketmodname[racket/base] module 的绑定求值
+@filepath{here.rkts} 中的表达式：
 
 @racketmod[
 racket
@@ -453,11 +385,10 @@ racket
   (load "here.rkts"))
 ]
 
-You can even use @racket[namespace-anchor->namespace] to make the
-bindings of the enclosing module accessible for dynamic evaluation. In
-the following example, when @filepath{here.rkts} is @racket[load]ed, it
-can refer to @racket[there] as well as the bindings of
-@racketmodname[racket]:
+你甚至可以使用 @racket[namespace-anchor->namespace]
+使外层 module 的绑定可访问以供动态求值。在以下示例中，
+当 @filepath{here.rkts} 被 @racket[load] 时，它可以引用 @racket[there]
+以及 @racketmodname[racket] 的绑定：
 
 @racketmod[
 racket
@@ -469,25 +400,22 @@ racket
   (load "here.rkts"))
 ]
 
-Still, if @filepath{here.rkts} defines any identifiers, the definitions
-cannot be directly (i.e., statically) referenced by in the enclosing
-module.
+不过，如果 @filepath{here.rkts} 定义了任何标识符，
+外层 module 无法直接(即静态地)引用这些定义。
 
-The @racketmodname[racket/load] module language is different from
-@racketmodname[racket] or @racketmodname[racket/base]. A module using
-@racketmodname[racket/load] treats all of its content as dynamic,
-passing each form in the module body to @racket[eval] (using a
-namespace that is initialized with @racketmodname[racket]). As a
-result, uses of @racket[eval] and @racket[load] in the module body see
-the same dynamic namespace as immediate body forms. For example, if
-@filepath{here.rkts} contains
+@racketmodname[racket/load] module 语言不同于 @racketmodname[racket]
+或 @racketmodname[racket/base]。使用 @racketmodname[racket/load] 的 module
+将其所有内容视为动态的，将 module 主体中的每个形式传给 @racket[eval]
+(使用以 @racketmodname[racket] 初始化的 namespace)。因此，
+module 主体中使用 @racket[eval] 和 @racket[load] 的地方
+看到与直接主体形式相同的动态 namespace。例如，如果 @filepath{here.rkts} 包含
 
 @racketblock[
 (define here "Morporkia")
 (define (go!) (set! here there))
 ]
 
-then running
+则运行
 
 @racketmod[
 racket/load
@@ -502,9 +430,8 @@ racket/load
 
 prints ``Utopia''.
 
-Drawbacks of using @racketmodname[racket/load] include reduced
-error checking, tool support, and performance. For example, with the
-program
+使用 @racketmodname[racket/load] 的缺点包括错误检查减少、
+工具支持不足和性能降低。例如，对于如下程序
 
 @racketmod[
 racket/load
@@ -515,50 +442,38 @@ good
 bad
 ]
 
-DrRacket's @onscreen{Check Syntax} tool cannot tell that the second
-@racket[good] is a reference to the first, and the unbound reference
-to @racket[bad] is reported only at run time instead of rejected
-syntactically.
+DrRacket 的 @onscreen{Check Syntax} 工具无法判断第二个
+@racket[good] 是指向第一个的引用，而对 @racket[bad] 的未绑定引用
+仅在运行时被报告，而非在语法层面被拒绝。
 
 @;------------------------------------------------------------------------
-@section[#:tag "code-inspectors+protect"]{Code Inspectors for Trusted and Untrusted Code}
+@section[#:tag "code-inspectors+protect"]{可信与不可信代码的 Code Inspector}
 
-@deftech{Code inspectors} provide the mechanism for determining which
-modules are trusted to use functions like @racket[module->namespace]
-or unsafe modules like @racket[ffi/unsafe]. When a module is declared,
-the value of @racket[current-code-inspector] is associated to the
-module declaration. When a module is instantiated (i.e., when the body
-of the declaration is actually executed), a sub-inspector is created
-to guard the module's exports. Access to the module's @tech{protected}
-exports requires a code inspector that is stronger (i.e., higher in
-the inspector hierarchy) than the module's instantiation inspector;
-note that a module's declaration inspector is always stronger than its
-instantiation inspector, so modules are declared with the same code
-inspector can access each other's exports.
+@deftech{Code inspector} 提供机制来判断哪些 module 被信任以使用
+@racket[module->namespace] 等函数或 @racket[ffi/unsafe] 等不安全 module。
+当 module 被声明时，@racket[current-code-inspector] 的值与 module 声明关联。
+当 module 被实例化(即声明主体实际执行时)，会创建一个 sub-inspector
+来保护 module 的导出项。访问 module 的 @tech{protected} 导出项需要比 module
+的 instantiation inspector 更强的 code inspector(即在 inspector 层级中更高)；
+注意 module 的 declaration inspector 始终强于其 instantiation inspector，
+因此以相同 code inspector 声明的 module 可以互相访问导出项。
 
-To distinguish between trusted and untrusted code, load trusted code
-first, then set @racket[current-code-inspector] to the result of
-@racket[(make-inspector (current-code-inspector))] to install a weaker
-inspector, and finally load untrusted code with the weaker inspector
-in place. The weaker inspector should stay in place when any untrusted
-code is run. If necessary, trusted code can restore the original
-inspector temporarily during the dynamic extent of trusted code (as
-long as it does not call back into untrusted code).
+为区分可信和不可信代码，先加载可信代码，然后将
+@racket[current-code-inspector] 设置为 @racket[(make-inspector
+(current-code-inspector))] 的结果，安装更弱的 inspector，
+最后使用该更弱的 inspector 加载不可信代码。运行任何不可信代码时，
+较弱的 inspector 应保持在位。如果必要，可信代码可以在可信代码的
+动态期间临时恢复原始 inspector(只要它不回调到不可信代码)。
 
-Syntax-object constants within a module, such as literal identifiers
-in a template, retain the inspector of their source module. In this
-way, a macro from a trusted module can be used within an untrusted
-module, and @tech{protected} identifiers in the macro expansion still
-work, even through they ultimately appear in an untrusted module. To
-prevent abuse of identifiers by extracting them from expanded code,
-functions like @racket[local-expand] are @tech{protected}, and
-functions like @racket[expand] return @tech{tainted} syntax if not
-given a sufficiently powerful inspector.
+Module 内的 syntax-object 常量(如模板中的字面标识符)保留其源 module 的 inspector。
+如此，来自可信 module 的 macro 可用于不可信 module 内，
+且 macro 展开中的 @tech{protected} 标识符仍然有效，即使它们最终出现在不可信 module 中。
+为防止通过从展开代码提取标识符来滥用标识符，@racket[local-expand] 等函数
+是 @tech{protected} 的，而 @racket[expand] 等函数在未获得足够强大的 inspector
+时会返回 @tech{tainted} syntax。
 
-Compiled code from a @filepath{.zo} file is inherently untrustworthy,
-unfortunately, since it can be synthesized by means other than
-@racket[compile]. When compiled code is written to a @filepath{.zo}
-file, syntax-object constants within the compiled code lose their
-inspectors. All syntax-object constants within compiled code acquire
-the enclosing module's declaration-time inspector when the code is
-loaded.
+不幸的是，来自 @filepath{.zo} 文件的编译代码本质上不可信，
+因为它可能通过除 @racket[compile] 之外的其他方式合成。
+当编译代码写入 @filepath{.zo} 文件时，编译代码内的 syntax-object 常量
+失去其 inspector。加载代码时，编译代码中的所有 syntax-object 常量
+会获取外层 module 的 declaration-time inspector。
