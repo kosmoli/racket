@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title{Reading}
+@title{读取}
 
 @defproc[(read [in input-port? (current-input-port)]) any]{
 
@@ -19,18 +19,11 @@ See @secref["reader"] for information on the default reader and
                       [in input-port? (current-input-port)])
          (or/c syntax? eof-object?)]{
 
-Like @racket[read], but produces a @tech{syntax object} with
-source-location information. The @racket[source-name] is used as the
-source field of the syntax object; it can be an arbitrary value, but
-it should generally be a path for the source file.
+类似于 @racket[read]，但产生带有源位置信息的 @tech{syntax object}。@racket[source-name] 用作 syntax object 的源字段，可以是任意值，但通常应为源文件的路径。
 
-See @secref["reader"] for information on the default reader in
-@racket[read-syntax] mode and @secref["parse-reader"] for
-the protocol of @racket[read-syntax].
+参见 @secref["reader"] 了解 @racket[read-syntax] 模式下默认读取器的信息，参见 @secref["parse-reader"] 了解 @racket[read-syntax] 的协议。
 
-Typically, line counting should be enabled for @racket[in] so that
-source locations in syntax objects are in characters, instead of
-bytes. See also @secref["linecol"].}
+通常，应启用 @racket[in] 的行计数，以使 syntax object 中的源位置按字符而非字节计算。另请参见 @secref["linecol"]。}
 
 @guidealso["stx-obj"]
 
@@ -120,43 +113,15 @@ See @secref["readtables"] for an extended example that uses
                         [fail-thunk (-> any) (lambda () (error ...))])
          (or/c (any/c any/c . -> . any) #f)]{
 
-Reads from @racket[in] in the same way as @racket[read], but stopping as
-soon as a @tech{reader language} (or its absence) is determined, and
-using the @tech{current namespace} to load a reader module instead
-of its @tech{root namespace} (if those are different).
+从 @racket[in] 读取的方式类似于 @racket[read]，但在确定 @tech{reader language}（或其缺失）后立即停止。
 
-A @deftech{reader language} is specified by @litchar{#lang} or
-@litchar{#!} (see @secref["parse-reader"]) at the beginning of the
-input, though possibly after comment forms. The default
-@tech{readtable} is used by @racket[read-language] (instead of the
-value of @racket[current-readtable]), and @litchar{#reader} forms
-(which might produce comments) are not allowed before @litchar{#lang}
-or @litchar{#!}.
+@deftech{reader language} 由输入开头的 @litchar{#lang} 或 @litchar{#!} 指定（参见 @secref["parse-reader"]），但可能在 comment 形式之后。@racket[read-language] 使用默认的 @tech{readtable}（而非 @racket[current-readtable] 的值），并且不允许在 @litchar{#lang} 或 @litchar{#!} 之前出现 @litchar{#reader} 形式（可能产生注释）。
 
 @guidealso["language-get-info"]
 
-When it finds a @litchar{#lang} or @litchar{#!} specification, instead
-of dispatching to a @racketidfont{read} or @racketidfont{read-syntax}
-function as @racket[read] and @racket[read-syntax] do,
-@racket[read-language] dispatches to the @racketidfont{get-info}
-function (if any) exported by the same module. The arguments to
-@racketidfont{get-info} are the same as for @racketidfont{read}
-as described in @secref["parse-reader"]. The result of the
-@racketidfont{get-info} function is the result of
-@racket[read-language] if it is a function of two arguments; if
-@racketidfont{get-info} produces any other kind of result, the
-@exnraise[exn:fail:contract]. If no @racketidfont{get-info} function is
-exported, @racket[read-language] returns @racket[#f].
+当找到 @litchar{#lang} 或 @litchar{#!} 规范时，@racket[read-language] 不会如 @racket[read] 和 @racket[read-syntax] 那样分派到 @racketidfont{read} 或 @racketidfont{read-syntax} 函数，而是分派到同一模块导出的 @racketidfont{get-info} 函数（如果有）。 @racketidfont{get-info} 的参数与 @secref["parse-reader"] 中描述的 @racketidfont{read} 相同。如果结果是双参数函数，则该函数即为 @racket[read-language] 的结果；如果 @racketidfont{get-info} 产生其他类型的结果，则 @exnraise[exn:fail:contract]。如果未导出 @racketidfont{get-info} 函数，@racket[read-language] 返回 @racket[#f]。
 
-The function produced by @racketidfont{get-info} reflects information
-about the expected syntax of the input stream. The first argument to the
-function serves as a key on such information; acceptable keys and the
-interpretation of results is up to external tools, such as DrRacket (see
-@seclink["lang-languages-customization"
-         #:doc '(lib "scribblings/tools/tools.scrbl")
-         #:indirect? #t]{the DrRacket documentation}).
-If no information is available for a given key, the result should be
-the second argument.
+@racketidfont{get-info} 返回的函数反映了关于输入流预期语法的信息；其第一个参数用作此类信息的可接受键。结果的解释由外部工具（如 DrRacket；参见 @seclink["lang-languages-customization" #:doc '(lib "scribblings/tools/tools.scrbl")]）决定。Languages）决定。如果给定键不可用，结果应为第二个参数。
 @mz-examples[
 (define scribble-manual-info
   (read-language (open-input-string "#lang scribble/manual")))
@@ -164,16 +129,7 @@ the second argument.
 (scribble-manual-info 'something-else #f)
 ]
 
-The @racketidfont{get-info} function itself is applied to five
-arguments: the input port being read, the module path from which the
-@racketidfont{get-info} function was extracted, and the source line
-(positive exact integer or @racket[#f]), column (non-negative exact
-integer or @racket[#f]), and position (positive exact integer or
-@racket[#f]) of the start of the @litchar{#lang} or @litchar{#!}
-form. The @racketidfont{get-info} function may further read from the
-given input port to determine its result, but it should read no
-further than necessary. The @racketidfont{get-info} function should
-not read from the port after returning a function.
+@racketidfont{get-info} 函数本身接受五个参数：正在读取的输入端口、提取 @racketidfont{get-info} 函数的模块路径、源行号（正实数或 @racket[#f]）、列号（非负实数或 @racket[#f]）以及 @litchar{#lang} 或 @litchar{#!} 形式的起始位置（正实数或 @racket[#f]）。@racketidfont{get-info} 函数可能进一步从给定输入端口读取以确定结果，但不应读取超出必要范围。
 
 If @racket[in] starts with a @tech{reader language} specification but
 the relevant module does not export @racketidfont{get-info} (but
@@ -211,37 +167,27 @@ loaded, the parameter is set to @racket[#t] (see
 
 @defboolparam[read-square-bracket-as-paren on?]{
 
-A @tech{parameter} that controls whether @litchar{[} and @litchar{]} 
-are treated as parentheses. See @secref["parse-pair"] for more
-information.}
+控制 @litchar{[} 和 @litchar{]} 是否被视为括号。参见 @secref["parse-pair"] 了解更多信息。}
 
 @defboolparam[read-curly-brace-as-paren on?]{
 
-A @tech{parameter} that controls whether @litchar["{"] and @litchar["}"] 
-are treated as parentheses. See @secref["parse-pair"] for more
-information.}
+控制 @litchar["{"] 和 @litchar["}"] 是否被视为括号。参见 @secref["parse-pair"] 了解更多信息。}
 
 @defboolparam[read-square-bracket-with-tag on?]{
 
-A @tech{parameter} that controls whether @litchar{[} and @litchar{]}
-are treated as parentheses, but the resulting list tagged with
-@racket[#%brackets]. See @secref["parse-pair"] for more information.
+控制 @litchar{[} 和 @litchar{]} 是否被视为括号，结果列表标记为 @racket[#%brackets]。参见 @secref["parse-pair"] 了解更多信息。
 
 @history[#:added "6.3.0.5"]}
 
 @defboolparam[read-curly-brace-with-tag on?]{
 
-A @tech{parameter} that controls whether @litchar["{"] and
-@litchar["}"] are treated as parentheses, but the resulting list
-tagged with @racket[#%braces]. See @secref["parse-pair"] for more
-information.
+控制 @litchar["{"] 和 @litchar["}"] 是否被视为括号，结果列表标记为 @racket[#%braces]。参见 @secref["parse-pair"] 了解更多信息。
 
 @history[#:added "6.3.0.5"]}
 
 @defboolparam[read-accept-box on?]{
 
-A @tech{parameter} that controls parsing @litchar{#&} input. See
-@secref["parse-box"] for more information.}
+控制是否解析 @litchar{#&} 输入。参见 @secref["parse-box"] 了解更多信息。}
 
 @defboolparam[read-accept-compiled on?]{
 
@@ -251,14 +197,11 @@ information.}
 
 @defboolparam[read-accept-bar-quote on?]{
 
-A @tech{parameter} that controls parsing and printing of @litchar{|} in
-symbols. See @secref["parse-symbol"] and @secref["printing"] for
-more information.}
+控制是否解析和打印 symbol 中的 @litchar{|}。参见 @secref["parse-symbol"] 和 @secref["printing"] 了解更多信息。}
 
 @defboolparam[read-accept-graph on?]{
 
-A parameter value that controls parsing input with sharing in
-@racket[read] mode. See @secref["parse-graph"] for more information.}
+控制是否在 @racket[read] 模式下解析带共享的输入。参见 @secref["parse-graph"] 了解更多信息。}
 
 @defboolparam[read-syntax-accept-graph on?]{
 
@@ -269,34 +212,25 @@ A parameter value that controls parsing input with sharing in
 
 @defboolparam[read-decimal-as-inexact on?]{
 
-A @tech{parameter} that controls parsing input numbers with a decimal point
-or exponent (but no explicit exactness tag). See
-@secref["parse-number"] for more information.}
+控制是否解析带小数点或指数（但无显式精确性标签）的输入数字。参见 @secref["parse-number"] 了解更多信息。}
 
 @defboolparam[read-single-flonum on?]{
 
-A @tech{parameter} that controls parsing input numbers that have a
-@litchar{f}, @litchar{F}, @litchar{s}, or @litchar{S} precision
-character. See @secref["parse-number"] for more information.
+控制是否解析带有 @litchar{f}、@litchar{F}、@litchar{s} 或 @litchar{S} 精度字符的输入数字。参见 @secref["parse-number"] 了解更多信息。
 
 @history[#:added "7.3.0.5"]}
 
 @defboolparam[read-accept-dot on?]{
 
-A @tech{parameter} that controls parsing input with a dot, which is normally
-used for literal cons cells. See @secref["parse-pair"] for more
-information.}
+控制是否解析带有点的输入，点通常用于字面 cons cells。参见 @secref["parse-pair"] 了解更多信息。}
 
 @defboolparam[read-accept-infix-dot on?]{
 
-A @tech{parameter} that controls parsing input with two dots to trigger infix
- conversion. See @secref["parse-pair"] for more information.}
+控制是否解析带有两个点的输入以触发中缀转换。参见 @secref["parse-pair"] 了解更多信息。}
 
 @defboolparam[read-cdot on?]{
 
-A @tech{parameter} that controls parsing input with a dot, in a C
-structure accessor style. See @secref["parse-cdot"] for more
-information.
+控制是否以 C 结构体访问器风格解析带有点的输入。参见 @secref["parse-cdot"] 了解更多信息。
 
 @history[#:added "6.3.0.5"]}
 
@@ -309,9 +243,7 @@ A @tech{parameter} that controls parsing input with @litchar{`} or
 
 @defboolparam[read-accept-reader on?]{
 
-A @tech{parameter} that controls whether @litchar{#reader}, @litchar{#lang},
-or @litchar{#!} are allowed for selecting a parser. See
-@secref["parse-reader"] for more information.}
+控制是否允许 @litchar{#reader}、@litchar{#lang} 或 @litchar{#!} 来选择解析器。参见 @secref["parse-reader"] 了解更多信息。}
 
 @defboolparam[read-accept-lang on?]{
 
@@ -322,9 +254,7 @@ parser. See @secref["parse-reader"] for more information.}
 
 @defparam[current-readtable readtable (or/c readtable? #f)]{
 
-A parameter whose value determines a readtable that
-adjusts the parsing of S-expression input, where @racket[#f] implies the
-default behavior. See @secref["readtables"] for more information.}
+一个参数，其值决定一个调整 S-expression 输入解析方式的 readtable，其中 @racket[#f] 表示默认行为。参见 @secref["readtables"] 了解更多信息。}
 
 
 @defproc[(call-with-default-reading-parameterization [thunk (-> any)])
