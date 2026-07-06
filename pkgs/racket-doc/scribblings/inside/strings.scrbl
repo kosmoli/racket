@@ -1,18 +1,11 @@
 #lang scribble/doc
 @(require "utils.rkt")
 
-@bc-title[#:tag "im:encodings"]{String Encodings}
+@bc-title[#:tag "im:encodings"]{字符串编码}
 
-The @cpp{scheme_utf8_decode} function decodes a @cpp{char} array as
-UTF-8 into either a UCS-4 @cpp{mzchar} array or a UTF-16 @cpp{short}
-array. The @cpp{scheme_utf8_encode} function encodes either a UCS-4
-@cpp{mzchar} array or a UTF-16 @cpp{short} array into a UTF-8
-@cpp{char} array.
+@cpp{scheme_utf8_decode} 函数将 @cpp{char} 数组按 UTF-8 解码为 UCS-4 @cpp{mzchar} 数组或 UTF-16 @cpp{short} 数组。@cpp{scheme_utf8_encode} 函数将 UCS-4 @cpp{mzchar} 数组或 UTF-16 @cpp{short} 数组编码为 UTF-8 @cpp{char} 数组。
 
-These functions can be used to check or measure an encoding or
-decoding without actually producing the result decoding or encoding,
-and variations of the function provide control over the handling of
-decoding errors.
+这些函数可用于检查或测量编码或解码，而无需实际生成解码或编码结果，函数的变体提供对解码错误处理的控制。
 
 @function[(int scheme_utf8_decode
            [const-unsigned-char* s]
@@ -25,47 +18,21 @@ decoding errors.
            [char utf16]
            [int permissive])]{
 
-Decodes a byte array as UTF-8 to produce either Unicode code points
- into @var{us} (when @var{utf16} is zero) or UTF-16 code units into
- @var{us} cast to @cpp{short*} (when @var{utf16} is non-zero). No nul
- terminator is added to @var{us}.
+将字节数组按 UTF-8 解码，生成 Unicode code point 到 @var{us} 中（当 @var{utf16} 为零时），或生成 UTF-16 code unit 到强制转换为 @cpp{short*} 的 @var{us} 中（当 @var{utf16} 为非零时）。不会向 @var{us} 添加 nul 终止符。
 
-The result is non-negative when all of the given bytes are decoded,
- and the result is the length of the decoding (in @cpp{mzchar}s or
- @cpp{short}s). A @cpp{-2} result indicates an invalid encoding
- sequence in the given bytes (possibly because the range to decode
- ended mid-encoding), and a @cpp{-3} result indicates that decoding
- stopped because not enough room was available in the result string.
+当所有给定字节都被解码时，结果为非负数，结果为解码的长度（以 @cpp{mzchar} 或 @cpp{short} 为单位）。结果为 @cpp{-2} 表示给定字节中存在无效编码序列（可能因为解码范围在编码中间结束），结果为 @cpp{-3} 表示解码因结果字符串空间不足而停止。
 
-The @var{start} and @var{end} arguments specify a range of @var{s} to
- be decoded. If @var{end} is negative, @cpp{strlen(@var{s})} is used
- as the end.
+@var{start} 和 @var{end} 参数指定要解码的 @var{s} 的范围。如果 @var{end} 为负数，则使用 @cpp{strlen(@var{s})} 作为结束位置。
 
-If @var{us} is @cpp{NULL}, then decoded bytes are not produced, but
- the result is valid as if decoded bytes were written. The
- @var{dstart} and @var{dend} arguments specify a target range in
- @var{us} (in @cpp{mzchar} or @cpp{short} units) for the decoding; a
- negative value for @var{dend} indicates that any number of bytes can
- be written to @var{us}, which is normally sensible only when @var{us}
- is @cpp{NULL} for measuring the length of the decoding.
+如果 @var{us} 为 @cpp{NULL}，则不生成解码字节，但结果与写入解码字节时一样有效。@var{dstart} 和 @var{dend} 参数指定 @var{us} 中解码的目标范围（以 @cpp{mzchar} 或 @cpp{short} 为单位）；@var{dend} 为负数表示可以向 @var{us} 写入任意数量的字节，这通常仅在 @var{us} 为 @cpp{NULL} 以测量解码长度时才有意义。
 
-If @var{ipos} is non-@cpp{NULL}, it is filled with the first undecoded
- index within @var{s}. If the function result is non-negative, then
- @cpp{*@var{ipos}} is set to the ending index (with is @var{end} if
- non-negative, @cpp{strlen(@var{s})} otherwise). If the result is
- @cpp{-1} or @cpp{-2}, then @cpp{*@var{ipos}} effectively indicates
- how many bytes were decoded before decoding stopped.
+如果 @var{ipos} 非 @cpp{NULL}，则用 @var{s} 中第一个未解码的索引填充。如果函数结果为非负数，则 @cpp{*@var{ipos}} 被设置为结束索引（如果 @var{end} 非负则为 @var{end}，否则为 @cpp{strlen(@var{s})}）。如果结果为 @cpp{-1} 或 @cpp{-2}，则 @cpp{*@var{ipos}} 有效指示解码停止前解码了多少字节。
 
-If @var{permissive} is non-zero, it is used as the decoding of bytes
- that are not part of a valid UTF-8 encoding or if the input ends in the
- middle of an encoding. Thus, the function
- result can be @cpp{-1} or @cpp{-2} only if @var{permissive} is @cpp{0}.
+如果 @var{permissive} 非零，则用作不属于有效 UTF-8 编码的字节或输入在编码中间结束时的解码。因此，仅当 @var{permissive} 为 @cpp{0} 时，函数结果才可能为 @cpp{-1} 或 @cpp{-2}。
 
-On Windows, when @var{utf16} is non-zero, decoding supports a natural
- extension of UTF-8 that can produce unpaired UTF-16 surrogates in the
- result.
+在 Windows 上，当 @var{utf16} 非零时，解码支持 UTF-8 的自然扩展，可以在结果中生成未配对的 UTF-16 surrogate。
 
-This function does not allocate or trigger garbage collection.}
+此函数不分配内存或触发 garbage collection。}
 
 @function[(int scheme_utf8_decode_offset_prefix
            [const-unsigned-char* s]
@@ -78,9 +45,7 @@ This function does not allocate or trigger garbage collection.}
            [char utf16]
            [int permissive])]{
 
-Like @cpp{scheme_utf8_decode}, but returns @cpp{-1} if the input ends
-in the middle of a UTF-8 encoding even if @var{permission} is
-non-zero.
+类似于 @cpp{scheme_utf8_decode}，但如果输入在 UTF-8 编码中间结束，即使 @var{permissive} 非零也返回 @cpp{-1}。
 
 @history[#:added "6.0.1.13"]}
 
@@ -96,10 +61,7 @@ non-zero.
            [char utf16]
            [int permissive])]{
 
-Like @cpp{scheme_utf8_decode}, but the result is always the number
- of the decoded @cpp{mzchar}s or @cpp{short}s. If a decoding error is
- encountered, the result is still the size of the decoding up until
- the error.}
+类似于 @cpp{scheme_utf8_decode}，但结果始终为解码的 @cpp{mzchar} 或 @cpp{short} 的数量。如果遇到解码错误，结果仍为错误前解码的大小。}
 
 @function[(int scheme_utf8_decode_all
            [const-unsigned-char* s]
@@ -107,12 +69,7 @@ Like @cpp{scheme_utf8_decode}, but the result is always the number
            [mzchar* us]
            [int permissive])]{
 
-Like @cpp{scheme_utf8_decode}, but with fewer arguments. The
- decoding produces UCS-4 @cpp{mzchar}s. If the buffer @var{us} is
- non-@cpp{NULL}, it is assumed to be long enough to hold the decoding
- (which cannot be longer than the length of the input, though it may
- be shorter). If @var{len} is negative, @cpp{strlen(@var{s})} is used
- as the input length.}
+类似于 @cpp{scheme_utf8_decode}，但参数更少。解码生成 UCS-4 @cpp{mzchar}。如果缓冲区 @var{us} 非 @cpp{NULL}，则假定其足够长以容纳解码结果（不会比输入长，但可能更短）。如果 @var{len} 为负数，则使用 @cpp{strlen(@var{s})} 作为输入长度。}
 
 
 @function[(int scheme_utf8_decode_prefix
@@ -121,17 +78,9 @@ Like @cpp{scheme_utf8_decode}, but with fewer arguments. The
            [mzchar* us]
            [int permissive])]{
 
-Like @cpp{scheme_utf8_decode}, but with fewer arguments. The
- decoding produces UCS-4 @cpp{mzchar}s. The buffer @var{us}
- @bold{must} be non-@cpp{NULL}, and it is assumed to be long enough to hold the
- decoding (which cannot be longer than the length of the input, though
- it may be shorter). If @var{len} is negative, @cpp{strlen(@var{s})}
- is used as the input length.
+类似于 @cpp{scheme_utf8_decode}，但参数更少。解码生成 UCS-4 @cpp{mzchar}。缓冲区 @var{us} @bold{必须}非 @cpp{NULL}，假定其足够长以容纳解码结果（不会比输入长，但可能更短）。如果 @var{len} 为负数，则使用 @cpp{strlen(@var{s})} 作为输入长度。
 
-In addition to the result of @cpp{scheme_utf8_decode}, the result
- can be @cpp{-1} to indicate that the input ended with a partial
- (valid) encoding. A @cpp{-1} result is possible even when
- @var{permissive} is non-zero.}
+除了 @cpp{scheme_utf8_decode} 的结果外，结果可能为 @cpp{-1} 表示输入以部分（有效）编码结束。即使 @var{permissive} 非零，也可能出现 @cpp{-1} 结果。}
 
 @function[(mzchar* scheme_utf8_decode_to_buffer
            [const-unsigned-char* s]
@@ -139,12 +88,7 @@ In addition to the result of @cpp{scheme_utf8_decode}, the result
            [mzchar* buf]
            [int blen])]{
 
-Like @cpp{scheme_utf8_decode_all} with @var{permissive} as @cpp{0},
- but if @var{buf} is not large enough (as indicated by @var{blen}) to
- hold the result, a new buffer is allocated. Unlike other functions,
- this one adds a nul terminator to the decoding result. The function
- result is either @var{buf} (if it was big enough) or a buffer
- allocated with @cpp{scheme_malloc_atomic}.}
+类似于 @cpp{scheme_utf8_decode_all}，@var{permissive} 为 @cpp{0}，但如果 @var{buf} 不够大（由 @var{blen} 指示）以容纳结果，则分配新缓冲区。与其他函数不同，此函数向解码结果添加 nul 终止符。函数结果为 @var{buf}（如果足够大）或用 @cpp{scheme_malloc_atomic} 分配的缓冲区。}
 
 @function[(mzchar* scheme_utf8_decode_to_buffer_len
            [const-unsigned-char* s]
@@ -153,9 +97,7 @@ Like @cpp{scheme_utf8_decode_all} with @var{permissive} as @cpp{0},
            [int blen]
            [intptr_t* ulen])]{
 
-Like @cpp{scheme_utf8_decode_to_buffer}, but the length of the
- result (not including the terminator) is placed into @var{ulen} if
- @var{ulen} is non-@cpp{NULL}.}
+类似于 @cpp{scheme_utf8_decode_to_buffer}，但如果 @var{ulen} 非 @cpp{NULL}，则将结果长度（不含终止符）放入 @var{ulen}。}
 
 @function[(int scheme_utf8_decode_count
            [const-unsigned-char* s]
@@ -165,19 +107,9 @@ Like @cpp{scheme_utf8_decode_to_buffer}, but the length of the
            [int might_continue]
            [int permissive])]{
 
-Like @cpp{scheme_utf8_decode}, but without producing the decoded
- @cpp{mzchar}s, and always returning the number of decoded
- @cpp{mzchar}s up until a decoding error (if any). If
- @var{might_continue} is non-zero, the a partial valid encoding at
- the end of the input is not decoded when @var{permissive} is also
- non-zero.
+类似于 @cpp{scheme_utf8_decode}，但不生成解码的 @cpp{mzchar}，始终返回解码错误前（如有）解码的 @cpp{mzchar} 数量。如果 @var{might_continue} 非零，当 @var{permissive} 也非零时，输入末尾的部分有效编码不被解码。
 
-If @var{state} is non-@cpp{NULL}, it holds information about partial
- encodings; it should be set to zero for an initial call, and then
- passed back to @cpp{scheme_utf8_decode} along with bytes that
- extend the given input (i.e., without any unused partial
- encodings). Typically, this mode makes sense only when
- @var{might_continue} and @var{permissive} are non-zero.}
+如果 @var{state} 非 @cpp{NULL}，则保存关于部分编码的信息；初始调用时应设为零，然后与扩展给定输入的字节一起传回 @cpp{scheme_utf8_decode}（即不带任何未使用的部分编码）。通常，此模式仅在 @var{might_continue} 和 @var{permissive} 都非零时才有意义。}
 
 
 @function[(int scheme_utf8_encode
@@ -188,36 +120,22 @@ If @var{state} is non-@cpp{NULL}, it holds information about partial
            [int dstart]
            [char utf16])]{
 
-Encodes the given UCS-4 array of @cpp{mzchar}s (if @var{utf16} is
- zero) or UTF-16 array of @cpp{short}s (if @var{utf16} is non-zero)
- into @var{s}. The @var{end} argument must be no less than
- @var{start}.
+将给定的 @cpp{mzchar} 的 UCS-4 数组（如果 @var{utf16} 为零）或 @cpp{short} 的 UTF-16 数组（如果 @var{utf16} 非零）编码到 @var{s} 中。@var{end} 参数必须不小于 @var{start}。
 
-The array @var{s} is assumed to be long enough to contain the
- encoding, but no encoding is written if @var{s} is @cpp{NULL}. The
- @var{dstart} argument indicates a starting place in @var{s} to hold
- the encoding. No nul terminator is added to @var{s}.
+假定数组 @var{s} 足够长以包含编码，但如果 @var{s} 为 @cpp{NULL} 则不写入编码。@var{dstart} 参数指示 @var{s} 中保存编码的起始位置。不会向 @var{s} 添加 nul 终止符。
 
-The result is the number of bytes produced for the encoding (or that
- would be produced if @var{s} was non-@cpp{NULL}). Encoding never
- fails.
+结果为编码产生的字节数（或如果 @var{s} 非 @cpp{NULL} 将产生的字节数）。编码永远不会失败。
 
-On Windows, when @var{utf16} is non-zero, encoding supports unpaired
- surrogates the input UTF-16 code-unit sequence, in which case
- encoding generates a natural extension of UTF-8 that encodes unpaired
- surrogates.
+在 Windows 上，当 @var{utf16} 非零时，编码支持输入 UTF-16 code-unit 序列中的未配对 surrogate，此时编码生成编码未配对 surrogate 的 UTF-8 自然扩展。
 
-This function does not allocate or trigger garbage collection.}
+此函数不分配内存或触发 garbage collection。}
 
 @function[(int scheme_utf8_encode_all
            [const-mzchar* us]
            [int len]
            [unsigned-char* s])]{
 
-Like @cpp{scheme_utf8_encode} with @cpp{0} for @var{start},
- @var{len} for @var{end}, @cpp{0} for @var{dstart} and @cpp{0} for
- @var{utf16}.}
- 
+类似于 @cpp{scheme_utf8_encode}，@var{start} 为 @cpp{0}，@var{end} 为 @var{len}，@var{dstart} 为 @cpp{0}，@var{utf16} 为 @cpp{0}。}
 
 @function[(char* scheme_utf8_encode_to_buffer
            [const-mzchar* s]
@@ -225,11 +143,7 @@ Like @cpp{scheme_utf8_encode} with @cpp{0} for @var{start},
            [char* buf]
            [int blen])]{
 
-Like @cpp{scheme_utf8_encode_all}, but the length of @var{buf} is
- given, and if it is not long enough to hold the encoding, a buffer is
- allocated. A nul terminator is added to the encoded array. The result
- is either @var{buf} or an array allocated with
- @cpp{scheme_malloc_atomic}.}
+类似于 @cpp{scheme_utf8_encode_all}，但给定 @var{buf} 的长度，如果不够长以容纳编码，则分配缓冲区。向编码数组添加 nul 终止符。结果为 @var{buf} 或用 @cpp{scheme_malloc_atomic} 分配的数组。}
 
 @function[(char* scheme_utf8_encode_to_buffer_len
            [const-mzchar* s]
@@ -238,9 +152,7 @@ Like @cpp{scheme_utf8_encode_all}, but the length of @var{buf} is
            [int blen]
            [intptr_t* rlen])]{
 
-Like @cpp{scheme_utf8_encode_to_buffer}, but the length of the
- resulting encoding (not including a nul terminator) is reported in
- @var{rlen} if it is non-@cpp{NULL}.}
+类似于 @cpp{scheme_utf8_encode_to_buffer}，但如果 @var{rlen} 非 @cpp{NULL}，则报告结果编码的长度（不含 nul 终止符）。}
 
 
 @function[(unsigned-short* scheme_ucs4_to_utf16
@@ -252,16 +164,9 @@ Like @cpp{scheme_utf8_encode_to_buffer}, but the length of the
            [intptr_t* ulen]
            [int term_size])]{
 
-Converts a UCS-4 encoding (the indicated range of @var{text}) to a
- UTF-16 encoding. The @var{end} argument must be no less than
- @var{start}.
+将 UCS-4 编码（@var{text} 的指定范围）转换为 UTF-16 编码。@var{end} 参数必须不小于 @var{start}。
 
-A result buffer is allocated if @var{buf} is not long enough (as
- indicated by @var{bufsize}). If @var{ulen} is non-@cpp{NULL}, it is
- filled with the length of the UTF-16 encoding. The @var{term_size}
- argument indicates a number of @cpp{short}s to reserve at the end of
- the result buffer for a terminator (but no terminator is actually
- written).}
+如果 @var{buf} 不够长（由 @var{bufsize} 指示），则分配结果缓冲区。如果 @var{ulen} 非 @cpp{NULL}，则用 UTF-16 编码的长度填充。@var{term_size} 参数指示在结果缓冲区末尾保留的 @cpp{short} 数量用于终止符（但实际上不写入终止符）。}
 
 @function[(mzchar* scheme_utf16_to_ucs4
            [const-unsigned-short* text]
@@ -272,13 +177,6 @@ A result buffer is allocated if @var{buf} is not long enough (as
            [intptr_t* ulen]
            [int term_size])]{
 
-Converts a UTF-16 encoding (the indicated range of @var{text}) to a
- UCS-4 encoding. The @var{end} argument must be no less than
- @var{start}.
+将 UTF-16 编码（@var{text} 的指定范围）转换为 UCS-4 编码。@var{end} 参数必须不小于 @var{start}。
 
-A result buffer is allocated if @var{buf} is not long enough (as
- indicated by @var{bufsize}). If @var{ulen} is non-@cpp{NULL}, it is
- filled with the length of the UCS-4 encoding. The @var{term_size}
- argument indicates a number of @cpp{mzchar}s to reserve at the end of
- the result buffer for a terminator (but no terminator is actually
- written).}
+如果 @var{buf} 不够长（由 @var{bufsize} 指示），则分配结果缓冲区。如果 @var{ulen} 非 @cpp{NULL}，则用 UCS-4 编码的长度填充。@var{term_size} 参数指示在结果缓冲区末尾保留的 @cpp{mzchar} 数量用于终止符（但实际上不写入终止符）。}
