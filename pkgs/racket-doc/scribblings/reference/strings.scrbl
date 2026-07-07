@@ -30,20 +30,20 @@
 @defproc[(make-string [k exact-nonnegative-integer?] [char char?
 #\nul]) string?]{ 返回一个新的可变字符串，长度为 @racket[k]，每个位置用字符 @racket[char] 初始化。
 
-@mz-examples[(make-string 5 #\\z)]}
+@mz-examples[(make-string 5 #\z)]}
 
 
 @defproc[(string [char char?] ...) string?]{ 返回一个新的可变字符串，长度等于给定的 @racket[char] 的数量，各位置用给定的 @racket[char] 初始化。
 
-@mz-examples[(string #\\A #\\p #\\p #\\l #\\e)]}
+@mz-examples[(string #\A #\p #\p #\l #\e)]}
 
 
 @defproc[(string->immutable-string [str string?]) (and/c string? immutable?)]{
  返回一个不可变字符串，内容与 @racket[str] 相同。如果 @racket[str] 本身不可变，则返回 @racket[str] 自身。
 
 @mz-examples[
-(immutable? (string #\\H #\\e #\\l #\\l #\\o))
-(immutable? (string->immutable-string (string #\\H #\\e #\\l #\\l #\\o)))
+(immutable? (string #\H #\e #\l #\l #\o))
+(immutable? (string->immutable-string (string #\H #\e #\l #\l #\o)))
 ]}
 
 
@@ -65,8 +65,8 @@
  位置对应 @racket[0]，所以 @racket[k] 必须小于字符串的长度，否则
  引发 @exnraise[exn:fail:contract]。
 
-@examples[(define s (string #\\A #\\p #\\p #\\l #\\e))
-          (string-set! s 4 #\\y)
+@examples[(define s (string #\A #\p #\p #\l #\e))
+          (string-set! s 4 #\y)
           s]}
 
 
@@ -84,7 +84,7 @@
 @examples[(define s1 "Yui")
           (define pilot (string-copy s1))
           (list s1 pilot)
-          (for ([i (in-naturals)] [ch '(#\\R #\\e #\\i)])
+          (for ([i (in-naturals)] [ch '(#\R #\e #\i)])
             (string-set! pilot i ch))
           (list s1 pilot)]
 }
@@ -105,7 +105,7 @@
  @racket[src-start] 或 @racket[src-end] 中任何一个超出范围（考虑
  字符串的大小以及源和目标区域），将引发 @exnraise[exn:fail:contract]。
 
-@mz-examples[(define s (string #\\A #\\p #\\p #\\l #\\e))
+@mz-examples[(define s (string #\A #\p #\p #\l #\e))
              (string-copy! s 4 "y")
              (string-copy! s 0 s 3 4)
              s]}
@@ -113,8 +113,8 @@
 @defproc[(string-fill! [dest (and/c string? (not/c immutable?))] [char
  char?]) void?]{ 修改 @racket[dest]，使其中每个位置都用 @racket[char] 填充。
 
-@mz-examples[(define s (string #\\A #\\p #\\p #\\l #\\e))
-             (string-fill! s #\\q)
+@mz-examples[(define s (string #\A #\p #\p #\l #\e))
+             (string-fill! s #\q)
              s]}
 
 
@@ -142,7 +142,7 @@
 
 @defproc[(list->string [lst (listof char?)]) string?]{ 返回一个新的可变字符串，内容为 @racket[lst] 中的字符列表。即，字符串长度为 @racket[(length lst)]，@racket[lst] 中的字符序列与结果字符串中的序列相同。
 
-@mz-examples[(list->string (list #\\A #\\p #\\p #\\l #\\e))]}
+@mz-examples[(list->string (list #\A #\p #\p #\l #\e))]}
 
 
 @defproc[(build-string [n exact-nonnegative-integer?]

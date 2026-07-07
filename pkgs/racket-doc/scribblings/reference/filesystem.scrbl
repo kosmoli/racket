@@ -1477,6 +1477,7 @@ Windows 阻止程序删除或替换打开的文件，但允许重命名打开的
 
 与 @racket[file-or-directory-permissions]、@racket[file-or-directory-stat]
 以及位运算（如 @racket[bitwise-ior] 和 @racket[bitwise-and]）一起使用的常量。}
+}
 
 
 @examples[#:hidden #:eval file-eval

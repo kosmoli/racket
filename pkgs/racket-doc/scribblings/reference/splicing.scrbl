@@ -59,10 +59,10 @@ o
 
 @examples[
 #:eval splice-eval
-(define-syntax-parameter place (lambda (stx) #'\"Kansas\"))
+(define-syntax-parameter place (lambda (stx) #'"Kansas"))
 (define-syntax-rule (where) `(at ,(place)))
 (where)
-(splicing-syntax-parameterize ([place (lambda (stx) #'\"Oz\")])
+(splicing-syntax-parameterize ([place (lambda (stx) #'"Oz")])
   (define here (where)))
 here
 ]

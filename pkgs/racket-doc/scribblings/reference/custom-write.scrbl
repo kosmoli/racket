@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/struct))
 
-@{打印机扩展}
+@title{打印机扩展}
 
 @defthing[gen:custom-write any/c]{
 

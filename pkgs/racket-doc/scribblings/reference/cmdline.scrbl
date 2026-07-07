@@ -127,7 +127,7 @@
    #:args (filename) (code:comment @#,t{expect one command-line argument: <filename>})
    (code:comment @#,t{return the argument as a filename to compile})
    filename))
-]
+]}
 
 @; ----------------------------------------------------------------------
 
@@ -189,4 +189,4 @@
       ("Add a flag <lf> for the linker" "lf")]))
    (lambda (flag-accum file) file)
    '("filename"))
-]
+]}

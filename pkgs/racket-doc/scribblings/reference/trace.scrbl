@@ -82,6 +82,7 @@
 
 默认情况下，@racket[trace] 追踪 syntax transformer 时会打印 syntax object。如果不需要查看 source information 等，这可能导致过多输出。通过修改 @racket[current-trace-print-args] 和 @racket[current-trace-print-results]，将 syntax object 打印为 datum 可以获得更易读的输出。参见 @racket[current-trace-print-args] 了解扩展示例。
 
+}
 @defform[(trace-lambda [#:name id] args expr)]{
 
 @racket[trace-lambda] 形式启用对匿名函数的追踪。此形式将尝试使用 @racket[syntax-local-infer-name] 推断名称，或使用可选的 @racket[#:name] 参数指定名称。如果未给出名称且无法推断名称，则引发 syntax error。
@@ -165,9 +166,9 @@
     (current-trace-print-results
       (let ([ctpr (current-trace-print-results)])
         (lambda (s l n)
-         (ctpr s (map maybe-syntax->datum l) n)))))
+         (ctpr s (map maybe-syntax->datum l) n))))
 
-  (trace-define (precompute-fact syn n) (datum->syntax syn (apply * (build-list n add1))))
+  (trace-define (precompute-fact syn n) (datum->syntax syn (apply * (build-list n add1)))))
   (trace-define (run-time-fact n) (apply * (build-list n add1)))
 
   (require (for-syntax syntax/parse))
