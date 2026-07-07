@@ -86,10 +86,7 @@ Racket 的 @deftech{port} 表示数据的源或汇，如文件、终端、TCP �
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- @item{@bold{TCP Connections:} The @racket[tcp-connect] function
- creates both an input port and an output port for the client side of
- a TCP communication. The @racket[tcp-listen] function creates a
- server, which accepts connections via @racket[tcp-accept].
+ @item{@bold{TCP 连接：}@racket[tcp-connect] 函数为 TCP 通信的客户端创建一个输入 port 和一个输出 port。@racket[tcp-listen] 函数创建一个服务器，通过 @racket[tcp-accept] 接受连接。
 
   @examples[
   #:eval io-eval
@@ -158,7 +155,7 @@ Racket 的 @deftech{port} 表示数据的源或汇，如文件、终端、TCP �
 
 当前 port 函数实际上是@tech{参数}，这意味着它们的值可以用 @racket[parameterize] 设置。
 
-@margin-note{See @secref["parameterize"] for an introduction to parameters.}
+@margin-note{参见 @secref["parameterize"] 了解参数的介绍。}
 
 @examples[
 #:eval io-eval

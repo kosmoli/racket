@@ -12,7 +12,7 @@
 
 @title[#:tag "classes"]{Classes and Objects}
 
-@margin-note{This chapter is based on a paper @cite["Flatt06"].}
+@margin-note{本章基于论文 @cite["Flatt06"]。}
 @hash-lang-note[racket/class #:lang racket/base]
 
 @racket[class] 表达式表示一个一等值，
@@ -314,10 +314,9 @@ Beta 风格的 @defterm{可增强}方法 @cite["Goldberg04"]。
 @section[#:tag "extnames"]{Controlling the Scope of External Names}
 
 @margin-note{
-  Java's access modifiers (like @index["protected method"]{@tt{protected}})
-  play a role similar to @racket[define-member-name], but
-  unlike in Java, Racket's mechanism for controlling access
-  is based on lexical scope, not the inheritance hierarchy.
+  Java 的访问修饰符（如 @index["protected method"]{@tt{protected}}）
+  与 @racket[define-member-name] 的作用类似，但与 Java 不同的是，
+  Racket 的访问控制机制基于词法作用域而非继承层次结构。
 }
 
 如 @secref["intnames"] 所述，类成员同时具有内部和外部名称。

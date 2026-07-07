@@ -46,7 +46,7 @@ greeted
 
  @item{与任何现代语言一样，对共享标识符赋值不能替代向过程传递参数或获取其结果。
 
-       @as-examples[@t{@bold{@italic{Really awful}} example:}
+       @as-examples[@t{@bold{@italic{非常糟糕}}的示例：}
        @defs+int[
        [(define name "unknown")
         (define result "unknown")
@@ -57,7 +57,7 @@ greeted
         result
        ]]
 
-      @as-examples[@t{Ok example:}
+      @as-examples[@t{好的示例：}
       @def+int[
         (define (greet name)
           (string-append "Hello, " name))
@@ -68,7 +68,7 @@ greeted
 @;-- FIXME: explain more _why_ it's inferior
  @item{对局部变量进行一系列赋值远不如嵌套绑定。
 
-       @as-examples[@t{@bold{Bad} example:}
+       @as-examples[@t{@bold{糟糕}的示例：}
        @interaction[
        (let ([tree 0])
          (set! tree (list tree 1 tree))
@@ -76,7 +76,7 @@ greeted
          (set! tree (list tree 3 tree))
          tree)]]
 
-       @as-examples[@t{Ok example:}
+       @as-examples[@t{好的示例：}
        @interaction[
        (let* ([tree 0]
               [tree (list tree 1 tree)]
@@ -86,7 +86,7 @@ greeted
 
  @item{使用赋值来累积迭代结果是一种不良风格。通过循环参数累积更好。
 
-       @as-examples[@t{Somewhat bad example:}
+       @as-examples[@t{较差的示例：}
        @def+int[
        (define (sum lst)
          (let ([s 0])
@@ -96,7 +96,7 @@ greeted
        (sum '(1 2 3))
        ]]
 
-       @as-examples[@t{Ok example:}
+       @as-examples[@t{好的示例：}
        @def+int[
        (define (sum lst)
          (let loop ([lst lst] [s 0])
@@ -106,14 +106,14 @@ greeted
        (sum '(1 2 3))
        ]]
 
-       @as-examples[@t{Better (use an existing function) example:}
+       @as-examples[@t{更好（使用现有函数）的示例：}
        @def+int[
        (define (sum lst)
          (apply + lst))
        (sum '(1 2 3))
        ]]
 
-       @as-examples[@t{Good (a general approach) example:}
+       @as-examples[@t{好（通用方法）的示例：}
        @def+int[
        (define (sum lst)
          (for/fold ([s 0])
@@ -124,7 +124,7 @@ greeted
 
  @item{对于有状态对象是必要或合适的情况，使用 @racket[set!] 实现对象的状态是可以的。
 
-       @as-examples[@t{Ok example:}
+       @as-examples[@t{好的示例：}
        @def+int[
        (define next-number!
          (let ([n 0])

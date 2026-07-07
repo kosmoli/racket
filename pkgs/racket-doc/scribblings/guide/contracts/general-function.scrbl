@@ -4,8 +4,8 @@
 
 @title[#:tag "contracts-general-functions"]{Contracts on Functions in General}
 
-The @racket[->] contract constructor 适用于接受固定数量参数且结果契约不依赖于输入参数的函数。 为了支持其他类型的函数，Racket 提供了额外的契约构造器，尤其是 @racket[->*] and 
-@racket[->i].
+@racket[->] 契约构造器适用于接受固定数量参数且结果契约不依赖于输入参数的函数。为了支持其他类型的函数，Racket 提供了额外的契约构造器，尤其是 @racket[->*] 和
+@racket[->i]。
 
 @ctc-section[#:tag "optional"]{Optional Arguments}
 
@@ -31,41 +31,33 @@ racket
                  (build-string rmargin (λ (x) pad))))
 ]
 
- The module exports @racket[string-pad-center], a function
- that creates a string of a given @racket[width] with the
- given string in the center. The default fill character is
- @racket[#\space]; if the client module wishes to use a
- different character, it may call @racket[string-pad-center]
- with a third argument, a @racket[char], overwriting the
- default.
+ 该模块导出了 @racket[string-pad-center]，一个创建给定 @racket[width] 宽度、
+ 将给定字符串居中的函数。默认填充字符是
+ @racket[#\space]；如果客户端模块希望使用
+ 不同的字符，可以用第三个参数 @racket[char] 调用 @racket[string-pad-center]，
+ 覆盖默认值。
 
 函数定义使用了可选参数，这对于这种功能来说很合适。这里有趣的是 @racket[string-pad-center] 的契约描述方式。
 
 
-The contract combinator @racket[->*], demands several groups of contracts: 
+契约组合子 @racket[->*] 要求几组契约： 
 
 @itemize[
-@item{The first one is a parenthesized group of contracts for all required
-arguments. In this example, we see two: @racket[string?] and
-@racket[natural-number/c]. }
+@item{第一组是所有必需参数的括号包裹的契约。在此示例中，我们看到两个：@racket[string?] 和
+@racket[natural-number/c]。}
 
-@item{The second one is a parenthesized group of contracts for all optional
-arguments: @racket[char?]. }
+@item{第二组是所有可选参数的括号包裹的契约：@racket[char?]。}
 
-@item{The last one is a single contract: the result of the function.}
+@item{最后一组是一个单独的契约：函数的结果。}
 ]
 
- Note that if a default value does not satisfy a contract, you won't get a
- contract error for this interface. If you can't trust yourself to get
- the initial value right, you need to communicate the initial value
- across a boundary.
+ 注意，如果默认值不满足契约，你不会在此接口上获得 contract 错误。如果你不确定自己能正确设置初始值，则需要跨边界传递初始值。
 
 @ctc-section[#:tag "contracts-rest-args"]{剩余参数}
 
 @racket[max] 操作符至少消耗一个实数，但接受任意数量的附加参数。你可以使用 @tech{rest argument} 来编写其他类似的函数，例如 @racket[max-abs]：
 
-@margin-note{See @secref["rest-args"] for an introduction to rest
-arguments.}
+@margin-note{参见 @secref["rest-args"] 了解 rest 参数的介绍。}
 
 @racketblock[
 (define (max-abs n . rst)
@@ -97,8 +89,7 @@ arguments.}
 
 事实上，@racket[->] 契约构造器也支持关键字参数。例如，考虑这个创建一个简单 GUI 并向用户提出是/否问题的函数：
 
-@margin-note{See @secref["lambda-keywords"] for an introduction to
-keyword arguments.}
+@margin-note{参见 @secref["lambda-keywords"] 了解关键字参数的介绍。}
 
 @racketmod[
 racket/gui
@@ -133,26 +124,9 @@ racket/gui
                boolean?)]))
 ]
 
-@margin-note{If you really want to ask a yes-or-no question
-via a GUI, you should use @racket[message-box/custom]. For that
-matter, it's usually better to provide buttons with more specific
-answers than ``yes'' and ``no.''}
+@margin-note{如果你确实想通过 GUI 提出是/否问题，应使用 @racket[message-box/custom]。实际上，通常最好提供比"是"和"否"更具体答案的按钮。}
 
-The contract for @racket[ask-yes-or-no-question] uses @racket[->], and
-in the same way that @racket[lambda] (or @racket[define]-based
-functions) allows a keyword to precede a functions formal argument,
-@racket[->] allows a keyword to precede a function contract's argument
-contract. In this case,
-the contract says that @racket[ask-yes-or-no-question] must receive four keyword
-arguments, one for each of the keywords
-@racket[#:default],
-@racket[#:title],
-@racket[#:width], and
-@racket[#:height]. 
-As in a function definition, the order of the keywords in @racket[->]
-relative to each other does not matter for clients of the function;
-only the relative order of argument contracts without keywords
-matters.
+@racket[ask-yes-or-no-question] 的契约使用 @racket[->]，就像 @racket[lambda]（或基于 @racket[define] 的函数）允许关键字出现在函数形式参数之前一样，@racket[->] 允许关键字出现在函数契约的参数契约之前。在此情况下，契约规定 @racket[ask-yes-or-no-question] 必须接收四个关键字参数，分别对应关键字 @racket[#:default]、@racket[#:title]、@racket[#:width] 和 @racket[#:height]。与函数定义一样，@racket[->] 中关键字之间的相对顺序对函数的客户端无关紧要；只有不带关键字的参数契约的相对顺序才重要。
 
 @ctc-section[#:tag "optional-keywords"]{Optional 关键字参数}
 
@@ -168,14 +142,7 @@ matters.
   ...)
 ]
 
-To specify this function's contract, we need to use
-@racket[->*] again. It supports keywords just as you might
-expect in both the optional and mandatory argument
-sections. In this case, we have the mandatory keyword
-@racket[#:default] and optional keywords
-@racket[#:title],
-@racket[#:width], and
-@racket[#:height]. So, we write the contract like this:
+为了指定此函数的契约，我们需要再次使用 @racket[->*]。它在可选和必需参数部分都支持关键字，正如你所预期的那样。在此情况下，我们有必需关键字 @racket[#:default] 以及可选关键字 @racket[#:title]、@racket[#:width] 和 @racket[#:height]。因此，我们这样编写契约：
 
 @racketblock[
 (provide (contract-out
@@ -197,8 +164,7 @@ sections. In this case, we have the mandatory keyword
 用 @racket[case-lambda] 定义的函数可能会根据提供的参数数量对其参数施加不同的约束。
 例如，一个 @racket[report-cost] 函数可能将一对数字或一个字符串转换为一个新字符串：
 
-@margin-note{See @secref["case-lambda"] for an introduction to
-@racket[case-lambda].}
+@margin-note{参见 @secref["case-lambda"] 了解 @racket[case-lambda] 的介绍。}
 
 @def+int[
 (define report-cost
@@ -257,20 +223,8 @@ In the case of @racket[substring1], we also know that the indices
                   [result (argument) (<=/c argument)])]))
 ]
  
-@margin-note{The word ``indy'' is meant to suggest that blame may be
- assigned to the contract itself, because the contract must be considered an
- independent component. The name was chosen in
- response to two existing labels---``lax'' and ``picky''---for different
- semantics of function contracts in the research literature.}
-The contract for the exported function @racket[real-sqrt] uses the
-@racket[->i] rather than @racket[->*] function contract. The ``i''
-stands for an @italic{indy dependent} contract, meaning the contract for the
-function range depends on the value of the argument. The appearance
-of @racket[argument] in the line for @racket[result]'s contract means
-that the result depends on the argument. In this
-particular case, the argument of @racket[real-sqrt] is greater or
-equal to 1, so a very basic correctness check is that the result is
-smaller than the argument.
+@margin-note{"indy" 一词意在暗示 blame 可能归于契约本身，因为契约必须被视为一个独立的组件。该名称是为回应研究文献中函数契约不同语义的两个现有标签——"lax" 和 "picky"——而选定的。}
+导出函数 @racket[real-sqrt] 的契约使用 @racket[->i] 而非 @racket[->*] 函数契约。"i" 代表 @italic{indy dependent}（独立依赖）契约，意味着函数值域的契约依赖于参数的值。@racket[result] 行中 @racket[argument] 的出现意味着结果依赖于参数。在此特定情况下，@racket[real-sqrt] 的参数大于等于 1，因此一个非常基本的正确性检查是结果小于参数。
 
 一般而言，一个依赖函数契约看起来与更通用的 @racket[->*] 契约类似，
 但添加了可在契约其他位置使用的名称。

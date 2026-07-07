@@ -17,9 +17,7 @@ Racket 是 Lisp 语言的方言，其名称最初代表"LISt Processor"（列表
 @interaction[(list "red" "green" "blue")
              (list 1 2 3 4 5)]
 
-@margin-note{A list usually prints with @litchar{'}, but the printed
-             form of a list depends on its content. See
-             @secref["pairs"] for more information.}
+@margin-note{列表通常以 @litchar{'} 打印，但列表的打印形式取决于其内容。更多信息参见 @secref["pairs"]。}
 
 如你所见，列表结果在 @tech{REPL} 中以引号 @litchar{'} 和括号包围列表元素的打印形式来显示。这里可能会造成混淆，因为括号既用于表达式，如 @racket[(list "red" "green" "blue")]，也用于打印结果，如 @racketresult['("red" "green" "blue")]。除了引号之外，结果的括号在文档和 DrRacket 中以蓝色打印，而表达式的括号是棕色的。
 
@@ -192,8 +190,7 @@ empty
 
 在 @racket[my-map] 的情况下，@math{O(n)} 空间复杂度是合理的，因为它必须生成大小为 @math{O(n)} 的结果。尽管如此，你可以通过累积结果列表来降低常数因子。唯一的问题是累积的列表会是反向的，所以你必须在最后反转它：
 
-@margin-note{Attempting to reduce a constant factor like this is
-usually not worthwhile, as discussed below.}
+@margin-note{像这样尝试降低常数因子通常不值得，如下所述。}
 
 @racketblock[
 (define (my-map f lst)

@@ -245,16 +245,7 @@ Contract 有许多 @racket[simple-arrow-contract] 未添加的可选部分。在
 
 下一个是随机生成。Contract 库中的随机生成包含两部分：随机生成满足 contract 的值的能力，以及针对已给定的匹配 contract 的值进行针对性测试的能力，以寻找其中的 bug（并尝试让它们产生有趣的值供生成过程中其他地时使用）。
 
-To exercise contracts, we need to implement a function that
-is given a @racket[arrow-contract] struct and some fuel. It should return
-two values: a function that accepts values of the contract
-and exercises them, plus a list of values that the exercising
-process will always produce. In the case of our simple
-contract, we know that we can always produce values of the range,
-as long as we can generate values of the domain (since we can just
-call the function). So, here's a function that matches the 
-@racket[_exercise] argument of @racket[build-chaperone-contract-property]'s
-contract:
+为了执行契约的针对性测试，我们需要实现一个函数，该函数接受一个 @racket[arrow-contract] struct 和一些 fuel。它应该返回两个值：一个接受 contract 值并对其进行针对性测试的函数，以及针对性测试过程将始终产生的值列表。在我们的简单 contract 的情况下，只要我们能生成定义域的值（因为我们只需调用该函数），就知道我们总是可以生成值域的值。因此，这里是匹配 @racket[build-chaperone-contract-property] 的 @racket[_exercise] 参数的函数：
 @interaction/no-prompt[#:eval
                        ex-eval
                        (define (simple-arrow-contract-exercise arr)
@@ -293,7 +284,7 @@ contract:
                              [else
                               #f])))]
 
-当随机生成从环境中取出某个值时，它需要能够判断传递给 @racket[contract-random-generate-stash] 的值是否是它试图生成的 contract 的候选。当然，如果传递给 @racket[contract-random-generate-stash] 的 contract 是精确匹配的，那么它可以使用它。但如果 contract 晋强（在接受更少值的意义上），它也可以使用该值。
+当随机生成从环境中取出某个值时，它需要能够判断传递给 @racket[contract-random-generate-stash] 的值是否是它试图生成的 contract 的候选。当然，如果传递给 @racket[contract-random-generate-stash] 的 contract 是精确匹配的，那么它可以使用它。但如果 contract 更强（在接受更少值的意义上），它也可以使用该值。
 
 为了提供该功能，我们实现这个函数：
 @interaction/no-prompt[#:eval ex-eval
