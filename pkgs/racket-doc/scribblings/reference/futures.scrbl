@@ -65,7 +65,7 @@ Future 的“安全”并行执行意味着系统提供的所有操作都能强�
     (touch (future (lambda () 
                      (printf "hello1") 
                      (printf "hello2") 
-                     (printf "hello3")))] 
+                     (printf "hello3"))))] 
 
   可能会为每次 @racket[printf] 调用记录一条消息，共三条。然而，如果 @racket[touch] 在 future 有机会开始并行运行之前执行，future thunk 会以与普通 thunk 相同的方式求值，不会记录任何不安全操作。用 @racket[would-be-future] 替换 @racket[future] 可确保所有三个 @racket[printf] 调用都被记录。
 }
@@ -77,8 +77,8 @@ Future 的“安全”并行执行意味着系统提供的所有操作都能强�
   这与 @racketmodname[racket/place] 中可用的 binding 相同。
 }
 
-@deftogether[@defform[(for/async (for-clause ...) body-or-break ... body)]
-@defform[(for*/async (for-clause ...) body-or-break ... body)]]{
+@deftogether[[@defform[(for/async (for-clause ...) body-or-break ... body)]
+@defform[(for*/async (for-clause ...) body-or-break ... body)]]]{
 
 Like @racket[for] 和 @racket[for*]，但 @racket[body] 的每次迭代在单独的 @racket[future] 中执行，future 可以按任意顺序被 @racket[touch]。}
 

@@ -29,7 +29,7 @@
 (define-syntax-rule (swap x y)
   (let ([tmp x])
     (set! x y)
-    (set! y tmp))
+    (set! y tmp)))
 ]
 
 @racket[define-syntax-rule] 形式绑定一个匹配单个模式的模式。
@@ -158,8 +158,8 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
     [(rotate a b) (swap a b)]
     [(rotate a b c) (begin
                      (swap a b)
-                     (swap b c))])]
-)
+                     (swap b c))]))
+]
 
 表达式 @racket[(rotate red green)] 匹配 @racket[syntax-rules] 形式中的第一个模式，
 因此它展开为 @racket[(swap red green)]。表达式 @racket[(rotate red green blue)] 匹配第二个模式，
@@ -183,8 +183,8 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
     [(rotate a) (void)]
     [(rotate a b c ...) (begin
                           (swap a b)
-                          (rotate b c ...))])]
-)
+                          (rotate b c ...))]))
+]
 
 当模式变量（如 @racket[c]）在模式中后跟 @racket[...] 时，它
 在模板中也必须后跟 @racket[...]。模式变量有效地匹配零个或多个形式的序列，
@@ -204,8 +204,8 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
     [(shift-to (from0 from ...) (to0 to ...))
      (let ([tmp from0])
        (set! to from) ...
-       (set! to0 tmp))])]
-)
+       (set! to0 tmp))]))
+]
 
 在 @racket[shift-to] 宏中，模板中的 @racket[...] 跟随
 @racket[(set! to from)]，这导致 @racket[(set! to from)]
@@ -417,7 +417,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
     [(define-for-cbr do-f ()
        ((id get put) ...) body)
      (define (do-f get ... put ...)
-       (define-get/put-id id get put) ...)
+       (define-get/put-id id get put) ...
       body)]))
 ]
 

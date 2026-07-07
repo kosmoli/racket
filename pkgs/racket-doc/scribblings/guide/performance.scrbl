@@ -19,7 +19,7 @@ Alan Perlis 曾有名言："Lisp 程序员知道一切的价值，却不知道�
 @section[#:tag "DrRacket-perf"]{DrRacket 中的性能}
 
 默认情况下，DrRacket 会对程序进行调试插桩，而调试插桩（由
-@other-doc['(lib "errortrace/scribblings/errortrace.scrbl")']
+@other-doc['(lib "errortrace/scribblings/errortrace.scrbl")]
 库提供）可能会显著降低某些程序的性能。即使在
 @onscreen{Choose Language...} 对话框的 @onscreen{Show Details} 面板中禁用了调试，
 @onscreen{Preserve stacktrace} 复选框默认也是勾选的，这也会影响性能。禁用调试和堆栈跟踪

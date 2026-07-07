@@ -130,10 +130,11 @@ Perfect!
 ]
 
 @margin-note{参见 @other-manual['(lib "scribblings/raco/raco.scrbl")]
-了解更多使用 @exec{raco} 的信息。你还可以
-通过使用 Racket 包管理器（参见 @other-doc['(lib
-"pkg/scribblings/pkg.scrbl")])，使你的语言可供他人安装。创建 @filepath{literal} 包并将其注册到 Racket 包目录后（参见
-@secref["concept:catalog" #:doc '(lib "pkg/scribblings/pkg.scrbl")]),
+了解更多使用 @exec{raco} 的信息。}
+
+你还可以通过使用 Racket 包管理器（参见 @other-doc['(lib
+"pkg/scribblings/pkg.scrbl")]）使你的语言可供他人安装。创建 @filepath{literal} 包并将其注册到 Racket 包目录后（参见
+@secref["concept:catalog" #:doc '(lib "pkg/scribblings/pkg.scrbl")]），
 其他人可以使用 @exec{raco pkg} 安装它：
 
 @commandline{raco pkg install literal}

@@ -50,7 +50,7 @@
      (call/cc (lambda (abort-k)
        (syntax-parameterize
            ([abort (syntax-rules () [(_) (abort-k)])])
-         (let loop () body ... (loop))))]))
+         (let loop () body ... (loop)))))]))
 
 (define-syntax-parameter it (syntax-rules ()))
 

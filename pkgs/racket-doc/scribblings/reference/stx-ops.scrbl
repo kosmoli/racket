@@ -355,6 +355,7 @@
 
    @item{@racket['fallbacks] --- 类似于 @racket[syntax-debug-info] 为跨命名空间绑定回退产生的哈希表。}
 
+]
 @history[#:added "6.3"]}
 
 

@@ -19,7 +19,7 @@ racket
 (define-syntax (go stx)
   (syntax-case stx ()
     [(_ x)
-     #'(unchecked-go 8 x)])
+     #'(unchecked-go 8 x)]))
 ]
 
 如果从 @racket[(go 'a)] 的展开中引用 @racket[unchecked-go]，则它可能被插入到一个新的表达式 @racket[(unchecked-go #f 'a)] 中，从而导致灾难。类似地，@racket[datum->syntax] 过程可用于构造对未导出标识符的引用，即使没有任何宏展开包含对该标识符的引用时也如此。

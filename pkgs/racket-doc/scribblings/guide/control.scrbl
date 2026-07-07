@@ -161,7 +161,7 @@ A @deftech{continuation} 是一个封装了表达式评估上下文片段的值�
 (+ 1 (+ 1 (+ 1 (save-comp!))))
 ]
 
-存储在 @racket[saved-k] 中的 @tech{continuation} 封装了程序上下文 @racket[(+ 1 (+ 1 (+ 1 _?))]，其中 @racket[_?] 表示一个插入结果值的位置——因为那是调用 @racket[save-comp!] 时的表达式上下文。@tech{continuation} 被封装后，其行为类似于函数 @racket[(lambda (v) (+ 1 (+ 1 (+ 1 v))))]：
+存储在 @racket[saved-k] 中的 @tech{continuation} 封装了程序上下文 @racket[(+ 1 (+ 1 (+ 1 _?)))]，其中 @racket[_?] 表示一个插入结果值的位置——因为那是调用 @racket[save-comp!] 时的表达式上下文。@tech{continuation} 被封装后，其行为类似于函数 @racket[(lambda (v) (+ 1 (+ 1 (+ 1 v))))]：
 
 @interaction[
 #:eval cc-eval

@@ -85,7 +85,7 @@ Racket 文件可以在 Unix 和 Mac OS 上转换为可执行脚本。在 Windows
 在另一种语言中作为表达式的行。此蹦床更复杂，但它对传递给 @exec{racket}
 的命令行参数提供了更多控制：
 
-@verbatim[#:indent 2]{
+@verbatim[#:indent 2]|{
   #! /bin/sh
   #|
   exec racket -e 'printf "Running...\n"' -u "$0" ${1+"$@"}
@@ -95,7 +95,7 @@ Racket 文件可以在 Unix 和 Mac OS 上转换为可执行脚本。在 Windows
   (printf "使用 `-e' 标志产生。\n")
   (printf "给定参数: ~s\n"
           (current-command-line-arguments))
-}
+}|
 
 注意，@litchar{#!} 开始一个 Racket 行注释，且 @litchar{#|}...@litchar{|#}
 形成一个块注释。同时，@litchar{#} 也开始一个 shell 脚本注释，
@@ -106,13 +106,13 @@ Racket 文件可以在 Unix 和 Mac OS 上转换为可执行脚本。在 Windows
 
 类似的技巧可用于在 Windows @as-index{@tt{.bat}} 批处理文件中编写 Racket 代码：
 
-@verbatim[#:indent 2]{
+@verbatim[#:indent 2]|{
   ; @echo off
   ; Racket.exe "%~f0" %*
   ; exit /b
   #lang racket/base
   "Hello, world!"
-  }
+  }|
 
 Windows 的新版本包括 PowerShell 脚本语言。通过 PowerShell 脚本使用 Racket
 与使用批处理文件略有不同。PowerShell 脚本使用 @as-index{@tt{.ps1}} 扩展名：

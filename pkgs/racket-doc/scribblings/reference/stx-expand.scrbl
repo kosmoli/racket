@@ -23,7 +23,8 @@
    #f
    '(module foo scheme
       (define a 3)
-      (+ a 4)))))  ; 展开模块主体]
+      (+ a 4)))))  ; 展开模块主体
+]
 
 在非顶层形式上使用 @racket[expand] 的示例：
 
@@ -34,7 +35,8 @@
  (expand
   (datum->syntax
    #f
-   '(delay (+ 1 2)))))  ; 展开 delay 表达式]
+   '(delay (+ 1 2)))))  ; 展开 delay 表达式
+]
 
 @history[#:changed "8.2.0.4" @elem{添加了 @racket[insp] 参数和 taint 支持。}]}
 

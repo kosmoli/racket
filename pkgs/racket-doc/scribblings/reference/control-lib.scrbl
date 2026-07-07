@@ -17,7 +17,7 @@ in terms of @racket[call-with-continuation-prompt],
 @racket[call-with-composable-continuation], @|etc|, and they generally
 work sensibly together. Many are redundant; for example,
 @racket[reset] and @racket[prompt] are aliases.
- 
+
 @; ----------------------------------------------------------------------
 
 @defproc[(call/prompt
@@ -26,31 +26,30 @@ work sensibly together. Many are redundant; for example,
           [handler (or/c procedure? #f) #f]
           [arg any/c] ...)
          any]{
-The @racket[call/prompt] binding is an alias for @racket[call-with-continuation-prompt].
+@racket[call/prompt] 是 @racket[call-with-continuation-prompt] 的别名。
 }
 
 @defproc[(abort/cc
           [prompt-tag any/c]
           [v any/c] ...)
          any]{
-The @racket[abort/cc] binding is an alias for @racket[abort-current-continuation].
+@racket[abort/cc] 是 @racket[abort-current-continuation] 的别名。
 }
 
 @defproc[(call/comp
           [proc (continuation? . -> . any)]
           [prompt-tag continuation-prompt-tag? (default-continuation-prompt-tag)])
          any]{
-The @racket[call/comp] binding is an alias for @racket[call-with-composable-continuation].
+@racket[call/comp] 是 @racket[call-with-composable-continuation] 的别名。
 }
 
 @; ----------------------------------------------------------------------
 
 @defproc[(abort [v any/c] ...) any]{
 
-Returns the @racket[v]s to a prompt using the default continuation
-prompt tag and the default abort handler.
+使用默认的 continuation prompt tag 和默认的 abort handler，将 @racket[v] 返回到 prompt。
 
-That is, @racket[(abort v ...)] is equivalent to
+即 @racket[(abort v ...)] 等价于
 
 @racketblock[
 (abort-current-continuation
@@ -77,19 +76,17 @@ That is, @racket[(abort v ...)] is equivalent to
 )]{
 
 
-Sitaram's operators @cite["Sitaram93"].
+Sitaram 的算子 @cite["Sitaram93"]。
 
-The essential reduction rules are:
+基本归约规则为：
 
 @racketblock[
 (% _val proc) => _val
 (% _E[(fcontrol _val)] _proc) => (_proc _val (lambda (_x) _E[_x]))
-  (code:comment @#,t{where @racket[_E] has no @racket[%]})
+  (code:comment @#,t{其中 @racket[_E] 不含 @racket[%]})
 ]
 
-When @racket[handler-expr] is omitted, @racket[%] is the same as 
-@racket[prompt]. If @racket[prompt-tag] is provided, @racket[%]
-uses specific prompt tags like @racket[prompt-at].
+当省略 @racket[handler-expr] 时，@racket[%] 与 @racket[prompt] 相同。如果提供了 @racket[prompt-tag]，则 @racket[%] 使用特定的 prompt tag，类似于 @racket[prompt-at]。
 
 @examples[#:eval control-eval
 (% (+ 2 (fcontrol 5))
@@ -107,15 +104,14 @@ uses specific prompt tags like @racket[prompt-at].
 @defform[(control id expr ...+)]
 )]{
 
-Among the earliest operators for higher-order control
-@cite["Felleisen88a" "Felleisen88" "Sitaram90"].
+高阶 control 最早期的算子之一 @cite["Felleisen88a" "Felleisen88" "Sitaram90"]。
 
-The essential reduction rules are:
+基本归约规则为：
 @racketblock[
 (prompt _val) => _val
 (prompt _E[(control _k _expr)]) => (prompt ((lambda (_k) _expr)
                                             (lambda (_v) _E[_v])))
-  (code:comment @#,t{where @racket[_E] has no @racket[prompt]})
+  (code:comment @#,t{其中 @racket[_E] 不含 @racket[prompt]})
 ]
 
 @examples[#:eval control-eval
@@ -138,15 +134,14 @@ The essential reduction rules are:
 @defform[(control-at prompt-tag-expr id expr ...+)]
 )]{
 
-Like @racket[prompt] and @racket[control], but using specific prompt
-tags:
+类似于 @racket[prompt] 和 @racket[control]，但使用特定的 prompt tag：
 
 @racketblock[
 (prompt-at _tag _val) => _val
 (prompt-at _tag _E[(control-at _tag _k _expr)]) => (prompt-at _tag 
                                                     ((lambda (_k) _expr)
                                                      (lambda (_v) _E[_v])))
-  (code:comment @#,t{where @racket[_E] has no @racket[prompt-at] for @racket[_tag]})
+  (code:comment @#,t{其中 @racket[_E] 不含对应 @racket[_tag] 的 @racket[prompt-at]})
 ]}
 
 @; ----------------------------------------------------------------------
@@ -156,18 +151,18 @@ tags:
 @defform[(shift id expr ...+)]
 )]{
 
-Danvy and Filinski's operators @cite["Danvy90"].
+Danvy 和 Filinski 的算子 @cite["Danvy90"]。
 
-The essential reduction rules are:
+基本归约规则为：
 
 @racketblock[
 (reset _val) => _val
 (reset _E[(shift _k _expr)]) => (reset ((lambda (_k) _expr) 
                                         (lambda (_v) (reset _E[_v]))))
-  (code:comment @#,t{where @racket[_E] has no @racket[reset]})
+  (code:comment @#,t{其中 @racket[_E] 不含 @racket[reset]})
 ]
 
-The @racket[reset] and @racket[prompt] forms are interchangeable.}
+@racket[reset] 和 @racket[prompt] 可以互换使用。}
 
 
 @; ----------------------------------------------------------------------
@@ -177,8 +172,7 @@ The @racket[reset] and @racket[prompt] forms are interchangeable.}
 @defform[(shift-at prompt-tag-expr identifier expr ...+)]
 )]{
 
-Like @racket[reset] and @racket[shift], but using the specified prompt
-tags.}
+类似于 @racket[reset] 和 @racket[shift]，但使用指定的 prompt tag。}
 
 @; ----------------------------------------------------------------------
 
@@ -189,9 +183,9 @@ tags.}
 @defform[(shift0 id expr ...+)]
 )]{
 
-Generalizations of @racket[prompt], @|etc| @cite["Shan04"].
+@racket[prompt] 等算子的推广形式 @cite["Shan04"]。
 
-The essential reduction rules are:
+基本归约规则为：
 
 @racketblock[
 (prompt0 _val) => _val
@@ -202,8 +196,8 @@ The essential reduction rules are:
                                    (lambda (_v) (reset0 _E[_v])))
 ]
 
-The @racket[reset0] and @racket[prompt0] forms are interchangeable.
-Furthermore, the following reductions apply:
+@racket[reset0] 和 @racket[prompt0] 可以互换使用。
+此外，以下归约规则也适用：
 
 @racketblock[
 (prompt _E[(control0 _k _expr)]) => (prompt ((lambda (_k) _expr)
@@ -216,9 +210,7 @@ Furthermore, the following reductions apply:
                                           (lambda (_v) (reset _E[_v]))))
 ]
 
-That is, both the @racket[prompt]/@racket[reset] and
-@racket[control]/@racket[shift] sites must agree for @racket[0]-like
-behavior, otherwise the non-@racket[0] behavior applies.}
+即 @racket[prompt]/@racket[reset] 和 @racket[control]/@racket[shift] 两处都必须一致才会产生 @racket[0] 变体的行为，否则采用非 @racket[0] 的行为。}
 
 @; ----------------------------------------------------------------------
 
@@ -229,22 +221,22 @@ behavior, otherwise the non-@racket[0] behavior applies.}
 @defform[(shift0-at prompt-tag-expr id expr ...+)]
 )]{
 
-Variants of @racket[prompt0], @|etc|, that accept a prompt tag.}
+@racket[prompt0] 等的变体，接受一个 prompt tag 参数。}
 
 @; ----------------------------------------------------------------------
 
 @defproc[(spawn [proc ((any/c . -> . any) . -> . any)]) any]{
 
-The operators of Hieb and Dybvig @cite["Hieb90"].
+Hieb 和 Dybvig 的算子 @cite["Hieb90"]。
 
-The essential reduction rules are:
+基本归约规则为：
 
 @racketblock[
 (prompt-at _tag _obj) => _obj
 (spawn _proc) => (prompt _tag (_proc (lambda (_x) (abort _tag _x))))
 (prompt-at _tag _E[(abort _tag _proc)])
   => (_proc (lambda (_x) (prompt-at _tag _E[_x])))
-  (code:comment @#,t{where @racket[_E] has no @racket[prompt-at] for @racket[_tag]})
+  (code:comment @#,t{其中 @racket[_E] 不含对应 @racket[_tag] 的 @racket[prompt-at]})
 ]}
 
 @; ----------------------------------------------------------------------
@@ -254,9 +246,9 @@ The essential reduction rules are:
                           . -> . any)])
          any]{
 
-The operator of Queinnec and Serpette @cite["Queinnec91"].
+Queinnec 和 Serpette 的算子 @cite["Queinnec91"]。
 
-The essential reduction rules are:
+基本归约规则为：
 @racketblock[
 (splitter _proc) => (prompt-at _tag
                      (_proc (lambda (_thunk) 
@@ -264,10 +256,10 @@ The essential reduction rules are:
                             (lambda (_proc)
                               (control0-at _tag _k (_proc _k)))))
 (prompt-at _tag _E[(abort _tag _thunk)]) => (_thunk)
-  (code:comment @#,t{where @racket[_E] has no @racket[prompt-at] for @racket[_tag]})
+  (code:comment @#,t{其中 @racket[_E] 不含对应 @racket[_tag] 的 @racket[prompt-at]})
 (prompt-at _tag _E[(control0-at _tag _k _expr)]) => ((lambda (_k) _expr)
                                                      (lambda (_x) _E[_x]))
-  (code:comment @#,t{where @racket[_E] has no @racket[prompt-at] for @racket[_tag]})
+  (code:comment @#,t{其中 @racket[_E] 不含对应 @racket[_tag] 的 @racket[prompt-at]})
 ]}
 
 @; ----------------------------------------------------------------------
@@ -278,11 +270,9 @@ The essential reduction rules are:
 @defform[(cupto prompt-expr id expr ...+)]
 )]{
 
-The operators of Gunter et al. @cite["Gunter95"].
+Gunter 等人的算子 @cite["Gunter95"]。
 
-In this library, @racket[new-prompt] is an alias for
-@racket[make-continuation-prompt-tag], @racket[set] is an alias for
-@racket[prompt0-at], and @racket[cupto] is an alias for @racket[control0-at].
+在此库中，@racket[new-prompt] 是 @racket[make-continuation-prompt-tag] 的别名，@racket[set] 是 @racket[prompt0-at] 的别名，@racket[cupto] 是 @racket[control0-at] 的别名。
 
 }
 

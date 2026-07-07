@@ -62,7 +62,7 @@ less-filling?
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals (rename-in)
-                 (rename-in require-spec [orig-id bind-id] ...]{
+                 (rename-in require-spec [orig-id bind-id] ...)]{
 
 此 form 支持像 @racket[only-in] 一样的重命名，但不影响 @racket[require-spec] 中未提及作为 @racket[orig-id] 的标识符。}
 

@@ -4,161 +4,106 @@
 @title[#:tag "hashtables"]{Hash Tables}
 
 @(define (see-also-caveats)
-   @t{See also the @concurrency-caveat[] and the @mutable-key-caveat[] above.})
+   @t{另请参见上面的 @concurrency-caveat[] 和 @mutable-key-caveat[]。})
 @(define (see-also-concurrency-caveat)
-   @t{See also the @concurrency-caveat[] above.})
+   @t{另请参见上面的 @concurrency-caveat[]。})
 @(define (see-also-mutable-key-caveat)
-   @t{See also the @mutable-key-caveat[] above.})
+   @t{另请参见上面的 @mutable-key-caveat[]。})
 
 @guideintro["hash-tables"]{hash tables}
 
-A @deftech{hash table} (or simply @deftech{hash}) maps each of its
-keys to a single value. For a given hash table, keys are equivalent
-via @racket[equal?], @racket[equal-always?], @racket[eqv?], or
-@racket[eq?], and keys are retained either strongly, weakly
-(see @secref["weakbox"]), or like @tech{ephemerons}.
-A hash table is also either mutable or immutable.
-Immutable hash tables support effectively constant-time access and
-update, just like mutable hash tables; the constant on immutable
-operations is usually larger, but the functional nature of immutable
-hash tables can pay off in certain algorithms. Use @racket[immutable?]
-to check whether a hash table is immutable.
+@deftech{hash table}（或简称为 @deftech{hash}）将每个键映射到一个值。对于给定的 hash table，键通过 @racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?] 进行等价比较，键的保留方式可以是强引用、弱引用（参见 @secref["weakbox"]）或类似 @tech{ephemerons} 的方式。
+hash table 也可以是可变的或不可变的。
+不可变 hash table 支持等效的常数时间访问和更新，就像可变 hash table 一样；不可变操作的常数因子通常更大，但不可变 hash table 的函数式特性在某些算法中可以带来收益。使用 @racket[immutable?] 来检查 hash table 是否不可变。
 
-@margin-note{Immutable hash tables actually provide @math{O(log N)}
-access and update. Since @math{N} is limited by the address space so
-that @math{log N} is limited to less than 30 or 62 (depending on the
-platform), @math{log N} can be treated reasonably as a constant.}
+@margin-note{不可变 hash table 实际上提供 @math{O(log N)} 的访问和更新。由于 @math{N} 受地址空间限制，因此 @math{log N} 被限制在小于 30 或 62（取决于平台），@math{log N} 可以合理地被视为常数。}
 
-For @racket[equal?]-based hashing, the built-in hash functions on
-@tech{strings}, @tech{pairs}, @tech{lists}, @tech{vectors},
-@tech{prefab} or transparent @tech{structures}, @|etc|, take time
-proportional to the size of the value. The hash code for a compound
-data structure, such as a list or vector, depends on hashing each item
-of the container, but the depth of such recursive hashing is
-limited (to avoid potential problems with cyclic data). For a
-non-@tech{list} @tech{pair}, both @racket[car] and @racket[cdr]
-hashing is treated as a deeper hash, but the @racket[cdr] of a
-@tech{list} is treated as having the same hashing depth as the list.
+对于基于 @racket[equal?] 的哈希，内建的 hash 函数作用于
+@tech{strings}、@tech{pairs}、@tech{lists}、@tech{vectors}、
+@tech{prefab} 或透明的 @tech{structures}、@|etc| 等时，其耗时与值的大小成正比。复合数据结构（如 list 或 vector）的哈希码取决于对容器中每个元素进行哈希，但这种递归哈希的深度是有限的（以避免循环数据的潜在问题）。对于非 @tech{list} 的 @tech{pair}，@racket[car] 和 @racket[cdr] 的哈希都被视为更深一层的哈希，但 @tech{list} 的 @racket[cdr] 被视为与该 list 具有相同的哈希深度。
 
-A hash table can be used as a two-valued @tech{sequence} (see
-@secref["sequences"]). The keys and values of the hash table serve as
-elements of the sequence (i.e., each element is a key and its
-associated value). If a mapping is added to or removed from the hash
-table during iteration, then an iteration step may fail with
-@racket[exn:fail:contract], or the iteration may skip or duplicate
-keys and values.  See also @racket[in-hash], @racket[in-hash-keys],
-@racket[in-hash-values], and @racket[in-hash-pairs].
+hash table 可以作为双值 @tech{sequence} 使用（参见 @secref["sequences"]）。hash table 的键和值作为序列的元素（即每个元素是一个键及其关联的值）。如果在迭代期间向 hash table 添加或移除映射，则迭代步骤可能会因 @racket[exn:fail:contract] 而失败，或者迭代可能会跳过或重复键和值。另请参见 @racket[in-hash]、@racket[in-hash-keys]、@racket[in-hash-values] 和 @racket[in-hash-pairs]。
 
-Two hash tables cannot be @racket[equal?] unless they have the same
-mutability, use the same key-comparison procedure (@racket[equal?],
-@racket[equal-always?], @racket[eqv?], or @racket[eq?]), both hold
-keys strongly, weakly, or like @tech{ephemerons}.
-Empty immutable hash tables are @racket[eq?]
-when they are @racket[equal?].
+两个 hash table 除非具有相同的可变性、使用相同的键比较过程（@racket[equal?]、@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]）、且都以强引用、弱引用或类似 @tech{ephemerons} 的方式持有键，否则它们不可能 @racket[equal?]。
+空的不可变 hash table 在 @racket[equal?] 时也是 @racket[eq?] 的。
 
-@history[#:changed "7.2.0.9" @elem{Made empty immutable hash tables
-                                   @racket[eq?] when they are
-                                   @racket[equal?].}]
+@history[#:changed "7.2.0.9" @elem{使空的不可变 hash table
+                                   在 @racket[equal?] 时也是
+                                   @racket[eq?] 的。}]
 
-@elemtag['(caveat "concurrency")]{@bold{Caveats concerning concurrent
-modification:}} A mutable hash table can be manipulated with
-@racket[hash-ref], @racket[hash-set!], and @racket[hash-remove!]
-concurrently by multiple threads, and the operations are protected by
-a table-specific semaphore as needed. Several caveats apply, however:
+@elemtag['(caveat "concurrency")]{@bold{关于并发修改的注意事项：}} 可变 hash table 可以被多个线程通过 @racket[hash-ref]、@racket[hash-set!] 和 @racket[hash-remove!] 并发操作，并且这些操作在需要时受到表特定信号量的保护。然而，有一些注意事项：
 
  @itemize[
 
-  @item{If a thread is terminated while applying @racket[hash-ref],
-  @racket[hash-ref-key], @racket[hash-set!], @racket[hash-remove!],
-  @racket[hash-ref!], @racket[hash-update!], or @racket[hash-clear!]
-  to a hash table that
-  uses @racket[equal?], @racket[equal-always?], or @racket[eqv?] key
-  comparisons, all current and future operations on the hash table may
-  block indefinitely.}
+  @item{如果线程在对使用 @racket[equal?]、@racket[equal-always?] 或 @racket[eqv?] 键比较的 hash table 执行 @racket[hash-ref]、
+  @racket[hash-ref-key]、@racket[hash-set!]、@racket[hash-remove!]、
+  @racket[hash-ref!]、@racket[hash-update!] 或 @racket[hash-clear!] 时被终止，则当前和将来对该 hash table 的所有操作可能会无限期阻塞。}
 
-  @item{The @racket[hash-map], @racket[hash-for-each], and @racket[hash-clear!] procedures do
-  not use the table's semaphore to guard the traversal as a whole
-  (if a traversal is needed, in the case of @racket[hash-clear!]).
-  Changes by one thread to a hash table can affect the keys and values
-  seen by another thread part-way through its traversal of the same
-  hash table.}
+  @item{@racket[hash-map]、@racket[hash-for-each] 和 @racket[hash-clear!] 过程不会使用表的信号量来保护整个遍历过程（如果需要遍历的话，如 @racket[hash-clear!] 的情况）。
+  一个线程对 hash table 的更改可能影响另一个线程在遍历同一 hash table 过程中看到的键和值。}
 
- @item{The @racket[hash-update!] and @racket[hash-ref!] functions 
- use a table's semaphore
- independently for the @racket[hash-ref] and @racket[hash-set!] parts
- of their functionality, which means that the update as a whole is not
- ``atomic.''}
+ @item{@racket[hash-update!] 和 @racket[hash-ref!] 函数
+ 分别对 @racket[hash-ref] 和 @racket[hash-set!] 部分独立使用表的信号量，这意味着整个更新操作不是"原子的"。}
 
- @item{Adding a mutable hash table as a key in itself is trouble on
-  the grounds that the key is being mutated (see the caveat below),
-  but it is also a kind of concurrent use of the hash table: computing
-  a hash table's hash code may require waiting on the table's
-  semaphore, but the semaphore is already held for modifying the hash
-  table, so the hash-table addition can block indefinitely.}
+ @item{将可变 hash table 自身作为键添加到自身是有问题的，因为键正在被修改（参见下面的注意事项），而且这也是一种对 hash table 的并发使用：计算 hash table 的哈希码可能需要等待表的信号量，但信号量已被修改 hash table 的操作持有，因此 hash table 的添加操作可能会无限期阻塞。}
 
  ]
 
-@elemtag['(caveat "mutable-keys")]{@bold{Caveat concerning mutable
-keys:}} If a key in an @racket[equal?]-based hash table is mutated
-(e.g., a key string is modified with @racket[string-set!]), then the
-hash table's behavior for insertion and lookup operations becomes
-unpredictable.
+@elemtag['(caveat "mutable-keys")]{@bold{关于可变键的注意事项：}} 如果基于 @racket[equal?] 的 hash table 中的键被修改（例如，使用 @racket[string-set!] 修改键字符串），则 hash table 的插入和查找操作将变得不可预测。
 
-A literal or printed hash table starts with @litchar{#hash},
-@litchar{#hashalw}, @litchar{#hasheqv}, or
-@litchar{#hasheq}. @see-read-print["hashtable"]{hash tables}
+字面量或打印的 hash table 以 @litchar{#hash}、
+@litchar{#hashalw}、@litchar{#hasheqv} 或
+@litchar{#hasheq} 开头。@see-read-print["hashtable"]{hash tables}
 
 @defproc[(hash? [v any/c]) boolean?]{
 
-Returns @racket[#t] if @racket[v] is a @tech{hash table}, @racket[#f]
-otherwise.}
+如果 @racket[v] 是 @tech{hash table} 则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @defproc[(hash-equal? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] compares keys with @racket[equal?],
-@racket[#f] if it compares with @racket[eq?], @racket[eqv?], or
-@racket[equal-always?].}
+如果 @racket[hash] 使用 @racket[equal?] 比较键则返回 @racket[#t]，
+如果使用 @racket[eq?]、@racket[eqv?] 或
+@racket[equal-always?] 比较则返回 @racket[#f]。}
 
 @defproc[(hash-equal-always? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] compares keys with
-@racket[equal-always?], @racket[#f] if it compares with @racket[eq?],
-@racket[eqv?], or @racket[equal?].
+如果 @racket[hash] 使用
+@racket[equal-always?] 比较键则返回 @racket[#t]，如果使用 @racket[eq?]、
+@racket[eqv?] 或 @racket[equal?] 比较则返回 @racket[#f]。
 
 @history[#:added "8.5.0.3"]}
 
 @defproc[(hash-eqv? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] compares keys with @racket[eqv?],
-@racket[#f] if it compares with @racket[equal?],
-@racket[equal-always?], or @racket[eq?].}
+如果 @racket[hash] 使用 @racket[eqv?] 比较键则返回 @racket[#t]，
+如果使用 @racket[equal?]、
+@racket[equal-always?] 或 @racket[eq?] 比较则返回 @racket[#f]。}
 
 @defproc[(hash-eq? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] compares keys with @racket[eq?],
-@racket[#f] if it compares with @racket[equal?],
-@racket[equal-always?], or @racket[eqv?].}
+如果 @racket[hash] 使用 @racket[eq?] 比较键则返回 @racket[#t]，
+如果使用 @racket[equal?]、
+@racket[equal-always?] 或 @racket[eqv?] 比较则返回 @racket[#f]。}
 
 
 @defproc[(hash-strong? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] retains its keys strongly,
-@racket[#f] if it retains keys weakly or like @tech{ephemerons}.
+如果 @racket[hash] 以强引用方式保留键则返回 @racket[#t]，
+如果以弱引用或类似 @tech{ephemerons} 的方式保留键则返回 @racket[#f]。
 
 @history[#:added "8.0.0.10"]}
 
 
 @defproc[(hash-weak? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] retains its keys weakly,
-@racket[#f] if it retains keys strongly or like @tech{ephemerons}.}
+如果 @racket[hash] 以弱引用方式保留键则返回 @racket[#t]，
+如果以强引用或类似 @tech{ephemerons} 的方式保留键则返回 @racket[#f]。}
 
 
 @defproc[(hash-ephemeron? [hash hash?]) boolean?]{
 
-Returns @racket[#t] if @racket[hash] retains its keys like
-@tech{ephemerons}, @racket[#f] if it retains keys strongly or merely
-weakly.
+如果 @racket[hash] 以类似 @tech{ephemerons} 的方式保留键则返回 @racket[#t]，
+如果以强引用或仅仅弱引用方式保留键则返回 @racket[#f]。
 
 @history[#:added "8.0.0.10"]}
 
@@ -171,21 +116,19 @@ weakly.
 @defproc[(hasheqv [key any/c] [val any/c] ... ...) (and/c hash? hash-eqv? immutable? hash-strong?)]
 )]{
 
-Creates an immutable hash table with each given @racket[key] mapped to
-the following @racket[val]; each @racket[key] must have a @racket[val],
-so the total number of arguments to @racket[hash] must be even.
+创建一个不可变 hash table，其中每个给定的 @racket[key] 映射到
+后面的 @racket[val]；每个 @racket[key] 必须有一个 @racket[val]，
+因此 @racket[hash] 的参数总数必须是偶数。
 
-The @racket[hash] procedure creates a table where keys are compared
-with @racket[equal?], @racket[hashalw] creates a table where keys are compared with
-@racket[equal-always?], @racket[hasheq] procedure creates a table where
-keys are compared with @racket[eq?], @racket[hasheqv] procedure
-creates a table where keys are compared with @racket[eqv?].
+@racket[hash] 过程创建一个键使用 @racket[equal?] 比较的表，
+@racket[hashalw] 创建一个键使用
+@racket[equal-always?] 比较的表，@racket[hasheq] 过程创建一个键使用
+@racket[eq?] 比较的表，@racket[hasheqv] 过程
+创建一个键使用 @racket[eqv?] 比较的表。
 
-The @racket[key] to @racket[val] mappings are added to the table in
-the order that they appear in the argument list, so later mappings can
-hide earlier mappings if the @racket[key]s are equal.
+键到值的映射按参数列表中的出现顺序添加到表中，因此如果 @racket[key] 相等，后面的映射可以覆盖前面的映射。
 
-@history[#:changed "8.5.0.3" @elem{Added @racket[hashalw].}]}
+@history[#:changed "8.5.0.3" @elem{添加了 @racket[hashalw]。}]}
 
 @deftogether[(
 @defproc[(make-hash [assocs (listof pair?) null]) (and/c hash? hash-equal? (not/c immutable?) hash-strong?)]
@@ -195,24 +138,20 @@ hide earlier mappings if the @racket[key]s are equal.
 @defproc[(make-hasheq [assocs (listof pair?) null]) (and/c hash? hash-eq? (not/c immutable?) hash-strong?)]
 )]{
 
-Creates a mutable hash table that holds keys strongly. 
+创建一个以强引用方式持有键的可变 hash table。
 
-The @racket[make-hash] procedure creates a table where keys are
-compared with @racket[equal?], @racket[make-hasheq] procedure creates
-a table where keys are compared with @racket[eq?],
-@racket[make-hasheqv] procedure creates a table where keys are
-compared with @racket[eqv?], and @racket[make-hashalw] creates a table
-where keys are compared with @racket[equal-always?].
+@racket[make-hash] 过程创建一个键使用
+@racket[equal?] 比较的表，@racket[make-hasheq] 过程创建一个键使用
+@racket[eq?] 比较的表，
+@racket[make-hasheqv] 过程创建一个键使用
+@racket[eqv?] 比较的表，@racket[make-hashalw] 创建一个键使用
+@racket[equal-always?] 比较的表。
 
-The table is initialized with the content of @racket[assocs].  In each
-element of @racket[assocs], the @racket[car] is a key, and the
-@racket[cdr] is the corresponding value. The mappings are added to the
-table in the order that they appear in @racket[assocs], so later
-mappings can hide earlier mappings.
+该表使用 @racket[assocs] 的内容进行初始化。在 @racket[assocs] 的每个元素中，@racket[car] 是键，@racket[cdr] 是对应的值。映射按 @racket[assocs] 中的出现顺序添加到表中，因此后面的映射可以覆盖前面的映射。
 
-See also @racket[make-custom-hash].
+另请参见 @racket[make-custom-hash]。
 
-@history[#:changed "8.5.0.3" @elem{Added @racket[make-hashalw].}]}
+@history[#:changed "8.5.0.3" @elem{添加了 @racket[make-hashalw]。}]}
 
 @deftogether[(
 @defproc[(make-weak-hash [assocs (listof pair?) null]) (and/c hash? hash-equal? (not/c immutable?) hash-weak?)]
@@ -222,23 +161,19 @@ See also @racket[make-custom-hash].
 @defproc[(make-weak-hasheq [assocs (listof pair?) null]) (and/c hash? hash-eq? (not/c immutable?) hash-weak?)]
 )]{
 
-Like @racket[make-hash], @racket[make-hasheq],
-@racket[make-hasheqv], and @racket[make-hashalw], but creates a
-mutable hash table that holds keys weakly.
+类似于 @racket[make-hash]、@racket[make-hasheq]、
+@racket[make-hasheqv] 和 @racket[make-hashalw]，但创建一个
+以弱引用方式持有键的可变 hash table。
 
-Beware that values in a weak hash table are retained normally. If a value in
-the table refers back to its key, then the table will retain the value
-and therefore the key; the mapping will never be removed from the
-table even if the key becomes otherwise inaccessible. To avoid that
-problem, use an ephemeron hash table as created by
-@racket[make-ephemeron-hash], @racket[make-ephemeron-hashalw],
-@racket[make-ephemeron-hasheqv], or @racket[make-ephemeron-hasheq].
-For values that do not refer to keys,
-there is a modest extra cost to using an ephemeron hash table instead
-of a weak hash table, but prefer an ephemeron hash table when in
-doubt.
+请注意，弱 hash table 中的值是正常保留的。如果表中的某个值
+反向引用了它的键，则该表将保留该值以及该键；即使该键在其他地方
+变得不可达，该映射也永远不会从表中移除。要避免这个问题，
+请使用由 @racket[make-ephemeron-hash]、@racket[make-ephemeron-hashalw]、
+@racket[make-ephemeron-hasheqv] 或 @racket[make-ephemeron-hasheq] 创建的
+ephemeron hash table。对于不引用键的值，使用 ephemeron hash table 而非
+弱 hash table 只有适度的额外开销，但在有疑问时优先选择 ephemeron hash table。
 
-@history[#:changed "8.5.0.3" @elem{Added @racket[make-weak-hashalw].}]}
+@history[#:changed "8.5.0.3" @elem{添加了 @racket[make-weak-hashalw]。}]}
 
 
 @deftogether[(
@@ -249,21 +184,18 @@ doubt.
 @defproc[(make-ephemeron-hasheq [assocs (listof pair?) null]) (and/c hash? hash-eq? (not/c immutable?) hash-ephemeron?)]
 )]{
 
-Like @racket[make-hash], @racket[make-hasheq],
-@racket[make-hasheqv], and @racket[make-hashalw],
-but creates a mutable hash table that holds
-keys-value combinations in the same way as an @tech{ephemeron}.
+类似于 @racket[make-hash]、@racket[make-hasheq]、
+@racket[make-hasheqv] 和 @racket[make-hashalw]，
+但创建一个以与 @tech{ephemeron} 相同的方式持有键值组合的可变 hash table。
 
-Using an ephemeron hash table is like using a weak hash table and
-mapping each key to a @tech{ephemeron} that pairs the key and value.
-An advantage of an ephemeron hash table is that the value need not be
-extracted with @racket[ephemeron-value] from the result of functions
-like @racket[hash-ref]. An ephemeron hash table might also be
-represented more compactly than a weak hash table with explicit
-@tech{ephemeron} values.
+使用 ephemeron hash table 类似于使用弱 hash table 并将每个键映射到
+一个配对键和值的 @tech{ephemeron}。ephemeron hash table 的一个优点是
+不需要从 @racket[hash-ref] 等函数的结果中通过 @racket[ephemeron-value] 来
+提取值。ephemeron hash table 的表示也可能比具有显式 @tech{ephemeron} 值的
+弱 hash table 更紧凑。
 
 @history[#:added "8.0.0.10"
-         #:changed "8.5.0.3" @elem{Added @racket[make-ephemeron-hashalw].}]}
+         #:changed "8.5.0.3" @elem{添加了 @racket[make-ephemeron-hashalw]。}]}
 
 @deftogether[(
 @defproc[(make-immutable-hash [assocs (listof pair?) null])
@@ -276,21 +208,21 @@ represented more compactly than a weak hash table with explicit
          (and/c hash? hash-eq? immutable? hash-strong?)]
 )]{
 
-Like @racket[hash], @racket[hashalw], @racket[hasheq], and
-@racket[hasheqv], but accepts
-the key--value mapping in association-list form like
-@racket[make-hash], @racket[make-hashalw], @racket[make-hasheq], and
-@racket[make-hasheqv].
+类似于 @racket[hash]、@racket[hashalw]、@racket[hasheq] 和
+@racket[hasheqv]，但接受
+关联列表形式的键值映射，就像
+@racket[make-hash]、@racket[make-hashalw]、@racket[make-hasheq] 和
+@racket[make-hasheqv] 一样。
 
-@history[#:changed "8.5.0.3" @elem{Added @racket[make-immutable-hashalw].}]}
+@history[#:changed "8.5.0.3" @elem{添加了 @racket[make-immutable-hashalw]。}]}
 
 
 @defproc[(hash-set! [hash (and/c hash? (not/c immutable?))]
                     [key any/c]
                     [v any/c]) void?]{
 
-Maps @racket[key] to @racket[v] in @racket[hash], overwriting
-any existing mapping for @racket[key].
+在 @racket[hash] 中将 @racket[key] 映射到 @racket[v]，覆盖
+@racket[key] 的任何现有映射。
 
 @see-also-caveats[]}
 
@@ -300,9 +232,9 @@ any existing mapping for @racket[key].
                      ...
                      ...) void?]{
 
-Maps each @racket[key] to each @racket[v] in @racket[hash], overwriting
-any existing mapping for each @racket[key]. Mappings are added from the left, so
-later mappings overwrite earlier mappings.
+在 @racket[hash] 中将每个 @racket[key] 映射到每个 @racket[v]，覆盖
+每个 @racket[key] 的任何现有映射。映射从左到右添加，因此
+后面的映射覆盖前面的映射。
 
 @see-also-caveats[]}
 
@@ -312,9 +244,9 @@ later mappings overwrite earlier mappings.
                    [v any/c])
           (and/c hash? immutable?)]{
 
-Functionally extends @racket[hash] by mapping @racket[key] to
-@racket[v], overwriting any existing mapping for @racket[key], and
-returning the extended hash table.
+通过将 @racket[key] 映射到
+@racket[v] 来函数式扩展 @racket[hash]，覆盖 @racket[key] 的任何现有映射，并
+返回扩展后的 hash table。
 
 @see-also-mutable-key-caveat[]}
 
@@ -325,10 +257,10 @@ returning the extended hash table.
                     ...)
           (and/c hash? immutable?)]{
 
-Functionally extends @racket[hash] by mapping each @racket[key] to
-@racket[v], overwriting any existing mapping for each @racket[key], and
-returning the extended hash table. Mappings are added from the left, so
-later mappings overwrite earlier mappings.
+通过将每个 @racket[key] 映射到
+@racket[v] 来函数式扩展 @racket[hash]，覆盖每个 @racket[key] 的任何现有映射，并
+返回扩展后的 hash table。映射从左到右添加，因此
+后面的映射覆盖前面的映射。
 
 @see-also-mutable-key-caveat[]}
 
@@ -339,16 +271,15 @@ later mappings overwrite earlier mappings.
                                      (raise (make-exn:fail:contract ....)))])
          any]{
 
-Returns the value for @racket[key] in @racket[hash]. If no value
-is found for @racket[key], then @racket[failure-result] determines the
-result: 
+返回 @racket[hash] 中 @racket[key] 对应的值。如果未找到
+@racket[key] 的值，则 @racket[failure-result] 决定结果：
 
 @itemize[
 
- @item{If @racket[failure-result] is a procedure, it is called
-       (through a tail call) with no arguments to produce the result.}
+ @item{如果 @racket[failure-result] 是一个过程，则通过尾调用
+       不带参数调用它来产生结果。}
 
- @item{Otherwise, @racket[failure-result] is returned as the result.}
+ @item{否则，@racket[failure-result] 作为结果返回。}
 
 ]
 
@@ -361,14 +292,11 @@ result:
                                          (raise (make-exn:fail:contract ....)))])
          any]{
 
-Returns the key held by @racket[hash] that is equivalent to @racket[key]
-according to @racket[hash]'s key-comparison function. If no key is found,
-then @racket[failure-result] is used as in @racket[hash-ref] to determine
-the result.
+返回 @racket[hash] 持有的与 @racket[key] 根据 @racket[hash] 的键比较函数等价的键。如果未找到键，
+则按 @racket[hash-ref] 中的方式使用 @racket[failure-result] 来确定结果。
 
-If @racket[hash] is not an @tech{impersonator}, then the returned key,
-assuming it is found, will be @racket[eq?]-equivalent to the one
-actually retained by @racket[hash]:
+如果 @racket[hash] 不是 @tech{impersonator}，则返回的键
+（假设找到的话）将与 @racket[hash] 实际持有的键是 @racket[eq?] 等价的：
 
 @examples[
 #:eval the-eval
@@ -385,9 +313,8 @@ actually retained by @racket[hash]:
 (eq? (hash-ref-key table "hello") key-copy)
 ]
 
-If a mutable hash is updated multiple times using keys that are
-not @racket[eq?]-equivalent but are equivalent according to the
-hash's key-comparison procedure, the hash retains the first one:
+如果可变 hash 使用不是 @racket[eq?] 等价但根据
+hash 的键比较过程等价的键多次更新，hash 保留第一个键：
 
 @examples[
 #:eval the-eval
@@ -402,8 +329,7 @@ hash's key-comparison procedure, the hash retains the first one:
 (eq? (hash-ref-key table "hello") key-copy)
 ]
 
-Conversely, an immutable hash retains the key that was most-recently
-used to update it:
+相反，不可变 hash 保留最近用于更新它的键：
 @examples[
 #:eval the-eval
 (define original-key "hello")
@@ -417,9 +343,8 @@ used to update it:
 (eq? (hash-ref-key table2 "hello") key-copy)
 ]
 
-If @racket[hash] is an @tech{impersonator}, then the returned key
-will be determined as described in the documentation to
-@racket[impersonate-hash].
+如果 @racket[hash] 是 @tech{impersonator}，则返回的键
+将按 @racket[impersonate-hash] 文档中描述的方式确定。
 
 @see-also-caveats[]
 
@@ -428,12 +353,11 @@ will be determined as described in the documentation to
 @defproc[(hash-ref! [hash hash?] [key any/c] [to-set failure-result/c])
          any]{
 
-Returns the value for @racket[key] in @racket[hash].  If no value is
-found for @racket[key], then @racket[to-set] determines the result as
-in @racket[hash-ref] (i.e., it is either a thunk that computes a value
-or a plain value), and this result is stored in @racket[hash] for the
-@racket[key].  (Note that if @racket[to-set] is a thunk, it is not
-invoked in tail position.)
+返回 @racket[hash] 中 @racket[key] 对应的值。如果未找到
+@racket[key] 的值，则 @racket[to-set] 按 @racket[hash-ref] 中的方式
+确定结果（即它是一个计算值的 thunk 或一个普通值），并且该结果
+被存储在 @racket[hash] 中对应 @racket[key] 的位置。（注意如果
+@racket[to-set] 是 thunk，它不是在尾部位置调用的。）
 
 @see-also-caveats[]}
 
@@ -441,8 +365,8 @@ invoked in tail position.)
 @defproc[(hash-has-key? [hash hash?] [key any/c])
          boolean?]{
 
-Returns @racket[#t] if @racket[hash] contains a value for the given
-@racket[key], @racket[#f] otherwise.}
+如果 @racket[hash] 包含给定 @racket[key] 的值则返回 @racket[#t]，
+否则返回 @racket[#f]。}
 
 
 @defproc[(hash-update! [hash (and/c hash? (not/c immutable?))]
@@ -453,9 +377,9 @@ Returns @racket[#t] if @racket[hash] contains a value for the given
                           (raise (make-exn:fail:contract ....)))])
          void?]{
 
- Updates the value mapped by @racket[key] in @racket[hash] by applying @racket[updater] to the value.
- The value returned by @racket[updater] becomes the new mapping for @racket[key], overwriting the
- original value in @racket[hash].
+ 通过将 @racket[updater] 应用于值来更新 @racket[hash] 中 @racket[key] 映射的值。
+ @racket[updater] 返回的值成为 @racket[key] 的新映射，覆盖
+ @racket[hash] 中的原始值。
 
  @(examples
    #:eval the-eval
@@ -466,8 +390,8 @@ Returns @racket[#t] if @racket[hash] contains a value for the given
    (hash-update! h 'a add1)
    h)
 
- The optional @racket[failure-result] argument is used when no mapping exists for @racket[key]
- already, in the same manner as in @racket[hash-ref].
+ 可选参数 @racket[failure-result] 在 @racket[key] 尚无映射时使用，
+ 方式与 @racket[hash-ref] 中相同。
 
  @(examples
    #:eval the-eval
@@ -489,9 +413,9 @@ Returns @racket[#t] if @racket[hash] contains a value for the given
                          (raise (make-exn:fail:contract ....)))])
          (and/c hash? immutable?)]{
 
- Functionally updates the value mapped by @racket[key] in @racket[hash] by applying @racket[updater]
- to the value and returning a new hash table. The value returned by @racket[updater] becomes the new
- mapping for @racket[key] in the returned hash table.
+ 通过将 @racket[updater] 应用于值来函数式更新 @racket[hash] 中 @racket[key] 映射的值，
+ 并返回新的 hash table。@racket[updater] 返回的值成为返回的 hash table 中
+ @racket[key] 的新映射。
 
  @(examples
    #:eval the-eval
@@ -500,8 +424,8 @@ Returns @racket[#t] if @racket[hash] contains a value for the given
    
    (hash-update h 'a add1))
 
- The optional @racket[failure-result] argument is used when no mapping exists for @racket[key]
- already, in the same manner as in @racket[hash-ref].
+ 可选参数 @racket[failure-result] 在 @racket[key] 尚无映射时使用，
+ 方式与 @racket[hash-ref] 中相同。
 
  @(examples
    #:eval the-eval
@@ -518,7 +442,7 @@ Returns @racket[#t] if @racket[hash] contains a value for the given
                        [key any/c])
          void?]{
 
-Removes any existing mapping for @racket[key] in @racket[hash].
+移除 @racket[hash] 中 @racket[key] 的任何现有映射。
 
 @see-also-caveats[]}
 
@@ -527,8 +451,8 @@ Removes any existing mapping for @racket[key] in @racket[hash].
                       [key any/c])
          (and/c hash? immutable?)]{
 
-Functionally removes any existing mapping for @racket[key] in
-@racket[hash], returning the fresh hash table.
+函数式地移除 @racket[hash] 中 @racket[key] 的任何现有映射，
+返回新的 hash table。
 
 @see-also-mutable-key-caveat[]}
 
@@ -536,11 +460,10 @@ Functionally removes any existing mapping for @racket[key] in
 @defproc[(hash-clear! [hash (and/c hash? (not/c immutable?))])
          void?]{
 
-Removes all mappings from @racket[hash].
+移除 @racket[hash] 中的所有映射。
 
-If @racket[hash] is not an @tech{impersonator}, then all mappings are
-removed in constant time. If @racket[hash] is an @tech{impersonator},
-then each key is removed one-by-one using @racket[hash-remove!].
+如果 @racket[hash] 不是 @tech{impersonator}，则所有映射在常数时间内移除。如果 @racket[hash] 是 @tech{impersonator}，
+则每个键通过 @racket[hash-remove!] 逐一移除。
 
 @see-also-caveats[]}
 
@@ -548,12 +471,11 @@ then each key is removed one-by-one using @racket[hash-remove!].
 @defproc[(hash-clear [hash (and/c hash? immutable?)])
          (and/c hash? immutable?)]{
 
-Functionally removes all mappings from @racket[hash].
+函数式地移除 @racket[hash] 中的所有映射。
 
-If @racket[hash] is not a @tech{chaperone}, then clearing is
-equivalent to creating a new @tech{hash table}, and the operation is
-performed in constant time.  If @racket[hash] is a @tech{chaperone},
-then each key is removed one-by-one using @racket[hash-remove].}
+如果 @racket[hash] 不是 @tech{chaperone}，则清除操作
+等价于创建一个新的 @tech{hash table}，该操作在常数时间内执行。如果 @racket[hash] 是 @tech{chaperone}，
+则每个键通过 @racket[hash-remove] 逐一移除。}
 
 
 @defproc[(hash-copy-clear
@@ -561,19 +483,17 @@ then each key is removed one-by-one using @racket[hash-remove].}
           [#:kind kind (or/c #f 'immutable 'mutable 'weak 'ephemeron) #f])
          hash?]{
 
-Produces an empty @tech{hash table} with the same key-comparison
-procedure as @racket[hash], with either the given @racket[kind]
-or the same kind as the given @racket[hash].
+生成一个与 @racket[hash] 具有相同键比较过程的空 @tech{hash table}，
+使用给定的 @racket[kind] 或与给定 @racket[hash] 相同的类型。
 
-If @racket[kind] is not supplied or @racket[#f], produces a hash
-table of the same kind and mutability as the given @racket[hash].
-If @racket[kind] is @racket['immutable], @racket['mutable],
-@racket['weak], or @racket['ephemeron], produces a table that's
-immutable, mutable with strongly-held keys, mutable with
-weakly-held keys, or mutable with ephemeron-held keys
-respectively.
+如果未提供 @racket[kind] 或 @racket[#f]，则生成与给定 @racket[hash]
+相同类型和可变性的 hash table。
+如果 @racket[kind] 是 @racket['immutable]、@racket['mutable]、
+@racket['weak] 或 @racket['ephemeron]，则分别生成
+不可变的、以强引用方式持有键的可变的、
+以弱引用方式持有键的可变的、或以 ephemeron 方式持有键的可变的表。
 
-@history[#:changed "8.5.0.2" @elem{Added the @racket[kind] argument.}]}
+@history[#:changed "8.5.0.2" @elem{添加了 @racket[kind] 参数。}]}
 
 
 
@@ -582,45 +502,38 @@ respectively.
                    [try-order? any/c #f])
          (listof any/c)]{
 
-Applies the procedure @racket[proc] to each element in
-@racket[hash] in an unspecified order, accumulating the results
-into a list. The procedure @racket[proc] is called each time with a
-key and its value, and the procedure's individual results appear in
-order in the result list.
+以未指定的顺序将过程 @racket[proc] 应用于
+@racket[hash] 中的每个元素，将结果累积到列表中。过程 @racket[proc] 每次被调用时
+接收一个键和它的值，过程的各个结果按顺序出现在结果列表中。
 
-If a hash table is extended with new keys (either through
-@racket[proc] or by another thread) while a @racket[hash-map] or
-@racket[hash-for-each] traversal is in process, arbitrary key--value
-pairs can be dropped or duplicated in the traversal. Key mappings can
-be deleted or remapped (by any thread) with no adverse affects; the
-change does not affect a traversal if the key has been seen already,
-otherwise the traversal skips a deleted key or uses the remapped key's
-new value.
+如果在 @racket[hash-map] 或
+@racket[hash-for-each] 遍历进行期间，hash table 被扩展了新键（通过
+@racket[proc] 或由另一个线程），遍历中可能会丢弃或重复任意键值对。键映射可以
+被删除或重新映射（由任何线程）而不会产生不良影响；如果键已经被看到，
+更改不会影响遍历，否则遍历会跳过已删除的键或使用重新映射的键的新值。
 
 @see-also-concurrency-caveat[]
 
-If @racket[try-order?] is true, then the order of keys and values
-passed to @racket[proc] is normalized under certain
-circumstances---including when every key is one of the following and
-with the following order (earlier bullets before later):
+如果 @racket[try-order?] 为真，则传递给 @racket[proc] 的键和值的顺序在某些情况下
+会被规范化——包括当每个键是以下类型之一时，按以下顺序（前面的项目排在后面的项目之前）：
 
 @itemlist[
- @item{@tech{booleans} sorted @racket[#f] before @racket[#t];}
- @item{@tech{characters} sorted by @racket[char<?];}
- @item{@tech{real numbers} sorted by @racket[<];}
- @item{@tech{symbols} sorted with @tech{uninterned} symbols before
-       @tech{unreadable symbols} before @tech{interned} symbols,
-       then sorted by @racket[symbol<?];}
- @item{@tech{keywords} sorted by @racket[keyword<?];}
- @item{@tech{strings} sorted by @racket[string<?];}
- @item{@tech{byte strings} sorted by @racket[bytes<?];}
- @item{@racket[null];}
- @item{@|void-const|; and}
- @item{@racket[eof].}
+ @item{@tech{booleans} 按 @racket[#f] 排在 @racket[#t] 之前排序；}
+ @item{@tech{characters} 按 @racket[char<?] 排序；}
+ @item{@tech{real numbers} 按 @racket[<] 排序；}
+ @item{@tech{symbols} 按 @tech{uninterned} symbols 排在
+       @tech{unreadable symbols} 之前，再排在 @tech{interned} symbols 之前，
+       然后按 @racket[symbol<?] 排序；}
+ @item{@tech{keywords} 按 @racket[keyword<?] 排序；}
+ @item{@tech{strings} 按 @racket[string<?] 排序；}
+ @item{@tech{byte strings} 按 @racket[bytes<?] 排序；}
+ @item{@racket[null]；}
+ @item{@|void-const|；以及}
+ @item{@racket[eof]。}
 ]
 
-@history[#:changed "6.3" @elem{Added the @racket[try-order?] argument.}
-         #:changed "7.1.0.7" @elem{Added guarantees for @racket[try-order?].}]}
+@history[#:changed "6.3" @elem{添加了 @racket[try-order?] 参数。}
+         #:changed "7.1.0.7" @elem{添加了对 @racket[try-order?] 的保证。}]}
 
 @defproc[(hash-map/copy
           [hash hash?]
@@ -628,19 +541,17 @@ with the following order (earlier bullets before later):
           [#:kind kind (or/c #f 'immutable 'mutable 'weak 'ephemeron) #f])
          hash?]{
 
-Applies the procedure @racket[proc] to each element in
-@racket[hash] in an unspecified order, accumulating the results
-into a new hash with the same key-comparison procedure as
-@racket[hash], with either the given @racket[kind] or the same
-kind as the given @racket[hash].
+以未指定的顺序将过程 @racket[proc] 应用于
+@racket[hash] 中的每个元素，将结果累积到一个与 @racket[hash]
+具有相同键比较过程的新 hash 中，使用给定的 @racket[kind] 或与给定
+@racket[hash] 相同的类型。
 
-If @racket[kind] is not supplied or @racket[#f], produces a hash
-table of the same kind and mutability as the given @racket[hash].
-If @racket[kind] is @racket['immutable], @racket['mutable],
-@racket['weak], or @racket['ephemeron], produces a table that's
-immutable, mutable with strongly-held keys, mutable with
-weakly-held keys, or mutable with ephemeron-held keys
-respectively.
+如果未提供 @racket[kind] 或 @racket[#f]，则生成与给定 @racket[hash]
+相同类型和可变性的 hash table。
+如果 @racket[kind] 是 @racket['immutable]、@racket['mutable]、
+@racket['weak] 或 @racket['ephemeron]，则分别生成
+不可变的、以强引用方式持有键的可变的、
+以弱引用方式持有键的可变的、或以 ephemeron 方式持有键的可变的表。
 
 @examples[
 #:eval the-eval
@@ -658,49 +569,43 @@ frozen-capital
 
 @defproc[(hash-keys [hash hash?] [try-order? any/c #f])
          (listof any/c)]{
-Returns a list of the keys of @racket[hash] in an unspecified order.
+以未指定的顺序返回 @racket[hash] 的键列表。
 
-If @racket[try-order?] is true, then the order of keys is normalized under
-certain circumstances.  See @racket[hash-map] for further explanations on
-@racket[try-order?] and on information about modifying @racket[hash] during
-@racket[hash-keys]. @see-also-concurrency-caveat[]
+如果 @racket[try-order?] 为真，则键的顺序在某些情况下会被规范化。关于
+@racket[try-order?] 的进一步说明以及在 @racket[hash-keys] 期间修改 @racket[hash] 的信息，
+请参见 @racket[hash-map]。@see-also-concurrency-caveat[]
 
-@history[#:changed "8.3.0.11" @elem{Added the @racket[_try-order?] argument.}]}
+@history[#:changed "8.3.0.11" @elem{添加了 @racket[_try-order?] 参数。}]}
 
 @defproc[(hash-values [hash hash?] [try-order? any/c #f])
          (listof any/c)]{
-Returns a list of the values of @racket[hash] in an unspecified order.
+以未指定的顺序返回 @racket[hash] 的值列表。
 
-If @racket[try-order?] is true, then the order of values is normalized under
-certain circumstances, based on the ordering of the associated keys.
-See @racket[hash-map] for further explanations on @racket[try-order?] and on
-information about modifying @racket[hash] during
-@racket[hash-values]. @see-also-concurrency-caveat[]
+如果 @racket[try-order?] 为真，则值的顺序在某些情况下会根据关联键的排序被规范化。
+关于 @racket[try-order?] 的进一步说明以及在 @racket[hash-values] 期间
+修改 @racket[hash] 的信息，请参见 @racket[hash-map]。@see-also-concurrency-caveat[]
 
-@history[#:changed "8.3.0.11" @elem{Added the @racket[_try-order?] argument.}]}
+@history[#:changed "8.3.0.11" @elem{添加了 @racket[_try-order?] 参数。}]}
 
 @defproc[(hash->list [hash hash?] [try-order? any/c #f])
          (listof (cons/c any/c any/c))]{
-Returns a list of the key--value pairs of @racket[hash] in an unspecified order.
+以未指定的顺序返回 @racket[hash] 的键值对列表。
 
-If @racket[try-order?] is true, then the order of keys and values is normalized
-under certain circumstances. See @racket[hash-map] for further explanations on
-@racket[try-order?] and on information about modifying @racket[hash] during
-@racket[hash->list]. @see-also-concurrency-caveat[]
+如果 @racket[try-order?] 为真，则键和值的顺序在某些情况下会被规范化。
+关于 @racket[try-order?] 的进一步说明以及在 @racket[hash->list] 期间
+修改 @racket[hash] 的信息，请参见 @racket[hash-map]。@see-also-concurrency-caveat[]
 
-@history[#:changed "8.3.0.11" @elem{Added the @racket[_try-order?] argument.}]}
+@history[#:changed "8.3.0.11" @elem{添加了 @racket[_try-order?] 参数。}]}
 
 @defproc[(hash-keys-subset? [hash1 hash?] [hash2 hash?])
          boolean?]{
-Returns @racket[#t] if the keys of @racket[hash1] are a subset of or
-the same as the keys of @racket[hash2]. The hash tables must both use
-the same key-comparison function (@racket[equal?],
-@racket[equal-always?], @racket[eqv?], or @racket[eq?]), otherwise the
-@exnraise[exn:fail:contract].
+如果 @racket[hash1] 的键是 @racket[hash2] 的键的子集或相同则返回 @racket[#t]。两个 hash table 必须使用
+相同的键比较函数（@racket[equal?]、
+@racket[equal-always?]、@racket[eqv?] 或 @racket[eq?]），否则
+@exnraise[exn:fail:contract]。
 
-Using @racket[hash-keys-subset?] on immutable hash tables can be much
-faster than iterating through the keys of @racket[hash1] to make sure
-that each is in @racket[hash2].
+对不可变 hash table 使用 @racket[hash-keys-subset?] 可能比
+遍历 @racket[hash1] 的键以确保每个键都在 @racket[hash2] 中快得多。
 
 @history[#:added "6.5.0.8"]}
 
@@ -709,72 +614,65 @@ that each is in @racket[hash2].
                         [try-order? any/c #f])
          void?]{
 
-Applies @racket[proc] to each element in @racket[hash] (for the
-side-effects of @racket[proc]) in an unspecified order. The procedure
-@racket[proc] is called each time with a key and its value.
+以未指定的顺序将 @racket[proc] 应用于 @racket[hash] 中的每个元素
+（为了 @racket[proc] 的副作用）。过程 @racket[proc] 每次被调用时
+接收一个键和它的值。
 
-See @racket[hash-map] for information about @racket[try-order?] and
-about modifying @racket[hash] within @racket[proc].
+关于 @racket[try-order?] 以及在 @racket[proc] 中修改 @racket[hash] 的信息，
+请参见 @racket[hash-map]。
 @see-also-concurrency-caveat[]
 
-@history[#:changed "6.3" @elem{Added the @racket[try-order?] argument.}
-         #:changed "7.1.0.7" @elem{Added guarantees for @racket[try-order?].}]}
+@history[#:changed "6.3" @elem{添加了 @racket[try-order?] 参数。}
+         #:changed "7.1.0.7" @elem{添加了对 @racket[try-order?] 的保证。}]}
 
 
 @defproc[(hash-count [hash hash?])
          exact-nonnegative-integer?]{
 
-Returns the number of keys mapped by @racket[hash].
+返回 @racket[hash] 映射的键数。
 
-For the @tech{CS} implementation of Racket, the result is always
-computed in constant time and atomically. For the @tech{BC} implementation
-of Racket, the result is computed in constant time and atomically only if
-@racket[hash] does not retain keys weakly or like an @tech{ephemeron},
-otherwise, a traversal is required to count the keys.}
+对于 Racket 的 @tech{CS} 实现，结果始终在常数时间内原子地计算。对于 Racket 的 @tech{BC} 实现，
+仅当 @racket[hash] 不以弱引用或类似 @tech{ephemeron} 的方式保留键时，
+结果才在常数时间内原子地计算，
+否则需要遍历来计算键数。}
 
 
 @defproc[(hash-empty? [hash hash?]) boolean?]{
 
-Equivalent to @racket[(zero? (hash-count hash))].}
+等价于 @racket[(zero? (hash-count hash))]。}
 
 
 @defproc[(hash-iterate-first [hash hash?])
          (or/c #f exact-nonnegative-integer?)]{
 
-Returns @racket[#f] if @racket[hash] contains no elements, otherwise
-it returns an integer that is an index to the first element in the hash
-table; ``first'' refers to an unspecified ordering of the table
-elements, and the index values are not necessarily consecutive
-integers.
+如果 @racket[hash] 不包含元素则返回 @racket[#f]，否则
+返回一个整数作为 hash table 中第一个元素的索引；"第一"指的是
+表元素的未指定排序，索引值不一定是连续的
+整数。
 
-For a mutable @racket[hash], this index is guaranteed to refer to the
-first item only as long as no items are added to or removed from
-@racket[hash]. More generally, an index is guaranteed to be a
-@deftech{valid hash index} for a given hash table only as long it
-comes from @racket[hash-iterate-first] or @racket[hash-iterate-next],
-and only as long as the hash table is not modified. In the case of a
-hash table with weakly held keys or keys held like @tech{ephemerons},
-the hash table can be implicitly modified by the garbage collector
-(see @secref["gc-model"]) when it discovers that the key is not
-reachable.}
+对于可变 @racket[hash]，只要没有项目被添加到 @racket[hash] 或从其中移除，
+该索引就保证指向第一项。更一般地说，索引只有在来自
+@racket[hash-iterate-first] 或 @racket[hash-iterate-next] 且 hash table 未被修改的情况下
+才保证是给定 hash table 的 @deftech{valid hash index}。对于
+以弱引用方式持有键或以类似 @tech{ephemerons} 方式持有键的 hash table，
+当垃圾回收器发现键不可达时，hash table 可能会被隐式修改
+（参见 @secref["gc-model"]）。}
 
 
 @defproc[(hash-iterate-next [hash hash?]
                             [pos exact-nonnegative-integer?])
          (or/c #f exact-nonnegative-integer?)]{
 
-Returns either an integer that is an index to the element in
-@racket[hash] after the element indexed by @racket[pos] (which is not
-necessarily one more than @racket[pos]) or @racket[#f] if @racket[pos]
-refers to the last element in @racket[hash].
+返回一个整数作为 @racket[hash] 中由 @racket[pos] 索引的元素之后
+的元素的索引（不一定比 @racket[pos] 大一），如果 @racket[pos]
+指向 @racket[hash] 中的最后一个元素则返回 @racket[#f]。
 
-If @racket[pos] is not a @tech{valid hash index} of @racket[hash],
-then the result may be @racket[#f] or it may be the next later index
-that remains valid. The latter result is guaranteed if a hash table
-has been modified only by the removal of keys.
+如果 @racket[pos] 不是 @racket[hash] 的 @tech{valid hash index}，
+则结果可能是 @racket[#f] 或者是仍然有效的下一个索引。
+如果 hash table 仅通过删除键来修改，则保证为后一种结果。
 
-@history[#:changed "7.0.0.10" @elem{Handle an invalid index by returning @scheme[#f]
-                                    instead of raising @racket[exn:fail:contract].}]}
+@history[#:changed "7.0.0.10" @elem{处理无效索引时返回 @scheme[#f]
+                                    而不是引发 @racket[exn:fail:contract]。}]}
 
 
 @deftogether[(
@@ -788,14 +686,13 @@ has been modified only by the removal of keys.
          any/c]
 )]{
          
-Returns the key for the element in @racket[hash] at index
-@racket[pos].
+返回 @racket[hash] 中索引 @racket[pos] 处元素的键。
 
-If @racket[pos] is not a @tech{valid hash index} for @racket[hash],
-the result is @racket[bad-index-v] if provided, otherwise the
-@exnraise[exn:fail:contract].
+如果 @racket[pos] 不是 @racket[hash] 的 @tech{valid hash index}，
+则如果提供了 @racket[bad-index-v] 则返回该值，否则
+@exnraise[exn:fail:contract]。
 
-@history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
+@history[#:changed "7.0.0.10" @elem{添加了可选参数 @racket[bad-index-v]。}]}
 
 
 @deftogether[(
@@ -809,14 +706,13 @@ the result is @racket[bad-index-v] if provided, otherwise the
          any]
 )]{
 
-Returns the value for the element in @racket[hash] at index
-@racket[pos].
+返回 @racket[hash] 中索引 @racket[pos] 处元素的值。
 
-If @racket[pos] is not a @tech{valid hash index} for @racket[hash],
-the result is @racket[bad-index-v] if provided, otherwise the
-@exnraise[exn:fail:contract].
+如果 @racket[pos] 不是 @racket[hash] 的 @tech{valid hash index}，
+则如果提供了 @racket[bad-index-v] 则返回该值，否则
+@exnraise[exn:fail:contract]。
 
-@history[#:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
+@history[#:changed "7.0.0.10" @elem{添加了可选参数 @racket[bad-index-v]。}]}
 
 
 
@@ -831,16 +727,14 @@ the result is @racket[bad-index-v] if provided, otherwise the
          (cons any/c any/c)]
 )]{
 
-Returns a pair containing the key and value for the element 
-in @racket[hash] at index @racket[pos].
+返回包含 @racket[hash] 中索引 @racket[pos] 处元素的键和值的 pair。
 
-If @racket[pos] is not a @tech{valid hash index} for @racket[hash],
-the result is @racket[(cons bad-index-v bad-index-v)] if
-@racket[bad-index-v] is provided, otherwise the
-@exnraise[exn:fail:contract].
+如果 @racket[pos] 不是 @racket[hash] 的 @tech{valid hash index}，
+则如果提供了 @racket[bad-index-v] 则返回 @racket[(cons bad-index-v bad-index-v)]，否则
+@exnraise[exn:fail:contract]。
 
 @history[#:added "6.4.0.5"
-         #:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
+         #:changed "7.0.0.10" @elem{添加了可选参数 @racket[bad-index-v]。}]}
 
 
 @deftogether[(
@@ -854,23 +748,20 @@ the result is @racket[(cons bad-index-v bad-index-v)] if
          (values any/c any/c)]
 )]{
 
-Returns the key and value for the element in @racket[hash] at index
-@racket[pos].
+返回 @racket[hash] 中索引 @racket[pos] 处元素的键和值。
 
-If @racket[pos] is not a @tech{valid hash index} for @racket[hash],
-the result is @racket[(values bad-index-v bad-index-v)] if
-@racket[bad-index-v] is provided, otherwise the
-@exnraise[exn:fail:contract].
+如果 @racket[pos] 不是 @racket[hash] 的 @tech{valid hash index}，
+则如果提供了 @racket[bad-index-v] 则返回 @racket[(values bad-index-v bad-index-v)]，否则
+@exnraise[exn:fail:contract]。
 
 @history[#:added "6.4.0.5"
-         #:changed "7.0.0.10" @elem{Added the optional @racket[bad-index-v] argument.}]}
+         #:changed "7.0.0.10" @elem{添加了可选参数 @racket[bad-index-v]。}]}
 
 
 @defproc[(hash-copy [hash hash?]) 
          (and/c hash? (not/c immutable?))]{
 
-Returns a mutable hash table with the same mappings, same
-key-comparison mode, and same key-holding strength as @racket[hash].}
+返回一个与 @racket[hash] 具有相同映射、相同键比较模式和相同键持有强度的可变 hash table。}
 
 @;------------------------------------------------------------------------
 @section{Additional Hash Table Functions}
@@ -892,11 +783,11 @@ key-comparison mode, and same key-holding strength as @racket[hash].}
                                     (lambda (k a b) (combine a b))])
          (and/c hash? immutable?)]{
 
-Computes the union of @racket[h0] with each hash table @racket[h] by functional
-update, adding each element of each @racket[h] to @racket[h0] in turn.  For each
-key @racket[k] and value @racket[v], if a mapping from @racket[k] to some value
-@racket[v0] already exists, it is replaced with a mapping from @racket[k] to
-@racket[(combine/key k v0 v)].
+通过函数式更新计算 @racket[h0] 与每个 hash table @racket[h] 的并集，
+依次将每个 @racket[h] 的每个元素添加到 @racket[h0]。对于每个
+键 @racket[k] 和值 @racket[v]，如果从 @racket[k] 到某个值
+@racket[v0] 的映射已经存在，则将其替换为从 @racket[k] 到
+@racket[(combine/key k v0 v)] 的映射。
 
 @examples[
 #:eval the-eval
@@ -920,11 +811,11 @@ key @racket[k] and value @racket[v], if a mapping from @racket[k] to some value
                                      (lambda (k a b) (combine a b))])
          void?]{
 
-Computes the union of @racket[h0] with each hash table @racket[h] by mutable
-update, adding each element of each @racket[h] to @racket[h0] in turn.  For each
-key @racket[k] and value @racket[v], if a mapping from @racket[k] to some value
-@racket[v0] already exists, it is replaced with a mapping from @racket[k] to
-@racket[(combine/key k v0 v)].
+通过可变更新计算 @racket[h0] 与每个 hash table @racket[h] 的并集，
+依次将每个 @racket[h] 的每个元素添加到 @racket[h0]。对于每个
+键 @racket[k] 和值 @racket[v]，如果从 @racket[k] 到某个值
+@racket[v0] 的映射已经存在，则将其替换为从 @racket[k] 到
+@racket[(combine/key k v0 v)] 的映射。
 
 @examples[
 #:eval the-eval
@@ -946,22 +837,19 @@ h
                                     (-> any/c any/c any/c)
                                     (lambda _ (error 'hash-intersect ...))]
                          [#:combine/key combine/key
-                                     	(-> any/c any/c any/c any/c)
-                                     	(lambda (k a b) (combine a b))])
+                                    	(-> any/c any/c any/c any/c)
+                                    	(lambda (k a b) (combine a b))])
 	 (and/c hash? immutable?)]{
 
-Constructs the hash table which is the intersection of @racket[h0]
-with every hash table @racket[h].  In the resulting hash table, a key
-@racket[k] is mapped to a combination of the values to which
-@racket[k] is mapped in each of the hash tables.  The final values are
-computed by stepwise combination of the values appearing in each of
-the hash tables by applying @racket[(combine/key k v vi)] or
-@racket[(combine v vi)], where @racket[vi] is the value to which
-@racket[k] is mapped in the i-th hash table @racket[h], and
-@racket[v] is the accumulation of the values from the previous steps.
-The comparison predicate of the first argument (@racket[eq?],
-@racket[eqv?], @racket[equal-always?], @racket[equal?]) determines the
-one for the result.
+构造 @racket[h0] 与每个 hash table @racket[h] 的交集 hash table。
+在结果 hash table 中，键 @racket[k] 映射到
+@racket[k] 在每个 hash table 中映射的值的组合。最终值
+通过对每个 hash table 中出现的值进行逐步组合来计算，
+方法是应用 @racket[(combine/key k v vi)] 或
+@racket[(combine v vi)]，其中 @racket[vi] 是 @racket[k] 在第 i 个
+hash table @racket[h] 中映射的值，@racket[v] 是前面步骤的累积值。
+第一个参数的比较谓词（@racket[eq?]、
+@racket[eqv?]、@racket[equal-always?]、@racket[equal?]）决定结果的比较谓词。
 
 @examples[
 #:eval the-eval

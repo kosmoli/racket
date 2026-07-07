@@ -15,27 +15,24 @@
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          id
-          #:id Rhode-Def-A]{
+@specspecsubform[identifier]{
 
 @racket[_provide-spec] 的最简单形式，指定模块内的一个绑定作为导出。该绑定可以来自局部定义或导入。
+
 }
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          (rename-out [orig-id export-id] ...)
-          #:id Rhode-Def-B]{
+@specspecsubform[#:literals(rename-out)
+                 (rename-out [orig-id export-id] ...)]{
 
 类似于直接指定标识符，但导出的绑定 @racket[orig-id] 被赋予不同的名称 @racket[export-id]，供导入模块使用。
 }
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          (struct-out struct-id)
-          #:id Rhode-Def-C]{
+@specspecsubform[#:literals(struct-out)
+                 (struct-out struct-id)]{
 
 @racket[struct-out] 导出由 @racket[(struct struct-id ...)] 创建的绑定。
 
@@ -44,9 +41,8 @@
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          (all-defined-out)
-          #:id Rhode-Def-D]{
+@specspecsubform[#:literals(all-defined-out)
+                 (all-defined-out)]{
 
 @racket[all-defined-out] 简写导出模块内定义的所有绑定（而不是导入的）。
 
@@ -55,9 +51,8 @@
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          (all-from-out module-path)
-          #:id Rhode-Def-E]{
+@specspecsubform[#:literals(all-from-out)
+                 (all-from-out module-path)]{
 
 @racket[all-from-out] 简写导出模块中所有使用基于 @racket[module-path] 的 @racket[_require-spec] 导入的绑定。
 
@@ -66,18 +61,16 @@
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          (except-out provide-spec ...)
-          #:id Rhode-Def-E1]{
+@specspecsubform[#:literals(except-out)
+                 (except-out provide-spec ...)]{
 
 类似于 @racket[provide-spec]，但省略指定的每个 @racket[id] 的导出，其中 @racket[id] 是要省略的导出的外部名称。
 }
 
 @;------------------------------------------------------------------------
 
-@specform[#:grammar
-          (prefix-out prefix-id provide-spec)
-          #:id Rhode-Def-E2]{
+@specspecsubform[#:literals(prefix-out)
+                 (prefix-out prefix-id provide-spec)]{
 
 类似于 @racket[provide-spec]，但在每个导出绑定的外部名称前添加 @racket[prefix-id]。
 }

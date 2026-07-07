@@ -23,7 +23,7 @@ Racket 的 module 系统与 @tech{macro} 系统密切协作，从而为 Racket �
       body))
 
   (define (show-arguments name args)
-    (printf "calling ~s with arguments ~e" name args))
+    (printf "calling ~s with arguments ~e" name args)))
 ]
 
 该模块提供的 @racket[define-noisy] 绑定是一个 @tech{macro}，它的行为类似于函数定义的 @racket[define]，不过会使得每次调用函数时打印出传给该函数的参数：
