@@ -70,17 +70,17 @@
 
 返回或设置 @racket[port] 的当前读/写位置。
 
-对除 @tech{file-stream port} 或 @tech{string port] 以外的端口调用
+对除 @tech{file-stream port} 或 @tech{string port} 以外的端口调用
 @racket[file-position] 而不带位置参数，如果已知位置（参见 @secref["linecol"]），
 则返回已从该端口读取的 bytes 数量，否则 @exnraise[exn:fail:filesystem]。
 
-对于 @tech{file-stream ports] 和 @tech{string ports]，位置设置变体
+对于 @tech{file-stream ports} 和 @tech{string ports}，位置设置变体
 将读/写位置设置为相对于文件开头的位置（如果 @racket[pos] 是数字），
 或设置为相对于文件末尾的位置（如果 @racket[pos] 是 @racket[eof]）。
 在位置设置模式下，@racket[file-position] 对除
-@tech{file-stream ports] 和 @tech{string ports] 以外的端口类型
-引发 @racket[exn:fail:contract] 异常。此外，并非所有 @tech{file-stream ports]
-都支持设置位置；如果在不支持位置设置的 @tech{file-stream port]
+@tech{file-stream ports} 和 @tech{string ports} 以外的端口类型
+引发 @racket[exn:fail:contract] 异常。此外，并非所有 @tech{file-stream ports}
+都支持设置位置；如果在不支持位置设置的 @tech{file-stream port}
 上调用带位置参数的 @racket[file-position]，则 @exnraise[exn:fail:filesystem]。
 
 当 @racket[file-position] 设置的位置超出输出文件或 (byte) string 的当前大小时，
