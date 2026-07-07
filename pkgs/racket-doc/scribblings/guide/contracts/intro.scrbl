@@ -152,12 +152,7 @@ second reference to @racket[amount] (fail)
 
 </pre> </table>
 
-<p><strong>Note:</strong> The above example is mostly self-explanatory. Take a
-look at the lines in red, however. Even though the call to @racket[do-it]
-sets @racket[amount] to -4, this action is <strong>not</strong> a contract
-violation. The contract violation takes place only when the client module
-(@racket[b]) refers to @racket[amount] again and the value flows across
-the module boundary for a second time. 
+<p><strong>注意：</strong>上面的例子基本上是不言自明的。然而，请看红色的几行。即使对 @racket[do-it] 的调用将 @racket[amount] 设置为 -4，这个动作<strong>不是</strong> contract violation。contract violation 仅在客户端模块（@racket[b]）再次引用 @racket[amount] 并且值第二次流经模块边界时才会发生。
 
 </question>
 @;}
