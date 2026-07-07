@@ -177,6 +177,7 @@
       [(_ x) #'(run-time-fact x)]))
   (fact 5)
   (fact (+ 2 3))]
+}
 
 
 @defparam[current-trace-print-results trace-print-results

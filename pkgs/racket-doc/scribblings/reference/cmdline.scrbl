@@ -186,7 +186,7 @@
     (multi
      [("-l" "--link-flags")
       ,(lambda (flag lf) (link-flags (cons lf (link-flags))))
-      ("Add a flag <lf> for the linker" "lf"))])
+      ("Add a flag <lf> for the linker" "lf")]))
    (lambda (flag-accum file) file)
    '("filename"))
 ]

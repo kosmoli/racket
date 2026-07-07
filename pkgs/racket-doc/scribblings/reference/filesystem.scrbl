@@ -949,7 +949,7 @@ require 由 @racket[module-path] 指定的模块，该模块是未引用的模�
                           [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary]
                       [#:exists exists-flag (or/c 'error 'append 'update
-                                                  'replace 'truncate 'truncate/replace) 'error'])
+                                                  'replace 'truncate 'truncate/replace) 'error])
          void?]{
 
 使用 @racket[display] 将 @racket[v] 打印到 @racket[path]。
@@ -959,7 +959,7 @@ require 由 @racket[module-path] 指定的模块，该模块是未引用的模�
                         [path path-string?]
                       [#:mode mode-flag (or/c 'binary 'text) 'binary]
                       [#:exists exists-flag (or/c 'error 'append 'update
-                                                  'replace 'truncate 'truncate/replace) 'error'])
+                                                  'replace 'truncate 'truncate/replace) 'error])
          void?]{
 
 像 @racket[display-to-file]，但使用 @racket[write] 而不是 @racket[display]。}
@@ -969,7 +969,7 @@ require 由 @racket[module-path] 指定的模块，该模块是未引用的模�
                        [#:separator separator any/c #"\n"]
                        [#:mode mode-flag (or/c 'binary 'text) 'binary]
                        [#:exists exists-flag (or/c 'error 'append 'update
-                                                   'replace 'truncate 'truncate/replace) 'error'])
+                                                   'replace 'truncate 'truncate/replace) 'error])
          void?]{
 
 将 @racket[lst] 的每个元素显示到 @racket[path]，每个元素后添加 @racket[separator]。

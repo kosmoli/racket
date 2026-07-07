@@ -182,7 +182,7 @@ will executor 可用作 @tech{synchronizable event}（参见 @secref["sync"]）�
 
 @nested[#:style 'inset]{
  @tt{@nonterm{used}(@nonterm{admin})[@nonterm{code}]; @;
-     free @nonterm{reclaimed}(@nonterm{adjust}) @nonterm{elapsed} \@ @nonterm{timestamp}}
+     free @nonterm{reclaimed}(@nonterm{adjust}) @nonterm{elapsed} @"@" @nonterm{timestamp}}
 
 @tabular[
   #:sep (hspace 1)
@@ -200,7 +200,7 @@ will executor 可用作 @tech{synchronizable event}（参见 @secref["sync"]）�
               @elem{执行垃圾回收所用处理器时间})
         (list @nonterm{timestamp}
               @elem{垃圾回收启动以来的处理器时间}))
-]
+]}
 
 @history[#:changed "6.3.0.7" @elem{添加了 @envvar{PLT_INCREMENTAL_GC}。}
          #:changed "7.6.0.9" @elem{为主题 @racket['GC:major] 添加了主要回收日志记录。}]

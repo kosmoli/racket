@@ -162,7 +162,8 @@ racket
             any])]{
 
   @deprecated[#:what "function" @racket[collection-file-path]]{
-  @tech{集合拼接}意味着给定的集合可以有多个路径，例如当多个 @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{包}为集合提供模块时。
+  @tech{集合拼接}意味着给定的集合可以有多个路径，例如当多个 @tech[#:doc
+  '(lib "scribblings/guide/guide.scrbl")]{包}为集合提供模块时。}
 
 类似于 @racket[collection-file-path]，但没有指定文件名，因此返回由 @racket[collection]s 指示的目录。
 
