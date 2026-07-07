@@ -95,7 +95,7 @@
                          (λ (e) (async-channel-put ch e))])
           (custodian-limit-memory (current-custodian) (* 1024 1024))
           (make-bytes (* 4 1024 1024))
-          (async-channel-put ch "Not OK"))))
+          (async-channel-put ch "Not OK")))))
     (async-channel-get ch))
    (exn:fail:out-of-memory "out of memory" (current-continuation-marks)))
  (define cust (make-custodian))
@@ -111,6 +111,7 @@
    (eval:error
     (error "Caught OOM exn")))
  ]
+]
 
 @examples[
  #:label "Non-examples:"
