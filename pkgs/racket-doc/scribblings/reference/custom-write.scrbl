@@ -82,7 +82,7 @@ cycle、sharing 和引用模式（在 @racket[print] 模式下），打印机使
     [(define write-proc
        (make-constructor-style-printer
         (lambda (obj) 'point)
-        (lambda (obj) (list (point-x obj) (point-y obj))))]))
+        (lambda (obj) (list (point-x obj) (point-y obj)))))]))
 
   (print (point 1 2))
 
