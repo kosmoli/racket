@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title{字节与字符串输出}
+@title{Byte and String Output}
 
 @defproc[(write-char [char char?] [out output-port? (current-output-port)])
          void?]{

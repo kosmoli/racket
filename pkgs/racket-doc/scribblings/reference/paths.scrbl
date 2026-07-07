@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" scribble/example)
 
-@title[#:tag "pathutils" #:style 'toc]{路径}
+@title[#:tag "pathutils" #:style 'toc]{Paths}
 
 当 Racket 过程接受文件系统路径作为参数时，该路径可以
 以字符串或 @deftech{path} 数据类型的实例形式提供。如果提供的是字符串，则会通过
@@ -34,7 +34,7 @@
 @secref["windowspaths"]。
 
 @;------------------------------------------------------------------------
-@section{路径操作}
+@section[#:tag "paths-s1"]{Manipulating Paths}
 
 @defproc[(path? [v any/c]) boolean?]{
 
@@ -634,7 +634,7 @@ UNC 路径以 @racket["UNC"] 作为路径元素前缀，
 ]}
 
 @;------------------------------------------------------------------------
-@section{更多路径工具}
+@section[#:tag "paths-s2"]{More Path Utilities}
 
 @(define path-eval (make-base-eval `(require racket/path)))
 

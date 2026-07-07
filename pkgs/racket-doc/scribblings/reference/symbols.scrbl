@@ -6,8 +6,8 @@
 
 @guideintro["symbols"]{symbols}
 
-@section-index["symbols" "生成"]
-@section-index["symbols" "唯一"]
+@section-index["symbols" "generating"]
+@section-index["symbols" "unique"]
 
 一个 @deftech{symbol} 就像一个不可变的 string，但 symbols 通常是
 @tech{interned}，因此具有相同字符内容的两个 symbols 通常是 @racket[eq?]。

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title{展开顶层形式}
+@title{Expanding Top-Level Forms}
 
 
 @defproc[(expand [top-level-form any/c]
@@ -104,7 +104,7 @@
 @history[#:changed "8.2.0.4" @elem{添加了 @racket[insp] 参数和 taint 支持。}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "modinfo"]{展开模块的信息}
+@section[#:tag "modinfo"]{Information on Expanded Modules}
 
 展开的 @racket[module] 声明信息存储在附加到 syntax object 的一组
 @tech{syntax properties} 中（参见 @secref["stxprops"]）：

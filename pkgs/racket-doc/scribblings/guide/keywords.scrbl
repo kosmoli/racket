@@ -3,10 +3,10 @@
 
 @title[#:tag "keywords"]{Keywords}
 
-@deftech{keyword} 值与 symbol 类似（参见 @secref["symbols"]），
-但其打印形式前缀为 @litchar{#:}。
+@deftech{keyword} 值类似于 symbol（参见
+@secref["symbols"]），但其打印形式以 @litchar{#:} 为前缀。
 
-@refdetails/gory["parse-keyword"]{the syntax of keywords}
+@refdetails/gory["parse-keyword"]{关键字的语法}
 
 @examples[
 (string->keyword "apple")
@@ -14,28 +14,29 @@
 (eq? '#:apple (string->keyword "apple"))
 ]
 
-更准确地说，keyword 类似于 identifier；与 identifier 可以被 quote 以产生 symbol 类似，
-keyword 可以被 quote 以产生一个值。在两种情况下都使用相同的术语 "keyword"，
-但有时我们使用 @defterm{keyword value} 来更特指 quote-keyword 表达式的结果
-或 @racket[string->keyword] 的结果。未 quote 的 keyword 不是表达式，
-就像未 quote 的 identifier 不产生 symbol 一样：
+更准确地说，关键字类似于标识符；就像标识符可以被引用来产生 symbol 一样，
+关键字也可以被引用来产生一个值。两种情况都使用"keyword"这个术语，
+但我们有时使用 @defterm{keyword value} 来更具体地指代 quote-keyword 表达式或
+@racket[string->keyword] 的结果。未引用的关键字不是表达式，
+就像未引用的标识符不产生 symbol 一样：
 
 @examples[
 not-a-symbol-expression
 #:not-a-keyword-expression
 ]
 
-尽管理相似，keyword 的使用方式与 identifier 或 symbol 不同。Keyword 旨在
-（未 quote 时）在参数列表和某些特殊形式中用作特殊标记。对于运行时标志和枚举，
-使用 symbol 而不是 keyword。下面的例子说明了 keyword 和 symbol 的不同角色。
+尽管有相似之处，关键字的使用方式与标识符或 symbol 不同。
+关键字旨在（不加引用地）用作参数列表和某些语法形式中的特殊标记。
+对于运行时标志和枚举，应使用 symbol 而不是关键字。
+下面的示例说明了关键字和 symbol 的不同角色。
 
 @examples[
-(code:line (define dir (find-system-path 'temp-dir)) (code:comment @#,t{不是 @racket['#:temp-dir]}))
+(code:line (define dir (find-system-path 'temp-dir)) (code:comment @#,t{not @racket['#:temp-dir]}))
 (with-output-to-file (build-path dir "stuff.txt")
   (lambda () (printf "example\n"))
-  (code:comment @#,t{可选的 @racket[#:mode] 参数可以是 @racket['text] 或 @racket['binary]})
+  (code:comment @#,t{optional @racket[#:mode] argument can be @racket['text] or @racket['binary]})
   #:mode 'text
-  (code:comment @#,t{可选的 @racket[#:exists] 参数可以是 @racket['replace], @racket['truncate], ...})
+  (code:comment @#,t{optional @racket[#:exists] argument can be @racket['replace], @racket['truncate], ...})
   #:exists 'truncate)
 ]
 

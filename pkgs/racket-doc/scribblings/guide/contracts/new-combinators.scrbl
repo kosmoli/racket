@@ -5,7 +5,7 @@
 @(define ex-eval (make-base-eval))
 @(ex-eval '(require racket/contract))
 
-@title{构建新的 Contract}
+@title{Building New Contracts}
 
 Contract 在内部被表示为函数，这些函数接受关于 contract 的信息（谁负责、源位置、@|etc|）并产生投影（在精神上符合 Dana Scott 的概念）来强制执行 contract。
 
@@ -172,7 +172,7 @@ Contract 在内部被表示为函数，这些函数接受关于 contract 的信�
          (f #f)
          (f 1)]
 
-@section{Contract 的 Struct 属性}
+@section{Contract Struct Properties}
 
 @racket[make-chaperone-contract] 函数适用于一次性的 contract，但往往你想要制作许多仅在某些部分有差异的不同 contract。做到这一点的最佳方式是使用带有 @racket[prop:contract]、@racket[prop:chaperone-contract] 或 @racket[prop:flat-contract] 的 @racket[struct]。
 
@@ -232,7 +232,7 @@ Contract 在内部被表示为函数，这些函数接受关于 contract 的信�
          (f #f)
          (f 1)]
 
-@section{带有所有可选功能}
+@section[#:tag "new-combinators-s1"]{With all the Bells and Whistles}
 
 Contract 有许多 @racket[simple-arrow-contract] 未添加的可选部分。在这一节中，我们逐一介绍所有这些部分，展示它们可以如何实现。
 

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "include"]{文件包含}
+@title[#:tag "include"]{File Inclusion}
 
 @note-lib[racket/include]
 

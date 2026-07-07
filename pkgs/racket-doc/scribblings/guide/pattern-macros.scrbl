@@ -4,7 +4,7 @@
 
 @(define swap-eval (make-base-eval))
 
-@title[#:tag "pattern-macros"]{基于模式的宏}
+@title[#:tag "pattern-macros"]{Pattern-Based Macros}
 
 @deftech{模式宏}将任何匹配模式的代码替换为使用原始语法中匹配模式部分的
 展开式。
@@ -58,7 +58,7 @@
 
 @; ----------------------------------------
 
-@section{词法作用域}
+@section{Lexical Scope}
 
 假设我们使用 @racket[swap] 宏来交换名为
 @racket[tmp] 和 @racket[other] 的变量：
@@ -124,7 +124,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
 
 @; ----------------------------------------
 
-@section{@racket[define-syntax] 和 @racket[syntax-rules]}
+@section{@racket[define-syntax] and @racket[syntax-rules]}
 
 @racket[define-syntax-rule] 形式绑定一个匹配单个模式的模式，
 但 Racket 的宏系统支持匹配以相同标识符开头的多个模式的转换器。要编写
@@ -167,7 +167,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
 
 @; ----------------------------------------
 
-@section{匹配序列}
+@section{Matching Sequences}
 
 更好的 @racket[rotate] 宏应允许任何数量的标识符，
 而不仅仅是两个或三个。要匹配具有任何数量标识符的 @racket[rotate] 使用，
@@ -215,7 +215,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
 
 @; ----------------------------------------
 
-@section{标识符宏}
+@section{Identifier Macros}
 
 根据我们上面的宏定义，@racket[swap] 或 @racket[rotate] 标识符必须在
 左括号后使用，否则会报语法错误：
@@ -263,7 +263,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
 
 @; ----------------------------------------
 
-@section{@racket[set!] 转换器}
+@section{@racket[set!] Transformers}
 
 通过上面的 @racket[val] 宏，我们仍然必须调用 @racket[put-val!] 来
 存储的值。然而，直接在 @racket[val] 上使用 @racket[set!] 会更方便
@@ -287,7 +287,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
 
 @; ----------------------------------------
 
-@section{生成宏的宏}
+@section{Macro-Generating Macros}
 
 假设我们有许多像 @racket[val] 和 @racket[val2] 这样的标识符，我们希望将其重定向到
 访问器和可变函数如
@@ -316,7 +316,7 @@ Racket 不会对上述 @racket[swap] 的使用产生朴素展开式。相反，�
 
 @; ----------------------------------------
 
-@section[#:tag "pattern-macro-example"]{扩展示例：按引用传递函数}
+@section[#:tag "pattern-macro-example"]{Extended Example: Call-by-Reference Functions}
 
 我们可以使用模式匹配宏来向 Racket 添加一种形式，用于定义一阶 @deftech{按引用传递} 函数。当按引用传递的函数体修改其形式参数时，该修改将应用到调用函数时作为实际参数提供的变量。
 

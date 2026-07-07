@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/bnf "mz.rkt")
 
-@title[#:tag "unixpaths"]{@|AllUnix| 路径}
+@title[#:tag "unixpaths"]{@|AllUnix| Paths}
 
 在 @|AllUnix| 上的路径中，@litchar{/} 分隔路径的各个元素，@litchar{.} 作为路径元素
 始终表示由前一个路径指示的目录，@litchar{..} 作为路径元素始终表示由前一个路径所
@@ -27,7 +27,7 @@
 在 Mac OS 上，Finder 别名是零长度的文件。
 
 
-@section[#:tag "unixpathrep"]{Unix 路径表示}
+@section[#:tag "unixpathrep"]{Unix Path Representation}
 
 在 @|AllUnix| 上的路径原生是一个 byte string。为了向用户展示和进行其他基于 string 的操作，
 路径使用当前 locale 的编码与 string 相互转换，使用 @litchar{?}（编码）或 @code{#\\uFFFD}

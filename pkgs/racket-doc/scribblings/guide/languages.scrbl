@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt")
 
-@title[#:tag "languages" #:style 'toc]{创建语言}
+@title[#:tag "languages" #:style 'toc]{Creating Languages}
 
 前一章定义的 @tech{macro} 工具允许程序员为某种语言定义语法扩展，但宏有两个局限性：
 

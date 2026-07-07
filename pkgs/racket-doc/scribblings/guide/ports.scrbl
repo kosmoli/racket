@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "ports"]{输入和输出端口}
+@title[#:tag "ports"]{Input and Output Ports}
 
 @deftech{port} 封装了一个 I/O 流，通常只用于一个方向。@deftech{input port} 从流中读取，@deftech{output port} 写入字符串。
 

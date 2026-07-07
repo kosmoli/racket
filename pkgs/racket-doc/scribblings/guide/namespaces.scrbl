@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval racket/class "guide-utils.rkt")
 
-@title[#:tag "reflection" #:style 'toc]{反射与动态求值}
+@title[#:tag "reflection" #:style 'toc]{Reflection and Dynamic Evaluation}
 
 Racket 是 @italic{dynamic} 语言。它提供了大量设施用于在运行时加载、
 编译乃至构造新代码。
@@ -53,7 +53,7 @@ Racket 是 @italic{dynamic} 语言。它提供了大量设施用于在运行时�
 
 @; ----------------------------------------
 
-@subsection{局部作用域}
+@subsection{Local Scopes}
 
 @racket[eval] 函数无法看到其调用上下文中的局部绑定。例如，
 在未 quoted 的 @racket[let] 形式内调用 @racket[eval] 来求值公式时，
@@ -90,7 +90,7 @@ Racket 是 @italic{dynamic} 语言。它提供了大量设施用于在运行时�
 
 @; ----------------------------------------
 
-@subsection[#:tag "namespaces"]{命名空间}
+@subsection[#:tag "namespaces"]{Namespaces}
 
 由于 @racket[eval] 无法看到其调用上下文中的绑定，需要另一种机制来
 确定动态可用的绑定。@deftech{namespace} 是一个 first-class value，
@@ -143,7 +143,7 @@ racket
 
 @; ----------------------------------------
 
-@subsection{命名空间与模块}
+@subsection{Namespaces and Modules}
 
 与 @racket[let] 绑定一样，词法作用域意味着 @racket[eval] 无法自动看到
 其调用的 @racket[module] 中的定义。但与 @racket[let] 绑定不同的是，
@@ -187,7 +187,7 @@ racket
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "mk-namespace"]{操作命名空间}
+@section[#:tag "mk-namespace"]{Manipulating Namespaces}
 
 @tech{namespace} 封装了两部分信息：
 
@@ -217,7 +217,7 @@ Top-level @racket[require] 和 @racket[define] 形式调整标识符映射，
 
 @; ----------------------------------------
 
-@subsection{创建和安装命名空间}
+@subsection{Creating and Installing Namespaces}
 
 @racket[make-empty-namespace] 函数创建一个新的空 @tech{namespace}。
 由于该 namespace 是真正的空，起初无法用于求值任何 top-level 表达式——
@@ -270,7 +270,7 @@ namespace 足以开始：
 
 @; ----------------------------------------
 
-@subsection{跨命名空间共享数据和代码}
+@subsection{Sharing Data and Code Across Namespaces}
 
 未 attach 到新 namespace 的 module 在求值需要时会被重新加载和实例化。
 例如，@racketmodname[racket/base] 不包含 @racketmodname[racket/class]，
@@ -330,7 +330,7 @@ racket/base
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "load"]{脚本求值与使用 @racket[load]}
+@section[#:tag "load"]{Scripting Evaluation and Using @racket[load]}
 
 历史上，Lisp 实现并不提供 module 系统。相反，大型程序本质上是通过脚本化
 @tech{REPL} 来按特定顺序求值程序片段构建的。虽然 @tech{REPL} 脚本化
@@ -447,7 +447,7 @@ DrRacket 的 @onscreen{Check Syntax} 工具无法判断第二个
 仅在运行时被报告，而非在语法层面被拒绝。
 
 @;------------------------------------------------------------------------
-@section[#:tag "code-inspectors+protect"]{可信与不可信代码的 Code Inspector}
+@section[#:tag "code-inspectors+protect"]{Code Inspectors for Trusted and Untrusted Code}
 
 @deftech{Code inspector} 提供机制来判断哪些 module 被信任以使用
 @racket[module->namespace] 等函数或 @racket[ffi/unsafe] 等不安全 module。

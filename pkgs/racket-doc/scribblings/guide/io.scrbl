@@ -18,13 +18,8 @@
 @title[#:tag "i/o" #:style 'toc]{Input and Output}
 
 
-@margin-note{Racket 的端口对应于 Unix 的 stream 概念
-（不要与 @racketmodname[racket/stream] 的 stream 混淆）。}
-Racket @deftech{port} 表示数据的源或接收端，例如文件、终端、TCP 连接或内字符串。
-端口提供顺序访问，数据可以一块一块地读取或写入，
-而不是必须在一次操作中全部消耗或生产。
-更具体地说，@defterm{input port} 表示程序可以读取数据的源，
-@defterm{output port} 表示程序可以写入数据的接收端。
+@margin-note{Racket port 对应于 Unix 的流概念（不要与 @racketmodname[racket/stream] 的流混淆）。}
+Racket 的 @deftech{port} 表示数据的源或汇，如文件、终端、TCP 连接或内存中的字符串。port 提供顺序访问，数据可以一次读写一部分，而不需要一次性消费或产生所有数据。更具体地说，@defterm{input port} 表示程序可以从中读取数据的源，@defterm{output port} 表示程序可以向其写入数据的汇。
 
 
 @local-table-of-contents[]
@@ -32,14 +27,12 @@ Racket @deftech{port} 表示数据的源或接收端，例如文件、终端、T
 @;------------------------------------------------------------------------
 @section[#:tag "ports"]{Varieties of Ports}
 
-不同的函数创建不同类型的端口。以下是一些例子：
+各种函数创建各种类型的 port。以下是一些示例：
 
 @itemize[
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- @item{@bold{Files:} The @racket[open-output-file] function opens a
-  file for writing, and @racket[open-input-file] opens a file for
-  reading.
+ @item{@bold{文件：}@racket[open-output-file] 函数打开一个文件用于写入，@racket[open-input-file] 打开一个文件用于读取。
 
 @(interaction-eval #:eval io-eval (define old-dir (current-directory)))
 @(interaction-eval #:eval io-eval (current-directory (find-system-path 'temp-dir)))
@@ -55,9 +48,7 @@ Racket @deftech{port} 表示数据的源或接收端，例如文件、终端、T
 (close-input-port in)
 ]
 
-如果文件已存在，则 @racket[open-output-file] 默认会引发异常。 Supply an option like @racket[#:exists
-'truncate] or @racket[#:exists 'update] to re-write or update the
-file:
+如果文件已经存在，@racket[open-output-file] 默认会引发异常。提供像 @racket[#:exists 'truncate] 或 @racket[#:exists 'update] 这样的选项来重新写入或更新文件：
 
 @examples[
 #:eval io-eval
@@ -66,11 +57,7 @@ file:
 (close-output-port out)
 ]
 
-不必将打开调用与关闭调用配对，大多数 Racket
-程序员使用 @racket[call-with-input-file] 和
-@racket[call-with-output-file] 函数，它们接受一个函数来执行所需
-操作。 This function gets as its only argument the port,
-which is automatically opened and closed for the operation.
+与其必须匹配打开调用和关闭调用，大多数 Racket 程序员会使用 @racket[call-with-input-file] 和 @racket[call-with-output-file] 函数，这些函数接受一个函数来执行所需的操作。该函数获得 port 作为其唯一参数，port 会为操作自动打开和关闭。
 
 @examples[
         #:eval io-eval
@@ -87,10 +74,7 @@ which is automatically opened and closed for the operation.
 @(interaction-eval #:eval io-eval (current-directory old-dir))}
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- @item{@bold{Strings:} The @racket[open-output-string] function creates
- a port that accumulates data into a string, and @racket[get-output-string]
- extracts the accumulated string. The @racket[open-input-string] function
- 创建一个从字符串读取的端口。
+ @item{@bold{字符串：}@racket[open-output-string] 函数创建一个将数据累积到字符串中的 port，@racket[get-output-string] 提取累积的字符串。@racket[open-input-string] 函数创建一个从字符串读取的 port。
 
   @examples[
   #:eval io-eval
@@ -122,11 +106,7 @@ which is automatically opened and closed for the operation.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- @item{@bold{Process Pipes:} The @racket[subprocess] function runs a new
-  process at the OS level and returns ports that correspond to the
-  subprocess's stdin, stdout, and stderr. (The first three arguments
-  can be certain kinds of existing ports to connect directly to the
-  subprocess, instead of creating new ports.)
+ @item{@bold{进程管道：}@racket[subprocess] 函数在操作系统级别运行一个新进程，并返回对应于子进程 stdin、stdout 和 stderr 的 port。（前三个参数可以是某些类型的现有 port，以直接连接到子进程，而不是创建新的 port。）
 
   @examples[
   #:eval io-eval
@@ -144,10 +124,7 @@ which is automatically opened and closed for the operation.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- @item{@bold{Internal Pipes:} The @racket[make-pipe] function returns
- two ports that are ends of a pipe. This kind of pipe is internal to
- Racket, and not related to OS-level pipes for communicating between
- different processes.
+ @item{@bold{内部管道：}@racket[make-pipe] 函数返回两个 port，它们是管道的两端。这种管道是 Racket 内部的，与操作系统级别用于不同进程间通信的管道无关。
 
  @examples[
   #:eval io-eval
@@ -162,10 +139,7 @@ which is automatically opened and closed for the operation.
 @;------------------------------------------------------------------------
 @section[#:tag "default-ports"]{Default Ports}
 
-对于大多数简单的 I/O 函数，目标端口是可选参数，
-默认为 @defterm{current input port} 或 @defterm{current output port}。 另外，错误消息被写入 @defterm{current error port}，它是一个 output port。 The
-@racket[current-input-port], @racket[current-output-port], and
-@racket[current-error-port] 函数返回对应的当前端口。
+对于大多数简单的 I/O 函数，目标 port 是可选参数，默认是@defterm{当前输入 port}或@defterm{当前输出 port}。此外，错误消息写入@defterm{当前错误 port}，它是一个输出 port。@racket[current-input-port]、@racket[current-output-port] 和 @racket[current-error-port] 函数返回相应的当前 port。
 
 @examples[
 #:eval io-eval
@@ -173,10 +147,7 @@ which is automatically opened and closed for the operation.
 (code:line (display "Hi" (current-output-port)) (code:comment @#,t{the same}))
 ]
 
-如果你在终端中启动 @exec{racket} 程序，
-则当前的 input、output 和 error 端口都连接到终端。 更通地说，它们连接到 OS 级别的 stdin、stdout 和 stderr。
-在本指南中，示例中写入 stdout 的输出是紫色的，
-写入 stderr 的输出是红色斜体的。
+如果你在终端中启动 @exec{racket} 程序，当前输入、输出和错误 port 都连接到终端。更一般地说，它们连接到操作系统级别的 stdin、stdout 和 stderr。在本指南中，示例将写入 stdout 的输出显示为紫色，将写入 stderr 的输出显示为红色斜体。
 
 @defexamples[
 #:eval io-eval
@@ -185,8 +156,7 @@ which is automatically opened and closed for the operation.
 (swing-hammer)
 ]
 
-这些 current-port 函数实际上是 @tech{parameters}，
-这意味着它们的值可以通过 @racket[parameterize] 设置。
+当前 port 函数实际上是@tech{参数}，这意味着它们的值可以用 @racket[parameterize] 设置。
 
 @margin-note{See @secref["parameterize"] for an introduction to parameters.}
 
@@ -203,24 +173,19 @@ which is automatically opened and closed for the operation.
 @; ----------------------------------------------------------------------
 @section[#:tag "read-write"]{Reading and Writing Racket Data}
 
-正如 @secref["datatypes"] 中所述，Racket 提供三种打印内置值实例的方式：
+正如 @secref["datatypes"] 中所指出的，Racket 提供了三种打印内置值实例的方式：
 
 @itemize[
 
- @item{@racket[print], which prints a value in the same way that is it
-       printed for a @tech{REPL} result; and }
+ @item{@racket[print]，以与 @tech{REPL} 结果相同的方式打印值；}
 
- @item{@racket[write], which prints a value in such a way that
-       @racket[read] on the output produces the value back; and }
+ @item{@racket[write]，以一种使 @racket[read] 能从输出中取回值的方式打印值；}
 
- @item{@racket[display], which tends to reduce a value to just its
-       character or byte content---at least for those datatypes that
-       are primarily about characters or bytes, otherwise it falls
-       back to the same output as @racket[write].}
+ @item{@racket[display]，倾向于将值简化为其字符或字节内容——至少对于那些主要是关于字符或字节的数据类型，否则它回退到与 @racket[write] 相同的输出。}
 
 ]
 
-以下是使用每种方式的例子：
+以下是使用每种方式的一些示例：
 
 @threecolumn[
 
@@ -256,12 +221,9 @@ which is automatically opened and closed for the operation.
 
 ]
 
-总而言之，@racket[print] 对应于 Racket 语法的表达式层，
-@racket[write] 对应于读取层，@racket[display] 大致对应于字符字节层。
+总的来说，@racket[print] 对应于 Racket 语法的表达式层，@racket[write] 对应于读取器层，@racket[display] 大致对应于字符层。
 
-@racket[printf] 函数支持数据和文本的简单格式化。 In the format string supplied to @racket[printf], @litchar{~a}
-@racket[display]s the next argument, @litchar{~s}
-@racket[write]s the next argument, 且 @litchar{~v} @racket[print]s 下一个参数。
+@racket[printf] 函数支持数据和文本的简单格式化。在提供给 @racket[printf] 的格式字符串中，@litchar{~a} 对下一个参数进行 @racket[display]，@litchar{~s} 对下一个参数进行 @racket[write]，@litchar{~v} 对下一个参数进行 @racket[print]。
 
 @defexamples[
 #:eval io-eval
@@ -270,10 +232,7 @@ which is automatically opened and closed for the operation.
 (deliver '("list") '("John") '("milk"))
 ]
 
-使用 @racket[write] 而非 @racket[display] 或 @racket[print] 后，
-可通过 @racket[read] 读回多种形式的数据。 @racket[print] 打印的值也可通过 @racket[read] 解析，
-但结果可能有额外的引号形式，因为 @racket[print] 形式
-是作为表达式阅读的。
+使用 @racket[write] 之后（与 @racket[display] 或 @racket[print] 不同），许多形式的数据可以用 @racket[read] 读回。同样 @racket[print] 的值也可以被 @racket[read] 解析，但结果可能有额外的引用形式，因为 @racket[print] 的形式旨在像表达式一样被读取。
 
 @examples[
 #:eval io-eval
@@ -293,9 +252,7 @@ which is automatically opened and closed for the operation.
 @; ----------------------------------------------------------------------
 @section[#:tag "serialization"]{Datatypes and Serialization}
 
-@tech{Prefab} structure types (see @secref["prefab-struct"])
-automatically support @deftech{serialization}: they can be written to
-an output stream, and a copy can be read back in from an input stream:
+@tech{Prefab} 结构类型（参见 @secref["prefab-struct"]）自动支持@deftech{序列化}：它们可以写入输出流，并且可以从输入流中读回副本：
 
 @interaction[
 (define-values (in out) (make-pipe))
@@ -303,9 +260,7 @@ an output stream, and a copy can be read back in from an input stream:
 (read in)
 ]
 
-@racket[struct] 创建的其他结构类型比 @tech{prefab} 结构类型
-更抽象，通常使用 @racketresultfont{#<....>} 记法或
-@racketresultfont{#(....)} vector 记法进行 @racket[write]。 在两种情况下结果都无法作为结构类型实例读回：
+由 @racket[struct] 创建的其他结构类型提供了比 @tech{prefab} 结构类型更多的抽象，通常使用 @racketresultfont{#<....>} 记法（对于不透明结构类型）或使用 @racketresultfont{#(....)} vector 记法（对于透明结构类型）进行 @racket[write]。在任何情况下，结果都不能作为结构类型的实例读回：
 
 @interaction[
 (struct posn (x y))
@@ -326,10 +281,7 @@ v
 (vector? v)
 ]
 
-@racket[serializable-struct] 形式定义一个结构类型，
-可被 @racket[serialize] 到可用 @racket[write] 打印、通过 @racket[read] 恢复的值。
-该 @racket[serialize]d 结果可以被 @racket[deserialize] 恢复为原结构类型的实例。 The serialization form and functions are
-由 @racketmodname[racket/serialize] 库提供。
+@racket[serializable-struct] 形式定义了一个可以被 @racket[serialize] 为一个值的结构类型，该值可以用 @racket[write] 打印并通过 @racket[read] 恢复。@racket[serialize] 的结果可以被 @racket[deserialize] 以取回原始结构类型的实例。序列化形式和函数由 @racketmodname[racket/serialize] 库提供。
 
 @examples[
 (require racket/serialize)
@@ -341,33 +293,18 @@ v
 (deserialize (read in))
 ]
 
-除 @racket[struct] 绑定的名称外，
-@racket[serializable-struct] 还绑定一个包含反序列化信息
-的标识符，并自动从模块上下文中 @racket[provide] 该反序列化标识符。 在反序列化值时会反射访问这个反序列化标识符。
+除了 @racket[struct] 绑定的名称外，@racket[serializable-struct] 还绑定了一个带有反序列化信息的标识符，并自动从模块上下文 @racket[provide] 反序列化标识符。当值被反序列化时，此反序列化标识符会被反射性地访问。
 
 @; ----------------------------------------------------------------------
 @section[#:tag "encodings"]{Bytes, Characters, and Encodings}
 
-@racket[read-line]、@racket[read]、@racket[display] 和 @racket[write] 等函数
-按 @tech{characters} 工作（对应 Unicode 标量值）。 从概念上的实现基于 @racket[read-char] 和 @racket[write-char]。
+像 @racket[read-line]、@racket[read]、@racket[display] 和 @racket[write] 这样的函数都基于@tech{字符}（对应于 Unicode 标量值）工作。概念上，它们是用 @racket[read-char] 和 @racket[write-char] 实现的。
 
-更原始地，端口读写 @tech{bytes} 而非 @tech{characters}。
-@racket[read-byte] 和 @racket[write-byte] 读写原始字节。 其他函数，如 @racket[read-bytes-line]，构建在字节操作而
-非字符操作之上。
+更原始地，port 读写@tech{字节}而不是@tech{字符}。函数 @racket[read-byte] 和 @racket[write-byte] 读写原始字节。其他函数，如 @racket[read-bytes-line]，建立在字节操作而非字符操作之上。
 
-事实上，@racket[read-char] 和 @racket[write-char] 的实现基于
-@racket[read-byte] 和 @racket[write-byte]。 单个字节值小于 128 时对应于 ASCII 字符。
-其他字节被视为 UTF-8 序列的一部分，
-UTF-8 是将 Unicode 标量值编码为字节的特定标准方式
-（具有 ASCII 字符自身作为自身编码的好属性）。 因此，单个 @racket[read-char] 可能多次调用 @racket[read-byte]，且
-单个 @racket[write-char] 可能生成多个输出字节。
+事实上，@racket[read-char] 和 @racket[write-char] 函数在概念上是用 @racket[read-byte] 和 @racket[write-byte] 实现的。当单个字节的值小于 128 时，它对应于一个 ASCII 字符。任何其他字节被视为 UTF-8 序列的一部分，其中 UTF-8 是一种将 Unicode 标量值编码为字节的特定标准方式（它具有 ASCII 字符被编码为自身的良好特性）。因此，单个 @racket[read-char] 可能多次调用 @racket[read-byte]，单个 @racket[write-char] 可能产生多个输出字节。
 
-The @racket[read-char] and @racket[write-char] operations
-@emph{始终} 使用 UTF-8 编码。 如果你有不同编码的文本流，或者想用不同编码
-生成文本流，请使用 @racket[reencode-input-port] 或 @racket[reencode-output-port]。 @racket[reencode-input-port] 函数将你指定的输入流从其原始编码
-转换为 UTF-8 流；这样，@racket[read-char] 就会看到 UTF-8 编码，
-即使原始流使用了不同的编码。但请注意，
-@racket[read-byte] 也会看到重新编码后的数据，而非原始字节流。
+@racket[read-char] 和 @racket[write-char] 操作@emph{始终}使用 UTF-8 编码。如果你有一个使用不同编码的文本流，或者你想生成不同编码的文本流，请使用 @racket[reencode-input-port] 或 @racket[reencode-output-port]。@racket[reencode-input-port] 函数将输入流从你指定的编码转换为 UTF-8 流；这样，@racket[read-char] 看到的是 UTF-8 编码，即使原始使用的是不同的编码。但要注意，@racket[read-byte] 也会看到重新编码的数据，而不是原始字节流。
 
 @; ----------------------------------------------------------------------
 @section[#:tag "io-patterns"]{I/O Patterns}
@@ -380,8 +317,7 @@ The @racket[read-char] and @racket[write-char] operations
   (define port-eval (make-base-eval))
   (interaction-eval #:eval port-eval (require racket/port racket/string)))
 
-对于这些示例，假设你有两个与程序在同一目录下的文件：
-@filepath{oneline.txt} 和 @filepath{manylines.txt}。
+对于这些示例，假设你在程序的同一目录下有两个文件：@filepath{oneline.txt} 和 @filepath{manylines.txt}。
 
 @filebox["oneline.txt"]{
 @verbatim[#:indent 1]{
@@ -397,7 +333,7 @@ split over a few lines.
 
 }}
 
-如果文件较小，你可以将其作为字符串读取：
+如果文件很小，你可以直接将文件作为字符串读入：
 
 @ex:examples[
  #:eval port-eval
@@ -423,18 +359,13 @@ split over a few lines.
  (string-suffix? file-contents "after this one.\n")
  (string-suffix? (string-trim file-contents) "after this one.")]
 
-我们使用 @racketmodname[racket/port] 中的 @racket[port->string] 把文件读入字符串：
-@racket[#:close? #t] 关键字参数确保读取后文件被关闭。
+我们使用 @racketmodname[racket/port] 中的 @racket[port->string] 来将内容读取为字符串：@racket[#:close? #t] 关键字参数确保文件在读取后被关闭。
 
-我们使用 @racketmodname[racket/string] 中的 @racket[string-trim] 来
-去除文件开头和结尾的多余空白。
-(Lots of formatters out there insist that text files end with a single
-blank line).
+我们使用 @racketmodname[racket/string] 中的 @racket[string-trim] 来删除文件最开头和最末尾的多余空白。（许多格式化工具坚持文本文件应以单个空行结尾。）
 
-如果你的文件只有一行文本，也可使用 @racket[read-line]。
+如果你的文件只有一行文本，另请参见 @racket[read-line]。
 
-如果你想处理文件的每一行，则可使用 @racket[for]
-与 @racket[in-lines]：
+如果你想要处理文件的单个行，可以使用 @racket[for] 配合 @racket[in-lines]：
 
 @interaction[
 (define (upcase-all in)
@@ -447,8 +378,7 @@ blank line).
               "Can you hear me, now?")))
 ]
 
-你也可以练习每行的计算。 So if you want to
-知道有多少行包含 ``m'', you could do:
+你还可以组合每行的计算。所以如果你想知道有多少行包含 ``m''，你可以这样做：
 
 @examples[
  #:eval port-eval
@@ -465,12 +395,9 @@ blank line).
  (when (file-exists? "manylines.txt") (delete-file "manylines.txt"))
  (current-directory old-dir)]
 
-在这里，@racketmodname[racket/port] 中的 @racket[with-input-from-file]
-将默认输入端口设置为 @filepath{manylines.txt}。 它还在计算完成后结束文件（以及一些其他情况）。
+这里，@racketmodname[racket/port] 中的 @racket[with-input-from-file] 在 thunk 内部将默认输入 port 设置为文件 @filepath{manylines.txt}。它还在计算完成后（以及少数其他情况下）关闭文件。
 
-如果你想确定是否有单词出现在文件中， ``hello'' appears in a file,
-then you could search separate lines, but it's even easier to simply
-apply a regular expression (see @secref["regexp"]) to the stream:
+然而，如果你想确定 ``hello'' 是否出现在文件中，你可以搜索单独的行，但更简单的方法是直接对流应用正则表达式（参见 @secref["regexp"]）：
 
 @interaction[
 (define (has-hello? in)
@@ -479,10 +406,7 @@ apply a regular expression (see @secref["regexp"]) to the stream:
 (has-hello? (open-input-string "goodbye"))
 ]
 
-如果要复制一个端口到另一个，请使用
-@racketmodname[racket/port] 中的 @racket[copy-port]，它在有大量数据
-时高效转移大块，但也会在无法提供更多时
-立即转移小块：
+如果你想将一个 port 复制到另一个 port，请使用 @racketmodname[racket/port] 中的 @racket[copy-port]，它在有大量数据可用时高效地传输大块数据，但如果只有少量数据可用也会立即传输小块数据：
 
 @interaction[
 #:eval port-eval

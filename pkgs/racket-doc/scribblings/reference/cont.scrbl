@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "cont"]{延续}
+@title[#:tag "cont"]{Continuations}
 
 @guideintro["conts"]{continuations}
 

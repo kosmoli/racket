@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "model" #:style 'toc]{语言模型}
+@title[#:tag "model" #:style 'toc]{Language Model}
 
 @local-table-of-contents[]
 

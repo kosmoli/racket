@@ -5,7 +5,7 @@
 
 @(define noisy-eval (make-base-eval))
 
-@title[#:tag "module-macro"]{模块和宏}
+@title[#:tag "module-macro"]{Modules and Macros}
 
 Racket 的 module 系统与 @tech{macro} 系统密切协作，从而为 Racket 引入新的 syntax 形式。举例来说，@racketmodname[racket/base] 的导出为 @racket[require] 和 @racket[lambda] 提供 syntax 的方式一样，导入其他其它模块也可以引入新的 syntax 形式（除了更传统的导入，如函数或常量之外）。
 

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt" scribblings/private/docname)
 
-@title[#:tag "graphics"]{图形和 GUI}
+@title[#:tag "graphics"]{Graphics and GUIs}
 
 Racket 提供了许多用于图形和图形用户界面（GUI）的库：
 

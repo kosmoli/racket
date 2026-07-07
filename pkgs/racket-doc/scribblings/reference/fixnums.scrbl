@@ -35,7 +35,7 @@
 
 @; ------------------------------------------------------------
 
-@section{Fixnum 算术}
+@section[#:tag "fixnums-s1"]{Fixnum Arithmetic}
 
 @deftogether[(
 @defproc[(fx+ [a fixnum?] ...) fixnum?]

@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label racket/os))
 
-@title[#:tag "os-lib"]{额外的操作系统函数}
+@title[#:tag "os-lib"]{Additional Operating System Functions}
 
 @defmodule[racket/os]{@racketmodname[racket/os] 库提供查询操作系统的额外函数。}
 

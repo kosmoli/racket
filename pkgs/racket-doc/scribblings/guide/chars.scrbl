@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "characters"]{字符}
+@title[#:tag "characters"]{Characters}
 
 Racket @deftech{字符} 对应一个 Unicode @defterm{标量值}。
 大致上说，标量值是一个无符号整数，其表示可以放入 21 位中，

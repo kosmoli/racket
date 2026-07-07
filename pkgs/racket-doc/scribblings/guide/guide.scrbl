@@ -1,9 +1,9 @@
 #lang scribble/manual
 @(require scribble/eval "guide-utils.rkt" scribblings/private/docname)
 
-@title{Racket 指南}
+@title{The Racket Guide}
 
-@["Matthew Flatt" "Robert Bruce Findler" "PLT"]
+@author["Matthew Flatt" "Robert Bruce Findler" "PLT"]
 
 本指南面向 Racket 新手或 Racket 的某个部分的新手程序员。已有编程经验的读者适合阅读本书，如果是编程新手请考虑阅读 @|HtDP|。如果你想快速了解 Racket，请从 @Quick[Quick-title] 开始。
 

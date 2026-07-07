@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/bnf "mz.rkt")
 
-@title[#:style 'toc]{读取器扩展}
+@title[#:style 'toc]{Reader Extension}
 
 Racket 的读取器可以通过三种方式扩展：通过 @tech{readtable} 中的 reader-macro
 过程（参见 @secref["readtables"]）、通过 @litchar{#reader} 形式（参见 @secref["parse-reader"]），
@@ -13,7 +13,7 @@ Racket 的读取器可以通过三种方式扩展：通过 @tech{readtable} 中�
 @local-table-of-contents[]
 
 @;------------------------------------------------------------------------
-@section[#:tag "readtables"]{读取表}
+@section[#:tag "readtables"]{Readtables}
 
 @secref["default-readtable-dispatch"] 中的调度表对应于默认的 @deftech{readtable}。
 通过创建新的 readtable 并通过 @racket[current-readtable] 参数安装它，可以扩展读取器的行为。
@@ -268,7 +268,7 @@ Reader macro 可能产生 special-comment 值（参见 @secref["special-comments
 ])
 
 @;------------------------------------------------------------------------
-@section[#:tag "reader-procs"]{Reader 扩展过程}
+@section[#:tag "reader-procs"]{Reader-Extension Procedures}
 
 对 @techlink{reader extension procedures} 的调用可以通过 @racket[read]、@racket[read/recursive] 或 @racket[read-syntax] 触发。此外，special-read 过程可以通过调用 @racket[read-char-or-special] 触发，或者通过 @racket[read-bytes-avail!]、@racket[peek-bytes-avail!*]、@racket[read-bytes-avail!] 和 @racket[peek-bytes-avail!*] 的上下文触发。
 
@@ -283,7 +283,7 @@ reader-macro 和 special-result 过程的可选参数数量允许它们区分通
 此外，在任何一种上下文中，结果可能被复制以防止在读取结果完成之前对向量或 box 的修改，并支持构建带环的图。可变的 box、向量和 @tech{prefab} 结构会被复制，包括任何导致此类可变值的 pair、box、向量、prefab 结构，递归读取产生的占位符（参见 @racket[read/recursive]），或者共享值的引用。图结构（包括环）在复制中得以保留。
 
 @;------------------------------------------------------------------------
-@section[#:tag "special-comments"]{特殊注释}
+@section[#:tag "special-comments"]{Special Comments}
 
 @defproc[(make-special-comment [v any/c]) special-comment?]{
 

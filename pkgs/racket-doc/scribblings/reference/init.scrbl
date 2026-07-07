@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label racket/pretty racket/gui/base setup/dirs))
 
-@title{初始化库}
+@title{Init Libraries}
 
 @defmodule*/no-declare[(racket/init)]{@racketmodname[racket/init] 库是
  Racket 的默认启动库。它重新导出 @racketmodname[racket]、

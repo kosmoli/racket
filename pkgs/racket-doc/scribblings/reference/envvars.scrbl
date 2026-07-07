@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "envvars"]{环境变量}
+@title[#:tag "envvars"]{Environment Variables}
 
 一个 @deftech{environment variable set} 封装了一个从 byte strings 到 byte strings
 的部分映射。一个 Racket 进程的 initial @tech{environment variable set} 连接到

@@ -24,16 +24,19 @@
                           #:selected-event-index sel)
             s)))
 
-@title[#:tag "effective-futures"]{使用 Future 实现并行}
+@title[#:tag "effective-futures"]{Parallelism with Futures}
 
-@racketmodname[racket/future] 库通过 @deftech{futures} 以及 @racket[future]
-和 @racket[touch] 函数支持利用并行来提升性能。通过这些构造实现并行取决于避免 @tech{blocking} 操作：
-任何检查完整延续或需要相对于 Racket 线程进行原子执行的操作。@secref["DrRacket-perf"] 中的注意事项也适用于 future；
-值得注意的是，调试工具目前会破坏 future 的并行性。
+@racketmodname[racket/future] 库提供了通过 @deftech{futures} 实现并行性能提升的支持，
+主要通过 @racket[future] 和 @racket[touch] 函数来实现。
+通过这些构造实现并行依赖于避免 @tech{blocking} 操作——即任何检查完整 continuation
+或相对于 Racket threads 需要原子执行的操作。
+@secref["DrRacket-perf"] 中的注意事项同样适用于 futures；特别是，
+调试检测目前会使 futures 失效。
 
-@margin-note{其他函数，如 @racket[thread]，支持创建可靠的并发任务。}
+@margin-note{其他函数，如 @racket[thread]，支持创建可靠并发的任务。}
 
-作为入门示例，下面的 @racket[any-double?] 函数接收一个数字列表，判断列表中是否有某个数字的两倍也在该列表中：
+作为入门示例，下面的 @racket[any-double?] 函数接收一个数字列表，
+并判断列表中是否存在某个数字的两倍也在列表中：
 
 @racketblock[
 (define (any-double? l)
@@ -42,7 +45,8 @@
       (= i2 (* 2 i)))))
 ]
 
-此函数以二次时间复杂度运行，因此在像 @racket[l1] 和 @racket[l2] 这样的大列表上可能需要很长时间（约一秒）：
+该函数以二次时间运行，因此在 @racket[l1] 和 @racket[l2] 等
+大型列表上可能需要较长时间（大约一秒）：
 
 @racketblock[
 (define l1 (for/list ([i (in-range 5000)]) 
@@ -53,8 +57,10 @@
     (any-double? l2))
 ]
 
-加速 @racket[any-double?] 的最佳方式是使用不同的算法。然而，在至少有两个处理单元的机器上，
-使用 @racket[future] 和 @racket[touch] 可以让上述示例在大约一半的时间内运行：
+加速 @racket[any-double?] 的最佳方式是使用不同的算法。
+然而，在提供至少两个处理单元的机器上，
+上述示例可以使用 @racket[future] 和 @racket[touch]
+在大约一半的时间内运行：
 
 @racketblock[
 (let ([f (future (lambda () (any-double? l2)))])
@@ -62,16 +68,21 @@
       (touch f)))
 ]
 
-Future @racket[f] 与 @racket[(any-double? l1)] 并行运行 @racket[(any-double? l2)]，
-而 @racket[(any-double? l2)] 的结果大约在 @racket[(touch f)] 需要它的同时变得可用。
+future @racket[f] 与 @racket[(any-double? l1)] 并行运行
+@racket[(any-double? l2)]，而 @racket[(any-double? l2)] 的结果
+大约在 @racket[(touch f)] 需要它时就已可用。
 
-Future 只要能够安全地运行，并且不依赖 @racket[touch] 可能提供的任何延续上下文，就可以并行运行。
-延续上下文可以包括异常处理程序、参数值、延续提示或其他可通过延续标记访问的值。
-安全性涉及共享的可变对象，如输入端口、输出端口和基于 @racket[equal?] 的哈希表，
-其并发访问由内部管理或通过锁显式管理。本节的其余部分通过一个示例来说明安全性和延续方面的障碍，
-并展示了 @deftech{futures visualizer}（由 @racketmodname[future-visualizer #:indirect] 提供）如何帮助揭示这些障碍。
+Futures 只要能够安全地运行且独立于 @racket[touch] 可能提供的
+任何 continuation 上下文，就会并行运行。Continuation 上下文可以包括
+异常处理器、参数值、continuation prompts 或通过 continuation marks
+可访问的其他值。安全性涉及共享的可变对象，如输入端口、输出端口
+和基于 @racket[equal?] 的哈希表，这些对象的并发访问通过内部管理
+或通过锁显式管理。本节的剩余部分通过一个示例来说明安全性和
+continuation 障碍，同时展示了 @deftech{futures visualizer}
+（由 @racketmodname[future-visualizer #:indirect] 提供）
+如何帮助揭示这些障碍。
 
-考虑以下 Mandelbrot 集计算的核心：
+考虑以下 Mandelbrot 集合计算的核心部分：
 
 @racketblock[
 (define (mandelbrot iterations x y n)
@@ -90,15 +101,17 @@ Future 只要能够安全地运行，并且不依赖 @racket[touch] 可能提供
                           (+ (* 2 zr zi) ci))]))))))
 ]
 
-表达式 @racket[(mandelbrot 10000000 62 500 1000)] 和 @racket[(mandelbrot 10000000 62 501 1000)] 各自都需要一些时间才能产生答案。
-当然，同时计算两者需要两倍的时间：
+表达式 @racket[(mandelbrot 10000000 62 500 1000)] 和
+@racket[(mandelbrot 10000000 62 501 1000)] 各自都需要
+一段时间才能产生结果。当然，同时计算两者需要两倍的时间：
 
 @racketblock[
 (list (mandelbrot 10000000 62 500 1000)
       (mandelbrot 10000000 62 501 1000))
 ]
 
-不幸的是，尝试使用一个 @racket[future] 并行运行这两个计算并不会提高性能：
+不幸的是，尝试使用一个 @racket[future] 来并行运行这两个计算
+并不能改善性能：
 
 @racketblock[
  (let ([f (future (lambda () (mandelbrot 10000000 62 501 1000)))])
@@ -106,10 +119,11 @@ Future 只要能够安全地运行，并且不依赖 @racket[touch] 可能提供
          (touch f)))
 ]
 
-要了解原因，请使用 @racketmodname[future-visualizer #:indirect] 中的 futures visualizer 来可视化上述程序的执行过程。
+要了解原因，请使用 @racketmodname[future-visualizer #:indirect] 中的
+futures visualizer 来可视化上述程序的执行。
 @;
-The visualizer opens a window showing a graphical view of a trace of the computation.
-The upper-left portion of the window contains an execution timeline:
+可视化器会打开一个窗口，显示计算轨迹的图形视图。
+窗口的左上部分包含一个执行时间线：
 
 @(interaction-eval 
   #:eval future-eval 
@@ -438,22 +452,30 @@ The upper-left portion of the window contains an execution timeline:
            (show-timeline bad-log)
 ]
 
-每个水平行代表一个并行任务，彩色圆点代表程序执行中的重要事件；
-它们通过颜色编码来区分不同的事件类型。时间线中左上角的蓝色圆点代表 future 的创建。
-该 future 在线程 1 上短暂执行（以第二行的绿色条表示）。然后它暂停，
-因为 Racket 线程需要执行一个 future 不安全操作（以红点表示）。这个暂停很长，
-因为 Racket 线程在 @racket[touch] 该 future 之前正在执行它自己的那份计算。
-同时，粉色垂直线代表垃圾回收事件，这意味着并行任务之间的同步。
+每一行代表一个并行任务，彩色圆点代表程序执行中的重要事件；
+它们通过颜色编码来区分不同的事件类型。时间线左上角的蓝色圆点
+代表 future 的创建。该 future 在 thread 1 上短暂执行
+（由第二行的绿色条表示）。然后它暂停，因为 Racket thread
+需要执行一个 future 不安全的操作（由红色圆点表示）。
+暂停时间较长，因为 Racket thread 在 @racket[touch] future 之前
+正在执行自己的计算副本。同时，粉色的竖线代表垃圾回收事件，
+这意味着跨并行任务的同步。
 
-future 不安全操作或需要延续上下文的操作是 @deftech{blocking} 操作。
-阻塞操作会暂停 future 的求值，并且在 future 被 touch 之前不允许其继续执行。
-在线程中对 future 执行 @racket[touch] 会导致其工作由该线程顺序求值，
-该线程提供延续上下文并可以与 Racket 线程同步。@margin-note*{在 Racket 的 @tech{BC} 实现中，@deftech{synchronized} 操作也会暂停 future。
-后台线程可以随时执行该操作，一旦完成，future 可以继续并行运行。
-@tech{CS} 实现可以执行同步操作而无需停止 future 或依赖后台线程。}
+future 不安全的操作或需要 continuation 上下文的操作
+是 @deftech{blocking}（阻塞）操作。
+阻塞操作会停止 future 的求值，并且不允许它继续执行，
+直到 future 被 touch。在 thread 中对 future 进行 @racket[touch]
+会导致其工作由该 thread 顺序求值，
+该 thread 提供 continuation 上下文并可与 Racket threads 同步。@margin-note*{在 Racket 的 @tech{BC} 实现中，
+@deftech{synchronized}（同步）操作也会停止 future。
+后台 thread 可以随时执行该操作，一旦完成，
+future 可以继续并行运行。@tech{CS} 实现
+可以在不停止 future 或依赖后台 thread 的情况下
+执行同步操作。}
 
-当您将鼠标移到事件上时，visualizer 会显示有关该事件的详细信息，
-并绘制箭头连接相应 future 中的所有事件。此图像显示了我们的 future 的这些连接。
+当您将鼠标移到某个事件上时，可视化器会显示该事件的详细信息，
+并绘制箭头连接相应 future 中的所有事件。
+此图像显示了我们 future 的这些连接。
 
 @interaction-eval-show[
      #:eval future-eval
@@ -461,13 +483,15 @@ future 不安全操作或需要延续上下文的操作是 @deftech{blocking} �
                            #:selected-event-index 1)
 ]
 
-蓝色虚线将 future 中的第一个事件连接到创建它的 future，红色线将 future 阻塞事件连接到其上
-event to its resumptions, and the purple lines connect adjacent
-events within the future. 
+蓝色虚线将 future 中的第一个事件连接到
+创建它的 future，红色线条将 future 的阻塞事件
+连接到其恢复点，紫色线条连接 future 内部的相邻事件。
 
-我们看不到并行性的原因是 @racket[mandelbrot] 中循环之前的 @racket[printf] 操作需要查找 @racket[current-output-port] 参数的值，
-而该值取决于 @racket[touch] 的求值上下文。即使通过使用 @racket[fprintf] 和直接引用端口的变量来修复这个问题，
-写入端口也是一个阻塞操作，因为它必须获取端口上的锁。移除 @racket[printf] 可以避免这两个问题。
+我们看不到并行的原因是 @racket[mandelbrot] 中循环之前的
+@racket[printf] 操作需要查找 @racket[current-output-port] 参数的值，
+这取决于 @racket[touch] 的求值上下文。即使通过使用 @racket[fprintf]
+和直接引用端口的变量来修复这个问题，写入端口也是一个阻塞操作，
+因为它必须获取端口上的锁。移除 @racket[printf] 可以同时避免这两个问题。
 
 @interaction-eval[
     #:eval future-eval            
@@ -790,7 +814,8 @@ events within the future.
            (show-timeline better-log )
 ]
 
-更一般地，我们可以创建 @racket[N] 个 future 来执行相同的计算，它们将并行运行：
+更一般地，我们可以创建 @racket[N] 个 futures 来执行相同的计算，
+它们将并行运行：
 
 @racketblock[
   (define fs
@@ -1433,18 +1458,21 @@ events within the future.
 ))
 ]
 
-在至少具有 4 个处理单元的机器上，@racket[N] 设为 @racket[4]：
+在至少有 4 个处理单元的机器上，将 @racket[N] 设为 @racket[4]：
 
 @interaction-eval-show[
     #:eval future-eval
            (show-timeline four-log #:height 600 #:width 1300 #:scale 0.4)
 ]
 
-此示例中几乎每个算术运算都会产生一个不精确的数字，其存储必须分配，这触发了频繁的垃圾回收，
-如密集的粉色线所示，实际上使整个图表呈现粉色背景。垃圾回收本身不一定是问题，
-但由于垃圾回收需要并行任务之间的同步，它有时可能会限制性能。
+此示例中的几乎所有算术运算都会产生需要分配存储的不精确数，
+这会触发频繁的垃圾回收，如密集的粉色线条所示，
+实际上给整个图形提供了粉色背景。垃圾回收不一定是问题，
+但由于垃圾回收需要跨并行任务的同步，有时会限制性能。
 
-通过使用 @tech{flonum} 特定的操作（参见 @secref["fixnums+flonums"]），我们可以重写 @racket[mandelbrot] 以使用更少的分配：
+通过使用 @tech{flonum} 特定的操作（参见
+@secref["fixnums+flonums"]），我们可以重写 @racket[mandelbrot]
+以使用更少的分配：
 
 @interaction-eval[
     #:eval future-eval 
@@ -1485,9 +1513,11 @@ events within the future.
                           (fl+ (fl* 2.0 (fl* zr zi)) ci))]))))))
 ]
 
-这种转换可以将 @racket[mandelbrot] 的速度提高约 10 倍，即使在串行模式下也是如此，
-同时避免分配还可以让 @racket[mandelbrot] 更一致地并行运行。执行此程序会在 visualizer 中得到以下无粉色的结果
-（与之前的图表不成比例）：
+此转换可以将 @racket[mandelbrot] 加速约 10 倍，
+即使在顺序模式下也是如此，但避免分配还允许
+@racket[mandelbrot] 更一致地并行运行。执行此程序
+在可视化器中产生以下无粉色的结果
+（与之前的图形不按比例）：
 
 @interaction-eval-show[
     #:eval future-eval 
@@ -1495,8 +1525,11 @@ events within the future.
 ]
 
 
-作为一般准则，如果操作需要查询延续（如获取参数值），或者与 Racket 的线程系统交互（如在输出端口或基于 @racket[equal?] 的哈希表的实现中获取锁），
-则该操作是 @tech{blocking} 的。在 Racket 的 @tech{CS} 实现中，大多数原语是非阻塞的，
-而 @tech{BC} 实现包含更多阻塞或 @tech{synchronized} 操作。
+一般而言，如果一个操作需要查询 continuation
+（例如获取参数值），或者它与 Racket 的 thread 系统交互
+（例如在输出端口或基于 @racket[equal?] 的哈希表的实现中获取锁），
+那么该操作就是 @tech{blocking} 的。在 Racket 的 @tech{CS} 实现中，
+大多数原语是非阻塞的，而 @tech{BC} 实现包含更多
+阻塞或 @tech{synchronized} 操作。
 
 @close-eval[future-eval]

@@ -13,10 +13,10 @@
           (define filename (make-temporary-file))]
 
 
-@title{文件系统}
+@title{Filesystem}
 
 @;------------------------------------------------------------------------
-@section[#:tag "findpaths"]{定位路径}
+@section[#:tag "findpaths"]{Locating Paths}
 
 @defproc[(find-system-path [kind symbol?]) path?]{
 
@@ -252,7 +252,7 @@
 @history[#:changed "8.1.0.7" @elem{在 Windows 上添加了使用 @filepath{.exe} 的搜索。}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "fileutils"]{文件}
+@section[#:tag "fileutils"]{Files}
 
 @defproc[(file-exists? [path path-string?]) boolean?]{
 
@@ -538,7 +538,7 @@ Windows 区分文件和目录链接，仅当 @racket[to] 在语法上解析为�
 是否尝试更改文件或目录的权限以删除它。默认值为 @racket[#t]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "directories"]{目录}
+@section[#:tag "directories"]{Directories}
 
 另参见：@racket[rename-file-or-directory]、
 @racket[file-or-directory-modify-seconds]、
@@ -626,7 +626,7 @@ Windows 区分文件和目录链接，仅当 @racket[to] 在语法上解析为�
 返回所有当前根目录的列表。在 Windows 上获取此列表可能特别慢。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "filesystem-change"]{检测文件系统更改}
+@section[#:tag "filesystem-change"]{Detecting Filesystem Changes}
 
 许多操作系统提供文件系统更改通知，
 这些通知在 Racket 中通过 @tech{文件系统更改事件} 反映。
@@ -699,7 +699,7 @@ Windows 区分文件和目录链接，仅当 @racket[to] 在语法上解析为�
 
 
 @;------------------------------------------------------------------------
-@section[#:tag "runtime-path"]{声明运行时需要的路径}
+@section[#:tag "runtime-path"]{Declaring Paths Needed at Run Time}
 
 @note-lib-only[racket/runtime-path]
 
@@ -895,7 +895,7 @@ require 由 @racket[module-path] 指定的模块，该模块是未引用的模�
 结果列表@emph{不}包括通过 @racket[define-runtime-module-path] 绑定的模块路径。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "file-lib"]{更多文件和目录工具}
+@section[#:tag "file-lib"]{More File and Directory Utilities}
 
 @note-lib[racket/file]
 

@@ -5,7 +5,7 @@
 @(define the-eval (make-base-eval))
 @(the-eval '(require racket/contract))
 
-@title{Structure Type Property 的 Contract}
+@title{Structure Type Property Contracts}
 
 @defproc[(struct-type-property/c [value-contract contract?])
          contract?]{

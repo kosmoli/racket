@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "threads"]{线程}
+@title[#:tag "threads"]{Threads}
 
 @guideintro["concurrency"]{线程}
 
@@ -60,7 +60,7 @@
 如果 @racket[call-in-nested-thread] 创建的线程在其自身调用 @racket[call-in-nested-thread] 时死亡，则外部 @racket[call-in-nested-thread] 调用等待最内层的嵌套线程完成，并且内层线程上任何待处理的 break 都被移动到原始线程。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "threadkill"]{挂起、恢复和终止线程}
+@section[#:tag "threadkill"]{Suspending, Resuming, and Killing Threads}
 
 @defproc[(thread-suspend [thd  thread?]) void?]{
 
@@ -108,7 +108,7 @@
 返回 @racket[#t] 如果 @racket[thd] 已终止，否则返回 @racket[#f]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "threadsync"]{同步线程状态}
+@section[#:tag "threadsync"]{Synchronizing Thread State}
 
 @defproc[(thread-wait [thd thread?]
                       [fail-k (procedure-arity-includes/c 0) void])
@@ -144,7 +144,7 @@
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "threadmbox"]{线程邮箱}
+@section[#:tag "threadmbox"]{Thread Mailboxes}
 
 每个线程都有一个 @defterm{邮箱}，通过它可以接收任意消息。换句话说，每个线程都有一个内置的异步 channel。
 
@@ -174,7 +174,7 @@
 将 @racket[lst] 的元素推回到当前线程队列的前端。元素逐个推入，因此第一个可用的消息是 @racket[lst] 的最后一个元素。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "threadpool"]{并行线程池}
+@section[#:tag "threadpool"]{Parallel Thread Pools}
 
 @defproc[(parallel-thread-pool? [v any/c]) thread?]{如果 @racket[v] 是 @tech{parallel thread pool}，返回 @racket[#t]，否则返回 @racket[#f]。}
 

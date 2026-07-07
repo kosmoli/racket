@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "vectors"]{向量}
+@title[#:tag "vectors"]{Vectors}
 
 @guideintro["vectors"]{vectors}
 
@@ -199,7 +199,7 @@ Vector 的比较并交换操作。参见 @racket[box-cas!]。
 ]}
 
 @; ----------------------------------------
-@section{其他 Vector 函数}
+@section[#:tag "vectors-s1"]{Additional Vector Functions}
 
 @note-lib[racket/vector]
 @(define vec-eval (make-base-eval))

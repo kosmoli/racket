@@ -3,9 +3,9 @@
 
 @(define greet-eval (make-base-eval))
 
-@title[#:tag "lambda"]{函数@aux-elem{ (Procedures)}: @racket[lambda]}
+@title[#:tag "lambda"]{Functions@aux-elem{ (Procedures)}: @racket[lambda]}
 
-@racket[lambda] 表达式创建函数。在最简单的情况下，@racket[lambda] 表达式具有以下形式
+@racket[lambda] 表达式创建一个函数。最简单的情况下，@racket[lambda] 表达式具有以下形式
 
 @specform[
 (lambda (arg-id ...)
@@ -33,7 +33,7 @@
   body ...+)
 ]
 
-即，@racket[lambda] 表达式可以具有单个不被括号包围的 @racket[_rest-id]。生成的函数接受任意数量的参数，参数被放入绑定到 @racket[_rest-id] 的列表中。
+也就是说，@racket[lambda] 表达式可以有一个不被括号包围的 @racket[_rest-id]。生成的函数接受任意数量的参数，参数被放入绑定到 @racket[_rest-id] 的列表中。
 
 @examples[
 ((lambda x x)
@@ -63,7 +63,7 @@
   body ...+)
 ]
 
-此形式的结果函数要求至少有 @racket[_arg-id]s 数量的参数，并接受任意数量的附加参数。
+此形式的结果是一个函数，它至少需要与 @racket[_arg-id] 一样多的参数，同时也接受任意数量的额外参数。
 
 @defexamples[
 (define max-mag
@@ -74,12 +74,12 @@
 (max-mag)
 ]
 
-@racket[_rest-id] 变量有时被称为 @deftech{rest argument}，因为它接受函数参数的"rest"。带 rest 参数的函数有时被称为 @deftech{variadic} 函数，rest 参数中的元素称为 variadic arguments。
+@racket[_rest-id] 变量有时被称为@deftech{rest 参数}，因为它接受函数参数的"剩余"部分。带有 rest 参数的函数有时被称为@deftech{可变参数}函数，rest 参数中的元素称为可变参数。
 
 @;------------------------------------------------------------------------
 @section{Declaring Optional Arguments}
 
-不仅限于标识符，@racket[lambda] 形式中的参数（除 rest 参数外）可以指定标识符和默认值：
+除了仅使用标识符之外，@racket[lambda] 形式中的参数（rest 参数除外）可以用标识符和默认值来指定：
 
 @specform/subs[
 (lambda gen-formals
@@ -91,7 +91,7 @@
       [arg-id default-expr]])
 ]{}
 
-@racket[[arg-id default-expr]] 形式的参数是可选的。当应用不提供该参数时，@racket[_default-expr] 产生默认值。@racket[_default-expr] 可以引用任何先前的 @racket[_arg-id]，每个后续的 @racket[_arg-id] 必须有默认值。
+形式为 @racket[[arg-id default-expr]] 的参数是可选的。当在应用中未提供该参数时，@racket[_default-expr] 产生默认值。@racket[_default-expr] 可以引用任何前面的 @racket[_arg-id]，并且之后的每个 @racket[_arg-id] 也必须有默认值。
 
 @defexamples[
 (define greet
@@ -115,7 +115,7 @@
 
 @section[#:tag "lambda-keywords"]{Declaring Keyword Arguments}
 
-@racket[lambda] 形式可以声明按关键字传递的参数，而非位置传递。关键字参数可以与位置参数混合使用，可以为两种类型的参数提供默认值表达式：
+@racket[lambda] 形式可以声明通过关键字传递的参数，而不是通过位置传递。关键字参数可以与位置参数混合使用，并且两种参数都可以提供默认值表达式：
 
 @guideother{@secref["keyword-args"] introduces function
 calls with keywords.}
@@ -132,7 +132,7 @@ calls with keywords.}
       (code:line arg-keyword [arg-id default-expr])])
 ]{}
 
-以 @racket[(code:line _arg-keyword _arg-id)] 指定的参数由应用使用相同的 @racket[_arg-keyword] 提供。关键字标识符对在参数列表中的位置对于匹配应用中的参数无关紧要，因为它是通过关键字而非位置进行匹配的。
+指定为 @racket[(code:line _arg-keyword _arg-id)] 的参数在应用中使用相同的 @racket[_arg-keyword] 来提供。关键字--标识符对在参数列表中的位置对于应用中的参数匹配无关紧要，因为它将通过关键字而非位置来匹配参数值。
 
 @def+int[
 (define greet
@@ -143,7 +143,7 @@ calls with keywords.}
 (greet #:last "Doe" "John")
 ]
 
-@racket[(code:line _arg-keyword [_arg-id _default-expr])] 参数指定带默认值的关键字参数。
+@racket[(code:line _arg-keyword [_arg-id _default-expr])] 参数指定了一个带有默认值的基于关键字的参数。
 
 @defexamples[
 #:eval greet-eval
@@ -157,7 +157,7 @@ calls with keywords.}
 (greet "Karl" #:last "Marx" #:hi "Guten Tag")
 ]
 
-@racket[lambda] 形式不直接支持创建接受"rest"关键字的函数。要构造接受所有关键字参数的函数，请使用 @racket[make-keyword-procedure]。提供给 @racket[make-keyword-procedure] 的关键字参数在前两个（位置）参数中通过并行列表接收，然后是来自应用的所有位置参数作为其余的位置参数。
+@racket[lambda] 形式不直接支持创建接受"rest"关键字的函数。要构造接受所有关键字参数的函数，请使用 @racket[make-keyword-procedure]。提供给 @racket[make-keyword-procedure] 的函数通过前两个（位置）参数中的并行列表接收关键字参数，然后将应用中的所有位置参数作为剩余的位置参数。
 
 @guideother{@secref["apply"] introduces @racket[keyword-apply].}
 
@@ -176,7 +176,7 @@ calls with keywords.}
 @;------------------------------------------------------------------------
 @section[#:tag "case-lambda"]{Arity-Sensitive Functions: @racket[case-lambda]}
 
-@racket[case-lambda] 形式创建根据提供的参数数量可以具有完全不同行为的函数。case-lambda 表达式具有以下形式
+@racket[case-lambda] 形式创建一个根据提供的参数数量可以有完全不同行为的函数。case-lambda 表达式具有以下形式
 
 @specform/subs[
 (case-lambda
@@ -187,8 +187,7 @@ calls with keywords.}
           (arg-id ...+ . rest-id)])
 ]
 
-其中每个 @racket[[_formals _body ...+]] 类比于 @racket[(lambda
-_formals _body ...+)]。应用 @racket[case-lambda] 产生的函数类似应用第一个匹配给定参数数量的 @racket[lambda]。
+其中每个 @racket[[_formals _body ...+]] 类似于 @racket[(lambda _formals _body ...+)]。应用由 @racket[case-lambda] 产生的函数类似于应用与给定参数数量匹配的第一种情况的 @racket[lambda]。
 
 @defexamples[
 (define greet
@@ -201,7 +200,7 @@ _formals _body ...+)]。应用 @racket[case-lambda] 产生的函数类似应用�
 (greet)
 ]
 
-@racket[case-lambda] 函数不能直接支持可选或关键字参数。
+@racket[case-lambda] 函数不能直接支持可选参数或关键字参数。
 
 @; ----------------------------------------------------------------------
 

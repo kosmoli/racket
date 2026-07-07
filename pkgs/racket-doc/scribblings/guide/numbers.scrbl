@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "numbers"]{数值}
+@title[#:tag "numbers"]{Numbers}
 
 一个 Racket @deftech{number}（数值）要么是精确的，要么是不精确的：
 

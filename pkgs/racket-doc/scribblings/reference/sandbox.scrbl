@@ -8,7 +8,7 @@
 @(define box-eval (make-base-eval))
 @examples[#:hidden #:eval box-eval (require racket/sandbox)]
 
-@title{沙箱求值}
+@title{Sandboxed Evaluation}
 
 @note-lib-only[racket/sandbox]
 
@@ -297,7 +297,7 @@ continue to raise it on further evaluation attempts.}
 
 @; ----------------------------------------------------------------------
 
-@section{安全考虑}
+@section[#:tag "sandbox-s1"]{Security Considerations}
 
 Although the sandbox is designed to provide a safe environment for executing
 Racket programs with restricted access to system resources, executing untrusted
@@ -322,7 +322,7 @@ with the latest release.}
 
 @; ----------------------------------------------------------------------
 
-@section{自定义 Evaluator}
+@section[#:tag "sandbox-s2"]{Customizing Evaluators}
 
 The sandboxed evaluators that @racket[make-evaluator] creates can be
 customized via many parameters.  Most of the configuration parameters
@@ -860,7 +860,7 @@ in the future):
 
 @; ----------------------------------------------------------------------
 
-@section{与 Evaluator 交互}
+@section[#:tag "sandbox-s3"]{Interacting with Evaluators}
 
 The following functions are used to interact with a sandboxed
 evaluator in addition to using it to evaluate code.
@@ -1053,7 +1053,7 @@ your own permissions, for example,
 
 @; ----------------------------------------------------------------------
 
-@section{其他}
+@section[#:tag "sandbox-s4"]{Miscellaneous}
 
 @defthing[gui? boolean?]{
 

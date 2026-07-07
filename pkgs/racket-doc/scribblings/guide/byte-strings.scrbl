@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "bytestring"]{字节和字节串}
+@title[#:tag "bytestrings"]{Bytes and Byte Strings}
 
 @deftech{字节}是在 @racket[0] 和 @racket[255]（含）之间的一个精确整数。@racket[byte?] 谓词识别表示字节的数字。
 

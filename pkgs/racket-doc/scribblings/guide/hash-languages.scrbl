@@ -10,7 +10,7 @@
 @(define-syntax !- (make-element-id-transformer (lambda (v) #'@tt{|-})))
 
 
-@title[#:tag "hash-languages" #:style 'toc]{定义新的 @hash-lang[] 语言}
+@title[#:tag "hash-languages" #:style 'toc]{Defining new @hash-lang[] Languages}
 
 当将文件作为源程序加载，其开头为
 
@@ -23,7 +23,7 @@
 @local-table-of-contents[]
 
 @; ----------------------------------------
-@section[#:tag "hash-lang syntax"]{指定 @hash-lang[] 语言}
+@section[#:tag "hash-lang syntax"]{Designating a @hash-lang[] Language}
 
 @racket[_language] 的语法有意与在 @racket[require] 中使用的模块路径语法或作为 @tech{module language} 的模块路径语法重叠，以便 @racketmodname[racket]、@racketmodname[racket/base]、@racketmodname[slideshow #:indirect] 或 @racketmodname[scribble/manual] 等名称可以同时作为 @hash-lang[] 语言和模块路径使用。
 
@@ -38,7 +38,7 @@
 @hash-lang[] @racket[_language] 转换为模块路径的方式的一个后果是，该语言必须安装在 @tech{collection} 中，类似于随 Racket 分发的 @filepath{racket} 或 @filepath{slideshow} 作为集合。然而，同样地，有一种方式可以摆脱此限制：@racketmodname[reader] 语言允许使用通用 @tech{module path} 指定语言的 @tech{reader} 级别实现。
 
 @; ----------------------------------------
-@section[#:tag "hash-lang reader"]{使用 @racket[@#,hash-lang[] @#,racketmodname[reader]]}
+@section[#:tag "hash-lang reader"]{Using @racket[@#,hash-lang[] @#,racketmodname[reader]]}
 
 @racket[@#,hash-lang[] @#,racketmodname[reader]] 语言的用途类似于 @racketmodname[s-exp]，因为它充当一种元语言。
 而 @racketmodname[s-exp] 让程序员在解析的 @tech{expander} 层指定 @tech{module language}，
@@ -67,7 +67,7 @@ data
 ]
 
 @; ----------------------------------------
-@section[#:tag "syntax/module-reader"]{使用 @racket[@#,hash-lang[] @#,racketmodname[s-exp] @#,racketmodname[syntax/module-reader]]}
+@section[#:tag "syntax/module-reader"]{Using @racket[@#,hash-lang[] @#,racketmodname[s-exp] @#,racketmodname[syntax/module-reader]]}
 
 解析模块体通常不像在 @filepath{literal.rkt} 中那么简单。更典型的模块解析器必须迭代以解析模块体的多个形式。一种语言也更可能扩展 Racket 语法——可能通过 @tech{readtable}——而不是完全替换 Racket 语法。
 
@@ -110,7 +110,7 @@ reader "raquet.rkt"
 @racketmodfile["store.rkt"]
 
 @; ----------------------------------------
-@section[#:tag "language-collection"]{安装语言}
+@section[#:tag "language-collection"]{Installing a Language}
 
 到目前为止，我们一直使用 @racketmodname[reader] 元语言来访问像 @filepath{literal.rkt} 和 @filepath{dollar-racket.rkt} 这样的语言。如果希望直接使用类似 @racket[@#,hash-lang[] literal] 的形式，则必须将 @filepath{literal.rkt} 移动到名为 @filepath{literal} 的 Racket @tech{collection} 中（另请参见 @secref["link-collection"]）。具体地，将 @filepath{literal.rkt} 移动到任何目录名 @filepath{literal} 的 @racketidfont{reader} 子模块中，如下所示：
 
@@ -148,7 +148,7 @@ Perfect!
 @margin-note{参见 @other-doc['(lib "pkg/scribblings/pkg.scrbl")] 了解更多关于 Racket 包管理器的信息。}
 
 @; ----------------------------------------
-@section[#:tag "language-get-info"]{源处理配置}
+@section[#:tag "language-get-info"]{Source-Handling Configuration}
 
 Racket 发行版包含一个用于编写散文式文档的 Scribble 语言，其中 Scribble 扩展了正常的 Racket 以更好地支持文本。以下是一个 Scribble 文档示例：
 
@@ -189,7 +189,7 @@ DrRacket 在为语言获取 @racketidfont{get-info} 的结果后，会以 @racke
 @racketmodname[syntax/module-reader] 语言允许您通过 @racket[#:info] 可选规范指定 @racketidfont{get-info} 处理。@racket[#:info] 函数的协议与原始 @racketidfont{get-info} 协议略有不同；改进后的协议允许 @racketmodname[syntax/module-reader] 自动处理未来的语言信息查询。
 
 @; ----------------------------------------
-@section[#:tag "module-runtime-config"]{模块处理配置}
+@section[#:tag "module-runtime-config"]{Module-Handling Configuration}
 
 假设文件 @filepath{death-list-5.rkt} 包含
 

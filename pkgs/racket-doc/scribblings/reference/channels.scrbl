@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "channel"]{通道}
+@title[#:tag "channel"]{Channels}
 
 @deftech{通道} 既同步一对线程，又在线程之间传递一个值。通道是同步的：发送方和接收方都必须阻塞，直到（原子）事务完成。多个发送方和接收方可以同时访问一个通道，但每次事务中只选择一个发送方和一个接收方。
 

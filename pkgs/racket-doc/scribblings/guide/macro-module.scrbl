@@ -13,7 +13,7 @@
 (random-seed 11)
 ]
 
-@title[#:tag "macro-module"]{模块的实例化与访问}
+@title[#:tag "macro-module"]{Module Instantiations and Visits}
 
 模块通常只包含函数和结构体类型定义，此时模块本身以纯函数方式运行，
 函数的创建时间不可观测。然而，如果模块的顶层表达式包含副作用，

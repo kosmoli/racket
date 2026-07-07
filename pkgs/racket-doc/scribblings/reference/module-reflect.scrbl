@@ -9,7 +9,7 @@
 @(define mod-eval (make-base-eval))
 
 @;------------------------------------------------------------------------
-@section[#:tag "modnameresolver"]{解析模块名称}
+@section[#:tag "modnameresolver"]{Resolving Module Names}
 
 @margin-note{‘@racketmodname[syntax/modresolve]’ 库提供了用于解析和操作模块名称的额外操作。}
 
@@ -115,7 +115,7 @@
 一个 @tech{parameter}，定义由默认的 @tech{load handler} 抛出的 @racket[exn:fail:syntax:missing-module] 和 @racket[exn:fail:filesystem:missing-module] 异常中使用的 module path。该 parameter 通常由 @tech{module name resolver} 设置。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "modpathidx"]{编译后的模块和引用}
+@section[#:tag "modpathidx"]{Compiled Modules and References}
 
 在展开 @racket[module] 声明时，展开器会解析导入的 module path，以便在必要时加载模块声明并确定导入的绑定，但 @racket[module] 声明的编译形式保留了原始的 module path。因此，编译后的模块可以被移动到另一个文件系统，在那里 module name resolver 可以解析编译代码之间的模块间引用。
 
@@ -294,7 +294,7 @@
 @history[#:added "8.4.0.2"]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "dynreq"]{动态模块访问}
+@section[#:tag "dynreq"]{Dynamic Module Access}
 
 @defproc[(dynamic-require [mod (or/c module-path?
                                      resolved-module-path?
@@ -487,7 +487,7 @@
 @(close-eval mod-eval)
 
 @;------------------------------------------------------------------------
-@section[#:tag "modcache"]{模块缓存}
+@section[#:tag "modcache"]{Module Cache}
 
 展开器维护一个 place-local module cache，以便在加载先前已声明的模块时节省时间。
 

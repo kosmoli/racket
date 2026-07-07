@@ -4,12 +4,12 @@
 
 @(define cake-eval (make-base-eval))
 
-@title{模块语法}
+@title{Module Syntax}
 
 @litchar{#lang} 位于模块文件开头，是 @racket[module] 形式的简写，就像 @litchar{'} 是 @racket[quote] 形式的简写一样。与 @litchar{'} 不同，@litchar{#lang} 简写在 @tech{REPL} 中效果不佳，部分原因在于它必须由文件结束符终止，但更根本的原因是 @litchar{#lang} 的展开形式依赖于外围文件的名称。
 
 @;------------------------------------------------------------------------
-@section[#:tag "module-syntax"]{@racket[module] 形式}
+@section[#:tag "module-syntax"]{The @racket[module] Form}
 
 模块声明的完整形式在 @tech{REPL} 和文件中都有效：
 
@@ -58,7 +58,7 @@
 ]
 
 @;------------------------------------------------------------------------
-@section[#:tag "hash-lang"]{@racketmodfont{#lang} 简写}
+@section[#:tag "hash-lang"]{The @racketmodfont{#lang} Shorthand}
 
 @racketmodfont{#lang} 简写的体没有特定语法，因为语法由 @racketmodfont{#lang} 后面的语言名称决定。
 
@@ -82,7 +82,7 @@ _decl ...]
 除非另有说明，使用 @racketmodfont{#lang} 表示法记录为"语言"的模块将以与 @racketmodfont{#lang} @racketmodname[racket] 相同的方式展开为 @racket[module]。记录的语言名称也可以直接与 @racket[module] 或 @racket[require] 一起使用。
 
 @; ----------------------------------------------------------------------
-@section[#:tag "submodules"]{子模块}
+@section[#:tag "submodules"]{Submodules}
 
 @racket[module] 形式可以嵌套在模块内部，此情况下嵌套的 @racket[module] 形式声明一个 @deftech{子模块}。子模块可由外围模块使用引用名称直接引用。以下示例通过从 @racket[zoo] 子模块导入 @racket[tiger] 来打印 @racket["Tony"]：
 
@@ -147,7 +147,7 @@ racket
 在此修改后的 @filepath{cake.rkt} 模块中，使用 @racket[(require "cake.rkt")] 的模块不会导入 @racket[show]，因为大多数 @filepath{cake.rkt} 的客户端不需要额外的函数。模块可以使用 @racket[(require (submod "cake.rkt" extras))] 来 require @racket[extra] @tech{子模块}，以访问原本隐藏的 @racket[show] 函数。@margin-note*{参见 @elemref["submod"]{子模块路径}了解 @racket[submod] 的更多信息。}
 
 @; ----------------------------------------------------------------------
-@section[#:tag "main-and-test"]{主模块和测试子模块}
+@section[#:tag "main-and-test"]{Main and Test Submodules}
 
 以下 @filepath{cake.rkt} 变体包含一个调用 @racket[print-cake] 的 @racket[main] 子模块：
 

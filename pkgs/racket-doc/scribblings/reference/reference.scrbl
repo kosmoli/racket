@@ -40,7 +40,7 @@
                                racket/private/qqstx
                                racket/private/stxcase-scheme
                                racket/private/letstx-scheme
-                               racket/private/core-syntax
+                               racket/private/define
                                racket/private/stx
                                racket/private/map
                                racket/private/list

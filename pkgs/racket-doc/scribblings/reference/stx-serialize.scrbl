@@ -3,7 +3,7 @@
           (for-label racket/fasl
                      racket/serialize))
 
-@title{Syntax 序列化}
+@title{Serializing Syntax}
 
 @defproc[(syntax-serialize [stx syntax?]
                            [#:preserve-property-keys preserve-property-keys (listof symbol?)]

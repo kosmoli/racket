@@ -7,7 +7,7 @@
 @examples[#:hidden #:eval posn-eval
   (require racket/match racket/stream (for-syntax racket/base))]
 
-@title[#:tag "define-struct"]{定义结构体类型：@racket[struct]}
+@title[#:tag "define-struct"]{Defining Structure Types: @racket[struct]}
 
 @guideintro["define-struct"]{@racket[struct]}
 

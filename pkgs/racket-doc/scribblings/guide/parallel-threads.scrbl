@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "parallel-threads"]{并行线程}
+@title[#:tag "parallel-threads"]{Parallel Threads}
 
 使用 @deftech{并行线程池}创建的 @tech{线程}可以使用与其他线程不同的硬件处理器，从而在并发之外提供并行性。当硬件可用时，使用这些 @deftech{并行线程}可以减少计算的延迟。
 

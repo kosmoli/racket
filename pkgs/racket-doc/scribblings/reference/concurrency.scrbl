@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "concurrency" #:style 'toc]{并发和并行}
+@title[#:tag "concurrency" #:style 'toc]{Concurrency and Parallelism}
 
 Racket 支持程序内的多个控制线程、线程本地存储、一些原始的同步机制
 以及组合同步抽象的框架。此外，@racket[racket/future] 和

@@ -5,7 +5,7 @@
                      syntax/parse/define
                      racket/for-clause))
 
-@title[#:tag "for"]{迭代与推导式：@racket[for]、@racket[for/list]……}
+@title[#:tag "for"]{Iterations and Comprehensions: @racket[for], @racket[for/list], ...}
 
 @guideintro["for"]{迭代与推导式}
 
@@ -14,7 +14,7 @@
 
 @racket[for] 迭代形式基于 SRFI-42 @cite["SRFI-42"]。
 
-@section{迭代与推导形式}
+@section[#:tag "for-s1"]{Iteration and Comprehension Forms}
 
 @defform/subs[(for (for-clause ...) body-or-break ... body)
               ([for-clause [id seq-expr]
@@ -443,7 +443,7 @@ seq-expr]] 的简写。在这种简单情况下，@racket[seq-expr] 从左到右
          #:changed "8.5.0.3" @elem{Added the @racket[for*/hashalw] form.}]}
 
 @;------------------------------------------------------------------------
-@section{派生新的迭代形式}
+@section[#:tag "for-s2"]{Deriving New Iteration Forms}
 
 @defform[(for/fold/derived orig-datum
            ([accum-id init-expr] ... maybe-result) (for-clause ...)
@@ -658,7 +658,7 @@ inner-expr] ...)] 部分的一部分。当未提供 @racket[inner-defn-or-expr] 
 @history[#:added "8.4.0.3"]}
 
 @;------------------------------------------------------------------------
-@section{迭代展开}
+@section[#:tag "for-s3"]{Iteration Expansion}
 
 @note-lib-only[racket/for-clause]
 
@@ -671,7 +671,7 @@ inner-expr] ...)] 部分的一部分。当未提供 @racket[inner-defn-or-expr] 
                                    @racket[syntax-local-introduce].}]}
 
 @;------------------------------------------------------------------------
-@section{Do 循环}
+@section[#:tag "for-s4"]{Do Loops}
 
 @defform/subs[(do ([id init-expr step-expr-maybe] ...)
                   (stop?-expr finish-expr ...)

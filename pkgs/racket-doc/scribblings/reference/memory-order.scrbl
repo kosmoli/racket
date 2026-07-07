@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label racket/unsafe/ops))
 
-@title[#:tag "memory-order"]{机器内存顺序}
+@title[#:tag "memory-order"]{Machine Memory Order}
 
 @tech{Parallel thread}、@tech{futures} 和 @tech{places} 可以暴露底层机器的内存模型，包括弱内存顺序。
 例如，当一个并行线程向一个可变 vector 的多个槽位写入时，在某些平台上可能出现另一个并行线程以不同的顺序观察到写入，或者根本观察不到，除非显式地同步线程。

@@ -5,7 +5,7 @@
 @examples[#:hidden #:eval dict-eval
           (require racket/dict racket/generic racket/contract racket/string)]
 
-@title[#:tag "dicts"]{字典}
+@title[#:tag "dicts"]{Dictionaries}
 
 @deftech{dictionary}（字典）是一种将键映射到值的数据类型的实例。以下数据类型都是字典：
 
@@ -26,7 +26,7 @@
 
 @note-lib[racket/dict]
 
-@section{字典谓词与 Contract}
+@section[#:tag "dicts-s1"]{Dictionary Predicates and Contracts}
 
 @defproc[(dict? [v any/c]) boolean?]{
 
@@ -122,7 +122,7 @@
 (dict-can-functional-set? '((a . "apple") (b . "banana")))
 ]}
 
-@section{通用字典接口}
+@section[#:tag "dicts-s2"]{Generic Dictionary Interface}
 
 @defidform[gen:dict]{
 
@@ -168,7 +168,7 @@
            ]
 }
 
-@subsection[#:tag "primitive-dict-methods"]{原始字典方法}
+@subsection[#:tag "primitive-dict-methods"]{Primitive Dictionary Methods}
 
 这些 @racket[gen:dict] 方法没有回退实现；仅支持直接实现它们的字典类型。
 
@@ -323,7 +323,7 @@ i
 (dict-iterate-value h (dict-iterate-next h i))
 ]}
 
-@subsection[#:tag "derived-dict-methods"]{派生字典方法}
+@subsection[#:tag "derived-dict-methods"]{Derived Dictionary Methods}
 
 这些 @racket[gen:dict] 方法基于其他方法有回退实现；即使未直接实现它们的字典类型也可能支持这些方法。
 
@@ -603,7 +603,7 @@ table
 (define h #hash((a . "apple") (b . "banana")))
 (dict->list h)
 ]}
-@section{字典序列}
+@section[#:tag "dicts-s3"]{Dictionary Sequences}
 
 @defproc[(in-dict [dict dict?]) sequence?]{ 返回一个 @tech{sequence}，其中每个元素是两个值：@racket[dict] 中的一个键和对应的值。
 
@@ -652,7 +652,7 @@ table
   p)
 ]}
 
-@section{带 Contract 的字典}
+@section[#:tag "dicts-s4"]{Contracted Dictionaries}
 
 @defthing[prop:dict/contract struct-type-property?]{
 
@@ -679,7 +679,7 @@ table
 如果 @racket[d] 实现了 @racket[prop:dict/contract] 接口，分别返回 @racket[d] 对其键、值或迭代器施加的 contract。
 }
 
-@section{自定义 Hash 表}
+@section[#:tag "dicts-s5"]{Custom Hash Tables}
 
 @defform[(define-custom-hash-types name
                                    optional-predicate
@@ -853,7 +853,7 @@ hash 函数 @racket[hash1] 和 @racket[hash2] 可以接受 1 或 2 个参数。�
 
 }
 
-@section{在字典中传递关键字参数}
+@section[#:tag "dicts-s6"]{Passing Keyword Arguments in Dictionaries}
 
 @defproc[
  (keyword-apply/dict [proc procedure?]

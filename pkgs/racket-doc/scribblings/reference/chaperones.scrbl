@@ -8,7 +8,7 @@
 @(define-syntax-rule (operations i ...)
    (itemlist #:style 'compact @item{@op[i]} ...))
 
-@title[#:tag "chaperones"]{Impersonator 与 Chaperone}
+@title[#:tag "chaperones"]{Impersonators and Chaperones}
 
 @deftech{impersonator} 是对某个值的包装器，该包装器会重定向该值的某些操作。impersonator 仅适用于 procedure、具有可用 accessor 或 mutator 的 @tech{structure}、@tech{structure type}、@tech{hash table}、@tech{vector}、@tech{box}、@tech{channel} 和 @tech{prompt tag}。
 impersonator 与原始值之间是 @racket[equal?] 的关系，但不是 @racket[eq?] 的关系。
@@ -109,7 +109,7 @@ impersonator 与原始值之间是 @racket[equal?] 的关系，但不是 @racket
 对于由 @racket[impersonate-procedure*] 或 @racket[chaperone-procedure*] 产生的 procedure impersonator，或者是使用 @racket[impersonate-procedure*] 或 @racket[chaperone-procedure*] 创建的值的 impersonator/chaperone（可能通过传递性），返回 @racket[#t]。}
 
 @; ------------------------------------------------------------
-@section{Impersonator 构造器}
+@section[#:tag "chaperones-s1"]{Impersonator Constructors}
 
 @defproc[(impersonate-procedure [proc procedure?]
                                 [wrapper-proc (or/c procedure? #f)]
@@ -463,7 +463,7 @@ property 值必须是一个接受一个参数的 procedure，该参数是一个 
 @history[#:added "6.9.0.4"]}
 
 @; ------------------------------------------------------------
-@section{Chaperone 构造器}
+@section[#:tag "chaperones-s2"]{Chaperone Constructors}
 
 @defproc[(chaperone-procedure [proc procedure?]
                               [wrapper-proc (or/c procedure? #f)]

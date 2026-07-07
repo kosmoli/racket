@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label racket/phase+space))
 
-@title[#:tag "phase+space"]{Phase 和 Space 工具}
+@title[#:tag "phase+space"]{Phase and Space Utilities}
 
 @note-lib-only[racket/phase+space]
 

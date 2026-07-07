@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "application"]{函数调用@aux-elem{（过程应用）}}
+@title[#:tag "application"]{Function Calls@aux-elem{ (Procedure Applications)}}
 
 形式为
 
@@ -13,7 +13,7 @@
 application}（过程应用）——当 @racket[_proc-expr] 不是绑定为 syntax transformer
 的标识符（如 @racket[if] 或 @racket[define]）。
 
-@section{求值顺序与元数}
+@section{Evaluation Order and Arity}
 
 函数调用的求值过程是：首先按从左到右的顺序对 @racket[_proc-expr]
 和所有 @racket[_arg-expr] 求值。然后，如果 @racket[_proc-expr] 产生的函数
@@ -33,7 +33,7 @@ application}（过程应用）——当 @racket[_proc-expr] 不是绑定为 synt
 是其接受的参数数量。
 
 @;------------------------------------------------------------------------
-@section[#:tag "keyword-args"]{关键字参数}
+@section[#:tag "keyword-args"]{Keyword Arguments}
 
 除了按位置参数外，某些函数还接受 @defterm{keyword arguments}（关键字参数）。
 在这种情况下，@racket[_arg] 可以是 @racket[_arg-keyword _arg-expr] 序列，
@@ -71,7 +71,7 @@ application}（过程应用）——当 @racket[_proc-expr] 不是绑定为 synt
 @refdetails["application"]{过程应用}
 
 @;------------------------------------------------------------------------
-@section[#:tag "apply"]{@racket[apply] 函数}
+@section[#:tag "apply"]{The @racket[apply] Function}
 
 函数调用的语法支持任意数量的参数，但每次具体调用始终指定固定数量的参数。
 因此，接受参数列表的函数不能直接将类似 @racket[+] 的函数应用于列表中的所有项：

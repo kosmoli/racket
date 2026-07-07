@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/unreachable racket/unsafe/ops))
 
-@title[#:tag "unreachable"]{不可达表达式}
+@title[#:tag "unreachable"]{Unreachable Expressions}
 
 @defproc[(assert-unreachable) none/c]{
 
@@ -10,7 +10,7 @@
 @history[#:added "8.0.0.11"]}
 
 
-@section[#:tag "with-unreachable"]{自定义不可达报告}
+@section[#:tag "with-unreachable"]{Customized Unreachable Reporting}
 
 @note-lib-only[racket/unreachable]
 

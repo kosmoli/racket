@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title{退出}
+@title{Exiting}
 
 @defproc[(exit [v any/c #t]) any]{
 

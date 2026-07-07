@@ -8,7 +8,7 @@
 
 @(define racket-srcloc @racket[srcloc])
 
-@title[#:tag "stxops"]{语法对象内容}
+@title[#:tag "stxops"]{Syntax Object Content}
 
 
 @defproc[(syntax? [v any/c]) boolean?]{
@@ -359,7 +359,7 @@
 @history[#:added "6.3"]}
 
 
-@section{语法对象源位置}
+@section[#:tag "stx-ops-s1"]{Syntax Object Source Locations}
 
 @note-lib-only[racket/syntax-srcloc]
 

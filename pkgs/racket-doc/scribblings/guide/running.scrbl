@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt" (for-syntax racket/pretty))
 
-@title[#:tag "running" #:style 'toc]{运行和创建可执行文件}
+@title[#:tag "running" #:style 'toc]{Running and Creating Executables}
 
 在开发程序时，许多 Racket 程序员使用
 @seclink["top" #:doc '(lib "scribblings/drracket/drracket.scrbl")
@@ -13,7 +13,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "racket"]{运行 @exec{racket} 和 @exec{gracket}}
+@section[#:tag "racket"]{Running @exec{racket} and @exec{gracket}}
 
 @exec{gracket} 可执行文件与 @exec{racket} 相同，但进行了
 使其作为 GUI 应用程序而不是控制台应用程序运行的小型调整。
@@ -153,7 +153,7 @@ require @filepath{hello.rkt} module，然后 require
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "exe"]{创建独立可执行文件}
+@section[#:tag "exe"]{Creating Stand-Alone Executables}
 
 @(define raco-doc '(lib "scribblings/raco/raco.scrbl"))
 

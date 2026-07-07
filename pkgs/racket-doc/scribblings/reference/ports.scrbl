@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "ports" #:style 'toc]{端口}
+@title[#:tag "ports" #:style 'toc]{Ports}
 
 @deftech{端口}产生和/或消费字节。@deftech{输入端口}产生字节，而@deftech{输出端口}消费字节（有些端口同时是输入端口和输出端口）。当向一个基于字符的操作提供输入端口时，字节被解码为字符，且基于字符的输出操作类似地将字符编码为字节；参见 @secref["encodings"]。除了字节和编码为字节的字符之外，一些端口还可以产生和/或消费任意值作为 @deftech{特殊} 结果。
 

@@ -4,7 +4,7 @@
 @(define ev (make-base-eval))
 @(ev '(require racket/block))
 
-@title[#:tag "block"]{块：@racket[block]}
+@title[#:tag "block"]{Blocks: @racket[block]}
 
 @note-lib-only[racket/block]
 

@@ -5,7 +5,7 @@
 @(define (bc-only cs)
     @elem{(@tech{BC} only; @cs for @tech{CS})})
  
-@title[#:tag "runtime"]{环境与运行时信息}
+@title[#:tag "runtime"]{Environment and Runtime Information}
 
 @defproc[(system-type [mode (or/c 'os 'os* 'arch 'word 'so-find 'platform
                                   'vm 'gc 'link 'machine 'target-machine

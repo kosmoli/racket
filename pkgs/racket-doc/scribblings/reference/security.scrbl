@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:style 'toc #:tag "security"]{反射和安全}
+@title[#:style 'toc #:tag "security"]{Reflection and Security}
 
 @local-table-of-contents[]
 

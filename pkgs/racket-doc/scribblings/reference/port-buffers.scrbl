@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "port-buffers"]{端口缓冲和位置}
+@title[#:tag "port-buffers"]{Port Buffers and Positions}
 
 某些端口——尤其是读写文件的端口——内部是缓冲的：
 

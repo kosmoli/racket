@@ -5,7 +5,7 @@
           "../guide-utils.rkt" "utils.rkt"
           (for-label racket/contract))
 
-@title[#:tag "contract-func"]{函数上的简单契约}
+@title[#:tag "contract-func"]{Simple Contracts on Functions}
 
 数学函数有 @deftech{domain}（定义域）和 @deftech{range}（值域）。
 domain 表示函数接受什么类型的参数，range 表示函数产生什么类型的值。
@@ -58,7 +58,7 @@ racket
 
 @; ------------------------------------------------------------------------
 
-@section{@racket[->] 的风格}
+@section{Styles of @racket[->]}
 
 如果你习惯于数学函数，你可能更希望 contract 箭头出现在函数的
 domain 和 range 之间，而不是在前面。如果你读过 @|HtDP|，你已经
@@ -85,7 +85,7 @@ domain 和 range 之间，而不是在前面。如果你读过 @|HtDP|，你已�
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "simple-nested"]{使用 @racket[define/contract] 和 @racket[->]}
+@section[#:tag "simple-nested"]{Using @racket[define/contract] and @racket[->]}
 
 在 @ctc-link["intro-nested"] 中介绍的 @racket[define/contract] 形式
 也可以用于定义带有 contract 的函数。例如，
@@ -112,7 +112,7 @@ domain 和 range 之间，而不是在前面。如果你读过 @|HtDP|，你已�
 ]
 
 @; ----------------------------------------------------------------------
-@section{@racket[any] 和 @racket[any/c]}
+@section{@racket[any] and @racket[any/c]}
 
 用于 @racket[deposit] 的 @racket[any] contract 匹配任何类型的结果，
 而且只能用于函数 contract 的 range 位置。我们可以用更具体的

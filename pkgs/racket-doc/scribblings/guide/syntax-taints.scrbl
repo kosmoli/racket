@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "stx-certs" #:style 'quiet]{带污染的语法}
+@title[#:tag "stx-certs" #:style 'quiet]{Tainted Syntax}
 
 模块通常包含仅用于同一模块内而不通过 @racket[provide] 导出的定义。然而，模块中定义的宏的使用可能展开为对未导出标识符的引用。通常，这样的标识符绝不能从展开后的表达式中提取出来并在不同的上下文中使用，因为在不同的上下文中使用该标识符可能会破坏该宏模块的不变量。
 

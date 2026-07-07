@@ -3,7 +3,7 @@
           (for-label racket/undefined
                      racket/shared))
 
-@title[#:tag "void+undefined"]{Void 和 Undefined}
+@title[#:tag "void+undefined"]{Void and Undefined}
 
 某些过程或表达式形式不需要返回值。例如，@racket[display] 过程仅为了写入输出的副作用而被调用。在这种情况下，结果值通常是一个打印为 @|void-const| 的特殊常量。当表达式的结果仅为 @|void-const| 时，@tech{REPL} 不会打印任何内容。
 

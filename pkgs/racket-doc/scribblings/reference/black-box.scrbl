@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "black-box"]{黑盒过程}
+@title[#:tag "black-box"]{Black-Box Procedure}
 
 当 Racket 程序编译时（见 @secref["compiler"]），编译器可能重新排序甚至移除没有可见效果的 @defterm{pure} 计算。从编译的角度来看，计算所需时间不被视为可见效果。编译器确实考虑了计算使用的内存（包括计算保持可达的值），但其程度仅是为了不增加程序的渐近内存使用量，可能通过其他方式移除或重新排序计算以减少内存使用。
 @racket[black-box] 函数在几乎没有额外开销的情况下抑制了其中许多优化。

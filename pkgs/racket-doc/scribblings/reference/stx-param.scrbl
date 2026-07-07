@@ -7,7 +7,7 @@
                      (only-in racket/control abort)
                      (for-syntax racket/base)))
 
-@title[#:tag "stxparam"]{语法参数}
+@title[#:tag "stxparam"]{Syntax Parameters}
 
 @note-lib-only[racket/stxparam]
 

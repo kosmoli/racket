@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title{读取}
+@title{Reading}
 
 @defproc[(read [in input-port? (current-input-port)]) any]{
 

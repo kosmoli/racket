@@ -6,7 +6,7 @@
           "mz.rkt")
 
 
-@title{弃用}
+@title{Deprecation}
 
 
 @note-lib-only[racket/deprecation]
@@ -17,7 +17,7 @@
 依赖 @racketmodname[racket/deprecation] 库并不暗示依赖于任何此类工具。
 
 
-@section{已弃用的别名}
+@section[#:tag "deprecation-s1"]{Deprecated Aliases}
 
 
 @defform[(define-deprecated-alias alias-id target-id)]{
@@ -33,7 +33,7 @@
    legacy-a)}
 
 
-@section{已弃用别名转换器}
+@section[#:tag "deprecation-s2"]{Deprecated Alias Transformers}
 @defmodule[racket/deprecation/transformer]
 
 

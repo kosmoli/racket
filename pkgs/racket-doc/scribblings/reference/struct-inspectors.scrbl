@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "inspectors"]{结构检查器}
+@title[#:tag "inspectors"]{Structure Inspectors}
 
 一个 @deftech{检查器} 提供对 structure 字段和 structure type 信息的访问，无需使用普通的 field accessor 和 mutator。（Inspectors 还用于控制对 module bindings 的访问；见 @secref["modprotect"]。）Inspectors 主要用于调试器。
 

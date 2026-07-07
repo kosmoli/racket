@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "module-set"]{赋值与重定义}
+@title[#:tag "module-set"]{Assignment and Redefinition}
 
 对模块内部定义的 variable 使用 @racket[set!] 仅限于定义该模块的主体内。也就是说，模块可以修改自身定义的那些绑定的值，这些修改对导入模块而言是可见的。然而，不允许导入方修改被导入绑定的值。
 

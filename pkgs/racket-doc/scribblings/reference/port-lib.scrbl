@@ -1,13 +1,13 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/port))
 
-@title[#:tag "port-lib"]{更多端口构造器、过程和事件}
+@title[#:tag "port-lib"]{More Port Constructors, Procedures, and Events}
 
 @note-lib[racket/port]
 
 @; ----------------------------------------------------------------------
 
-@section{端口字符串和列表转换}
+@section[#:tag "port-lib-s1"]{Port String and List Conversions}
 @(define port-eval (make-base-eval))
 @examples[#:hidden #:eval port-eval (require racket/port)]
 
@@ -138,7 +138,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section{创建端口}
+@section[#:tag "port-lib-s2"]{Creating Ports}
 
 @defproc[(input-port-append [close-at-eof? any/c]
                             [in input-port?] ...
@@ -508,7 +508,7 @@ encoding-str)] 转换其字节流。此外，如果 @racket[newline-bytes] 不�
 
 @; ----------------------------------------------------------------------
 
-@section{端口事件}
+@section[#:tag "port-lib-s3"]{Port Events}
 
 
 @defproc[(eof-evt [in input-port?]) evt?]{
@@ -626,7 +626,7 @@ one @racket[eof] becomes available.}
 
 @; ----------------------------------------------------------------------
 
-@section{复制流}
+@section[#:tag "port-lib-s4"]{Copying Streams}
 
 @defproc[(convert-stream [from-encoding string?]
                          [in input-port?]

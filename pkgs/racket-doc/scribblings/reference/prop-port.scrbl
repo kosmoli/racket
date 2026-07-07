@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "portstructs"]{作为端口的结构}
+@title[#:tag "portstructs"]{Structures as Ports}
 
 @defthing[prop:input-port struct-type-property?]
 @defthing[prop:output-port struct-type-property?]

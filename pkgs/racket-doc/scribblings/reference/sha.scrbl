@@ -4,7 +4,7 @@
 @(define sha-eval (make-base-eval))
 @examples[#:hidden #:eval sha-eval (require file/sha1)]
 
-@title[#:tag "sha"]{加密哈希}
+@title[#:tag "sha"]{Cryptographic Hashing}
 
 @deftogether[(
 @defproc[(sha1-bytes [in (or/c bytes? input-port?)]

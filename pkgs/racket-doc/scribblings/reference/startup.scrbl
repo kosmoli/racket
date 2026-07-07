@@ -17,7 +17,7 @@
 @(define eventspace
    @tech[#:doc '(lib "scribblings/gui/gui.scrbl")]{eventspace})
 
-@title[#:tag "running-sa"]{运行 Racket 或 GRacket}
+@title[#:tag "running-sa"]{Running Racket or GRacket}
 
 核心的 Racket 运行时系统有两种主要变体：
 
@@ -39,7 +39,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "init-actions"]{初始化}
+@section[#:tag "init-actions"]{Initialization}
 
 在启动时，顶级环境不包含任何 binding——甚至连
 @racket[#%app] for function application. 名称以 @racketidfont{#%} 开头的原始 module 已被定义，但它们不用于直接使用，且此类 module 的集合可能会变化。  For example,
@@ -82,7 +82,7 @@ with the @Flag{I} @tech{configuration option}. The
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "exit-status"]{退出状态}
+@section[#:tag "exit-status"]{Exit Status}
 
 如果在命令行期间发生错误，则 Racket 或 GRacket 进程 if
 如果在命令行 @racket[eval]（通过 @Flag{e} 等）、@racket[load]（通过 @Flag{f}、@Flag{r} 等）或 @racket[require]（通过 @Flag{l}、@Flag{t} 等）期间发生错误——或者更一般地，如果围绕这些求值的 @tech{prompt} 的 abort handler 被调用——但仅当没有启动 read-eval-print loop 时才会。否则，默认退出状态为 @racket[0]。
@@ -97,7 +97,7 @@ value.
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "mz-cmdline"]{命令行}
+@section[#:tag "mz-cmdline"]{Command Line}
 
 Racket 和 GRacket 可执行文件识别以下 command-line
 flags:
@@ -294,7 +294,7 @@ and
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "configure-runtime"]{语言运行时配置}
+@section[#:tag "configure-runtime"]{Language Run-Time Configuration}
 
 @guidealso["module-runtime-config"]
 
@@ -318,7 +318,7 @@ and
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "configure-expand"]{语言展开配置}
+@section[#:tag "configure-expand"]{Language Expand Configuration}
 
 @racket[_lang] module 可以有一个 @as-index[@racket[configure-expand]] submodule
 当另一个 module 被实现为 @racket[(module _name _lang ....)] 时，该 submodule 在其展开之前被 @racket[dynamic-require]。

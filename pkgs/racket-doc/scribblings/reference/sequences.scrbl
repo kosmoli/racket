@@ -160,7 +160,7 @@ sequence 的单个元素通常对应单个值，但一个元素也可能对应�
 例如，哈希表为 sequence 中的每个元素生成两个值——一个键及其值。
 
 @; ----------------------------------------------------------------------
-@subsection{Sequence 谓词和构造器}
+@subsection[#:tag "sequences-s1"]{Sequence Predicate and Constructors}
 
 @defproc[(sequence? [v any/c]) boolean?]{
   如果 @racket[v] 可以用作 @tech{sequence} 则返回 @racket[#t]，否则返回 @racket[#f]。
@@ -734,7 +734,7 @@ sequence 的单个元素通常对应单个值，但一个元素也可能对应�
         c)]]}
 
 @; ----------------------------------------------------------------------
-@subsection{Sequence 转换}
+@subsection[#:tag "sequences-s2"]{Sequence Conversion}
 
 @defproc[(sequence->stream [seq sequence?]) stream?]{
   将 sequence 转换为 @tech{stream}，支持 @racket[stream-first] 和 @racket[stream-rest] 操作。
@@ -793,7 +793,7 @@ sequence 的单个元素通常对应单个值，但一个元素也可能对应�
   时调用 thunk，则 @exnraise[exn:fail:contract]。}
 
 @; ----------------------------------------------------------------------
-@subsection[#:tag "more-sequences"]{其他 Sequence 操作}
+@subsection[#:tag "more-sequences"]{Additional Sequence Operations}
 
 @note-lib[racket/sequence]
 
@@ -942,7 +942,7 @@ sequence 的单个元素通常对应单个值，但一个元素也可能对应�
 
 }
 
-@subsubsection{其他 Sequence 构造器}
+@subsubsection{Additional Sequence Constructors and Functions}
 
 @defproc[(in-syntax [stx syntax?]) sequence?]{
   产生一个元素为 @racket[stx] 的连续子部分的 sequence。

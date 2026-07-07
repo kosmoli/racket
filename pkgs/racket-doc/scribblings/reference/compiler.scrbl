@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "compiler"]{控制和检查编译}
+@title[#:tag "compiler"]{Controlling and Inspecting Compilation}
 
 Racket 程序和表达式会自动且即时地编译。@exec{raco make} 工具
 （参见 @secref[#:doc raco-doc "make"]）可以将 Racket 模块编译为编译后的
@@ -10,7 +10,7 @@ Racket 程序和表达式会自动且即时地编译。@exec{raco make} 工具
 
 @; ------------------------------------------------------------
 
-@section[#:tag "compiler-modes"]{编译模式}
+@section[#:tag "compiler-modes"]{Compilation Modes}
 
 所有 Racket 变体都支持一种与机器无关的编译模式，该模式生成适用于所有平台上
 所有 Racket 变体的编译后 @filepath{.zo} 文件。要选择与机器无关的编译模式，
@@ -21,7 +21,7 @@ Racket 程序和表达式会自动且即时地编译。@exec{raco make} 工具
 其他编译模式取决于 Racket 实现（参见 @secref["implementations"]）。
 
 
-@subsection[#:tag "3m-compiler-modes"]{BC 编译模式}
+@subsection[#:tag "3m-compiler-modes"]{BC Compilation Modes}
 
 Racket 的 @tech{BC} 实现支持两种编译模式：bytecode 和 machine-independent。
 bytecode 格式也是机器无关的，因为它在所有操作系统上对 Racket 的 BC 实现
@@ -29,7 +29,7 @@ bytecode 格式也是机器无关的，因为它在所有操作系统上对 Rack
 否则 bytecode 会在运行时被进一步编译为机器码。参见 @racket[eval-jit-enabled]。
 
 
-@subsection[#:tag "cs-compiler-modes"]{CS 编译模式}
+@subsection[#:tag "cs-compiler-modes"]{CS Compilation Modes}
 
 Racket 的 @tech{CS} 实现支持几种编译模式：machine code、machine-independent、
 interpreted 和 JIT。Machine code 是主要模式，machine-independent 模式与 BC 的
@@ -58,7 +58,7 @@ machine code 和 interpreter 混合模式，或者未设置任何环境变量时
 
 @; ------------------------------------------------------------
 
-@section[#:tag "compiler-inspect"]{检查编译器阶段}
+@section[#:tag "compiler-inspect"]{Inspecting Compiler Passes}
 
 当在启动时设置了 @envvar-indexed{PLT_LINKLET_SHOW} 环境变量时，
 Racket process 的标准错误会在 Racket 形式编译时显示中间编译形式。

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "modules" #:style 'toc]{模块}
+@title[#:tag "modules" #:style 'toc]{Modules}
 
 
 模块让你能够将 Racket 代码组织成多个文件和可重用的库。

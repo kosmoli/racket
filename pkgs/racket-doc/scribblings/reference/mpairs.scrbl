@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" scribble/racket (for-label racket/mpair))
 
-@title[#:tag "mpairs"]{可变对与可变列表}
+@title[#:tag "mpairs"]{Mutable Pairs and Lists}
 
 @deftech{mutable pair} 类似由 @racket[cons] 创建的对，但它支持
 @racket[set-mcar!] 和 @racket[set-mcdr!] 突变操作，以改变可变对的部分（如同传统 Lisp 和 Scheme 中的对）。
@@ -17,7 +17,7 @@
 另见 @racket[in-mlist]。
 
 @; ----------------------------------------
-@section{可变对构造器与选择器}
+@section[#:tag "mpairs-s1"]{Mutable Pair Constructors and Selectors}
 
 @defproc[(mpair? [v any/c]) boolean?]{当 @racket[v] 是
 @tech{mutable pair} 时返回 @racket[#t]，否则返回 @racket[#f]。}

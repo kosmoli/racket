@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/rerequire))
 
-@title[#:tag "rerequire"]{加载和重新加载模块}
+@title[#:tag "rerequire"]{Loading and Reloading Modules}
 
 @note-lib-only[racket/rerequire]
 

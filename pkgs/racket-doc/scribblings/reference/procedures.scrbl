@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "procedures"]{过程}
+@title[#:tag "procedures"]{Procedures}
 
 @defproc[(procedure? [v any/c]) boolean?]{ 如果 @racket[v] 是过程则返回 @racket[#t]，否则返回 @racket[#f]。}
 
@@ -69,7 +69,7 @@
 通过使用 @racket[eq?] 逐点比较闭包元素来比较 @racket[proc1] 和 @racket[proc2] 的闭包内容是否相等}
 
 @; ----------------------------------------
-@section{关键字与元数}
+@section[#:tag "procedures-s1"]{Keywords and Arity}
 
 @defproc[(keyword-apply [proc procedure?]
                         [kw-lst (listof keyword?)]
@@ -395,7 +395,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section{反射原语}
+@section[#:tag "procedures-s2"]{Reflecting on Primitives}
 
 @deftech{primitive procedure} 是一个内置过程，可能在较低级语言中实现。并非 @racketmodname[racket/base] 的所有过程都是原语，但很多是。原语与其他过程之间的区别可能对其他低级代码有用。
 
@@ -413,7 +413,7 @@
 返回原语过程 @racket[prim] 的结果的元数（与 @racket[procedure-arity] 返回的过程输入元数相对）。对于大多数原语，此过程返回 @racket[1]，因为大多数原语在应用时返回单个值。}
 
 @; ----------------------------------------
-@section{额外的高阶函数}
+@section[#:tag "procedures-s3"]{Additional Higher-Order Functions}
 
 @note-lib[racket/function]
 @(define fun-eval (make-base-eval))

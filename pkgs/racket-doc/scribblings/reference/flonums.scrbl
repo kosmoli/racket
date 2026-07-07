@@ -14,7 +14,7 @@
 
 @; ------------------------------------------------------------------------
 
-@section{Flonum 算术}
+@section[#:tag "flonums-s1"]{Flonum Arithmetic}
 
 @deftogether[(
 @defproc[(fl+ [a flonum?] ...) flonum?]
@@ -150,7 +150,7 @@
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "flvectors"]{Flonum Vector}
+@section[#:tag "flvectors"]{Flonum Vectors}
 
 @deftech{flvector} 类似于 @tech{vector}，但仅保存不精确的实数。这种表示形式可以更紧凑，并且对 @tech{flvector} 的 unsafe 操作（参见 @racketmodname[racket/unsafe/ops]）比在不精确实数的 @tech{vector} 上的 unsafe 操作更高效。
 

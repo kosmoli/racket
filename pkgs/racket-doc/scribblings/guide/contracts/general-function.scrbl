@@ -2,7 +2,7 @@
 @(require scribble/manual scribble/eval "utils.rkt"
           (for-label framework/framework racket/contract racket/gui))
 
-@title[#:tag "contracts-general-functions"]{函数的一般契约}
+@title[#:tag "contracts-general-functions"]{Contracts on Functions in General}
 
 The @racket[->] contract constructor 适用于接受固定数量参数且结果契约不依赖于输入参数的函数。 为了支持其他类型的函数，Racket 提供了额外的契约构造器，尤其是 @racket[->*] and 
 @racket[->i].
@@ -60,7 +60,7 @@ arguments: @racket[char?]. }
  the initial value right, you need to communicate the initial value
  across a boundary.
 
-@ctc-section[#:tag "rest-args"]{剩余参数}
+@ctc-section[#:tag "contracts-rest-args"]{剩余参数}
 
 @racket[max] 操作符至少消耗一个实数，但接受任意数量的附加参数。你可以使用 @tech{rest argument} 来编写其他类似的函数，例如 @racket[max-abs]：
 
@@ -93,7 +93,7 @@ arguments.}
 因为所有附加参数必须是实数，所以剩余参数的列表必须满足 @racket[(listof real?)]。
 
 
-@ctc-section[#:tag "keywords"]{关键字参数}
+@ctc-section[#:tag "contracts-keywords"]{关键字参数}
 
 事实上，@racket[->] 契约构造器也支持关键字参数。例如，考虑这个创建一个简单 GUI 并向用户提出是/否问题的函数：
 
@@ -192,7 +192,7 @@ sections. In this case, we have the mandatory keyword
 也就是说，我们把必选关键字放在第一部分，可选的关键字放在第二部分。
 
 
-@ctc-section[#:tag "case-lambda"]{@racket[case-lambda] 的契约}
+@ctc-section[#:tag "contracts-case-lambda"]{@racket[case-lambda] 的契约}
 
 用 @racket[case-lambda] 定义的函数可能会根据提供的参数数量对其参数施加不同的约束。
 例如，一个 @racket[report-cost] 函数可能将一对数字或一个字符串转换为一个新字符串：

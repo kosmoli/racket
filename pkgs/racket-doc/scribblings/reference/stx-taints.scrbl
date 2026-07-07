@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "stxcerts"]{Syntax 污点}
+@title[#:tag "stxcerts"]{Syntax Taints}
 
 @guideintro["stx-certs"]{syntax 污点}
 

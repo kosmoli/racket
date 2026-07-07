@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "hash-tables"]{哈希表}
+@title[#:tag "hash-tables"]{Hash Tables}
 
 @deftech{hash table} 实现从键到值的映射，其中键和值可以是任意 Racket 值，访问和更新表通常是常数时间操作。键使用 @racket[equal?]、@racket[eqv?] 或 @racket[eq?] 进行比较，具体取决于哈希表是使用 @racket[make-hash]、@racket[make-hasheqv] 还是 @racket[make-hasheq] 创建的。
 

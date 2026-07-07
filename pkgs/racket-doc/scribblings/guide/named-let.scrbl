@@ -1,9 +1,9 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title{命名 @racket[let]}
+@title{Named @racket[let]}
 
-命名 @racket[let] 是一种迭代和递归形式。它使用与局部绑定相同的语法关键字 @racket[let]，但在 @racket[let] 后的标识符（而非直接是一个开括号）会触发不同的解析。
+命名 @racket[let] 是一种迭代和递归形式。它使用与局部绑定相同的语法关键字 @racket[let]，但在 @racket[let] 之后跟一个标识符（而不是紧跟一个左括号）会触发不同的解析方式。
 
 @specform[
 (let proc-id ([arg-id init-expr] ...)
@@ -19,7 +19,7 @@
  _init-expr ...)
 ]
 
-也就是说，命名 @racket[let] 绑定一个函数标识符，该标识符仅在函数体内可见，并用一些初始表达式的值隐式调用该函数。
+也就是说，命名 @racket[let] 绑定一个仅在函数体内可见的函数标识符，并使用一些初始表达式的值隐式调用该函数。
 
 @defexamples[
 (define (duplicate pos lst)

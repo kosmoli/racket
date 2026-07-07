@@ -23,7 +23,7 @@ expander or while a module is @tech{visit}ed (see
   @tech{protected} in the sense of @racket[protect-out].})
 
 
-@title[#:tag "stxtrans"]{语法变换器}
+@title[#:tag "stxtrans"]{Syntax Transformers}
 
 @defproc[(set!-transformer? [v any/c]) boolean?]{
 
@@ -1069,7 +1069,7 @@ a lift target is available, as indicated by
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "require-trans"]{@racket[require] 变换器}
+@section[#:tag "require-trans"]{@racket[require] Transformers}
 
 @note-lib-only[racket/require-transform]
 
@@ -1229,7 +1229,7 @@ a lift target is available, as indicated by
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "provide-trans"]{@racket[provide] 变换器}
+@section[#:tag "provide-trans"]{@racket[provide] Transformers}
 
 @note-lib-only[racket/provide-transform]
 
@@ -1394,7 +1394,7 @@ a lift target is available, as indicated by
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "keyword-trans"]{关键字参数转换内省}
+@section[#:tag "keyword-trans"]{Keyword-Argument Conversion Introspection}
 
 @note-lib-only[racket/keyword-transform]
 
@@ -1422,7 +1422,7 @@ a lift target is available, as indicated by
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "portal-syntax"]{入口语法绑定}
+@section[#:tag "portal-syntax"]{Portal Syntax Bindings}
 
 绑定到由 @racket[make-portal-syntax] 创建的 @deftech{portal syntax} 值的标识符不充当变换器，
 但它封装了一个语法对象，即使不实例化外围模块也可以访问和检查该对象。

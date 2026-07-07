@@ -2,7 +2,7 @@
 @(require scribble/manual "guide-utils.rkt"
           (for-label racket/flonum racket/place))
 
-@title[#:tag "effective-places"]{使用 Places 的并行性}
+@title[#:tag "effective-places"]{Parallelism with Places}
 
 @racketmodname[racket/place] 库提供了通过 @racket[place] 形式进行并行性提高性能的支持。@racket[place] 形式创建一个 @deftech{place}，有效地成为可以与其他 place（包括初始 place）并行运行的新 Racket 实例。Racket 语言的完整功能在每个 place 都可用，但 place 只能通过消息传递进行通信——在有限的一组值上使用 @racket[place-channel-put] 和 @racket[place-channel-get] 函数——这有助于确保并行计算的安全性和独立性。
 

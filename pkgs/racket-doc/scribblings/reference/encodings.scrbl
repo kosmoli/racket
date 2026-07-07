@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/port))
 
-@title[#:tag "encodings"]{编码和本地化}
+@title[#:tag "encodings"]{Encodings and Locales}
 
 当端口提供给基于字符的操作（如 @racket[read-char] 或 @racket[read]）时，端口的字节被读取并解释为字符的 UTF-8 编码。因此，读取单个字符可能需要读取多个字节，而 @racket[char-ready?] 等 procedure 可能需要窥视流中的多个字节来确定字符是否可用。在字节流不对应有效 UTF-8 编码的情况下，@racket[read-char] 等函数可能需要向前窥视一个字节以发现流不是有效编码。
 

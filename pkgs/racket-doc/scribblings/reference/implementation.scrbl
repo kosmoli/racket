@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "implementations" #:style 'quiet]{实现}
+@title[#:tag "implementations" #:style 'quiet]{Implementations}
 
 Racket 的定义旨在追求确定性和独立于实现。
 不过，某些细节不可避免地随实现而异。Racket 目前有两个主要的实现：

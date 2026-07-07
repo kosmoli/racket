@@ -5,7 +5,7 @@
 @examples[#:hidden #:eval racket-eval (require (for-syntax racket/base))]
 
 @;------------------------------------------------------------------------
-@title[#:tag "syntax-model"]{语法模型}
+@title[#:tag "syntax-model"]{Syntax Model}
 
 Racket 程序的语法由
 以下两个步骤定义：
@@ -32,7 +32,7 @@ Racket 程序的语法由
 新的绑定信息扩展子表达式的语法对象。
 
 @;------------------------------------------------------------------------
-@section[#:tag "id-model"]{标识符、绑定与作用域}
+@section[#:tag "id-model"]{Identifiers, Binding, and Scopes}
 
 @guideintro["binding"]{binding}
 
@@ -172,7 +172,7 @@ mismatches due to local bindings that shadow only in some spaces.
          #:changed "8.2.0.3" @elem{Added @tech{binding spaces}.}]
 
 @;------------------------------------------------------------------------
-@section[#:tag "stxobj-model"]{语法对象}
+@section[#:tag "stxobj-model"]{Syntax Objects}
 
 @guideintro["stx-obj"]{the use of syntax objects}
 
@@ -239,7 +239,7 @@ part of the @racket[quote-syntax] form. Note that the
 see @racket[quote-syntax] for more information.
 
 @;------------------------------------------------------------------------
-@section[#:tag "expansion"]{展开@aux-elem{ (解析)}}
+@section[#:tag "expansion"]{Expansion@aux-elem{ (Parsing)}}
 
 @deftech{Expansion} recursively processes a @tech{syntax object} in a
 particular phase level, starting with @tech{phase level} 0. @tech{Bindings}
@@ -250,7 +250,7 @@ sub-expression is expanded in a phase deeper (having a
 bigger phase level number) than the enclosing expression.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "fully-expanded"]{完全展开的程序}
+@subsection[#:tag "fully-expanded"]{Fully Expanded Programs}
 
 A complete expansion produces a @tech{syntax object} matching the
 following grammar:
@@ -365,7 +365,7 @@ expressions only when the @racket[local-expand] stop list is empty.
                                local-expanded form.}]
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "expand-steps"]{展开步骤}
+@subsection[#:tag "expand-steps"]{Expansion Steps}
 
 In a recursive expansion, each single step in expanding a @tech{syntax
 object} at a particular @tech{phase level} depends on the immediate shape of
@@ -474,7 +474,7 @@ has that property.
                                     properties}.}]
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "expand-context-model"]{展开上下文}
+@subsection[#:tag "expand-context-model"]{Expansion Context}
 
 Each expansion step occurs in a particular @deftech{context}, and
 transformers and core syntactic forms may expand differently for
@@ -509,7 +509,7 @@ but it starts parsing the body in an @tech{internal-definition
 context}.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "intro-binding"]{引入绑定}
+@subsection[#:tag "intro-binding"]{Introducing Bindings}
 
 @tech{Bindings} are introduced during @tech{expansion} when certain
 core syntactic forms are encountered:
@@ -590,7 +590,7 @@ outside of this @racket[let-values] form does not receive the fresh
 @tech{scope} and therefore does not refer to the new binding.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "transformer-model"]{转换器绑定}
+@subsection[#:tag "transformer-model"]{Transformer Bindings}
 
 In a @tech{top-level context} or @tech{module context}, when the
 expander encounters a @racket[define-syntaxes] form, the binding that
@@ -748,7 +748,7 @@ any introduced bindings from definition within
 @tech{transformer} binding at @tech{phase level} 0).
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "local-binding-context"]{局部绑定上下文}
+@subsection[#:tag "local-binding-context"]{Local Binding Context}
 
 Although the @tech{binding} of an @tech{identifier} can be uniquely determined from the combination of
 its @tech{lexical information} and the global binding table, the expander also maintains a
@@ -823,7 +823,7 @@ is used; otherwise, the expander raises a syntax error.
   (eval:error (stashed-id-local-value)))
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "partial-expansion"]{部分展开}
+@subsection[#:tag "partial-expansion"]{Partial Expansion}
 
 In certain contexts, such as an @tech{internal-definition context} or
 @tech{module context}, @deftech{partial expansion} is used to determine
@@ -838,7 +838,7 @@ primitive @racket[#%app], @racket[#%datum], or @racket[#%top] form,
 then expansion stops without adding the identifier.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "intdef-body"]{内部定义}
+@subsection[#:tag "intdef-body"]{Internal Definitions}
 
 An @tech{internal-definition context} supports local definitions mixed
 with expressions. Forms that allow internal definitions document such
@@ -896,7 +896,7 @@ This inside-edge scope ensures that all bindings introduced by the
 internal-definition context have a particular scope in common.
 
 @;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-@subsection[#:tag "mod-parse"]{模块展开、阶段与访问}
+@subsection[#:tag "mod-parse"]{Module Expansion, Phases, and Visits}
 
 Expansion of a @racket[module] form proceeds in a similar way to
 @seclink["intdef-body"]{expansion of an internal-definition context}:
@@ -965,7 +965,7 @@ of the original phase levels is shifted into the label phase; see
 @racket[syntax-shift-phase-level].
 
 @;------------------------------------------------------------------------
-@subsection[#:tag "macro-introduced-bindings"]{宏引入的绑定}
+@subsection[#:tag "macro-introduced-bindings"]{Macro-Introduced Bindings}
 
 When a top-level definition binds an identifier that originates from a
  macro expansion, the definition captures only uses of the identifier
@@ -1069,7 +1069,7 @@ Macro-generated @racket[require] and @racket[provide]
 ]
 
 @;------------------------------------------------------------------------
-@section[#:tag "compilation-model"]{编译}
+@section[#:tag "compilation-model"]{Compilation}
 
 Before expanded code is evaluated, it is first @deftech{compiled}. A
 compiled form has essentially the same information as the
@@ -1087,7 +1087,7 @@ example, the @racket[eval] procedure takes a syntax object and expands
 it, compiles it, and evaluates it.
 
 @;------------------------------------------------------------------------
-@section[#:tag "namespace-model"]{命名空间}
+@section[#:tag "namespace-model"]{Namespaces}
 
 @margin-note/ref{See @secref["Namespaces"] for functions that
 manipulate namespaces.}
@@ -1196,7 +1196,7 @@ removing the all scopes that correspond to the enclosing top-level or
 @racket[module*] forms.
 
 @;------------------------------------------------------------------------
-@section[#:tag "infernames"]{推断值名称}
+@section[#:tag "infernames"]{Inferred Value Names}
 
 To improve error reporting, names are inferred at compile-time for
 certain kinds of values, such as procedures. For example, evaluating
@@ -1248,7 +1248,7 @@ information. Inferred and property-assigned names are also available
 to syntax transformers, via @racket[syntax-local-name].
 
 @;----------------------------------------
-@section[#:tag "cross-phase persistent-grammar"]{跨阶段持久模块声明}
+@section[#:tag "cross-phase persistent-grammar"]{Cross-Phase Persistent Module Declarations}
 
 A module is @tech{cross-phase persistent} only if it fits the following grammar,
 which uses non-terminals from @secref["fully-expanded"], only if

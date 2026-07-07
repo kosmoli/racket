@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "port-ops"]{管理 Ports}
+@title[#:tag "port-ops"]{Managing Ports}
 
 @defproc[(input-port? [v any/c]) boolean?]{
 如果 @racket[v] 是一个 @tech{input port}，返回 @racket[#t]，否则返回 @racket[#f]。}

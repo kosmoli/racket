@@ -7,11 +7,11 @@
        (the-eval '(require racket/async-channel))
        the-eval)))
 
-@title[#:tag "async-channel"]{缓冲异步通道}
+@title[#:tag "async-channel"]{Buffered Asynchronous Channels}
 
 @note-lib-only[racket/async-channel]
 
-@section{创建和使用异步通道}
+@section[#:tag "async-channels-s1"]{Creating and Using Asynchronous Channels}
 
 @margin-note/ref{参见 @secref["threadmbox"]。}
 
@@ -91,7 +91,7 @@
 (async-channel-put to-server 'quit)
 ]
 
-@section{异步通道上的契约（contract）和冒充者（impersonator）}
+@section[#:tag "async-channels-s2"]{Contracts and Impersonators on Asynchronous Channels}
 
 @defproc[(async-channel/c [c contract?]) contract?]{
 

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "repl-module"]{@racketmodname[racket/repl] 库}
+@title[#:tag "repl-module"]{The @racketmodname[racket/repl] Library}
 
 @defmodule[racket/repl]
 

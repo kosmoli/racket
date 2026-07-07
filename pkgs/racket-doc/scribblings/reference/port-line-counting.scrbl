@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "linecol"]{计数位置、行和列}
+@title[#:tag "linecol"]{Counting Positions, Lines, and Columns}
 
 @section-index["line numbers"]
 @section-index["column numbers"]

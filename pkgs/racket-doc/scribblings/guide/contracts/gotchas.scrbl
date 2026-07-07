@@ -3,7 +3,7 @@
           "utils.rkt"
           (for-label racket/base racket/contract))
 
-@title[#:tag "contracts-gotchas"]{陷阱与注意事项}
+@title[#:tag "contracts-gotchas"]{Gotchas}
 
 @ctc-section{Contracts 与 @racket[eq?]}
 

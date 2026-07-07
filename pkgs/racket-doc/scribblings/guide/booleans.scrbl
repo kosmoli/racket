@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "booleans"]{布尔值}
+@title[#:tag "booleans"]{Booleans}
 
 Racket 有两个不同的常量来表示布尔值：@racket[#t] 表示真，@racket[#f] 表示假。
 大写的 @racketvalfont{#T} 和 @racketvalfont{#F} 被解析为相同的值，

@@ -3,7 +3,7 @@
 
 @(define (UCat x) x)
 
-@title[#:tag "characters"]{字符}
+@title[#:tag "characters"]{Characters}
 
 @guideintro["characters"]{characters}
 

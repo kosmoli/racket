@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "module-provide"]{导出：@racket[provide]}
+@title[#:tag "module-provide"]{Exports: @racket[provide]}
 
 默认情况下，模块的所有定义对该模块都是私有的。@racket[provide] form 指定要在 @racket[require] 该模块的位置可用的定义。
 

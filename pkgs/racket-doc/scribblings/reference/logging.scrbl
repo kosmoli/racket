@@ -3,7 +3,7 @@
           scribble/bnf
           (for-label racket/cmdline))
 
-@title[#:tag "logging"]{日志}
+@title[#:tag "logging"]{Logging}
 
 一个 @deftech{logger} 接受包含待记录信息的事件，供感兴趣的各方使用。
 一个 @deftech{log receiver} 代表一个异步接收已记录事件的感兴趣方。

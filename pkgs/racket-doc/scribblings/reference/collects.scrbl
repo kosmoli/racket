@@ -3,7 +3,7 @@
           (for-label setup/dirs
                      setup/collection-search))
 
-@title[#:tag "collects"]{库与集合}
+@title[#:tag "collects"]{Libraries and Collections}
 
 @deftech{库}是为多个程序提供服务的 @racket[module] 声明。Racket 进一步将库组合成 @deftech{集合}。集合通常通过 @deftech{包}添加（参见 @other-doc['(lib "pkg/scribblings/pkg.scrbl")]）；包管理器在 Racket 核心之外运行，但通过 @tech{集合链接文件}配置核心运行时系统。
 
@@ -35,7 +35,7 @@ racket
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "collects-search"]{集合搜索配置}
+@section[#:tag "collects-search"]{Collection Search Configuration}
 
 对于默认的 @tech{模块名解析器}，集合的搜索路径由 @racket[current-library-collection-links] 参数和 @racket[current-library-collection-paths] 参数决定：
 
@@ -59,7 +59,7 @@ racket
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "links-file"]{集合链接}
+@section[#:tag "links-file"]{Collection Links}
 
 @tech{集合链接文件}被 @racket[collection-file-path]、@racket[collection-path] 和默认的 @tech{模块名解析器} 用来在尝试 @racket[(current-library-collection-paths)] 搜索路径之前定位集合。要使用的 @tech{集合链接文件}由 @racket[current-library-collection-links] 参数决定，该参数被初始化为 @racket[find-library-collection-links] 的结果。
 
@@ -79,7 +79,7 @@ racket
 
 @; ----------------------------------------
 
-@section[#:tag "collects-api"]{集合路径与参数}
+@section[#:tag "collects-api"]{Collection Paths and Parameters}
 
 @defproc[(find-library-collection-paths [pre-extras (listof path-string?) null]
                                         [post-extras (listof path-string?) null]

@@ -1,22 +1,22 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "module-require"]{导入：@racket[require]}
+@title[#:tag "module-require"]{Imports: @racket[require]}
 
-The @racket[require] form 从另一个模块导入。@racket[require] form 可以出现在模块内，在这种情况下它将指定模块中的绑定引入到导入模块。@racket[require] form 也可以出现在顶层，在这种情况下它既导入绑定又 @deftech{instantiate} 指定的模块；即，它评估指定模块的 body definition 和表达式（如果它们尚未被评估）。
+@racket[require] 形式从另一个模块导入。@racket[require] 形式可以出现在模块内部，在这种情况下，它将指定模块的绑定引入到导入模块中。@racket[require] 形式也可以出现在顶层，在这种情况下，它既导入绑定，又 @deftech{instantiates}（实例化）指定的模块；也就是说，它对指定模块的主体定义和表达式进行求值（如果尚未求值的话）。
 
-单个 @racket[require] 可以一次性指定多个导入：
+一个 @racket[require] 可以同时指定多个导入：
 
 @specform[(require require-spec ...)]{}
 
-在单个 @racket[require] 中指定多个 @racket[_require-spec] 与分别使用多个 @racket[require]（每个带单个 @racket[_require-spec]）实质上是相同的。区别很小，且仅限于顶层：单个 @racket[require] 最多只能导入给定的标识符一次，而单独的 @racket[require] 可以替换先前 @racket[require] 的绑定（两者都仅在顶层，模块外部）。
+在单个 @racket[require] 中指定多个 @racket[_require-spec] 基本上等同于使用多个 @racket[require]，每个包含一个 @racket[_require-spec]。区别很小，且仅限于顶层：单个 @racket[require] 最多只能导入一个给定标识符一次，而单独的 @racket[require] 可以替换先前 @racket[require] 的绑定（两者都仅在模块外部的顶层有效）。
 
-@racket[_require-spec] 允许的形状递归定义如下：
+@racket[_require-spec] 的允许形式是递归定义的：
 
 @;------------------------------------------------------------------------
 @specspecsubform[module-path]{
 
-在其最简单的形式中，@racket[_require-spec] 是一个 @racket[module-path]（如前一节中定义）。在这种情况下，@racket[require] 引入的绑定由每个 @racket[module-path] 引用模块内的 @racket[provide] 声明确定。
+在其最简单的形式中，@racket[_require-spec] 是一个 @racket[module-path]（如前一节 @secref["module-paths"] 中所定义）。在这种情况下，@racket[require] 引入的绑定由每个 @racket[module-path] 引用的模块中的 @racket[provide] 声明决定。
 
 @examples[
 (module m racket
@@ -37,7 +37,7 @@ The @racket[require] form 从另一个模块导入。@racket[require] form 可�
                       ([id-maybe-renamed id
                                          [orig-id bind-id]])]{
 
-@racket[only-in] form 限制了基础 @racket[require-spec] 会引入的绑定集合。此外，@racket[only-in] 可选择性地重命名每个保留的绑定：在 @racket[[orig-id bind-id]] form 中，@racket[orig-id] 引用 @racket[require-spec] 暗示的绑定，@racket[bind-id] 是导入上下文中将被绑定的名称，而不是 @racket[orig-id]。
+@racket[only-in] 形式限制了基础 @racket[require-spec] 将引入的绑定集。此外，@racket[only-in] 可选择性地重命名每个保留的绑定：在 @racket[[orig-id bind-id]] 形式中，@racket[orig-id] 指向 @racket[require-spec] 隐含的绑定，@racket[bind-id] 是在导入上下文中替代 @racket[orig-id] 进行绑定的名称。
 
 @examples[
 (module m (lib "racket")
@@ -56,7 +56,7 @@ less-filling?
 @specspecsubform[#:literals (except-in)
                  (except-in require-spec id ...)]{
 
-此 form 是 @racket[only-in] 的补集：它从 @racket[require-spec] 指定的集合中排除特定绑定。
+此形式是 @racket[only-in] 的补充：它从 @racket[require-spec] 指定的集合中排除特定的绑定。
 
 }
 
@@ -64,22 +64,22 @@ less-filling?
 @specspecsubform[#:literals (rename-in)
                  (rename-in require-spec [orig-id bind-id] ...)]{
 
-此 form 支持像 @racket[only-in] 一样的重命名，但不影响 @racket[require-spec] 中未提及作为 @racket[orig-id] 的标识符。}
+此形式支持像 @racket[only-in] 一样的重命名，但不修改未作为 @racket[orig-id] 提及的 @racket[require-spec] 中的标识符。  }
 
 @;------------------------------------------------------------------------
 @specspecsubform[#:literals (prefix-in)
                  (prefix-in prefix-id require-spec)]{
 
-这是重命名的简写形式，其中 @racket[prefix-id] 被添加到每个 @racket[require-spec] 指定的标识符前面。
+这是重命名的简写形式，其中 @racket[prefix-id] 被添加到 @racket[require-spec] 指定的每个标识符的前面。
 
 }
 
-@racket[only-in]、@racket[except-in]、@racket[rename-in] 和 @racket[prefix-in] form 可以嵌套以实现更复杂的导入绑定操纵。例如，
+@racket[only-in]、@racket[except-in]、@racket[rename-in] 和 @racket[prefix-in] 形式可以嵌套使用，以实现对导入绑定的更复杂操作。例如，
 
 @racketblock[(require (prefix-in m: (except-in 'm ghost)))]
 
-导入 @racket[m] 导出的所有绑定，除了 @racket[ghost] 绑定，并且本地名称都添加 @racket[m:] 前缀。
+导入 @racket[m] 导出的所有绑定，除了 @racket[ghost] 绑定，并且本地名称带有 @racket[m:] 前缀。
 
-等效地，@racket[prefix-in] 可以在 @racket[except-in] 之前应用，只要 @racket[except-in] 中指定的省略使用 @racket[m:] 前缀：
+等效地，@racket[prefix-in] 可以在 @racket[except-in] 之前应用，只要 @racket[except-in] 的省略使用 @racket[m:] 前缀指定：
 
 @racketblock[(require (except-in (prefix-in m: 'm) m:ghost))]

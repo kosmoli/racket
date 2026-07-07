@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "threadcells"]{线程细胞}
+@title[#:tag "threadcells"]{Thread Cells}
 
 @defterm{@tech{thread cell}} 包含一个特定于线程的值；即它为每个线程包含特定值，但可能为不同线程包含不同值。thread cell 用默认值创建，该默认值用于所有现有线程。当 cell 的内容使用 @racket[thread-cell-set!] 更改时，cell 的值仅为当前线程更改。同样，@racket[thread-cell-ref] 获取当前线程的特定 cell 值。
 

@@ -12,7 +12,7 @@
    (define (graph-defn) @elem{@litchar{#}@graph-tag[]@litchar{=}})
    (define (graph-ref) @elem{@litchar{#}@graph-tag[]@litchar{#}}))
 
-@title[#:tag "reader" #:style 'quiet]{读取器}
+@title[#:tag "reader" #:style 'quiet]{The Reader}
 
 Racket 的读取器是一个递归下降解析器，可以通过 @seclink["readtables"]{readtable} 和各种其他 @tech{parameters} 进行配置。本节描述了使用默认 readtable 时读取器的解析行为。
 
@@ -38,7 +38,7 @@ necessarily produce an interned value at the receiving
 请注意，@tech{interned} 值仅被读取器的内部表弱引用持有，因此如果它们不再以其他方式 @tech{reachable}，则可能被 @tech[#:key "garbage collection"]{garbage collected}。这种弱引用性永远不会影响 @racket[eq?]、@racket[eqv?] 或 @racket[equal?] 测试的结果，但 interned 值在放入 weak box（参见 @secref["weakbox"]）、用作弱 @tech{hash table} 的键（参见 @secref["hashtables"]）或用作 ephemeron 键（参见 @secref["ephemerons"]）时可能消失。
 
 @;------------------------------------------------------------------------
-@section[#:tag "default-readtable-dispatch"]{分隔符与分发}
+@section[#:tag "default-readtable-dispatch"]{Delimiters and Dispatch}
 
 除 @racketlink[char-whitespace?]{whitespace} 和 BOM 字符外，以下字符是 @deftech{delimiters}：
 
@@ -171,7 +171,7 @@ characters in the input stream as follows:
                                    that comments are allowed.}]
 
 
-@section[#:tag "parse-symbol"]{读取符号}
+@section[#:tag "parse-symbol"]{Reading Symbols}
 
 @guideintro["symbols"]{the syntax of symbols}
 
@@ -210,7 +210,7 @@ characters in the sequence that are not quoted by @litchar{|} or
 "#%Apple"
 ]
 
-@section[#:tag "parse-number"]{读取数字}
+@section[#:tag "parse-number"]{Reading Numbers}
 
 @guideintro["numbers"]{the syntax of numbers}
 
@@ -435,7 +435,7 @@ If the @racket[read-accept-dot] @tech{parameter} is set to
 then multiple delimited @litchar{.}s trigger an @racket[exn:fail:read]
 exception, instead of the infix conversion.
 
-@section[#:tag "parse-string"]{读取字符串}
+@section[#:tag "parse-string"]{Reading Strings}
 
 @guideintro["strings"]{the syntax of strings}
 
@@ -554,7 +554,7 @@ encountered before a terminating line, the @exnraise[exn:fail:read].
 "#\"Apple\""
 ]
 
-@section[#:tag "parse-quote"]{读取引用}
+@section[#:tag "parse-quote"]{Reading Quotes}
 
 When the reader encounters @as-index{@litchar{'}}, it recursively
 reads one datum and forms a new list containing the @tech{symbol}
@@ -582,7 +582,7 @@ The @litchar{`}, @litchar{,}, and @litchar[",@"] forms are disabled when
 the @racket[read-accept-quasiquote] @tech{parameter} is set to
 @racket[#f], in which case the @exnraise[exn:fail:read] instead.
 
-@section[#:tag "parse-comment"]{读取注释}
+@section[#:tag "parse-comment"]{Reading Comments}
 
 A @as-index{@litchar{;}} starts a line comment. When the reader
 encounters @litchar{;}, it skips past all characters until the
@@ -615,7 +615,7 @@ file.
 "#! /bin/sh"
 ]
 
-@section[#:tag "parse-vector"]{读取向量}
+@section[#:tag "parse-vector"]{Reading Vectors}
 
 When the reader encounters a @as-index{@litchar{#(}},
 @as-index{@litchar{#[}}, or @as-index{@litchar["#{"]}, it 开始解析 @tech{vector}；关于向量的信息参见 @secref["vectors"]。 A @as-index{@litchar{#fl}} in place of @litchar{#} starts an
@@ -655,7 +655,7 @@ is used for all slots.
 ]
 
 
-@section[#:tag "parse-structure"]{读取结构体}
+@section[#:tag "parse-structure"]{Reading Structures}
 
 When the reader encounters a @as-index{@litchar{#s(}},
 @as-index{@litchar{#s[}}, or @as-index{@litchar["#s{"]}, it 开始解析 @tech{prefab} @tech{structure type} 的实例；关于 @tech{structure types} 的信息参见 @secref["structures"]。  The
@@ -682,7 +682,7 @@ type key, or if the number of provided fields is inconsistent with the
 indicated @tech{prefab} structure type, the @exnraise[exn:fail:read].
 
 
-@section[#:tag "parse-hashtable"]{读取哈希表}
+@section[#:tag "parse-hashtable"]{Reading Hash Tables}
 
 A @as-index{@litchar{#hash}} starts an immutable @tech{hash-table} constant
 with key matching based on @racket[equal?]. The characters after
@@ -716,7 +716,7 @@ A @as-index{@litchar{#hasheqv}} starts a hash table like
 "#hasheq((a . 5) (a . 7))"
 ]
 
-@section[#:tag "parse-box"]{读取 Box}
+@section[#:tag "parse-box"]{Reading Boxes}
 
 When the reader encounters a @as-index{@litchar{#&}}, it 开始解析 @tech{box}；关于 box 的信息参见 @secref["boxes"]。box 的内容是通过递归读取下一个 datum 来确定的。
 
@@ -784,7 +784,7 @@ one of the following forms:
 "#\\\u3BB"
 ]
 
-@section[#:tag "parse-keyword"]{读取关键字}
+@section[#:tag "parse-keyword"]{Reading Keywords}
 
 A @as-index{@litchar{#:}} starts a @tech{keyword}. The parsing of a keyword
 after the @litchar{#:} is the same as for a symbol, including
@@ -797,7 +797,7 @@ case-folding in case-insensitive mode, except that the part after
 "#:1"
 ]
 
-@section[#:tag "parse-regexp"]{读取正则表达式}
+@section[#:tag "parse-regexp"]{Reading Regular Expressions}
 
 A @as-index{@litchar{#rx}} or @as-index{@litchar{#px}} starts a
 @tech{regular expression}. The characters immediately after @litchar{#rx} or
@@ -815,7 +815,7 @@ as constructed by @racket[pregexp], @litchar{#rx#} as constructed by
 "#px#\"[\\\\s]*\""
 ]
 
-@section[#:tag "parse-graph"]{读取图结构}
+@section[#:tag "parse-graph"]{Reading Graph Structure}
 
 @section-index["#0="]
 @section-index["#0#"]
@@ -865,7 +865,7 @@ neither defines nor uses graph tags for other top-level forms.
 
 @local-table-of-contents[]
 
-@section[#:tag "parse-reader"]{通过扩展读取}
+@section[#:tag "parse-reader"]{Reading via an Extension}
 
 @guideintro["hash-reader"]{reader extension}
 
@@ -949,7 +949,7 @@ If the @racket[read-accept-reader] or @racket[read-accept-lang]
                                    and @litchar{#lang} to hold the current namespace
                                    registry's lock.}]
 
-@section[#:tag "parse-cdot"]{使用 C 风格中缀点表示法读取}
+@section[#:tag "parse-cdot"]{Reading with C-style Infix-Dot Notation}
 
 When the @racket[read-cdot] @tech{parameter} is set to @racket[#t],
 then a variety of changes occur in the reader.
@@ -980,7 +980,7 @@ source location information of the @litchar{.} character and the
 entire list has the source location information spanning from the
 start of @racket[_x] to the end of @racket[_y].
 
-@subsection{S-Expression 读取器语言}
+@subsection[#:tag "reader-s1"]{S-Expression Reader Language}
 
 @defmodulelang[s-exp]
 
@@ -1011,7 +1011,7 @@ if the port name is a filename path, the filename without its
 directory path and extension is used for @racket[_name-id], otherwise
 @racket[_name-id] is @racket[anonymous-module].
 
-@subsection{链式读取器语言}
+@subsection[#:tag "reader-s2"]{Chaining Reader Language}
 
 @defmodulelang[reader]
 

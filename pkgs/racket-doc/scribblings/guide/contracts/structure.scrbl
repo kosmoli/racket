@@ -2,7 +2,7 @@
 @(require scribble/manual scribble/eval "../guide-utils.rkt" "utils.rkt"
           (for-label racket/contract))
 
-@title[#:tag "contracts-struct"]{结构上的契约}
+@title[#:tag "contracts-struct"]{Contracts on Structures}
 
 模块以两种方式处理结构。首先，它们导出
 @racket[struct] 定义，即创建某种类型的 struct、访问其字段、修改字段，以及将该类型的 struct 与世界上所有其他类型的值区分开来的能力。其次，有时模块会导出一个特定的 struct，并承诺其字段包含某种类型的值。本节解释如何为这两种用途用契约保护 struct。
@@ -29,7 +29,7 @@ racket
 @margin-note{另见 @racket[vector/c] 以及类似的契约组合子，用于（flat）复合数据。}
 
 @; ----------------------------------------------------------------------
-@ctc-section[#:tag "define-struct"]{对所有值的保证}
+@ctc-section[#:tag "contracts-define-struct"]{对所有值的保证}
 
 @|HtDP| 一书教导我们，@racket[posn] 的两个字段应该只包含数字。使用契约时，我们可以如下强制执行这个非正式的数据定义：
 

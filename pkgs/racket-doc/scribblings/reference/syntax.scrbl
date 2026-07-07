@@ -54,7 +54,7 @@
                           (equiv-to-block b))
                     ...)))))
 
-@title[#:tag "syntax" #:style 'toc]{语法形式}
+@title[#:tag "syntax" #:style 'toc]{Syntactic Forms}
 
 本节描述完整展开表达式中出现的核心语法形式，以及许多密切相关的非核心形式。
 核心语法参见 @secref["fully-expanded"]。
@@ -62,7 +62,7 @@
 @local-table-of-contents[]
 
 @;------------------------------------------------------------------------
-@section[#:tag "module"]{模块：@racket[module]、@racket[module*] 等}
+@section[#:tag "module"]{Modules: @racket[module], @racket[module*], ...}
 
 @guideintro["module-syntax"]{@racket[module]}
 
@@ -231,7 +231,7 @@
 
 
 @;------------------------------------------------------------------------
-@section[#:tag '("require" "provide")]{导入和导出：@racket[require] 和 @racket[provide]}
+@section[#:tag '("require" "provide")]{Importing and Exporting: @racket[require] and @racket[provide]}
 
 @section-index["modules" "imports"]
 @section-index["modules" "exports"]
@@ -928,7 +928,7 @@
 
 @; --------------------
 
-@subsection{额外的 @racket[require] 形式}
+@subsection[#:tag "syntax-s1"]{Additional @racket[require] Forms}
 
 @note-lib-only[racket/require]
 
@@ -1064,7 +1064,7 @@ aliens
 
 @; --------------------
 
-@subsection{额外的 @racket[provide] 形式}
+@subsection[#:tag "syntax-s2"]{Additional @racket[provide] Forms}
 
 @note-lib-only[racket/provide]
 
@@ -1087,7 +1087,7 @@ aliens
   仅导出匹配模式 @racket[#rx"^[a-z-]+$"] 的绑定，并将名称转换为驼峰命名法。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "quote"]{字面量：@racket[quote] 和 @racket[#%datum]}
+@section[#:tag "quote"]{Literals: @racket[quote] and @racket[#%datum]}
 
 许多形式被隐式地作为字面量引用（通过 @racket[#%datum]）。更多信息参见 @secref["expand-steps"]。
 
@@ -1119,7 +1119,7 @@ aliens
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "#%expression"]{表达式包装器：@racket[#%expression]}
+@section[#:tag "#%expression"]{Expression Wrapper: @racket[#%expression]}
 
 @defform[(#%expression expr)]{
 
@@ -1184,7 +1184,7 @@ aliens
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "#%top"]{变量引用和 @racket[#%top]}
+@section[#:tag "#%top"]{Variable References and @racket[#%top]}
 
 @defform/none[id]{
 
@@ -1220,7 +1220,7 @@ x
                                    always report a syntax error, even outside of a module.}]}
 
 @;------------------------------------------------------------------------
-@section{位置：@racket[#%variable-reference]}
+@section[#:tag "syntax-s3"]{Locations: @racket[#%variable-reference]}
 
 @defform*[#:literals (#%top)
           [(#%variable-reference id)
@@ -1245,7 +1245,7 @@ extensions; see @other-manual['(lib
                                    consistent with @racket[#%top] by itself.}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "application"]{过程应用和 @racket[#%app]}
+@section[#:tag "application"]{Procedure Applications and @racket[#%app]}
 
 @section-index{evaluation order}
 
@@ -1290,7 +1290,7 @@ extensions; see @other-manual['(lib
 类似于 @racket[#%app]，但不支持关键字参数。作为特殊情况，@racket[(#%plain-app)] 产生 @racket['()]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "lambda"]{过程表达式：@racket[lambda] 和 @racket[case-lambda]}
+@section[#:tag "lambda"]{Procedure Expressions: @racket[lambda] and @racket[case-lambda]}
 
 @guideintro["lambda"]{procedure expressions}
 
@@ -1398,7 +1398,7 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "let"]{局部绑定：@racket[let]、@racket[let*]、@racket[letrec] 等}
+@section[#:tag "let"]{Local Binding: @racket[let], @racket[let*], @racket[letrec], ...}
 
 @guideintro["let"]{local binding}
 
@@ -1524,7 +1524,7 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
 另见 @racket[local]，它支持使用 @racket[define]、@racket[define-syntax] 等的局部绑定。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "local"]{局部定义：@racket[local]}
+@section[#:tag "local"]{Local Definitions: @racket[local]}
 
 @note-lib[racket/local]
 
@@ -1536,7 +1536,7 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
 @include-section["shared.scrbl"]
 
 @;------------------------------------------------------------------------
-@section[#:tag "if"]{条件语句：@racket[if]、@racket[cond]、@racket[and] 和 @racket[or]}
+@section[#:tag "if"]{Conditionals: @racket[if], @racket[cond], @racket[and], and @racket[or]}
 
 @guideintro["conditionals"]{conditionals}
 
@@ -1635,7 +1635,7 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
 ]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "case"]{分支调度：@racket[case]}
+@section[#:tag "case"]{Dispatch: @racket[case]}
 
 @defform/subs[#:literals (else)
               (case val-expr case-clause ...)
@@ -1682,7 +1682,7 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
 (classify #\!)
 ]}
 
-@subsection[#:tag "case/equal"]{@racket[case] 的变体}
+@subsection[#:tag "case/equal"]{Variants of @racket[case]}
 
 @note-lib-only[racket/case]
 
@@ -1698,7 +1698,7 @@ Adjusted binding so that @racket[(free-identifier=? #'λ #'lambda)] produces
 类似于 @racket[case]，但使用 @racket[equal?]、@racket[equal-always?]、@racket[eq?] 或 @racket[eqv?] 来比较 @racket[val-expr] 的结果与 @racket[case-clause] 中的字面量。@racket[case/equal] 形式等价于 @racket[case]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "define"]{定义：@racket[define]、@racket[define-syntax] 等}
+@section[#:tag "define"]{Definitions: @racket[define], @racket[define-syntax], ...}
 
 @guideintro["define"]{definitions}
 
@@ -1893,7 +1893,7 @@ z
 @history[#:changed "6.90.0.29" @elem{Made equivalent to @racket[syntax-local-introduce].}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "begin"]{顺序执行：@racket[begin]、@racket[begin0] 和 @racket[begin-for-syntax]}
+@section[#:tag "begin"]{Sequencing: @racket[begin], @racket[begin0], and @racket[begin-for-syntax]}
 
 @guideintro["begin"]{@racket[begin] and @racket[begin0]}
 
@@ -1948,7 +1948,7 @@ z
 }
 
 @;------------------------------------------------------------------------
-@section[#:tag "when+unless"]{受保护求值：@racket[when] 和 @racket[unless]}
+@section[#:tag "when+unless"]{Guarded Evaluation: @racket[when] and @racket[unless]}
 
 @guideintro["when+unless"]{@racket[when] and @racket[unless]}
 
@@ -1977,7 +1977,7 @@ z
 ]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "set!"]{赋值：@racket[set!] 和 @racket[set!-values]}
+@section[#:tag "set!"]{Assignment: @racket[set!] and @racket[set!-values]}
 
 @guideintro["set!"]{@racket[set!]}
 
@@ -2023,7 +2023,7 @@ x
 @include-section["for.scrbl"]
 
 @;------------------------------------------------------------------------
-@section[#:tag "wcm"]{延续标记：@racket[with-continuation-mark]}
+@section[#:tag "wcm"]{Continuation Marks: @racket[with-continuation-mark]}
 
 @defform[(with-continuation-mark key-expr val-expr result-expr)]{
 
@@ -2032,7 +2032,7 @@ x
 @moreref["contmarks"]{continuation marks}}
 
 @;------------------------------------------------------------------------
-@section[#:tag "quasiquote"]{准引用：@racket[quasiquote]、@racket[unquote] 和 @racket[unquote-splicing]}
+@section[#:tag "quasiquote"]{Quasiquoting: @racket[quasiquote], @racket[unquote], and @racket[unquote-splicing]}
 
 @guideintro["qq"]{@racket[quasiquote]}
 
@@ -2097,7 +2097,7 @@ x
 参见 @racket[quasiquote]，其中 @racket[unquote-splicing] 被识别为转义。作为表达式的 @racket[unquote-splicing] 形式是语法错误。}
 
 @;------------------------------------------------------------------------
-@section{语法引用：@racket[quote-syntax]}
+@section[#:tag "syntax-s4"]{Syntax Quoting: @racket[quote-syntax]}
 
 @defform*[[(quote-syntax datum)
            (quote-syntax datum #:local)]]{
@@ -2123,7 +2123,7 @@ x
                                for @racket[#:local].}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "#%top-interaction"]{交互包装器：@racket[#%top-interaction]}
+@section[#:tag "#%top-interaction"]{Interaction Wrapper: @racket[#%top-interaction]}
 
 @defform[(#%top-interaction . form)]{
 
@@ -2133,7 +2133,7 @@ x
 @include-section["block.scrbl"]
 
 @;------------------------------------------------------------------------
-@section[#:tag "stratified-body"]{内部定义限制：@racket[#%stratified-body]}
+@section[#:tag "stratified-body"]{Internal-Definition Limiting: @racket[#%stratified-body]}
 
 @defform[(#%stratified-body defn-or-expr ...)]{
 
@@ -2145,7 +2145,7 @@ x
 @close-eval[meta-in-eval]
 
 @;------------------------------------------------------------------------
-@section[#:tag "performance-hint"]{性能提示：@racket[begin-encourage-inline]}
+@section[#:tag "performance-hint"]{Performance Hints: @racket[begin-encourage-inline]}
 
 @note-lib-only[racket/performance-hint]
 
@@ -2176,7 +2176,7 @@ x
 
 
 @;------------------------------------------------------------------------
-@section[#:tag "lazy-require"]{延迟导入模块：@racket[lazy-require]}
+@section[#:tag "lazy-require"]{Importing Modules Lazily: @racket[lazy-require]}
 
 @note-lib-only[racket/lazy-require]
 
@@ -2271,7 +2271,7 @@ x
 @(close-eval lazy-require-eval)
 
 @;------------------------------------------------------------------------
-@section[#:tag "foreign-inline"]{对核心编译器形式的不安全访问}
+@section[#:tag "foreign-inline"]{Unsafe Access to Core Compiler Forms}
 
 
 @defform[(#%foreign-inline datum maybe-mode)

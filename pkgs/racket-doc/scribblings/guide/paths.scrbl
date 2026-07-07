@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "paths"]{路径}
+@title[#:tag "paths"]{Paths}
 
 @deftech{path} 封装了一个文件系统路径，它（潜在地）命名一个文件或目录。
 尽管路径可以在字符串和字节串之间相互转换，但字符串和字节串都不适合表示一般路径。

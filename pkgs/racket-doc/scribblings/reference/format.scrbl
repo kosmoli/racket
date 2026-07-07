@@ -11,7 +11,7 @@
   (define the-eval (make-base-eval))
   (the-eval '(require racket/math racket/format)))
 
-@title[#:tag "format"]{将值转换为字符串}
+@title[#:tag "format"]{Converting Values to Strings}
 
 @note-lib[racket/format]
 

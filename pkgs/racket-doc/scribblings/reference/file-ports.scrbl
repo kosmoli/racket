@@ -35,7 +35,7 @@
 
 @(define default-permissions @racketvalfont{#o666})
 
-@title[#:tag "file-ports"]{文件端口}
+@title[#:tag "file-ports"]{File Ports}
 
 由 @racket[open-input-file]、@racket[open-output-file]、@racket[subprocess] 及相关函数创建的 port 是 @deftech{file-stream port}。@exec{racket} 中的初始输入、输出和错误端口也都是 file-stream port。@racket[file-stream-port?] 谓词用于识别 file-stream port。
 

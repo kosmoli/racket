@@ -4,7 +4,7 @@
 @(define si-eval (make-base-eval))
 
 
-@title{字节与字符串输入}
+@title{Byte and String Input}
 
 @defproc[(read-char [in input-port? (current-input-port)]) 
          (or/c char? eof-object?)]{

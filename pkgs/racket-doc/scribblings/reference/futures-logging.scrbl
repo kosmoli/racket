@@ -1,7 +1,7 @@
 #lang scribble/doc 
 @(require "mz.rkt" (for-label racket/future future-visualizer/trace)) 
 
-@title[#:tag "future-logging"]{Future 性能日志}
+@title[#:tag "future-logging"]{Future Performance Logging}
 
 Racket traces 使用 logging（参见 @secref["logging"]）广泛地报告关于 futures 
 如何被求值的信息。Logging 输出对调试使用 futures 的程序的性能很有用。

@@ -2,11 +2,11 @@
 @(require "mz.rkt"
           scribble/bnf)
 
-@title[#:tag "memory" #:style 'toc]{内存管理}
+@title[#:tag "memory" #:style 'toc]{Memory Management}
 
 @local-table-of-contents[]
 
-@section[#:tag "weakbox"]{弱盒子（Weak Boxes）}
+@section[#:tag "weakbox"]{Weak Boxes}
 
 一个 @deftech{弱盒子} 类似于普通盒子（参见 @secref["boxes"]），但当垃圾回收器（参见 @secref["gc-model"]）能够证明弱盒子的内容值仅通过弱引用可达时，弱盒子的内容将被替换为 @racket[#f]。一个 @defterm{@tech{weak reference}} 是指通过弱盒子的引用，通过弱哈希表中的键引用（参见 @secref["hashtables"]）、通过 @tech{ephemeron} 的值（该值可被替换为 @racket[#f]）（参见 @secref["ephemerons"]），或通过 custodian（参见 @secref["custodians"]）的引用。
 
@@ -61,7 +61,7 @@ ephemeron 的一个特别常见的用途是将它们与弱哈希表（参见 @se
 若 @racket[v] 是 @tech{ephemeron} 则返回 @racket[#t]，否则返回 @racket[#f]。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "willexecutor"]{意愿与执行器（Wills and Executors）}
+@section[#:tag "willexecutor"]{Wills and Executors}
 
 一个 @deftech{will executor} 管理一组值和一组关联的 @deftech{will} 过程
 （亦称 @deftech{finalizers}）。每个值的 @tech{will} 过程在该值被（垃圾回收器）证明为不可达时即可被执行，除非通过弱引用（参见 @secref["weakbox"]）或作为其他 will executor 的注册者可达。@tech{will} 对触发与不可达值关联的数据的操作很有用，例如当包含端口的对象不再使用时关闭嵌入在对象中的端口。
@@ -122,7 +122,7 @@ will executor 可用作 @tech{synchronizable event}（参见 @secref["sync"]）�
 @history[#:changed "6.90.0.4" @elem{添加了 @racket[v] 参数。}]}
 
 @;------------------------------------------------------------------------
-@section[#:tag "garbagecollection"]{垃圾回收}
+@section[#:tag "garbagecollection"]{Garbage Collection}
 
 在 Racket 启动前设置 @as-index{@envvar{PLTDISABLEGC}} 环境变量（为任意值）可禁用 @tech{garbage collection}。设置 @as-index{@envvar{PLT_INCREMENTAL_GC}} 环境变量为以 @litchar{1}、@litchar{y} 或 @litchar{Y} 开头的值以请求 Racket 的 @tech{3m} 实现始终使用增量模式，但在带有定期任务的程序中调用 @racket[(collect-garbage 'incremental)] 通常是请求增量模式的更好机制。设置 @envvar{PLT_INCREMENTAL_GC} 环境变量为以 @litchar{0}、@litchar{n} 或 @litchar{N} 开头的值可禁用增量模式请求（在所有 Racket 实现中）。
 
@@ -280,7 +280,7 @@ will executor 可用作 @tech{synchronizable event}（参见 @secref["sync"]）�
 @racket[v] 参数的各种组合可以控制转储中的信息。可用的信息取决于你的 Racket 构建；检查特定构建的转储末尾以查看是否提供额外信息；否则所有 @racket[v] 都会被忽略。}
 
 @;------------------------------------------------------------------------
-@section[#:tag "phantom-bytes"]{幻字节串（Phantom Byte Strings）}
+@section[#:tag "phantom-bytes"]{Phantom Byte Strings}
 
 一个 @deftech{phantom byte string} 是一个小的 Racket 值，被 Racket 内存管理器视为具有任意大小，该大小在创建 @tech{phantom byte string} 时或通过 @racket[set-phantom-bytes!] 更改时指定。
 

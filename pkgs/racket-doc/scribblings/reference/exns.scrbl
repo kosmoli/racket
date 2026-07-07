@@ -511,7 +511,7 @@ as a ``result'' instead of an ``argument.''}
 
 @;------------------------------------------------------------------------
 
-@section{处理异常}
+@section[#:tag "exns-s1"]{Handling Exceptions}
 @defproc[(call-with-exception-handler [f (any/c . -> . any)] [thunk (-> any)]) any]{
 
 将 @racket[f] 安装为 @racket[thunk] 调用的 @tech{dynamic extent} 的 @tech{exception handler}。如果在 @racket[thunk] 求值过程中引发异常（在当前 continuation 的扩展中，该扩展没有自己的异常处理器），则 @racket[f] 在 @racket[raise] 调用的 continuation 中被应用于 @racket[raise] 的值（但 continuation 通常通过 @tech{continuation barrier} 扩展；参见 @secref["prompt-model"] 和 @racket[raise]）。
@@ -587,7 +587,7 @@ dynamic extent 内，并在相同的 barrier 下，如果有的话）。如果�
 
 @;------------------------------------------------------------------------
 
-@section{配置默认处理}
+@section[#:tag "exns-s2"]{Configuring Default Handling}
 @defparam[error-escape-handler proc (-> any)]{
 
 @deftech{error escape handler} 的参数，它不接受参数并从异常的动态上下文中转义。默认 error escape handler 使用 @racket[(abort-current-continuation (default-continuation-prompt-tag) void)] 转义。
@@ -708,7 +708,7 @@ error escape handler 通常由异常处理器直接调用，在一个 @tech{para
 
 @;------------------------------------------------------------------------
 
-@section{内置异常类型}
+@section[#:tag "exns-s3"]{Built-in Exception Types}
 @defstruct[exn ([message string?]
                 [continuation-marks continuation-mark-set?])
            #:inspector #f]{
@@ -1036,7 +1036,7 @@ As an example,
 
 @;------------------------------------------------------------------------
 
-@section{额外异常函数}
+@section[#:tag "exns-s4"]{Additional Exception Functions}
 @note-lib-only[racket/exn]
 
 @history[#:added "6.3"]
@@ -1047,7 +1047,7 @@ As an example,
 
 @;----------------------------------------------------------------------
 
-@section[#:tag "err-realm"]{领域与错误消息调整器}
+@section[#:tag "err-realm"]{Realms and Error Message Adjusters}
 
 @deftech{领域} 标识命名函数和为函数参数和结果指定合约的约定。
 领域旨在帮助改善基于 Racket 实现的语言之间的分层和互操作性。

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "input-and-output" #:style 'toc]{输入和输出}
+@title[#:tag "input-and-output" #:style 'toc]{Input and Output}
 
 @guideintro["i/o"]{端口和 I/O}
 

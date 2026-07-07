@@ -2,7 +2,7 @@
 @(require scribble/manual scribble/eval "utils.rkt"
           (for-label racket/contract racket/gui))
 
-@title[#:tag "contracts-examples"]{更多示例}
+@title[#:tag "contracts-examples"]{Additional Examples}
 
 本节通过 @italic{Design by Contract, by Example} @cite["Mitchell02"] 中的一系列示例来说明 Racket contract 实现的现状。
 
@@ -29,7 +29,7 @@ Mitchell 和 McKim 使用 Eiffel 作为底层编程语言，采用传统的 impe
 
 注意：为了模仿 Mitchell 和 McKim 对 parametericity（参数多态）的非正式概念，我们使用 first-class contract。在多个地方，使用 first-class contract 改进了 Mitchell 和 McKim 的设计（参见接口中的注释）。
 
-@section{客户-管理器组件}
+@section[#:tag "examples-s1"]{A Customer-Manager Component}
 
 第一个 module 包含一些 struct 定义，位于单独的 module 中，以便更好地追踪错误。
 
@@ -43,21 +43,21 @@ Mitchell 和 McKim 使用 Eiffel 作为底层编程语言，采用传统的 impe
 
 @external-file[1-test]
 
-@section{参数化（简单）堆栈}
+@section[#:tag "examples-s2"]{A Parameteric (Simple) Stack}
 @external-file[2]
 
 测试：
 
 @external-file[2-test]
 
-@section{字典}
+@section[#:tag "examples-s3"]{A Dictionary}
 @external-file[3]
 
 测试：
 
 @external-file[3-test]
 
-@section{队列}
+@section[#:tag "examples-s4"]{A Queue}
 @external-file[5]
 
 测试：

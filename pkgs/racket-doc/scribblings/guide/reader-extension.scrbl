@@ -3,7 +3,7 @@
           "guide-utils.rkt" "modfile.rkt"
           (for-label racket/match syntax/readerr))
 
-@title[#:tag "hash-reader"]{读取器扩展}
+@title[#:tag "hash-reader"]{Reader Extensions}
 
 @refdetails["parse-reader"]{reader extensions}
 

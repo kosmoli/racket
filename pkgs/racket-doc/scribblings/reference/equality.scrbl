@@ -4,7 +4,7 @@
           (for-label racket/hash-code))
 
 
-@title{相等性}
+@title{Equality}
 
 
 相等性是关于两个值是否"相同"的概念。Racket 默认支持几种不同的相等性，尽管 @racket[equal?] 在大多数情况下是首选。
@@ -126,7 +126,7 @@
                         (lambda (a b) (<= (abs (- a b)) 0.25))))}
 
 
-@section[#:tag "model-eq"]{对象标识与比较}
+@section[#:tag "model-eq"]{Object Identity and Comparisons}
 
 
 @racket[eq?] 运算符比较两个 @tech{values}，当值引用相同的 @tech{object} 时返回 @racket[#t]。这种相等性形式适用于比较支持命令式更新的对象（例如，确定通过一个引用修改对象的效果通过另一个引用可见）。此外，@racket[eq?] 测试求值很快，在 hash table 中基于 @racket[eq?] 的哈希比基于 @racket[equal?] 的哈希更轻量。
@@ -136,7 +136,7 @@
 数据类型关于 @racket[eq?] 的行为通常随该数据类型及其关联过程一起指定。
 
 
-@section{相等性与哈希}
+@section[#:tag "equality-s1"]{Equality and Hashing}
 
 
 所有可比较的值至少有一个 @deftech{hash code}——一个通过对值应用哈希函数计算出的任意整数（更具体地说是 @tech{fixnum}）。这些哈希码的定义属性是@bold{相等的值具有相等的哈希码}。注意反过来并不成立：两个不相等的值仍然可以有相等的哈希码。哈希码对各种索引和比较操作很有用，特别是在 @tech{hash tables} 的实现中。更多信息参见 @secref["hashtables"]。
@@ -205,7 +205,7 @@
  返回与 @racket[eqv?] 一致的 @tech{hash code}。对于任意两次使用 @racket[eqv?] 值的调用，返回的数字相同。}
 
 
-@section{为自定义类型实现相等性}
+@section[#:tag "equality-s2"]{Implementing Equality for Custom Types}
 
 
 @defthing[gen:equal+hash any/c]{
@@ -361,7 +361,7 @@
 
 @history[#:changed "8.5.0.3" @elem{Added support for two-procedure values to customize @racket[equal-always?].}]}
 
-@section[#:tag "Honest_Custom_Equality"]{诚实的自定义相等性}
+@section[#:tag "Honest_Custom_Equality"]{Honest Custom Equality}
 
 由于 @racket[_equal-proc] 或 @racket[_equal-mode-proc] 不仅仅用于 @racket[equal?]，它们的实例应遵循某些指南以确保它们对 @racket[equal-always?]、@racket[chaperone-of?] 和 @racket[impersonator-of?] 正确工作。
 
@@ -508,7 +508,7 @@ struct 控制可变数据访问的另一种方式是实现 @racket[gen:equal-mod
 ]
 ]
 
-@section{组合哈希码}
+@section[#:tag "equality-s3"]{Combining Hash Codes}
 
 @note-lib-only[racket/hash-code]
 

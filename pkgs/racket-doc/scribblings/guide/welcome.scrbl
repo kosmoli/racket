@@ -5,7 +5,7 @@
 
 @(define piece-eval (make-base-eval))
 
-@title[#:tag "intro"]{欢迎来到 Racket}
+@title[#:tag "intro"]{Welcome to Racket}
 
 从不同角度看，@bold{Racket} 是
 
@@ -63,7 +63,7 @@ DrRacket 会记住你上次使用的语言，而不是从 @hash-lang[] 行推断
 顶部文本区域中。
 
 @; ----------------------------------------------------------------------
-@section{与 Racket 交互}
+@section{Interacting with Racket}
 
 DrRacket 的底部文本区域和 @exec{racket} 命令行程序（不带选项启动时）
 都充当一种计算器。你输入一个 Racket 表达式，按 Return 键，答案就会
@@ -87,7 +87,7 @@ Racket 使用括号来包裹较大的表达式——除了简单常量之外的�
 @interaction[(substring "the boy out of the country" 4 7)]
 
 @; ----------------------------------------------------------------------
-@section{定义与交互}
+@section{Definitions and Interactions}
 
 你可以通过 @racket[define] 形式定义自己的函数，使其像
 @racket[substring] 一样工作，如下所示：
@@ -136,7 +136,7 @@ code:blank
 就像 DrRacket 的 @onscreen{Run} 按钮一样。
 
 @; ----------------------------------------------------------------------
-@section{创建可执行文件}
+@section{Creating Executables}
 
 如果你的文件（或 DrRacket 中的 @tech{定义区}）包含
 
@@ -186,7 +186,7 @@ DrRacket 中运行该程序，也可以在 @exec{racket} 中使用
 ]
 
 @; ----------------------------------------------------------------------
-@section[#:tag "use-module"]{给有 Lisp/Scheme 经验的读者}
+@section[#:tag "use-module"]{A Note to Readers with Lisp/Scheme Experience}
 
 如果你已经了解一些 Scheme 或 Lisp 的知识，你可能会想直接把
 

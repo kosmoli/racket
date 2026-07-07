@@ -2,7 +2,7 @@
 @(require scribble/manual scribble/eval "utils.rkt"
           (for-label racket/contract))
 
-@title[#:tag "contracts-exists"]{使用 @racket[#:exists] 和 @racket[#:∃] 的抽象契约}
+@title[#:tag "contracts-exists"]{Abstract Contracts using @racket[#:exists] and @racket[#:∃]}
 
 契约系统提供了存在契约，可用于保护抽象，
 确保你模块的客户端无法依赖你数据结构表示的具体选择。

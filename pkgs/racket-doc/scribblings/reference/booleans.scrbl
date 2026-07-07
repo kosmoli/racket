@@ -4,7 +4,7 @@
 @(define bool-eval (make-base-eval))
 @(bool-eval '(require racket/bool))
 
-@title[#:tag "booleans"]{布尔值}
+@title[#:tag "booleans"]{Booleans}
 
 真和假 @deftech{booleans} 分别由值 @racket[#t] 和 @racket[#f] 表示，不过依赖于布尔值的操作通常将 @racket[#f] 以外的任何值视为真。@racket[#t] 值总是 @racket[eq?] 于自身，@racket[#f] 也总是 @racket[eq?] 于自身。
 
@@ -53,7 +53,7 @@
 (immutable? #t)
 ]}
 
-@section{布尔别名}
+@section[#:tag "booleans-s1"]{Boolean Aliases}
 
 @note-lib[racket/bool]
 
@@ -124,7 +124,7 @@
 }
 
 
-@section{可变性谓词}
+@section[#:tag "booleans-s2"]{Mutability Predicates}
 
 @note-lib-only[racket/mutability]
 

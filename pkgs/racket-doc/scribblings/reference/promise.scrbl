@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/promise))
 
-@title{延迟求值}
+@title{Delayed Evaluation}
 
 @note-lib[racket/promise]
 
@@ -52,7 +52,7 @@ Returns @racket[#t] if @racket[promise] is currently being forced.
 (Note that a promise can be either running or forced but not both.)}
 
 
-@section{其他 Promise 种类}
+@section[#:tag "promise-s1"]{Additional Promise Kinds}
 
 @defform[(delay/name body ...+)]{
 

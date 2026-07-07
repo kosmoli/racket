@@ -16,7 +16,7 @@
                               s16vector-ref
                               s16vector-set!)))
 
-@title[#:tag "unsafe"]{不安全操作}
+@title[#:tag "unsafe"]{Unsafe Operations}
 
 @defmodule[racket/unsafe/ops]
 
@@ -26,7 +26,7 @@
 
 @racketmodname[racket/unsafe/ops] 的所有导出绑定都受 @racket[protect-out] 意义上的保护，因此可以通过调整代码检查器来阻止对不安全操作的访问（参见 @secref["modprotect"]）。
 
-@section{不安全数值操作}
+@section[#:tag "unsafe-s1"]{Unsafe Numeric Operations}
 
 @deftogether[(
 @defproc[(unsafe-fx+ [a fixnum?] ...) fixnum?]
@@ -198,7 +198,7 @@
 }
 
 
-@section{不安全字符操作}
+@section[#:tag "unsafe-s2"]{Unsafe Character Operations}
 
 @deftogether[(
 @defproc[(unsafe-char=?   [a char?] [b char?] ...) boolean?]
@@ -215,7 +215,7 @@
 
 
 
-@section[#:tag "Unsafe Data Extraction"]{不安全复合数据操作}
+@section[#:tag "Unsafe Data Extraction"]{Unsafe Compound-Data Operations}
 
 @deftogether[(
 @defproc[(unsafe-car [p pair?]) any/c]
@@ -650,7 +650,7 @@ vector 的大小永远不能大于 @tech{fixnum}，因此即使是 @racket[vecto
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unsafeextfl"]{不安全 Extflonum 操作}
+@section[#:tag "unsafeextfl"]{Unsafe Extflonum Operations}
 
 @deftogether[(
 @defproc[(unsafe-extfl+   [a extflonum?] [b extflonum?]) extflonum?]
@@ -720,7 +720,7 @@ vector 的大小永远不能大于 @tech{fixnum}，因此即使是 @racket[vecto
 
 @; ------------------------------------------------------------------------
 
-@section{不安全拟人化对象与监护}
+@section[#:tag "unsafe-s3"]{Unsafe Impersonators and Chaperones}
 
 @defproc[(unsafe-impersonate-procedure [proc procedure?]
                                        [replacement-proc procedure?]
@@ -816,7 +816,7 @@ vector 的大小永远不能大于 @tech{fixnum}，因此即使是 @racket[vecto
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unsafeassert"]{不安全断言}
+@section[#:tag "unsafeassert"]{Unsafe Assertions}
 
 @defproc[(unsafe-assert-unreachable) none/c]{
 
@@ -843,7 +843,7 @@ vector 的大小永远不能大于 @tech{fixnum}，因此即使是 @racket[vecto
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unsafe-struct-type-prop"]{不安全结构类型属性}
+@section[#:tag "unsafe-struct-type-prop"]{Unsafe Structure Type Properties}
 
 @note-lib-only[racket/unsafe/struct-type-property]
 

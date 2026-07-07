@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "interaction-info"]{交互配置}
+@title[#:tag "interaction-info"]{Interaction Configuration}
 
 @note-lib-only[racket/interaction-info]
 

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "protect-out"]{受保护的导出}
+@title[#:tag "protect-out"]{Protected Exports}
 
 有时，module 需要向与导出 module 处于相同信任级别的其他 module 导出绑定，同时阻止不受信任的 module 访问。此类导出应在 @racket[provide] 中使用 @racket[protect-out] 形式。例如，@racketmodname[ffi/unsafe] 以这种方式将其所有不安全绑定导出为 @deftech{protected}。
 

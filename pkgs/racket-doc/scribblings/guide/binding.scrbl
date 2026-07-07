@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "binding"]{标识符与绑定}
+@title[#:tag "binding"]{Identifiers and Binding}
 
 表达式的上下文决定了表达式中出现的 identifier 的含义。特别地，以语言 @racketmodname[racket] 开始一个模块时，例如
 

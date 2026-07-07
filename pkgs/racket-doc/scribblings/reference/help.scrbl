@@ -12,7 +12,7 @@
                          `((onclick . ,(format "return GotoPLTRoot(\"~a\");" (version)))))))
               "主文档页面"))
 
-@title{交互式帮助}
+@title{Interactive Help}
 
 @note-init-lib[racket/help]
 

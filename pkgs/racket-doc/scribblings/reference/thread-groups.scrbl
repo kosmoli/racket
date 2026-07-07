@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "threadgroups"]{线程组}
+@title[#:tag "threadgroups"]{Thread Groups}
 
 一个 @deftech{thread group} 是一个包含线程及其他线程组的集合，它们对 CPU 拥有同等的占用权。通过嵌套线程组以及在线程组中创建特定的线程，程序员可以控制一组线程所分配到的 CPU 数量。每个线程都属于一个线程组，该线程组由创建时的 @racket[current-thread-group] 参数决定。线程组和 custodian（见 @secref["custodians"]）是相互独立的。
 

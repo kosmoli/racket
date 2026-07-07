@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "macros" #:style 'toc]{宏}
+@title[#:tag "macros" #:style 'toc]{Macros}
 
 一个 @deftech{macro} 是一个语法形式，具有相关联的 @deftech{transformer}，它将原始形式展开为已有的形式。换句话说，宏是 Racket 编译器的扩展。@racketmodname[racket/base] 和 @racketmodname[racket] 的大多数语法形式实际上都是 macro，它们展开为一小部分核心结构。
 

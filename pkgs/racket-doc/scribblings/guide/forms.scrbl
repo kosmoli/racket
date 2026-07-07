@@ -1,13 +1,13 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "scheme-forms" #:style 'toc]{表达式和定义}
+@title[#:tag "scheme-forms" #:style 'toc]{Expressions and Definitions}
 
 @secref["to-scheme"] 章介绍了一些 Racket 的语法形式：定义、procedure 应用、条件表达式等。本节提供了这些形式的更多基本信息，以及一些附加的基本形式。
 
 @local-table-of-contents[]
 
-@section[#:tag "syntax-notation"]{符号约定}
+@section[#:tag "syntax-notation"]{Notation}
 
 本章（以及文档其余部分）使用的符号约定与 @secref["to-scheme"] 章基于字符的语法略有不同。语法形式 @racketkeywordfont{something} 的语法如下所示：
 

@@ -9,14 +9,13 @@
      (interaction-eval #:eval e body) ...
      (racketblock body ...)))
 
-@title[#:tag "proc-macros" #:style 'toc]{通用宏转换器}
+@title[#:tag "proc-macros" #:style 'toc]{General Macro Transformers}
 
-The @racket[define-syntax] form creates a @deftech{transformer
-binding} for an identifier, which is a binding that can be used at
-compile time while expanding expressions to be evaluated at run time.
-The compile-time value associated with a transformer binding can be
-anything; if it is a procedure of one argument, then the binding is
-used as a macro, and the procedure is the @deftech{macro transformer}.
+@racket[define-syntax] 形式为标识符创建一个 @deftech{transformer
+binding}（变换器绑定），这是一种可以在编译时使用的绑定，
+用于展开在运行时求值的表达式。与变换器绑定关联的编译时值
+可以是任何东西；如果它是一个单参数过程，则该绑定
+被用作宏，该过程就是 @deftech{macro transformer}（宏变换器）。
 
 @local-table-of-contents[]
 
@@ -24,35 +23,35 @@ used as a macro, and the procedure is the @deftech{macro transformer}.
 
 @section[#:tag "stx-obj"]{Syntax Objects}
 
-宏转换器的输入和输出（即源形式和替换形式）被表示为 @deftech{syntax object}。
-syntax object 包含 symbol、list 和常量值（如数字），它们在本质上对应于
-表达式的 @racket[quote] 形式。例如，表达式 @racket[(+ 1 2)] 的表示包含
-symbol @racket['+] 以及数字 @racket[1] 和 @racket[2]，都在一个 list
-中。除了这些被引用的内容外，syntax object 还会将 source-location 和
-lexical-binding 信息与形式的各个部分关联起来。source-location 信息
-在报告 syntax error 时使用（例如），而 lexical-binding 信息使得宏系统
-能够维护词法作用域。为了适应这些额外信息，表达式 @racket[(+ 1 2)]
-的表示不仅仅是 @racket['(+ 1 2)]，而是将 @racket['(+ 1 2)] 包装成一个
-syntax object。
+宏变换器的输入和输出（即源形式和替换形式）被表示为 @deftech{syntax objects}（语法对象）。
+语法对象包含 symbol、列表和常量值（如数字），它们本质上对应于
+表达式的 @racket[quote]d 形式。例如，表达式 @racket[(+ 1 2)]
+的表示包含 symbol @racket['+] 和数字 @racket[1] 和 @racket[2]，
+都在一个列表中。除了这些被引用的内容外，语法对象还将源位置
+和词法绑定信息与形式的每个部分关联。源位置信息用于
+报告语法错误（例如），词法绑定信息允许宏系统
+维护词法作用域。为了容纳这些额外信息，
+表达式 @racket[(+ 1 2)] 的表示不仅仅是 @racket['(+ 1 2)]，
+而是将 @racket['(+ 1 2)] 封装到一个语法对象中。
 
-要创建字面的 syntax object，请使用 @racket[syntax] 形式：
+要创建字面语法对象，请使用 @racket[syntax] 形式：
 
 @interaction[
 (eval:alts (#,(racket syntax) (+ 1 2)) (syntax (+ 1 2)))
 ]
 
-与 @litchar{'} 缩写 @racket[quote] 的方式相同，
-@litchar{#'} 缩写 @racket[syntax]：
+就像 @litchar{'} 是 @racket[quote] 的缩写一样，
+@litchar{#'} 是 @racket[syntax] 的缩写：
 
 @interaction[
 #'(+ 1 2)
 ]
 
-只包含 symbol 的 syntax object 就是 @deftech{identifier syntax object}。
-Racket 为 identifier syntax object 提供了一些额外操作，包括用于检测 identifier
-的 @racket[identifier?] 操作。最值得注意的
-是，@racket[free-identifier=?] 用于判断两个 identifier 是否引用
-同一个 binding：
+只包含一个 symbol 的语法对象是 @deftech{identifier
+syntax object}（标识符语法对象）。Racket 提供了一些专门针对
+标识符语法对象的额外操作，包括用于检测标识符的
+@racket[identifier?] 操作。最值得注意的是，
+@racket[free-identifier=?] 判断两个标识符是否引用同一个绑定：
 
 @interaction[
 (identifier? #'car)
@@ -63,30 +62,30 @@ Racket 为 identifier syntax object 提供了一些额外操作，包括用于�
 (free-identifier=? #'car #'also-car)
 ]
 
-要在 syntax object 中查看 list、symbol、number 等（@|etc|），请使用
+要查看语法对象中的列表、symbol、数字等，请使用
 @racket[syntax->datum]：
 
 @interaction[
 (syntax->datum #'(+ 1 2))
 ]
 
-@racket[syntax-e] 函数类似于 @racket[syntax->datum]，但它会解开一层
-source-location 和 lexical-context 信息，将具有自身信息的子形式保留为
-syntax object：
+@racket[syntax-e] 函数类似于 @racket[syntax->datum]，
+但它只解包一层源位置和词法上下文信息，
+让拥有自己信息的子形式保持语法对象的包装：
 
 @interaction[
 (syntax-e #'(+ 1 2))
 ]
 
-@racket[syntax-e] 函数始终会为通过 symbol、number 和其他字面值的子形式
-保留 syntax object 包装。只有在解开 pair 时，它才会额外解开子形式，
-在这种情况下，pair 的 @racket[cdr] 可能会根据 syntax object 的构造方式
-被递归解开。
+@racket[syntax-e] 函数总是在通过 symbol、数字和其他字面值表示的
+子形式周围保留语法对象包装。它唯一会解包子形式的时候是
+解包一个对，此时对的 @racket[cdr] 可能会被递归解包，
+这取决于语法对象的构造方式。
 
-@racket[syntax->datum] 的反操作当然就是 @racket[datum->syntax]。
-除了像 @racket['(+ 1 2)] 这样的 datum 之外，@racket[datum->syntax]
-还需要一个已有的 syntax object 来捐赠其 lexical context，并且可以选择
-另一个 syntax object 来捐赠其 source location：
+当然，@racket[syntax->datum] 的对立面是
+@racket[datum->syntax]。除了像 @racket['(+ 1 2)] 这样的 datum 外，
+@racket[datum->syntax] 还需要一个现有的语法对象来提供
+其词法上下文，以及可选的另一个语法对象来提供其源位置：
 
 @interaction[
 (datum->syntax #'lex
@@ -94,32 +93,31 @@ syntax object：
                #'srcloc)
 ]
 
-在上面的例子中，@racket[#'lex] 的 lexical context 被用于新的
-syntax object，而 @racket[#'srcloc] 的 source location 被使用。
+在上面的示例中，@racket[#'lex] 的词法上下文被用于
+新的语法对象，而 @racket[#'srcloc] 的源位置被使用。
 
-当 @racket[datum->syntax] 的第二个（即 ``datum''）参数包含 syntax object 时，
-这些 syntax object 会在结果中完好无损地被保留。也就是说，用
-@racket[syntax-e] 解构结果最终会产生传递给 @racket[datum->syntax]
-的那些 syntax object。
+当 @racket[datum->syntax] 的第二个参数（即 "datum"）包含语法对象时，
+这些语法对象在结果中被完整保留。也就是说，用 @racket[syntax-e]
+解构结果最终会产生给 @racket[datum->syntax] 的那些语法对象。
 
 
 @; ----------------------------------------
 
 @section[#:tag "macro-transformers"]{Macro Transformer Procedures}
 
-任何单参数的 procedure 都可以是 @tech{macro transformer}。实际上，
-@racket[syntax-rules] 形式是一个宏，它会展开为 procedure 形式。例如，
-如果你直接求值一个 @racket[syntax-rules] 形式（而不是放在 @racket[define-syntax]
-形式的右边），结果就是一个 procedure：
+任何单参数过程都可以是 @tech{macro transformer}。事实上，
+@racket[syntax-rules] 形式是一个展开为过程形式的宏。
+例如，如果您直接对 @racket[syntax-rules] 形式求值
+（而不是将其放在 @racket[define-syntax] 形式的右侧），
+结果是一个过程：
 
 @interaction[
 (syntax-rules () [(nothing) something])
 ]
 
-除了使用 @racket[syntax-rules]，你也可以直接使用 @racket[lambda]
-编写自己的 macro transformer procedure。该 procedure 的参数是一个代表
-源形式的 @tech{syntax object}，procedure 的结果也必须是一个代表
-替换形式的 @tech{syntax object}：
+除了使用 @racket[syntax-rules]，您还可以直接用 @racket[lambda] 编写
+自己的宏变换器过程。过程的参数是表示源形式的 @tech{syntax object}，
+过程的结果必须是表示替换形式的 @tech{syntax object}：
 
 @interaction[
 #:eval check-eval
@@ -131,12 +129,11 @@ syntax object，而 @racket[#'srcloc] 的 source location 被使用。
 (self-as-string (+ 1 2))
 ]
 
-传递给 macro transformer 的源形式表示一个表达式，其中 identifier 被用在
-application 位置（即在开启表达式的左括号之后），或者如果它被用在
-expression 位置但不在 application 位置中，则它单独表示该 identifier。@margin-note*{The procedure produced by
-@racket[syntax-rules] raises a syntax error if its argument
-corresponds to a use of the identifier by itself, which is why
-@racket[syntax-rules] does not implement an @tech{identifier macro}.}
+传递给宏变换器的源形式表示一个表达式，其中其标识符在应用位置
+（即在开始表达式的括号之后）使用，或者如果标识符在表达式位置
+而非应用位置使用，则单独表示该标识符。@margin-note*{@racket[syntax-rules]
+产生的过程在其参数对应于标识符单独使用时会引发语法错误，
+这就是为什么 @racket[syntax-rules] 不实现 @tech{identifier macro} 的原因。}
 
 @interaction[
 #:eval check-eval
@@ -144,9 +141,9 @@ corresponds to a use of the identifier by itself, which is why
 self-as-string
 ]
 
-@racket[define-syntax] 形式支持与 @racket[define] 相同的函数快捷语法，
-因此下面这个 @racket[self-as-string] 定义与使用 @racket[lambda]
-显式写法等价：
+@racket[define-syntax] 形式支持与 @racket[define] 相同的
+函数简写语法，因此以下 @racket[self-as-string]
+定义与使用显式 @racket[lambda] 的定义等价：
 
 @interaction[
 #:eval check-eval
@@ -161,25 +158,26 @@ self-as-string
 
 @section[#:tag "syntax-case"]{Mixing Patterns and Expressions: @racket[syntax-case]}
 
-@racket[syntax-rules] 生成的 procedure 在内部使用 @racket[syntax-e]
-来解构给定的 syntax object，并使用 @racket[datum->syntax] 来构造结果。
-@racket[syntax-rules] 形式无法从 pattern-matching 和 template-construction
-模式跳出到任意的 Racket 表达式。
+@racket[syntax-rules] 生成的过程在内部使用
+@racket[syntax-e] 来解构给定的语法对象，并使用
+@racket[datum->syntax] 来构造结果。
+@racket[syntax-rules] 形式不提供从模式匹配和模板构造模式
+转义到任意 Racket 表达式的方法。
 
-@racket[syntax-case] 形式让你可以混合 pattern matching、template
-construction 和任意表达式：
+@racket[syntax-case] 形式允许您混合模式匹配、模板构造和任意表达式：
 
 @specform[(syntax-case stx-expr (literal-id ...)
             [pattern expr]
             ...)]
 
-与 @racket[syntax-rules] 不同，@racket[syntax-case] 形式不产生 procedure。
-相反，它以一个 @racket[_stx-expr] 表达式开始，该表达式确定要与 @racket[_pattern]
-匹配的 syntax object。此外，每个 @racket[syntax-case] 子句有一个 @racket[_pattern]
-和一个 @racket[_expr]，而不是 @racket[_pattern] 和 @racket[_template]。
-在 @racket[_expr] 内部，@racket[syntax] 形式（通常缩写为 @litchar{#'}）
-会切换到 template-construction 模式；如果子句的 @racket[_expr] 以
-@litchar{#'} 开始，那么我们得到的就是类似 @racket[syntax-rules] 的形式：
+与 @racket[syntax-rules] 不同，@racket[syntax-case] 形式不会
+产生过程。相反，它以一个 @racket[_stx-expr] 表达式开始，
+该表达式确定要与 @racket[_pattern] 匹配的语法对象。
+此外，每个 @racket[syntax-case] 子句有 @racket[_pattern] 和
+@racket[_expr]，而不是 @racket[_pattern] 和 @racket[_template]。
+在 @racket[_expr] 中，@racket[syntax] 形式——通常缩写为
+@litchar{#'}——切换到模板构造模式；如果子句的 @racket[_expr]
+以 @litchar{#'} 开头，那么我们就有了类似 @racket[syntax-rules] 形式的东西：
 
 @interaction[
 (syntax->datum
@@ -187,8 +185,8 @@ construction 和任意表达式：
   [(op n1 n2) #'(- n1 n2)]))
 ]
 
-We could write the @racket[swap] macro using @racket[syntax-case]
-instead of @racket[define-syntax-rule] or @racket[syntax-rules]:
+我们可以用 @racket[syntax-case] 而不是
+@racket[define-syntax-rule] 或 @racket[syntax-rules] 来编写 @racket[swap] 宏：
 
 @racketblock[
 (define-syntax (swap stx)
@@ -198,11 +196,12 @@ instead of @racket[define-syntax-rule] or @racket[syntax-rules]:
                     (set! y tmp))]))
 ]
 
-使用 @racket[syntax-case] 的一个优势是我们可以为 @racket[swap] 提供
-更好的错误报告。例如，使用 @racket[define-syntax-rule] 定义的 @racket[swap]，
-那么 @racket[(swap x 2)] 会产生 @racket[set!] 相关的 syntax error，
-因为 @racket[2] 不是 identifier。我们可以改进 @racket[syntax-case]
-实现的 @racket[swap] 来显式检查子形式：
+使用 @racket[syntax-case] 的一个优点是我们可以为
+@racket[swap] 提供更好的错误报告。例如，使用
+@racket[define-syntax-rule] 定义的 @racket[swap]，
+@racket[(swap x 2)] 会产生关于 @racket[set!] 的语法错误，
+因为 @racket[2] 不是标识符。我们可以改进
+@racket[syntax-case] 的 @racket[swap] 实现以显式检查子形式：
 
 @racketblock[
 (define-syntax (swap stx)
@@ -221,24 +220,24 @@ instead of @racket[define-syntax-rule] or @racket[syntax-rules]:
                                  #'x)))]))
 ]
 
-使用此定义，@racket[(swap x 2)] 产生的 syntax error 来自 @racket[swap]
-而不是 @racket[set!]。
+有了这个定义，@racket[(swap x 2)] 提供的语法错误
+来自 @racket[swap] 而不是 @racket[set!]。
 
-在上面 @racket[swap] 的定义中，@racket[#'x] 和 @racket[#'y] 是 template，
-即使它们没有被用作 macro transformer 的结果。这个例子说明了 template
-如何用于访问输入 syntax 的各个部分，在这里用于检查这些部分的形式。
-此外，@racket[#'x] 或 @racket[#'y] 的匹配结果被用于调用
-@racket[raise-syntax-error]，使得 syntax-error 消息可以直接指向
-非 identifier 的 source location。
+在上面的 @racket[swap] 定义中，@racket[#'x] 和
+@racket[#'y] 是模板，即使它们没有被用作宏变换器的结果。
+这个示例说明了如何使用模板来访问输入语法的片段，
+在此情况下用于检查片段的形式。此外，@racket[#'x] 或
+@racket[#'y] 的匹配被用于调用 @racket[raise-syntax-error]，
+以便语法错误消息可以直接指向非标识符的源位置。
 
 @; ----------------------------------------
 
 @section[#:tag "with-syntax"]{@racket[with-syntax] and @racket[generate-temporaries]}
 
-由于 @racket[syntax-case] 允许我们使用任意 Racket 表达式进行计算，
-我们可以更简单地解决在编写 @racket[define-for-cbr] 时遇到的问题
-（参见 @secref["pattern-macro-example"]），在那里我们需要基于一个
-@racket[id ...] 序列生成一组名称：
+由于 @racket[syntax-case] 允许我们用任意 Racket 表达式进行计算，
+我们可以更简单地解决编写 @racket[define-for-cbr] 时遇到的一个问题
+（参见 @secref["pattern-macro-example"]），在那里我们需要
+根据序列 @racket[id ...] 生成一组名称：
 
 @racketblock[
 (define-syntax (define-for-cbr stx)
@@ -250,11 +249,11 @@ instead of @racket[define-syntax-rule] or @racket[syntax-rules]:
            body) ....]))
 ]
 
-我们需要将 @racket[get ...] 和 @racket[put ...] 绑定到生成的 identifier
-的 list，以替代上面的 @racket[....]。我们不能使用 @racket[let] 来绑定
-@racket[get] 和 @racket[put]，因为我们需要的是算作 pattern variable
-的 binding，而不是普通的局部变量。@racket[with-syntax] 形式让我们
-可以绑定 pattern variable：
+在上面的 @racket[....] 处，我们需要将 @racket[get ...]
+和 @racket[put ...] 绑定到生成的标识符列表。我们不能使用
+@racket[let] 来绑定 @racket[get] 和 @racket[put]，
+因为我们需要的绑定要算作模式变量，而不是普通的局部变量。
+@racket[with-syntax] 形式允许我们绑定模式变量：
 
 @racketblock[
 (define-syntax (define-for-cbr stx)
@@ -267,10 +266,11 @@ instead of @racket[define-syntax-rule] or @racket[syntax-rules]:
            body))]))
 ]
 
-现在我们需要一个替代 @racket[....] 的表达式，它生成的 identifier
-数量与原始 pattern 中 @racket[id] 的匹配数量相同。由于这是一个
-常见任务，Racket 提供了辅助函数 @racket[generate-temporaries]，
-它接受一个 identifier 序列并返回一个生成的 identifier 序列：
+现在我们需要一个表达式来替代 @racket[....]，该表达式
+生成与原始模式中 @racket[id] 匹配数量相同的标识符。
+由于这是一项常见任务，Racket 提供了一个辅助函数
+@racket[generate-temporaries]，它接受一个标识符序列
+并返回一个生成的标识符序列：
 
 @racketblock[
 (define-syntax (define-for-cbr stx)
@@ -283,22 +283,23 @@ instead of @racket[define-syntax-rule] or @racket[syntax-rules]:
            body))]))
 ]
 
-这种生成 identifier 的方式通常比用纯 pattern-based 宏欺骗 macro expander
-生成名称更容易理解。
+这种生成标识符的方式通常比通过纯基于模式的宏来欺骗
+宏展开器生成名称更容易理解。
 
-通常，@racket[with-syntax] binding 的左侧就是一个 pattern，
-就像在 @racket[syntax-case] 中一样。事实上，@racket[with-syntax]
-形式只是一个部分由内而外的 @racket[syntax-case] 形式。
+一般来说，@racket[with-syntax] 绑定的左侧是一个模式，
+就像在 @racket[syntax-case] 中一样。事实上，
+@racket[with-syntax] 形式只是 @racket[syntax-case] 形式
+部分翻转的结果。
 
 @; ----------------------------------------
 
 @section[#:tag "stx-phases"]{Compile and Run-Time Phases}
 
-随着宏集合变得越来越复杂，你可能希望编写自己的辅助函数，
-例如 @racket[generate-temporaries]。例如，为了提供良好的
-syntax error 消息，@racket[swap]、@racket[rotate] 和 @racket[define-cbr]
-都应该检查源形式中的某些子形式是否为 identifier。我们可以在各处
-使用 @racket[check-ids] 函数来执行此检查：
+随着宏集合变得更加复杂，您可能想要编写自己的辅助函数，
+如 @racket[generate-temporaries]。例如，为了提供良好的
+语法错误消息，@racket[swap]、@racket[rotate] 和
+@racket[define-cbr] 都应该检查源形式中的某些子形式是否为标识符。
+我们可以使用 @racket[check-ids] 函数在各处执行此检查：
 
 @racketblock/eval[
 #:eval check-eval
@@ -318,8 +319,8 @@ syntax error 消息，@racket[swap]、@racket[rotate] 和 @racket[define-cbr]
        #'(shift-to (c ... a) (a c ...)))]))
 ]
 
-@racket[check-ids] 函数可以使用 @racket[syntax->list] 函数将包装 list
-的 syntax object 转换为 syntax object 的 list：
+@racket[check-ids] 函数可以使用 @racket[syntax->list]
+函数将包装列表的语法对象转换为语法对象的列表：
 
 @racketblock[
 (define (check-ids stx forms)
@@ -333,21 +334,21 @@ syntax error 消息，@racket[swap]、@racket[rotate] 和 @racket[define-cbr]
    (syntax->list forms)))
 ]
 
-然而，如果你以这种方式定义 @racket[swap] 和 @racket[check-ids]，
-它是不会工作的：
+然而，如果您以这种方式定义 @racket[swap] 和 @racket[check-ids]，
+它不会工作：
 
 @interaction[
 #:eval check-eval
 (let ([a 1] [b 2]) (swap a b))
 ]
 
-问题在于 @racket[check-ids] 被定义为 run-time 表达式，但 @racket[swap]
-试图在 compile time 使用它。在交互模式下，compile time 和 run time
-是交错的，但它们在 module 体内不会交错，也不会在提前编译的
-module 之间交错。为了帮助所有这些模式一致地对待代码，Racket
-为不同的 phase 分离了 binding space。
+问题在于 @racket[check-ids] 被定义为运行时表达式，
+但 @racket[swap] 试图在编译时使用它。在交互模式下，
+编译时和运行时是交错的，但它们在模块体内不是交错的，
+在预先编译的模块之间也不是交错的。为了帮助
+所有这些模式一致地处理代码，Racket 将不同阶段的绑定空间分开。
 
-要定义一个可以在 compile time 引用的 @racket[check-ids] 函数，
+要定义一个可以在编译时引用的 @racket[check-ids] 函数，
 请使用 @racket[begin-for-syntax]：
 
 @racketblock/eval[
@@ -364,7 +365,7 @@ module 之间交错。为了帮助所有这些模式一致地对待代码，Rack
      (syntax->list forms))))
 ]
 
-有了这个 for-syntax 定义，@racket[swap] 就可以工作了：
+有了这个 for-syntax 定义，@racket[swap] 就能工作了：
 
 @interaction[
 #:eval check-eval
@@ -372,9 +373,9 @@ module 之间交错。为了帮助所有这些模式一致地对待代码，Rack
 (swap a 1)
 ]
 
-当将程序组织为 module 时，你可能希望将辅助函数放在一个 module 中，
-供其他 module 中的宏使用。在这种情况下，你可以使用 @racket[define]
-编写辅助函数：
+在将程序组织为模块时，您可能希望将辅助函数放在一个模块中，
+供驻留在其他模块中的宏使用。在这种情况下，您可以使用
+@racket[define] 编写辅助函数：
 
 @racketmod[#:file
 "utils.rkt"
@@ -393,7 +394,7 @@ racket
    (syntax->list forms)))
 ]
 
-然后，在实现宏的 module 中，使用
+然后，在实现宏的模块中，使用
 @racket[(require (for-syntax "utils.rkt"))] 而不是
 @racket[(require "utils.rkt")] 来导入辅助函数：
 
@@ -411,29 +412,30 @@ racket
                       (set! y tmp)))]))
 ]
 
-由于 module 是单独编译的，且不能有循环依赖，@filepath["utils.rkt"]
-module 的 run-time 主体可以在编译实现 @racket[swap] 的 module 之前
-被编译。因此，@filepath["utils.rkt"] 中的 run-time 定义可以用于
-实现 @racket[swap]，只要它们通过 @racket[(require (for-syntax ....))]
-被显式地转移到 compile time。
+由于模块是分别编译的且不能有循环依赖，
+@filepath["utils.rkt"] 模块的运行时体可以在编译实现
+@racket[swap] 的模块之前被编译。因此，
+@filepath["utils.rkt"] 中的运行时定义可以用于实现 @racket[swap]，
+只要它们通过 @racket[(require (for-syntax ....))] 显式地转移到编译时。
 
-@racketmodname[racket] module 提供了 @racket[syntax-case]、
+@racketmodname[racket] 模块提供 @racket[syntax-case]、
 @racket[generate-temporaries]、@racket[lambda]、@racket[if] 等，
-供 run-time 和 compile-time phase 使用。这就是为什么我们可以在
-@exec{racket} @tech{REPL} 中直接使用 @racket[syntax-case]，也可以在
-@racket[define-syntax] 形式的右边使用它。
+可在运行时和编译时阶段使用。这就是为什么我们可以在
+@exec{racket} @tech{REPL} 中直接使用 @racket[syntax-case]，
+也可以在 @racket[define-syntax] 形式的右侧使用它。
 
-相比之下，@racketmodname[racket/base] module 只在 run-time phase
-导出这些 binding。如果你将上面定义 @racket[swap] 的 module 改为使用
-@racketmodname[racket/base] 语言而不是 @racketmodname[racket]，
-那么它就不再工作了。添加 @racket[(require (for-syntax racket/base))]
-会将 @racket[syntax-case] 等导入到 compile-time phase，使 module
-再次工作。
+相比之下，@racketmodname[racket/base] 模块仅在运行时阶段
+导出这些绑定。如果您将上面定义 @racket[swap] 的模块改为
+使用 @racketmodname[racket/base] 语言而不是
+@racketmodname[racket]，那么它就不再工作了。添加
+@racket[(require (for-syntax racket/base))] 将
+@racket[syntax-case] 等导入到编译时阶段，从而使模块再次工作。
 
-假设 @racket[define-syntax] 用于在 @racket[define-syntax] 形式的右边
-定义一个局部宏。在这种情况下，内部 @racket[define-syntax] 的右边
-处于 @deftech{meta-compile phase level}，也称为 @deftech{phase level 2}。
-要将 @racket[syntax-case] 导入该 phase level，你必须使用
+假设 @racket[define-syntax] 用于在 @racket[define-syntax] 形式的
+右侧定义一个局部宏。在这种情况下，内部 @racket[define-syntax]
+的右侧处于 @deftech{meta-compile phase level}（元编译阶段级别），
+也称为 @deftech{phase level 2}。要将 @racket[syntax-case] 导入到
+该阶段级别，您需要使用
 @racket[(require (for-syntax (for-syntax racket/base)))]
 或等价的 @racket[(require (for-meta 2 racket/base))]。例如，
 
@@ -469,25 +471,25 @@ module 的 run-time 主体可以在编译实现 @racket[swap] 的 module 之前
 (shell-game 3 4 5)
 }|
 
-负的 phase level 也存在。如果一个宏使用了一个被 @racket[for-syntax]
-导入的辅助函数，并且该辅助函数返回由 @racket[syntax] 生成的
-syntax-object 常量，那么 syntax 中的 identifier 就需要在
-@deftech{phase level -1}（也称为 @deftech{template phase level}）
-有 binding，相对于定义该宏的 module 的 run-time phase level 而言。
+也存在负阶段级别。如果宏使用通过 @racket[for-syntax] 导入的辅助函数，
+并且该辅助函数返回由 @racket[syntax] 生成的语法对象常量，
+那么语法中的标识符将需要在 @deftech{phase level
+-1}（也称为 @deftech{template phase level}）有绑定，
+才能在相对于定义宏的模块的运行时阶段级别具有任何绑定。
 
-例如，下面例子中的 @racket[swap-stx] 辅助函数不是一个
-syntax transformer——它只是一个普通函数——但它产生的 syntax object
-会被拼接到 @racket[shell-game] 的结果中。因此，它所在的
-@racket[helper] 子 module 需要在 @racket[shell-game] 的 phase 1
-通过 @racket[(require (for-syntax 'helper))] 导入。
+例如，下面示例中的 @racket[swap-stx] 辅助函数
+不是语法变换器——它只是一个普通函数——但它
+产生的语法对象被拼接到 @racket[shell-game] 的结果中。
+因此，它包含的 @racket[helper] 子模块需要通过
+@racket[(require (for-syntax 'helper))] 在 @racket[shell-game] 的 phase 1 导入。
 
-但从 @racket[swap-stx] 的角度来看，它的结果最终会在 phase level -1
-被求值，即当 @racket[shell-game] 返回的 syntax 被求值时。
-换句话说，负的 phase level 是从相反方向看的正的 phase level：
+但从 @racket[swap-stx] 的角度来看，它的结果最终将在 phase level -1 被求值，
+即当 @racket[shell-game] 返回的语法被求值时。换句话说，
+负阶段级别是从相反方向看的正阶段级别：
 @racket[shell-game] 的 phase 1 是 @racket[swap-stx] 的 phase 0，
 所以 @racket[shell-game] 的 phase 0 是 @racket[swap-stx] 的 phase -1。
-这就是为什么这个例子不会工作——@racket['helper] 子 module
-在 phase -1 没有任何 binding。
+这就是为什么这个示例不会工作——@racket['helper] 子模块
+在 phase -1 没有绑定。
 
 @codeblock|{
 #lang racket/base
@@ -517,7 +519,7 @@ syntax transformer——它只是一个普通函数——但它产生的 syntax 
 (shell-game x y z)
 }|
 
-为了修复这个例子，我们向 @racket['helper] 子 module 添加
+为了修复这个示例，我们向 @racket['helper] 子模块添加
 @racket[(require (for-template racket/base))]。
 
 @codeblock|{

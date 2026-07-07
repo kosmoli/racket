@@ -1,20 +1,20 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "let"]{本地绑定}
+@title[#:tag "let"]{Local Binding}
 
-尽管内部 @racket[define] 可用于本地绑定，Racket 提供了三种为程序员提供更多绑定控制的 form：@racket[let]、@racket[let*] 和 @racket[letrec]。
+虽然内部 @racket[define] 可以用于局部绑定，但 Racket 提供了三种形式让程序员对绑定有更多控制：@racket[let]、@racket[let*] 和 @racket[letrec]。
 
 @;------------------------------------------------------------------------
-@section{并行绑定：@racket[let]}
+@section{Parallel Binding: @racket[let]}
 
 @refalso["let"]{@racket[let]}
 
-@racket[let] form 绑定一组 identifier，每个都绑定到某个表达式的结果，供 @racket[let] body 使用：
+@racket[let] 形式绑定一组标识符，每个标识符绑定到某个表达式的结果，以供 @racket[let] 主体使用：
 
 @specform[(let ([id expr] ...) body ...+)]{}
 
-@racket[_id] 是"并行"绑定的。也就是说，任何 @racket[_id] 都不在任何 @racket[_id] 的右侧 @racket[_expr] 中绑定，但所有 @racket[_id] 都在 @racket[_body] 中可用。@racket[_id] 必须彼此不同。
+@racket[_id] 被"并行"绑定。也就是说，任何 @racket[_id] 的右侧 @racket[_expr] 中都没有绑定该 @racket[_id]，但所有 @racket[_id] 在 @racket[_body] 中都可用。@racket[_id] 必须互不相同。
 
 @examples[
 (let ([me "Bob"])
@@ -28,13 +28,13 @@
   me)
 ]
 
-@racket[_id] 的 @racket[_expr] 看不到其自身绑定这一事实对于必须引用旧值的 wrapper 通常很有用：
+@racket[_id] 的 @racket[_expr] 无法看到自身绑定这一事实通常对必须引用旧值的包装器很有用：
 
 @interaction[
 (let ([+ (lambda (x y)
            (if (string? x)
                (string-append x y)
-               (+ x y)))]) (code:comment @#,t{使用原始 @racket[+]})
+               (+ x y)))]) (code:comment @#,t{use original @racket[+]})
   (list (+ 1 2)
         (+ "see" "saw")))
 ]
@@ -49,10 +49,10 @@
     (list me you)))
 ]
 
-将 @racket[let] 绑定描述为"并行"并不意味着并发求值。@racket[_expr] 按顺序求值，尽管在所有 @racket[_expr] 求值之前绑定被延迟。
+将 @racket[let] 绑定描述为"并行"并不意味着并发求值。@racket[_expr] 按顺序求值，即使绑定被延迟到所有 @racket[_expr] 求值完毕。
 
 @;------------------------------------------------------------------------
-@section{顺序绑定：@racket[let*]}
+@section{Sequential Binding: @racket[let*]}
 
 @refalso["let"]{@racket[let*]}
 
@@ -60,7 +60,7 @@
 
 @specform[(let* ([id expr] ...) body ...+)]{}
 
-区别在于每个 @racket[_id] 可在后续 @racket[_expr] 中使用，也可在 @racket[_body] 中使用。此外，@racket[_id] 不必不同，最近的绑定是可见的。
+区别在于每个 @racket[_id] 都可以在后续的 @racket[_expr] 以及 @racket[_body] 中使用。此外，@racket[_id] 不需要互不相同，最近的绑定是可见的。
 
 @examples[
 (let* ([x (list "Burroughs")]
@@ -73,7 +73,7 @@
   name)
 ]
 
-换句话说，@racket[let*] form 等同于嵌套的 @racket[let] form，每个都只有一个绑定：
+换句话说，@racket[let*] 形式等价于嵌套的 @racket[let] 形式，每个只有一个绑定：
 
 @interaction[
 (let ([name (list "Burroughs")])
@@ -83,7 +83,7 @@
 ]
 
 @;------------------------------------------------------------------------
-@section{递归绑定：@racket[letrec]}
+@section{Recursive Binding: @racket[letrec]}
 
 @refalso["let"]{@racket[letrec]}
 
@@ -91,9 +91,9 @@
 
 @specform[(letrec ([id expr] ...) body ...+)]{}
 
-虽然 @racket[let] 仅在 @racket[_body] 中使其绑定可用，@racket[let*] 使其绑定可用于任何后续绑定 @racket[_expr]，但 @racket[letrec] 使所有其他 @racket[_expr] 都可使用其绑定——即使是较早的那些。换句话说，@racket[letrec] 绑定是递归的。
+@racket[let] 仅在 @racket[_body] 中使绑定可用，@racket[let*] 使绑定可用于任何后续的绑定 @racket[_expr]，而 @racket[letrec] 使绑定可用于所有其他 @racket[_expr]——甚至包括更早的。换句话说，@racket[letrec] 绑定是递归的。
 
-@racket[letrec] form 中的 @racket[_expr] 最常是递归和互递归函数的 @racket[lambda] form：
+@racket[letrec] 形式中的 @racket[_expr] 最常是用于递归和相互递归函数的 @racket[lambda] 形式：
 
 @interaction[
 (letrec ([swing
@@ -123,12 +123,12 @@
                                             (build-path dir elem)
                                             (- depth 1)))
                 (directory-list dir))]))])
-  (tarzan-near-top-of-tree? "tmp"
+  (tarzan-near-top-of-tree? "tmp" 
                             (find-system-path 'temp-dir)
                             4))
 ]
 
-尽管 @racket[letrec] form 中的 @racket[_expr] 通常是 @racket[lambda] expression，但它们可以是任何 expression。表达式按顺序求值，获得每个值后，立即将其与对应的 @racket[_id] 关联。如果在值就绪之前引用了 @racket[_id]，将引发错误，就像内部定义一样。
+虽然 @racket[letrec] 形式的 @racket[_expr] 通常是 @racket[lambda] 表达式，但它们可以是任何表达式。表达式按顺序求值，获得每个值后立即与对应的 @racket[_id] 关联。如果在值准备好之前引用了 @racket[_id]，则会引发错误，就像内部定义一样。
 
 @interaction[
 (letrec ([quicksand quicksand])
@@ -139,11 +139,11 @@
 @include-section["named-let.scrbl"]
 
 @; ----------------------------------------
-@section{多值：@racket[let-values]、@racket[let*-values]、@racket[letrec-values]}
+@section{Multiple Values: @racket[let-values], @racket[let*-values], @racket[letrec-values]}
 
-@refalso["let"]{多值绑定 form}
+@refalso["let"]{multiple-value binding forms}
 
-以与 @racket[define-values] 在定义中绑定多个结果相同的方式（参见 @secref["multiple-values"]），@racket[let-values]、@racket[let*-values] 和 @racket[letrec-values] 在本地绑定多个结果。
+正如 @racket[define-values] 在定义中绑定多个结果（参见 @secref["multiple-values"]），@racket[let-values]、@racket[let*-values] 和 @racket[letrec-values] 在局部绑定多个结果。
 
 @specform[(let-values ([(id ...) expr] ...)
             body ...+)]
@@ -152,7 +152,7 @@
 @specform[(letrec-values ([(id ...) expr] ...)
             body ...+)]
 
-每个 @racket[_expr] 必须产生与对应 @racket[_id] 相同数量的值。绑定规则与非 @racketkeywordfont{-values} 形式相同：@racket[let-values] 的 @racket[_id] 仅在 @racket[_body] 中绑定，@racket[let*-values] 的 @racket[_id] 在后续子句的 @racket[_expr] 中绑定，@racket[letrec-values] 的 @racket[_id] 对所有 @racket[_expr] 都绑定。
+每个 @racket[_expr] 必须产生与对应 @racket[_id] 数量相同的值。绑定规则与不带 @racketkeywordfont{-values} 的形式相同：@racket[let-values] 的 @racket[_id] 仅在 @racket[_body] 中绑定，@racket[let*-values] 的 @racket[_id] 在后续子句的 @racket[_expr] 中绑定，@racket[letrec-value] 的 @racket[_id] 在所有 @racket[_expr] 中绑定。
 
 @examples[
 (let-values ([(q r) (quotient/remainder 14 3)])

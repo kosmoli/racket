@@ -9,7 +9,7 @@
                      (only-in scribble/manual
                               defmodule)))
 
-@title[#:tag "module-basics"]{模块基础}
+@title[#:tag "module-basics"]{Module Basics}
 
 每个 Racket 模块通常位于其自己的文件中。例如，假设文件 @filepath{cake.rkt} 包含以下模块：
 
@@ -47,7 +47,7 @@ racket
 导入中的相对引用 @racket["cake.rkt"] 在 @filepath{cake.rkt} 和 @filepath{random-cake.rkt} 模块位于同一目录时有效。所有平台上都使用 Unix 风格的相对路径进行相对模块引用，类似于 HTML 页面中的相对 URL。
 
 @; ----------------------------------------
-@section[#:tag "module-org"]{组织模块}
+@section[#:tag "module-org"]{Organizing Modules}
 
 @filepath{cake.rkt} 和 @filepath{random-cake.rkt} 示例演示了将程序组织成模块的最常见方式：将所有模块文件放在单个目录中（可能带有子目录），然后让模块通过相对路径相互引用。模块目录可以充当项目，因为它可以在文件系统上移动或复制到其他机器，并且相对路径保持模块之间的连接。
 
@@ -93,7 +93,7 @@ Racket 工具都自动使用相对路径。例如，
 将 @filepath{sort.rkt} 及其所有依赖项编译为字节码文件。运行 @exec{racket sort.rkt} 将在字节码文件存在时自动使用它们。
 
 @; ----------------------------------------
-@section{库集合}
+@section{Library Collections}
 
 @deftech{集合}是已安装库模块的分层分组。@tech{集合}中的模块通过无引号、无后缀的路径引用。例如，以下模块引用 @filepath{racket} @tech{集合}中的 @filepath{date.rkt} 库：
 
@@ -136,7 +136,7 @@ racket
 然而，Racket 安装的 @filepath{collects} 目录只是 @racket[require] 查找集合目录的一个位置。其他位置包括 @racket[(find-user-collects-dir)] 报告的特定于用户的目录，以及通过 @envvar{PLTCOLLECTS} 搜索路径配置的目录。最后，也是最常见的是，集合通过已安装的 @tech{包}找到。
 
 @; ----------------------------------------
-@section[#:tag "packages-and-collections"]{包与集合}
+@section[#:tag "packages-and-collections"]{Packages and Collections}
 
 @deftech{包}是通过 Racket 包管理器安装的一组库（或作为预安装在 Racket 发行版中）。例如，@racketmodname[racket/gui] 库由 @filepath{gui} 包提供，而 @racketmodname[parser-tools/lex #:indirect] 由 @filepath{parser-tools} 库提供。@margin-note{更准确地说，@racketmodname[racket/gui #:indirect] 由 @filepath{gui-lib} 提供，@racketmodname[parser-tools/lex #:indirect] 由 @filepath{parser-tools-lib} 提供，@filepath{gui} 和 @filepath{parser-tools} 包用文档扩展了 @filepath{gui-lib} 和 @filepath{parser-tools-lib}。}
 
@@ -145,7 +145,7 @@ Racket 程序不直接引用 @tech{包}。相反，程序通过 @tech{集合}引
 有关包的更多信息，参见 @other-manual['(lib "pkg/scribblings/pkg.scrbl")]。
 
 @; ----------------------------------------
-@section[#:tag "link-collection"]{添加集合}
+@section[#:tag "link-collection"]{Adding Collections}
 
 回顾 @secref["module-org"] 中的糖果分类示例，假设 @filepath{db/} 和 @filepath{machine/} 中的模块需要一组通用辅助函数。辅助函数可以放在 @filepath{utils/} 目录中，@filepath{db/} 或 @filepath{machine/} 中的模块可以使用以 @filepath{../utils/} 开头的相对路径访问实用程序模块。只要一组模块在单个项目中协同工作，最好坚持使用相对路径。程序员可以遵循相对路径引用，而无需了解你的 Racket 配置。
 
@@ -178,7 +178,7 @@ Racket 程序不直接引用 @tech{包}。相反，程序通过 @tech{集合}引
 将库放入 @tech{集合} 后，你仍然可以使用 @exec{raco make} 编译库源代码，但使用 @exec{raco setup} 更好更方便。@exec{raco setup} 命令接受集合名称（而不是文件名）并编译集合中的所有库。此外，@exec{raco setup} 可以为集合构建文档并将其添加到文档索引中，如集合中的 @filepath{info.rkt} 模块所指定的。更多信息参见 @other-manual['(lib "scribblings/raco/raco.scrbl")] 中的 @secref["setup"]。
 
 @; ----------------------------------------
-@section[#:tag "intracollection"]{集合内的模块引用}
+@section[#:tag "intracollection"]{Module References Within a Collection}
 
 当集合内的模块引用同一集合中的另一个模块时，相对路径或集合路径都可以工作。例如，引用同一集合中 @filepath{db/lookup.rkt} 和 @filepath{machine/control.rkt} 模块的 @filepath{sort.rkt} 模块可以像 @secref["module-org"] 中那样使用相对路径书写：
 

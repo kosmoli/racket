@@ -391,7 +391,7 @@ member-key 值主要与 @racket[define-member-name] 形式一起使用。
 
 @; ----------------------------------------------------------------------
 
-@section{Mixins}
+@section{Interfaces}
 
 由于 @racket[class] 是一个表达式形式，而不是像 Smalltalk
 和 Java 中的顶层声明，@racket[class] 形式可以嵌套在任何
@@ -584,7 +584,7 @@ mixin 不仅可以覆盖方法和引入公共方法，还可以增强方法、
 
 @; ----------------------------------------------------------------------
 
-@section{Traits}
+@section{Interfaces}
 
 @defterm{trait} 类似于 mixin，它封装了一组要添加到类中的方法。
 trait 与 mixin 的不同之处在于，它的各个方法可以使用 trait

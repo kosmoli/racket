@@ -3,7 +3,7 @@
           (for-label racket/linklet
                      racket/unsafe/ops))
 
-@title[#:tag "linklets"]{Linklet 与核心编译器}
+@title[#:tag "linklets"]{Linklets and the Core Compiler}
 
 @defmodule[racket/linklet]
 

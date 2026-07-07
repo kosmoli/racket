@@ -3,7 +3,7 @@
 
 @(define rx-eval (make-base-eval))
 
-@title[#:tag "regexp" #:style 'toc]{正则表达式}
+@title[#:tag "regexp" #:style 'toc]{Regular Expressions}
 
 @margin-note{本章是 @cite["Sitaram05"] 的修改版本。}
 
@@ -18,7 +18,7 @@
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-intro"]{编写正则表达式模式}
+@section[#:tag "regexp-intro"]{Writing Regexp Patterns}
 
 字符串或 @tech{byte string} 可以直接用作 @tech{regexp}
 模式，也可以在前面加上 @litchar{#rx} 来形成字面的
@@ -83,7 +83,7 @@ regexp 元字符的字符会用反斜杠转义，使其
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-match"]{匹配正则表达式模式}
+@section[#:tag "regexp-match"]{Matching Regexp Patterns}
 
 @racket[regexp-match-positions] 函数接受一个 @tech{regexp}
 模式和一个 @tech{文本字符串}，如果 regexp
@@ -224,7 +224,7 @@ regexp @racket[#rx"\u20+"] 而非 @racket[#rx"\u20*"]。
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-assert"]{基本断言}
+@section[#:tag "regexp-assert"]{Basic Assertions}
 
 @deftech{断言} @litchar{^} 和 @litchar{$} 分别标识
 文本字符串的开始和结束。它们确保
@@ -268,7 +268,7 @@ regexp 匹配 @emph{最后一个} @litchar{laugh}。
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-chars"]{字符和字符类}
+@section[#:tag "regexp-chars"]{Characters and Character Classes}
 
 通常，regexp 中的字符匹配文本字符串中相同的
 字符。有时使用 regexp
@@ -327,7 +327,7 @@ regexp 匹配 @emph{最后一个} @litchar{laugh}。
 例如，@racket[#rx"[]ab]"] 匹配
 @litchar{]}、@litchar{a} 和 @litchar{b}。
 
-@subsection{一些常用的字符类}
+@subsection{Some Frequently Used Character Classes}
 
 在 @litchar{#px} 语法中，一些标准字符类可以方便地
 表示为元序列而非显式的方括号表达式：
@@ -357,7 +357,7 @@ regexp 匹配 @emph{最后一个} @litchar{laugh}。
 @racket[#px"[a-z\\d]"] 匹配一个小写字母或一个
 数字。
 
-@subsection{POSIX 字符类}
+@subsection{POSIX character classes}
 
 @deftech{POSIX 字符类} 是一种特殊的 @tech{元序列}，
 形式为 @litchar{[:}...@litchar{:]}，只能在
@@ -419,7 +419,7 @@ POSIX 类表示法 @emph{仅} 在方括号
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-quant"]{量词}
+@section[#:tag "regexp-quant"]{Quantifiers}
 
 @deftech{量词} @litchar{*}、@litchar{+} 和 @litchar{?}
 分别匹配：前一个子模式的零个或多个、一个或多个、零个或一个
@@ -497,7 +497,7 @@ POSIX 类表示法 @emph{仅} 在方括号
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-clusters"]{分组}
+@section[#:tag "regexp-clusters"]{Clusters}
 
 @deftech{分组}---用括号包围
 @litchar{(}...@litchar{)}---将封闭的
@@ -545,7 +545,7 @@ regexp 中指定的子模式数量，即使某个子模式
 ]
 
 
-@subsection{反向引用}
+@subsection{Backreferences}
 
 @tech{子匹配} 可以在过程
 @racket[regexp-replace] 和 @racket[regexp-replace*] 的插入字符串参数中使用。
@@ -618,7 +618,7 @@ regexp 中指定的子模式数量，即使某个子模式
   "\\1")
 ]
 
-@subsection{非捕获分组}
+@subsection{Non-capturing Clusters}
 
 经常需要指定一个分组（通常用于
 量化），但不触发 @tech{子匹配}
@@ -639,7 +639,7 @@ Unix 路径名的 ``目录'' 部分，而一个捕获分组
               "/usr/local/bin/racket")
 ]
 
-@subsection[#:tag "regexp-cloister"]{修饰符}
+@subsection[#:tag "regexp-cloister"]{Cloisters}
 
 非捕获分组中 @litchar{?} 和 @litchar{:} 之间的位置
 称为 @deftech{修饰区}。可以在其中放置修饰符，
@@ -690,7 +690,7 @@ Unix 路径名的 ``目录'' 部分，而一个捕获分组
 
 @; ----------------------------------------
 
-@section[#:tag "regexp-alternation"]{选择}
+@section[#:tag "regexp-alternation"]{Alternation}
 
 可以通过用 @litchar{|} 分隔来指定一列
 @emph{候选} @tech{子模式}。@litchar{|} 在最近的外层
@@ -750,7 +750,7 @@ Unix 路径名的 ``目录'' 部分，而一个捕获分组
 
 @; ----------------------------------------
 
-@section{回溯}
+@section{Backtracking}
 
 我们已经看到贪婪量词会匹配最大次数，
 但最高优先原则是确保整体匹配成功。
@@ -807,7 +807,7 @@ regexp 匹配器通过一个称为 @deftech{回溯} 的过程
 
 @; ----------------------------------------
 
-@section{前瞻与后顾}
+@section{Looking Ahead and Behind}
 
 你可以在模式中使用断言来向前或向后查看，
 以确保子模式出现或不出现。这些 ``环视''
@@ -818,7 +818,7 @@ regexp 匹配器通过一个称为 @deftech{回溯} 的过程
 不会在最终结果中产生匹配；它仅仅允许或禁止
 其余部分的匹配。
 
-@subsection{前瞻}
+@subsection{Lookahead}
 
 使用 @litchar{?=} 的正向前瞻向前查看，确保
 其子模式 @emph{可能} 匹配。  
@@ -846,7 +846,7 @@ regexp @racket[#rx"grey(?!hound)"] 匹配 @litchar{grey}，但
 仅当它后面 @emph{不是} @litchar{hound} 时。因此
 @litchar{socks} 前面的 @litchar{grey} 被匹配。
 
-@subsection{后顾}
+@subsection{Lookbehind}
 
 使用 @litchar{?<=} 的正向后顾检查其子模式
 @emph{可能} 在文本字符串当前位置的紧左侧匹配。
@@ -876,7 +876,7 @@ regexp @racket[#rx"(?<!grey)hound"] 匹配 @litchar{hound}，但
 
 @; ----------------------------------------
 
-@section{一个扩展示例}
+@section{An Extended Example}
 
 @(define ex-eval (make-base-eval))
 

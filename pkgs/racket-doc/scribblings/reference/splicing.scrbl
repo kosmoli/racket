@@ -6,7 +6,7 @@
                                                racket/stxparam
                                                (for-syntax racket/base))]
 
-@title[#:tag "splicing"]{使用 Splicing Body 的局部绑定}
+@title[#:tag "splicing"]{Local Binding with Splicing Body}
 
 @note-lib-only[racket/splicing]
 

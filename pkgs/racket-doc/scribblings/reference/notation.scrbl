@@ -1,12 +1,12 @@
 #lang scribble/doc
 @(require scribble/struct scribble/racket "mz.rkt")
 
-@title[#:tag "notation"]{文档符号约定}
+@title[#:tag "notation"]{Notation for Documentation}
 
 本章介绍 Racket 文档中使用的核心术语和符号约定。
 
 @; ----------------------------------------
-@section{模块文档符号约定}
+@section[#:tag "notation-s1"]{Notation for Module Documentation}
 
 由于 Racket 程序按 @tech{module} 组织，文档在描述特定 module 提供的绑定的章节或子章节开头使用标注来反映这种组织方式。
 
@@ -29,7 +29,7 @@ module 标注还在右侧显示该 module 所属的 @tech[#:doc '(lib "pkg/scrib
 有时，module 说明出现在文档开头或包含多个子章节的 section 开头。文档的 section 或 section 的子章节旨在"继承"外层文档或 section 的 module 声明。因此，@other-doc['(lib "scribblings/reference/reference.scrbl")] 中记录的绑定可从 @racketmodname[racket] 和 @racket[racket/base] 获取，除非在 section 或子 section 中另有说明。
 
 @; ----------------------------------------
-@section{语法形式文档符号约定}
+@section[#:tag "notation-s2"]{Notation for Syntactic Form Documentation}
 
 @guideintro["syntax-notation"]{此语法形式符号约定}
 
@@ -97,7 +97,7 @@ module 标注还在右侧显示该 module 所属的 @tech[#:doc '(lib "pkg/scrib
 
 
 @; ----------------------------------------
-@section{函数文档符号约定}
+@section[#:tag "notation-s3"]{Notation for Function Documentation}
 
 过程和其他值使用基于 @tech{contract} 的符号约定来描述。本质上，这些 contract 使用 Racket 谓词和表达式描述所记录库的接口。
 
@@ -151,7 +151,7 @@ Racket 函数可记录为具有一个或多个可选参数。@racket[read] 函�
 包围 @racket[_extract-key] 和 @racket[_cache-keys?] 参数的方括号表示它们像之前一样是可选的。头部的 contract 部分显示为这些 keyword 参数提供的默认值。
 
 @; ----------------------------------------
-@section{结构类型文档符号约定}
+@section[#:tag "notation-s4"]{Notation for Structure Type Documentation}
 
 @tech{structure type} 也使用 contract 符号约定记录：
 
@@ -181,7 +181,7 @@ Racket 函数可记录为具有一个或多个可选参数。@racket[read] 函�
 此处，@racket[#:mutable] keyword 表明 @racket[_data-source] 结构类型实例的字段可以使用其对应的 setter 函数修改。
 
 @; ----------------------------------------
-@section{参数文档符号约定}
+@section[#:tag "notation-s5"]{Notation for Parameter Documentation}
 
 @tech{parameter} 的文档记录方式与函数相同：
 
@@ -196,7 +196,7 @@ Racket 函数可记录为具有一个或多个可选参数。@racket[read] 函�
 由于 @tech{parameters} 可以被引用或设置，上述头部有两个条目。以无参数调用 @racket[current-command-line-arguments] 访问参数值，该值必须是其元素同时通过 @racket[string?] 和 @racket[immutable?] 的 vector。以单个参数调用 @racket[current-command-line-arguments] 设置参数值，其中值必须是其元素通过 @racket[string?] 的 vector（@tech{parameter} 上的 guard 会在必要时将字符串强制转换为不可变形式）。
 
 @; ----------------------------------------
-@section{其他文档符号约定}
+@section[#:tag "notation-s6"]{Notation for Other Documentation}
 
 某些库提供常量值的绑定。这些值使用单独的头部记录：
 

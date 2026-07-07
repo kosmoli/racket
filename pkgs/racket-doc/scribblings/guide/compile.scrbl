@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual "guide-utils.rkt")
 
-@title[#:tag "compile"]{编译与配置：@exec{raco}}
+@title[#:tag "compile"]{Compilation and Configuration: @exec{raco}}
 
 @exec{raco}（「@bold{Ra}cket @bold{co}mmand」的缩写）程序为编译 Racket 程序和维护 Racket 安装提供了命令行接口，支持多种附加工具。
 

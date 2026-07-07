@@ -12,14 +12,14 @@
 
 @specform[(#,qq datum)]
 
-然而，对于出现在 @racket[_datum] 内部的每个 @racket[(#,uq _expr)]，@racket[_expr] 会被求值，产生的值将取代 @racket[unquote] 子形式。
+然而，对于出现在 @racket[_datum] 中的每个 @racket[(#,uq _expr)]，@racket[_expr] 会被求值以产生一个值来替代 @racket[unquote] 子形式。
 
 @examples[
 (eval:alts (#,qq (1 2 (#,uq (+ 1 2)) (#,uq (- 5 1))))
            `(1 2 ,(+ 1 2), (- 5 1)))
 ]
 
-此形式可用于编写按特定模式构建 list 的函数。
+此形式可用于编写按照特定模式构建列表的函数。
 
 @examples[
 (eval:alts (define (deep n)
@@ -35,7 +35,7 @@
 (deep 8)
 ]
 
-甚至可以方便地以编程方式构造表达式。（当然，十之八九你应该使用 @seclink["macros"]{macro} 来完成此操作——第十次则是当你在研读像 @hyperlink["https://www.cs.brown.edu/~sk/Publications/Books/ProgLangs/"]{PLAI} 这样的教科书时。）
+甚至可以廉价地以编程方式构造表达式。（当然，十次中有九次，你应该使用@seclink["macros"]{宏}来做这件事，第十次是在你学习像 @hyperlink["https://www.cs.brown.edu/~sk/Publications/Books/ProgLangs/"]{PLAI} 这样的教科书时。）
 
 @examples[(define (build-exp n)
             (add-lets n (make-sum n)))
@@ -72,14 +72,14 @@
           (define (n->var n) (string->symbol (format "x~a" n)))
           (build-exp 3)]
 
-@racket[unquote-splicing] 形式类似于 @racket[unquote]，但其 @racket[_expr] 必须产生一个 list，并且 @racket[unquote-splicing] 形式必须出现在产生 list 或 vector 的上下文中。顾名思义，结果 list 会被拼接到使用它的上下文中。
+@racket[unquote-splicing] 形式类似于 @racket[unquote]，但它的 @racket[_expr] 必须产生一个列表，并且 @racket[unquote-splicing] 形式必须出现在产生列表或 vector 的上下文中。顾名思义，结果列表被拼接到使用它的上下文中。
 
 @examples[
 (eval:alts (#,qq (1 2 (#,(racket unquote-splicing) (list (+ 1 2) (- 5 1))) 5))
            `(1 2 ,@(list (+ 1 2) (- 5 1)) 5))
 ]
 
-使用 splicing，我们可以修改上面示例表达式的构造，使其只有一个 @racket[let] 表达式和一个 @racket[+] 表达式。
+使用拼接，我们可以修改上面示例表达式的构造，使其只有一个 @racket[let] 表达式和一个 @racket[+] 表达式。
 
 @examples[(eval:alts
            (define (build-exp n)
@@ -118,7 +118,7 @@
           (define (n->var n) (string->symbol (format "x~a" n)))
           (build-exp 3)]
 
-如果 @racket[quasiquote] 形式出现在一个外层 @racket[quasiquote] 形式内部，则内层 @racket[quasiquote] 实际上会抵消一层 @racket[unquote] 和 @racket[unquote-splicing] 形式，因此需要第二个 @racket[unquote] 或 @racket[unquote-splicing]。
+如果 @racket[quasiquote] 形式出现在外层 @racket[quasiquote] 形式内部，则内层 @racket[quasiquote] 会有效地取消一层 @racket[unquote] 和 @racket[unquote-splicing] 形式，因此需要第二个 @racket[unquote] 或 @racket[unquote-splicing]。
 
 @examples[
 (eval:alts (#,qq (1 2 (#,qq (#,uq (+ 1 2)))))
@@ -133,7 +133,7 @@
                    (,(string->uninterned-symbol "unquote") 4)))))
 ]
 
-上面的求值结果实际上不会如所示那样打印。相反，会使用 @racket[quasiquote] 和 @racket[unquote] 的简写形式：@litchar{`}（即反引号）和 @litchar{,}（即逗号）。同样的简写也可以在表达式中使用：
+上面的求值实际上不会如所示那样打印。相反，会使用 @racket[quasiquote] 和 @racket[unquote] 的简写形式：@litchar{`}（即反引号）和 @litchar{,}（即逗号）。相同的简写可以在表达式中使用：
 
 @examples[
 `(1 2 `(,(+ 1 2) ,,(- 5 1)))

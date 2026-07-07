@@ -30,7 +30,7 @@ to switch to the usual langle/rangle that is used in syntax definitions.
 ;}
 
 @;------------------------------------------------------------------------
-@title[#:tag "eval-model"]{求值模型}
+@title[#:tag "eval-model"]{Evaluation Model}
 
 Racket evaluation can be viewed as the simplification of expressions
 to obtain values. For example, just as an elementary-school student
@@ -50,7 +50,7 @@ simpler expressions. In particular, a @deftech{value}, such as the number @racke
 is an expression that evaluation simplifies no further.
 
 @;------------------------------------------------------------------------
-@section[#:tag "cont-model"]{子表达式求值与 Continuation}
+@section[#:tag "cont-model"]{Sub-expression Evaluation and Continuations}
 
 某些简化需要多于一步。 For example:
 
@@ -122,7 +122,7 @@ specification of @tech{tail positions} accompanies the description of
 each syntactic form, such as @racket[if].
 
 @;------------------------------------------------------------------------
-@section[#:tag "values-model"]{多返回值}
+@section[#:tag "values-model"]{Multiple Return Values}
 
 A Racket expression can evaluate to @deftech{multiple values}, to
 provide symmetry with the fact that a procedure can accept multiple arguments.
@@ -211,7 +211,7 @@ existing @tech{top-level variable}:
 ]
 
 @;------------------------------------------------------------------------
-@section{对象与 Imperative Update}
+@section[#:tag "eval-model-s1"]{Objects and Imperative Update}
 
 In addition to @racket[set!] for imperative update of @tech{top-level
 variables}, various procedures enable the modification of elements
@@ -316,7 +316,7 @@ program. A program representation created with
 existing @tech{objects}.
 
 @;------------------------------------------------------------------------
-@section[#:tag "gc-model"]{垃圾回收}
+@section[#:tag "gc-model"]{Garbage Collection}
 
 @margin-note/ref{See @secref["memory"] for functions related to
 garbage collection.}
@@ -356,7 +356,7 @@ always reachable. Values produced by @racket[quote] remain reachable
 when the @racket[quote] expression itself is reachable.
 
 @;------------------------------------------------------------------------
-@section{Procedure Application 与 Local Variable}
+@section[#:tag "eval-model-s2"]{Procedure Applications and Local Variables}
 
 Given
 
@@ -468,7 +468,7 @@ Evaluation of a local-variable form, such as @racket[(let ([x (+ 1
 that replaces every instance of @racket[x] in @racket[_expr].
 
 @;------------------------------------------------------------------------
-@section[#:tag "vars-and-locs"]{Variable 与 Location}
+@section[#:tag "vars-and-locs"]{Variables and Locations}
 
 A @deftech{variable} is a placeholder for a @tech{value}, and
 expressions in an initial program refer to @tech{variables}. A
@@ -504,7 +504,7 @@ forms. As a result, future references to the @tech{variable} always
 access the same @tech{location}.
 
 @;------------------------------------------------------------------------
-@section[#:tag "module-eval-model"]{Module 与 Module-Level Variable}
+@section[#:tag "module-eval-model"]{Modules and Module-Level Variables}
 
 @margin-note/ref{See @secref["module"] for the syntax of modules.}
 

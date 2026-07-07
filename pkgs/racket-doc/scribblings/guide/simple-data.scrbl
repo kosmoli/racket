@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title{简单值}
+@title{Simple Values}
 
 Racket 值包括数字、布尔值、string 和 byte string。在 DrRacket 和文档示例中
 （当你阅读彩色文档时），值表达式显示为绿色。

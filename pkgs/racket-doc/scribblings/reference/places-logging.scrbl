@@ -1,7 +1,7 @@
 #lang scribble/doc 
 @(require "mz.rkt" (for-label racket/place))
 
-@title[#:tag "place-logging"]{Places 日志}
+@title[#:tag "place-logging"]{Places Logging}
 
 Place 事件被报告给名为 @racket['place] 的日志记录器。
 除了字符串消息外，每个为 place 记录的事件都有一个数据值，它是 @racket[place-event] @tech{prefab} 结构的实例：

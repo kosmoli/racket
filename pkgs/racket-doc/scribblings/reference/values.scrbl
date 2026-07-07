@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "values"]{多值}
+@title[#:tag "values"]{Multiple Values}
 
 关于多结果值的一般信息，见 @secref["values-model"]。除了 @racket[call-with-values]（在本节中描述）之外，@racket[let-values]、@racket[let*-values]、@racket[letrec-values] 和 @racket[define-values] 等形式（以及其他）创建接收多个值的 continuations。
 

@@ -1,11 +1,14 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "pairs"]{Pair 和 List}
+@title[#:tag "pairs"]{Pairs and Lists}
 
-@deftech{pair} 将两个任意值组合在一起。@racket[cons] procedure 构造 pair，@racket[car] 和 @racket[cdr] procedure 提取 pair 的第一个和第二个元素。@racket[pair?] predicate 识别 pair。
+@deftech{pair}（对）将两个任意值连接在一起。@racket[cons]
+过程构造对，@racket[car] 和 @racket[cdr]
+过程分别提取对的第一个和第二个元素。@racket[pair?] predicate 识别对。
 
-一些 pair 打印时将两个 pair 元素用括号包裹，开头加 @litchar{'}，元素间加 @litchar{.}。
+某些对的打印方式是在两个对元素的打印形式周围加上括号，
+在开头放一个 @litchar{'}，在元素之间放一个 @litchar{.}。
 
 @examples[
 (cons 1 2)
@@ -15,9 +18,12 @@
 (pair? (cons 1 2))
 ]
 
-@deftech{list} 是创建 linked list 的 pair 组合。更准确地说，list 要么是空 list @racket[null]，要么是一个 pair，其第一个元素是 list 元素，第二个元素是 list。@racket[list?] predicate 识别 list。@racket[null?] predicate 识别空 list。
+@deftech{list}（列表）是一种由对组合而成的链表。
+更准确地说，列表要么是空列表 @racket[null]，
+要么是一个对，其第一个元素是列表元素，第二个元素是列表。
+@racket[list?] predicate 识别列表。@racket[null?] predicate 识别空列表。
 
-list 通常打印为 @litchar{'} 后跟一对括号，括号内是 list 元素。
+列表通常打印为 @litchar{'} 后面跟着一对括号，括号中包裹着列表元素。
 
 @examples[
 null
@@ -27,7 +33,10 @@ null
 (list? (cons 1 2))
 ]
 
-当 list 或 pair 的元素之一不能作为 @racket[quote] 值打印时，list 或 pair 会使用 @racketresult[list] 或 @racketresult[cons] 打印。例如，用 @racket[srcloc] 构造的值不能使用 @racket[quote] 打印，它使用 @racketresult[srcloc]：
+当列表或对的某个元素无法用 @racket[quote] 书写形式表示时，
+它会使用 @racketresult[list] 或 @racketresult[cons] 打印。
+例如，用 @racket[srcloc] 构造的值无法用 @racket[quote] 书写，
+它使用 @racketresult[srcloc] 打印：
 
 @interaction[
 (srcloc "file.rkt" 1 0 1 (+ 4 4))
@@ -38,9 +47,14 @@ null
 
 @margin-note{另见 @racket[list*]。}
 
-如最后一个示例所示，@racketresult[list*] 用于缩写了不能用 @racketresult[list] 缩写的一系列 @racketresult[cons]。
+如最后一个示例所示，@racketresult[list*] 用于
+缩写一系列无法用 @racketresult[list] 缩写的 @racketresult[cons]。
 
-@racket[write] 和 @racket[display] function 打印 pair 或 list 时不带前导 @litchar{'}、@racketresult[cons]、@racketresult[list] 或 @racketresult[list*]。对于 pair 或 list，@racket[write] 和 @racket[display] 之间没有区别，除了它们应用于 list 元素时：
+@racket[write] 和 @racket[display] 函数打印对或列表时
+不带前导 @litchar{'}、@racketresult[cons]、
+@racketresult[list] 或 @racketresult[list*]。对于对或列表，
+@racket[write] 和 @racket[display] 没有区别，
+区别仅在于它们对列表元素的处理方式：
 
 @examples[
 (write (cons 1 2))
@@ -51,7 +65,7 @@ null
 (display (list 1 2 "3"))
 ]
 
-在 list 上最重要的预定义 procedure 是那些遍历 list 元素的 procedure：
+列表上最重要的预定义过程是那些遍历列表元素的过程：
 
 @interaction[
 (map (lambda (i) (/ 1 i))
@@ -73,9 +87,15 @@ null
        '((when "3:30") (where "Florida") (who "Mickey")))
 ]
 
-@refdetails["pairs"]{pair 和 list}
+@refdetails["pairs"]{对与列表}
 
-Pair 是 immutable 的（与 Lisp 传统相反），@racket[pair?] 和 @racket[list?] 只识别 immutable pair 和 list。@racket[mcons] procedure 创建 @deftech{mutable pair}，它配合 @racket[set-mcar!]、@racket[set-mcdr!]、@racket[mcar] 和 @racket[mcdr] 使用。Mutable pair 打印使用 @racketresult[mcons]，而 @racket[write] 和 @racket[display] 使用 @litchar["{"] 和 @litchar["}"] 打印 mutable pair：
+对是不可变的（与 Lisp 传统不同），@racket[pair?]
+和 @racket[list?] 仅识别不可变的对和列表。
+@racket[mcons] 过程创建 @deftech{mutable pair}（可变对），它与
+@racket[set-mcar!] 和 @racket[set-mcdr!] 以及
+@racket[mcar] 和 @racket[mcdr] 一起使用。可变对使用
+@racketresult[mcons] 打印，而 @racket[write] 和 @racket[display] 使用
+@litchar["{"] 和 @litchar["}"] 打印可变对：
 
 @examples[
 (define p (mcons 1 2))
@@ -87,4 +107,4 @@ p
 (write p)
 ]
 
-@refdetails["mpairs"]{mutable pair}
+@refdetails["mpairs"]{可变对}

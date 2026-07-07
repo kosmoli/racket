@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label racket/keyword))
 
-@title[#:tag "keywords"]{关键字}
+@title[#:tag "keywords"]{Keywords}
 
 @guideintro["keywords"]{关键字}
 
@@ -49,7 +49,7 @@
 
 
 @; ----------------------------------------
-@section{其他关键字函数}
+@section[#:tag "keywords-s1"]{Additional Keyword Functions}
 
 @note-lib-only[racket/keyword]
 @(define keyword-eval (make-base-eval))

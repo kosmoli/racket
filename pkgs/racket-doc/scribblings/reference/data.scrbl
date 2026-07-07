@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:style 'toc #:tag "data"]{数据类型}
+@title[#:style 'toc #:tag "data"]{Datatypes}
 
 @guideintro["datatypes"]{数据类型}
 
@@ -49,7 +49,7 @@
 @include-section["stencil-vectors.scrbl"]
 
 @; ------------------------------------------------------------
-@section[#:tag "boxes"]{Box}
+@section[#:tag "boxes"]{Boxes}
 
 @guideintro["boxes"]{box}
 

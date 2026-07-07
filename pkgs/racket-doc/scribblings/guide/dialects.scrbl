@@ -2,7 +2,7 @@
 @(require scribble/manual (except-in scribblings/private/docname Quick)
           "guide-utils.rkt")
 
-@title[#:tag "dialects" #:style 'toc]{Racket 和 Scheme 的方言}
+@title[#:tag "dialects" #:style 'toc]{Dialects of Racket and Scheme}
 
 我们用 "Racket" 这个名称来指代 Lisp 语言的一种特定方言，
 它是基于 Lisp 家族的 Scheme 分支。尽管 Racket 与 Scheme 非常相似，
@@ -19,7 +19,7 @@
 
 #; --------------------------------------------------
 
-@section[#:tag "more-hash-lang"]{更多的 Racket}
+@section[#:tag "more-hash-lang"]{More Rackets}
 
 "Racket" 与其说是一门语言，不如说是一种编程语言的思想。Macros 可以
 扩展一门基础语言（如 @secref["macros"] 中所述），而 alternate parsers
@@ -66,7 +66,7 @@
 
 #; --------------------------------------------------
 
-@section[#:tag "standards"]{标准}
+@section[#:tag "standards"]{Standards}
 
 标准方言包括那些由 @|r5rs| 和 @|r6rs| 定义的 Scheme 方言。
 
@@ -109,7 +109,7 @@ Revised@superscript{6} Report on the Algorithmic Language Scheme}，它对
 
 @; --------------------------------------------------
 
-@section[#:tag "teaching-langs"]{教学}
+@section[#:tag "teaching-langs"]{Teaching}
 
 @|HtDP| 教材依赖于 pedagogic variants of Racket，它们平滑地为 
 programmers 引入了编程概念。参见 @HtDP-doc[]。

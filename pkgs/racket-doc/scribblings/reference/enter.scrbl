@@ -3,7 +3,7 @@
           (for-label racket/enter
                      racket/rerequire))
 
-@title[#:tag "enter"]{进入模块}
+@title[#:tag "enter"]{Entering Modules}
 
 @note-init-lib[racket/enter]
 

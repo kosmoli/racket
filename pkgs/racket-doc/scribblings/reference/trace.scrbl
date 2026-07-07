@@ -9,7 +9,7 @@
         (ev1 '(require racket/trace))
         (ev1 '(require (for-syntax racket/base))))
 
-@title{追踪}
+@title{Tracing}
 
 @note-lib-only[racket/trace]
 

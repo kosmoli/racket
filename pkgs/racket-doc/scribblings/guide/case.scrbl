@@ -2,20 +2,17 @@
 @(require scribble/manual scribble/eval "guide-utils.rkt"
           (for-label racket/match))
 
-@title[#:tag "case"]{简单分发：@racket[case]}
+@title[#:tag "case"]{Simple Dispatch: @racket[case]}
 
-@racket[case] 形式通过将表达式的结果与子句的值匹配来分发到子句：
+@racket[case] 形式通过将表达式的结果与子句中的值进行匹配来分派到相应的子句：
 
 @specform[(case expr
             [(datum ...+) body ...+]
             ...)]
 
-每个 @racket[_datum] 将使用 @racket[equal?] 与 @racket[_expr] 的结果进行比较，
-然后评估对应的 @racket[body]。@racket[case] 形式可以在 @math{O(log N)} 时间内
-分配到正确的子句，其中 N 为 @racket[_datum] 的数量。
+每个 @racket[_datum] 将使用 @racket[equal?] 与 @racket[_expr] 的结果进行比较，然后对相应的 @racket[body] 求值。@racket[case] 形式可以在 @math{O(log N)} 时间内对 @math{N} 个 @racket[datum] 分派到正确的子句。
 
-每个子句可以提供多个 @racket[_datum]，如果任何 @racket[_datum] 匹配，
-则评估对应的 @racket[_body]。
+每个子句可以提供多个 @racket[_datum]，如果其中任何一个 @racket[_datum] 匹配，则对相应的 @racket[_body] 求值。
 
 @examples[
 (let ([v (random 6)])
@@ -37,5 +34,4 @@
   [else 'many])
 ]
 
-对于更通用的模式匹配（但没有分发时间保证），使用 @racket[match]，在
-@secref["match"] 中介绍。
+如需更通用的模式匹配（但不保证分派时间），请使用 @racket[match]，相关内容在 @secref["match"] 中介绍。

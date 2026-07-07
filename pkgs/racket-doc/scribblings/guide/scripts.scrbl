@@ -1,12 +1,12 @@
 #lang scribble/doc
 @(require scribble/manual scheme/cmdline "guide-utils.rkt")
 
-@title[#:tag "scripts"]{脚本}
+@title[#:tag "scripts"]{Scripts}
 
 Racket 文件可以在 Unix 和 Mac OS 上转换为可执行脚本。在 Windows 上，
 像 Cygwin 这样的兼容层支持同类型的脚本，或者脚本可以实现为批处理文件。
 
-@section{Unix 脚本}
+@section{Unix Scripts}
 
 在 Unix 环境（包括 Linux 和 Mac OS）中，可以使用 shell 的 @as-index{@tt{#!}} 约定
 将 Racket 文件转换为可执行脚本。文件的前两个字符必须是 @litchar{#!}；
@@ -102,7 +102,7 @@ Racket 文件可以在 Unix 和 Mac OS 上转换为可执行脚本。在 Windows
 而 @exec{exec racket} 中止 shell 脚本以启动 @exec{racket}。这样，
 脚本文件对 @exec{/bin/sh} 和 @exec{racket} 都产生有效输入。
 
-@section{Windows 批处理文件}
+@section{Windows Batch Files}
 
 类似的技巧可用于在 Windows @as-index{@tt{.bat}} 批处理文件中编写 Racket 代码：
 

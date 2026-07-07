@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" scribble/bnf)
 
-@title[#:tag "pretty-print"]{美化打印}
+@title[#:tag "pretty-print"]{Pretty Printing}
 
 @note-lib[racket/pretty]
 

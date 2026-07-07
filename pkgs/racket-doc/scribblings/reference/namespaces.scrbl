@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "Namespaces"]{命名空间}
+@title[#:tag "Namespaces"]{Namespaces}
 
 参见 @secref["namespace-model"] 了解 @tech{namespace} 模型的基本信息。
 

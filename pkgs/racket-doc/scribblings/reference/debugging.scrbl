@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "debugging"]{调试}
+@title[#:tag "debugging"]{Debugging}
 
 Racket 的内置调试支持局限于随异常打印的上下文（即 ``栈追踪''）信息。
 在某些情况下，对于 Racket 的 @tech{BC} 实现，禁用 @tech{JIT} 编译器可能影响上下文信息。

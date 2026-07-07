@@ -15,7 +15,7 @@
                      (racketvarfont "prefix:")
                      (racketvarfont "id"))))
 
-@title[#:tag "shared"]{构建图：@racket[shared]}
+@title[#:tag "shared"]{Constructing Graphs: @racket[shared]}
 
 @note-lib[racket/shared]
 

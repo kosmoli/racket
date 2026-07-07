@@ -7,7 +7,7 @@
                               [#%plain-app #%app]
                               [#%plain-module-begin #%module-begin])))
 
-@title{Kernel 形式和函数}
+@title{Kernel Forms and Functions}
 
 @defmodulelang[racket/kernel]{@racketmodname[racket/kernel] 库是一个
 @tech{跨阶段持久}模块，提供最小的 syntactic form 和函数集。}

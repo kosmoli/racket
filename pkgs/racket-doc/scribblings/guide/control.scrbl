@@ -3,7 +3,7 @@
 
 @(define cc-eval (make-base-eval))
 
-@title[#:tag "control" #:style 'toc]{异常与控制}
+@title[#:tag "control" #:style 'toc]{Exceptions and Control}
 
 Racket 提供了一套特别丰富的控制操作——不仅包括引发和捕获异常的操作，还包括抓取和恢复计算片段的操作。
 

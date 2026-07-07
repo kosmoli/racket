@@ -23,7 +23,7 @@ Future 的“安全”并行执行意味着系统提供的所有操作都能强�
 
 如果允许创建 thread 运行的所有 @tech{custodian} 都被关闭，future 就永远不会并行运行。但这样的 future 仍然可以通过 @racket[touch] 调用执行。
 
-@section{创建与 Touching Futures}
+@section[#:tag "futures-s1"]{Creating and Touching Futures}
 
 @deftogether[(
   @defproc[(future [thunk (-> any)]) future?]

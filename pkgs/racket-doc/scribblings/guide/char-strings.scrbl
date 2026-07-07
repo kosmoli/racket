@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "strings"]{字符串（Unicode）}
+@title[#:tag "strings"]{Strings (Unicode)}
 
 @deftech{字符串}是 @seclink["characters"]{字符}的固定长度数组。它使用双引号打印，其中字符串内部的双引号和反斜杠字符使用反斜杠转义。支持其他常见的字符串转义，包括用于换行的 @litchar{\n}、用于回车的 @litchar{\r}、使用 @litchar{\} 后跟最多三位八进制数字的八进制转义，以及使用 @litchar{\u}（最多四位数字）的十六进制转义。字符串中的不可打印字符在字符串被打印时通常以 @litchar{\u} 显示。
 

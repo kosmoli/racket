@@ -3,7 +3,7 @@
           (for-label racket/cmdline)
           (only-in scribble/core element))
 
-@title{命令行解析}
+@title{Command-Line Parsing}
 
 @note-lib[racket/cmdline]
 

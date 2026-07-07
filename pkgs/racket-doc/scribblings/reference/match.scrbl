@@ -6,7 +6,7 @@
 @examples[#:hidden #:eval match-eval (require racket/match racket/list)]
 @examples[#:hidden #:eval match-eval (require (for-syntax racket/base))]
 
-@title[#:tag "match"]{模式匹配}
+@title[#:tag "match"]{Pattern Matching}
 
 @guideintro["match"]{模式匹配}
 
@@ -464,7 +464,7 @@
 
 @; ----------------------------------------------------------------------
 
-@section{其他匹配形式}
+@section[#:tag "match-s1"]{Additional Matching Forms}
 
 @defform/subs[(match* (val-expr ...+) clause* ...)
               ([clause* [(pat ...+) option=> option ... body ...+]])]{
@@ -634,7 +634,7 @@ b
 
 @; ----------------------------------------
 
-@section{扩展 @racket[match]}
+@section[#:tag "match-s2"]{Extending @racket[match]}
 
 @defform*[((define-match-expander id proc-expr)
            (define-match-expander id proc-expr proc-expr))]{
@@ -760,7 +760,7 @@ b
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "match-nonlinear-ellipsis"]{非线性模式与省略号}
+@section[#:tag "match-nonlinear-ellipsis"]{Non-linear Patterns and Ellipses}
 
 当同一标识符在模式中多次使用时（@deftech{非线性模式}），每次出现必须在同一 @racketidfont{...} 内，否则会引发语法错误。为了使整个模式匹配，每次出现必须根据 @racket[(match-equality-test)] 匹配相同的值。
 
@@ -793,7 +793,7 @@ b
 
 @; ----------------------------------------------------------------------
 
-@section{库扩展}
+@section[#:tag "match-s3"]{Library Extensions}
 
 @defform*[[(== val comparator) (== val)]]{
 一个 @tech{匹配展开器}，检查匹配值在使用 @racket[comparator] 比较时是否与 @racket[val] 相同。如果未提供 @racket[comparator]，则默认为 @racket[equal?]。  

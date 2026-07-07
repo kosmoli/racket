@@ -16,7 +16,7 @@
      [(_ f ...)
       (begin (defkeywords f) ...)]))
 
-@title[#:tag "mzlib:unit" #:style 'toc]{单元}
+@title[#:tag "mzlib:unit" #:style 'toc]{Units}
 
 @guideintro["units"]{units}
 
@@ -36,7 +36,7 @@ with @hash-lang[]; see @secref["single-unit"].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "creatingunits"]{创建单元}
+@section[#:tag "creatingunits"]{Creating Units}
 
 @defform/subs[
 #:literals (import export prefix rename only except tag init-depend tag)
@@ -252,7 +252,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "invokingunits"]{调用单元}
+@section[#:tag "invokingunits"]{Invoking Units}
 
 @defform*[#:literals (import)
           [(invoke-unit unit-expr)
@@ -312,7 +312,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "compoundunits"]{链接单元与创建复合单元}
+@section[#:tag "compoundunits"]{Linking Units and Creating Compound Units}
 
 @defform/subs[
 #:literals (: import export link tag)
@@ -381,7 +381,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "linkinference"]{推断链接}
+@section[#:tag "linkinference"]{Inferred Linking}
 
 @defform[
 #:literals (import export)
@@ -566,7 +566,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section{从上下文生成单元}
+@section[#:tag "units-s1"]{Generating A Unit from Context}
 
 @defform[
 (unit-from-context tagged-sig-spec)
@@ -600,7 +600,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section{结构匹配}
+@section[#:tag "units-s2"]{Structural Matching}
 
 @defform[
 #:literals (import export)
@@ -666,7 +666,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "define-sig-form"]{扩展签名的语法}
+@section[#:tag "define-sig-form"]{Extending the Syntax of Signatures}
 
 @defform*[
 [(define-signature-form sig-form-id expr)
@@ -708,7 +708,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section{单元工具}
+@section[#:tag "units-s3"]{Unit Utilities}
 
 @defproc[(unit? [v any/c]) boolean?]{
 
@@ -722,7 +722,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "unitcontracts"]{单元合约}
+@section[#:tag "unitcontracts"]{Unit Contracts}
 
 @defform/subs[#:literals (import export values init-depend)
               (unit/c
@@ -789,7 +789,7 @@ Allowed only within @racket[define-signature].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "single-unit"]{单单元模块}
+@section[#:tag "single-unit"]{Single-Unit Modules}
 
 作为与 @hash-lang[] 一起使用的语言名，
 @racketmodname[racket/unit] 提供 @racketmodname[racket/unit] 和
@@ -823,7 +823,7 @@ grammar:
 
 @; ------------------------------------------------------------------------
 
-@section{单签名模块}
+@section[#:tag "units-s4"]{Single-Signature Modules}
 
 @defmodulelang[racket/signature]{@racketmodname[racket/signature] 语言以与
 @racketmodname[racket/unit] 将 @seclink["single-unit"]{模块主体视为单元主体}
@@ -857,7 +857,7 @@ The body must match the following @racket[_module-body] grammar:
 
 @; ----------------------------------------------------------------------
 
-@section{变换器辅助工具}
+@section[#:tag "units-s5"]{Transformer Helpers}
 
 @defmodule[racket/unit-exptime #:use-sources (racket/unit-exptime)]
 

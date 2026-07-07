@@ -7,7 +7,7 @@
 @(define the-eval (make-base-eval))
 @(the-eval '(require racket/treelist racket/mutable-treelist racket/stream))
 
-@title[#:tag "treelist"]{树列表}
+@title[#:tag "treelist"]{Treelists}
 
 @deftech{树列表}（treelist）以支持许多 @math{O(log N)} 时间操作的方式表示元素序列：按索引访问列表元素、添加到列表前端、添加到列表末尾、按索引删除元素、按索引替换元素、追加列表、从列表开头或末尾移除元素以及提取子列表。更一般地说，除非另有说明，长度为 @math{N} 的树列表上的操作需要 @math{O(log N)} 时间。@math{O(log N)} 中 @math{log} 的底数足够大，以至于在许多用途上它实际上是常数时间。树列表目前以 RRB 树的形式实现 @cite["Stucki15"]。
 
@@ -17,7 +17,7 @@
 
 @history[#:changed "8.15.0.3" @elem{使树列表可序列化。}]
 
-@section{不可变树列表}
+@section[#:tag "treelists-s1"]{Immutable Treelists}
 
 @note-lib-only[racket/treelist]
 
@@ -466,7 +466,7 @@
 
 
 
-@section{可变树列表}
+@section[#:tag "treelists-s2"]{Mutable Treelists}
 
 @note-lib-only[racket/mutable-treelist]
 

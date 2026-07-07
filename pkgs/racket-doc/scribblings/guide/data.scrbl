@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require scribble/manual scribble/eval "guide-utils.rkt")
 
-@title[#:tag "datatypes" #:style 'toc]{内建数据类型}
+@title[#:tag "datatypes" #:style 'toc]{Built-In Datatypes}
 
 前一章介绍了 Racket 的一些内建数据类型：数字、布尔值、字符串、列表和 procedure。本节对简单形式的内建数据类型提供更完整的覆盖。
 

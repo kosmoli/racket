@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "load-lang"]{@racketmodname[racket/load] 语言}
+@title[#:tag "load-lang"]{The @racketmodname[racket/load] Language}
 
 @defmodulelang[racket/load]
 

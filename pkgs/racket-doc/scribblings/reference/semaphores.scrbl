@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "semaphore"]{信号量}
+@title[#:tag "semaphore"]{Semaphores}
 
 @deftech{semaphore} 有一个内部计数器；当这个计数器为零时，信号量可以通过 @racket[semaphore-wait] 阻塞线程的执行，直到另一个线程使用 @racket[semaphore-post] 增加计数器。信号量内部计数器的最大值为平台特定的，但始终至少为 @racket[10000]。
 

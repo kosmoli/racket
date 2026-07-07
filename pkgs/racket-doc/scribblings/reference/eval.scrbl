@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label setup/dirs))
 
-@title[#:tag "eval"]{求值与编译}
+@title[#:tag "eval"]{Evaluation and Compilation}
 
 @guideintro["reflection"]{dynamic evaluation}
 

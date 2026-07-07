@@ -4,7 +4,7 @@
                      racket/unsafe/ops
                      racket/performance-hint))
 
-@title[#:tag "parallelism"]{并行}
+@title[#:tag "parallelism"]{Parallelism}
 
 Racket 提供三种 @deftech{parallelism} 形式：@tech{parallel threads}、
 @tech{futures} 和 @tech{places}。在提供多处理器的平台上，

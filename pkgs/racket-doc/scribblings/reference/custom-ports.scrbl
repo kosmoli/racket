@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "customport"]{自定义端口}
+@title[#:tag "customport"]{Custom Ports}
 
 @racket[make-input-port] 和 @racket[make-output-port] 过程创建具有任意控制过程的 @deftech{custom ports}（很像实现设备驱动程序）。自定义端口主要用于精细控制提交字节作为读取或写入的操作。
 

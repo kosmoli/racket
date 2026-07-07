@@ -11,7 +11,7 @@
        (the-eval '(require (for-syntax racket/base)))
        the-eval)))
 
-@title[#:tag "stx-patterns"]{基于模式的语法匹配}
+@title[#:tag "stx-patterns"]{Pattern-Based Syntax Matching}
 
 @defform/subs[#:literals (_)
               (syntax-case stx-expr (literal-id ...)

@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "networking" #:style 'toc]{网络}
+@title[#:tag "networking" #:style 'toc]{Networking}
 
 @local-table-of-contents[]
 

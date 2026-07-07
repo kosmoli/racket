@@ -2,7 +2,7 @@
 @(require "mz.rkt"
           (for-label racket/undefined))
 
-@title[#:tag "undefined"]{未定义}
+@title[#:tag "undefined"]{Undefined}
 
 @note-lib-only[racket/undefined]
 

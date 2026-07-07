@@ -1,7 +1,7 @@
 #lang scribble/manual
 @(require (for-label racket/base racket/generic racket/contract/base))
 
-@title[#:tag "struct-generics"]{泛型接口}
+@title[#:tag "struct-generics"]{Generic Interfaces}
 
 @defmodule[racket/generic]
 

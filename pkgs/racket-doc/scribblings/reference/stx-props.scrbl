@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "stxprops"]{语法对象属性}
+@title[#:tag "stxprops"]{Syntax Object Properties}
 
 每个 syntax object 都关联一个 @deftech{syntax property} 列表，
 可通过 @racket[syntax-property] 查询或扩展。属性可以设为

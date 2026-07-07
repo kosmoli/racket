@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt")
 
-@title[#:tag "all-sync" #:style 'toc]{同步}
+@title[#:tag "all-sync" #:style 'toc]{Synchronization}
 
 Racket 的同步工具箱跨越四层：
 

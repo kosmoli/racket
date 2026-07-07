@@ -7,7 +7,7 @@
 
 @;(require "shared.rkt" (only-in racket/list argmax))
 
-@title[#:tag "contracts-first"]{契约：一个详尽的示例}
+@title[#:tag "contracts-first"]{Contracts: A Thorough Example}
 
 本节针对同一个示例——Racket 的 @racket[argmax] 函数——开发几种不同风格的契约。根据其 Racket 文档，该函数接受一个过程 @racket[proc] 和一个非空值列表 @racket[lst]。它
 @nested[#:style 'inset]{

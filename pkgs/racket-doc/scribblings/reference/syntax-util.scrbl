@@ -1,7 +1,7 @@
 #lang scribble/doc
 @(require "mz.rkt" (for-label racket/syntax))
 
-@title[#:tag "syntax-util"]{语法工具}
+@title[#:tag "syntax-util"]{Syntax Utilities}
 
 @(define the-eval (make-base-eval))
 @(the-eval '(require racket/syntax))
@@ -12,7 +12,7 @@
 
 @;{----}
 
-@section{创建格式化标识符}
+@section[#:tag "syntax-util-s1"]{Creating formatted identifiers}
 
 @defproc[(format-id [lctx (or/c syntax? #f)]
                     [fmt string?]
@@ -77,7 +77,7 @@
 
 @;{----}
 
-@section{模式变量}
+@section[#:tag "syntax-util-s2"]{Pattern variables}
 
 @defform[(define/with-syntax pattern stx-expr)
          #:contracts ([stx-expr syntax?])]{
@@ -96,7 +96,7 @@
 
 @;{----}
 
-@section{错误报告}
+@section[#:tag "syntax-util-s3"]{Error reporting}
 
 @defparam[current-syntax-context stx (or/c syntax? #f)]{
 
@@ -129,7 +129,7 @@
 
 @;{----}
 
-@section{记录消失的 use}
+@section[#:tag "syntax-util-s4"]{Recording disappeared uses}
 
 @defparam[current-recorded-disappeared-uses ids
           (or/c (listof identifier?) #f)]{
@@ -166,7 +166,7 @@
 
 @;{----}
 
-@section{其他工具}
+@section[#:tag "syntax-util-s5"]{Miscellaneous utilities}
 
 @defproc[(generate-temporary [name-base any/c 'g]) identifier?]{
 

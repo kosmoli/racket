@@ -5,7 +5,7 @@
                      racket/performance-hint
                      ffi/unsafe))
 
-@title[#:tag "performance"]{性能}
+@title[#:tag "performance"]{Performance}
 
 @section-index["benchmarking"]
 @section-index["speed"]
@@ -16,7 +16,7 @@ Alan Perlis 曾有名言："Lisp 程序员知道一切的价值，却不知道�
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "DrRacket-perf"]{DrRacket 中的性能}
+@section[#:tag "DrRacket-perf"]{Performance in DrRacket}
 
 默认情况下，DrRacket 会对程序进行调试插桩，而调试插桩（由
 @other-doc['(lib "errortrace/scribblings/errortrace.scrbl")]
@@ -34,7 +34,7 @@ Racket 虚拟机，因此垃圾回收时间（参见
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "virtual-machines"]{Racket 虚拟机实现}
+@section[#:tag "virtual-machines"]{Racket Virtual Machine Implementations}
 
 Racket 提供两种实现，@deftech{CS} 和
 @deftech{BC}：
@@ -91,7 +91,7 @@ Racket 提供两种实现，@deftech{CS} 和
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "JIT"]{字节码、机器码和即时 (JIT) 编译器}
+@section[#:tag "JIT"]{Bytecode, Machine Code, and Just-in-Time (JIT) Compilers}
 
 Racket 要计算的每个定义或表达式都会被编译
 为内部字节码格式，尽管"字节码"实际上可能是
@@ -137,7 +137,7 @@ x86、x86_64（即 AMD64）、32 位 ARM 和 32 位 PowerPC 处理器。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "modules-performance"]{模块与性能}
+@section[#:tag "modules-performance"]{Modules and Performance}
 
 模块系统通过帮助确保标识符具有常规绑定来辅助优化。
 也就是说，@racketmodname[racket/base] 提供的 @racket[+] 可以被编译器识别并
@@ -169,7 +169,7 @@ x86、x86_64（即 AMD64）、32 位 ARM 和 32 位 PowerPC 处理器。
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "func-call-performance"]{函数调用优化}
+@section[#:tag "func-call-performance"]{Function-Call Optimizations}
 
 当编译器检测到对立即可见函数的函数调用时，
 它会生成比泛型调用更高效的代码，特别是对于尾调用。例如，给定程序
@@ -222,7 +222,7 @@ x86、x86_64（即 AMD64）、32 位 ARM 和 32 位 PowerPC 处理器。
 
 @; ----------------------------------------------------------------------
 
-@section{变更与性能}
+@section{Mutation and Performance}
 
 使用 @racket[set!] 修改变量可能导致性能不佳。例如，以下微基准测试
 
@@ -276,7 +276,7 @@ racket/base
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "letrec-performance"]{@racket[letrec] 性能}
+@section[#:tag "letrec-performance"]{@racket[letrec] Performance}
 
 当 @racket[letrec] 仅用于绑定过程和字面量时，
 编译器可以以最优方式处理这些绑定，
@@ -318,7 +318,7 @@ For example,
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "fixnums+flonums"]{Fixnum 和 Flonum 优化}
+@section[#:tag "fixnums+flonums"]{Fixnum and Flonum Optimizations}
 
 @deftech{fixnum} 是一个小的精确整数。这里的"小"
 取决于平台。对于 32 位机器，可以用
@@ -391,7 +391,7 @@ fixnum 和 flonum 特定操作。未经检查的 flonum 特定
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "unchecked-unsafe"]{未经检查的不安全操作}
+@section[#:tag "unchecked-unsafe"]{Unchecked, Unsafe Operations}
 
 @racketmodname[racket/unsafe/ops] 库提供的函数类似于
 @racketmodname[racket/base] 中的其他函数，但它们假定
@@ -408,7 +408,7 @@ fixnum 和 flonum 特定操作。未经检查的 flonum 特定
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "ffi-pointer-access"]{外部指针}
+@section[#:tag "ffi-pointer-access"]{Foreign Pointers}
 
 @racketmodname[ffi/unsafe] 库提供了不安全地
 读写任意指针值的函数。编译器识别
@@ -431,7 +431,7 @@ C 类型如 @racket[_long] 或 @racket[_intptr] 在各平台上不是恒定的�
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "regexp-perf"]{正则表达式性能}
+@section[#:tag "regexp-perf"]{Regular Expression Performance}
 
 当字符串或字节字符串被提供给诸如
 @racket[regexp-match] 之类的函数时，该字符串会在内部编译为
@@ -460,7 +460,7 @@ C 类型如 @racket[_long] 或 @racket[_intptr] 在各平台上不是恒定的�
 
 @; ----------------------------------------------------------------------
 
-@section[#:tag "gc-perf"]{内存管理}
+@section[#:tag "gc-perf"]{Memory Management}
 
 @tech{CS}（默认）和 @tech{BC} Racket
 @seclink["virtual-machines"]{虚拟机}各自使用现代的
@@ -513,7 +513,7 @@ C 类型如 @racket[_long] 或 @racket[_intptr] 在各平台上不是恒定的�
 @racket[m-loop] 涉及对 @racket[n] 的闭包，但编译器
 会自动将闭包转换为将 @racket[n] 作为参数传递给自身。
 
-@section[#:tag "Reachability and Garbage Collection"]{可达性与垃圾回收}
+@section[#:tag "Reachability and Garbage Collection"]{Reachability and Garbage Collection}
 
 一般来说，当垃圾回收器能够证明某个对象从任何其他（可达的）值
 都不可达时，Racket 会重用一个值的存储空间。可达性是一个底层的、
@@ -572,7 +572,7 @@ Racket 提供了 @racket[make-weak-box] 和 @racket[weak-box-value]，
                一个值可能在该收集器看来是可达的，而实际上
                已经无法再访问它了）。}]
 
-@section{弱盒子与测试}
+@section{Weak Boxes and Testing}
 
 弱盒子的一个重要用途是测试某个抽象是否正确
 释放了不再需要的数据的存储空间，但有一个陷阱
@@ -611,7 +611,7 @@ Racket 提供了 @racket[make-weak-box] 和 @racket[weak-box-value]，
 不会被垃圾回收，因此红色的鱼也不会。
 
 
-@section{减少垃圾回收暂停}
+@section{Reducing Garbage Collection Pauses}
 
 默认情况下，Racket 的 @tech{分代垃圾回收器}会为频繁的
 @deftech{小型回收}（仅检查最近分配的对象）产生短暂的暂停，

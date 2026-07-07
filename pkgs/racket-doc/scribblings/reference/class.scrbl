@@ -2383,7 +2383,7 @@ See @racket[subclass?].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objectequality"]{对象相等和哈希}
+@section[#:tag "objectequality"]{Object Equality and Hashing}
 
 By default, objects that are instances of different classes or that
 are instances of a non-transparent class are @racket[equal?] only if
@@ -2592,7 +2592,7 @@ A @racket[print] 请求被定向到 @racket[custom-write].}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "objectutils"]{对象、类和接口实用程序}
+@section[#:tag "objectutils"]{Object, Class, and Interface Utilities}
 
 @defproc[(object? [v any/c]) boolean?]{
 

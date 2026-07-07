@@ -4,7 +4,7 @@
           "rx.rkt"
           (for-syntax racket/base))
 
-@title[#:tag "regexp"]{正则表达式}
+@title[#:tag "regexp"]{Regular Expressions}
 
 @section-index{regexps}
 @section-index{pattern matching}
@@ -62,7 +62,7 @@
 于包含 32,000 个文字字符或 5,000 个运算符的源字符串。
 
 @;------------------------------------------------------------------------
-@section[#:tag "regexp-syntax"]{正则表达式语法}
+@section[#:tag "regexp-syntax"]{Regexp Syntax}
 
 以下语法规范描述了表示正则表达式的字符串的内容。
 相应字符串的语法可能涉及额外的转义字符。例如，正则表达式
@@ -149,7 +149,7 @@ Unicode 类别如下。
 @history[#:changed "8.15.0.8" @elem{Added @litchar{\X} grapheme cluster pattern.}]
 
 @;------------------------------------------------------------------------
-@section{附加语法约束}
+@section[#:tag "regexps-s1"]{Additional Syntactic Constraints}
 
 除了匹配语法之外，正则表达式还必须满足两个语法限制：
 
@@ -180,7 +180,7 @@ Unicode 类别如下。
 @type-table
 
 @;------------------------------------------------------------------------
-@section{正则表达式构造函数}
+@section[#:tag "regexps-s2"]{Regexp Constructors}
 
 @defproc[(regexp? [v any/c]) boolean?]{
 
@@ -353,7 +353,7 @@ byte-@tech{regexp 值}。
 
 
 @;------------------------------------------------------------------------
-@section{正则表达式匹配}
+@section[#:tag "regexps-s3"]{Regexp Matching}
 
 @defproc[(regexp-match [pattern (or/c regexp? byte-regexp? string? bytes?)]
                        [input (or/c string? bytes? path? input-port?)]
@@ -838,7 +838,7 @@ lookbehind 模式，则第一个之后的范围结果可能包含负数。
 @racket[regexp-match/end] 一样的第二个结果。}
 
 @;------------------------------------------------------------------------
-@section{正则表达式分割}
+@section[#:tag "regexps-s4"]{Regexp Splitting}
 
 @defproc[(regexp-split [pattern (or/c regexp? byte-regexp? string? bytes?)]
                        [input (or/c string? bytes? input-port?)]
@@ -878,7 +878,7 @@ lookbehind 模式，则第一个之后的范围结果可能包含负数。
 ]}
 
 @;------------------------------------------------------------------------
-@section{正则表达式替换}
+@section[#:tag "regexps-s5"]{Regexp Substitution}
 
 @defproc[(regexp-replace [pattern (or/c regexp? byte-regexp? string? bytes?)]
                          [input (or/c string? bytes?)]

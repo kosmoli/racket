@@ -29,7 +29,7 @@ current platform, @racket[#f] otherwise.}
 
 @; ------------------------------------------------------------------------
 
-@section{Extflonum 算术}
+@section[#:tag "extflonums-s1"]{Extflonum Arithmetic}
 
 @deftogether[(
 @defproc[(extfl+ [a extflonum?] [b extflonum?]) extflonum?]
@@ -101,14 +101,14 @@ and @racket[fx->fl], but for @tech{extflonums}.
 
 @; ------------------------------------------------------------------------
 
-@section{Extflonum 常量}
+@section[#:tag "extflonums-s2"]{Extflonum Constants}
 
 @defthing[pi.t extflonum?]{
 Like @racket[pi], but with 80 bits precision.}
 
 @; ------------------------------------------------------------------------
 
-@section[#:tag "extflvectors"]{Extflonum Vector}
+@section[#:tag "extflvectors"]{Extflonum Vectors}
 
 一个 @deftech{extflvector} 类似于 @tech{flvector}，但仅存储 @tech{extflonum}。另见 @secref["unsafeextfl"]。
 
@@ -166,7 +166,7 @@ but for @tech{extflvectors}.}
 
 @; ------------------------------------------------------------
 
-@section[#:tag "extflutils"]{Extflonum 字节串}
+@section[#:tag "extflutils"]{Extflonum Byte Strings}
 
 @defproc[(floating-point-bytes->extfl [bstr bytes?]
                                       [big-endian? any/c (system-big-endian?)]
